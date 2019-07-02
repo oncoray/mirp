@@ -1,0 +1,138 @@
+<root>
+    <config>
+        <general>
+            <!-- Configuration string that may be added to distinguish different configuration -->
+            <config_str></config_str>
+            <!-- Whether calculations should be performed in 2D (True) or 3D (False). Default: False -->
+            <by_slice></by_slice>
+        </general>
+        <img_interpolate>
+            <!-- Controls whether interpolation is performed at all. -->
+            <interpolate></interpolate>
+            <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear),2 ,3 (cubic), 4, 5 -->
+            <spline_order></spline_order>
+            <!-- Uniform voxel sizes for interpolation. Units are defined by the headers of the image files. Every value represents the spacing that will be applied in all directions -->
+            <new_spacing></new_spacing>
+            <!-- Non-uniform voxel spacing. Requires 3 values for z, y, and x directions. -->
+            <new_non_iso_spacing></new_non_iso_spacing>
+            <!-- Anti-aliasing filter to reduce aliasing artefacts when down-sampling. Enabled by default (True). -->
+            <anti_aliasing></anti_aliasing>
+            <!-- Smoothing parameter beta for anti-aliasing filter. Must be in range (0.0, 1.0]. At 1.0 no anti-aliasing is performed. Default is 0.95. -->
+            <smoothing_beta></smoothing_beta>
+        </img_interpolate>
+        <roi_interpolate>
+            <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear), 2 (cubic), 3, 4, 5. Nearest neighbour or linear interpolation (default) are recommended. -->
+            <spline_order></spline_order>
+            <!-- Threshold for ROIS with partial volumes after interpolation. Default: 0.5 -->
+            <incl_threshold></incl_threshold>
+        </roi_interpolate>
+        <vol_adapt>
+            <!-- Whether the image may be cut to only maintain the interesting parts. Default: False. Setting this to True speeds up calculations and saves memory. -->
+            <resect></resect>
+            <!-- Number of times noise is randomly added to the image. Used in noise addition image perturbations. Default: 0 -->
+            <noise_repetitions></noise_repetitions>
+            <!-- Manually provided noise level in intensity units. If left unset, noise is determined from the image itself. -->
+            <noise_level></noise_level>
+            <!-- Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial) plane. Used in the rotation image perturbation. Default: 0.0.-->
+            <rot_angles></rot_angles>
+            <!-- Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to shift slightly and interpolate at different points. Used in translation perturbations. Default: 0.0.-->
+            <translate_frac></translate_frac>
+            <!-- Growth/shrinkage of the ROI mask. Interpretations depends on the roi_adapt_size tag. If "distance": growth/shrinkage in world dimension units. If "fraction": growth/shrinkage in volume fraction. Default: 0.0 (no changes)-->
+            <roi_adapt_size></roi_adapt_size>
+            <!-- Type of growth/shrinkage. Can be either fraction or distance (default). fraction is used in the volume growth/shrinkage image perturbation. -->
+            <roi_adapt_type></roi_adapt_type>
+            <!-- Limit to shrinkage of the ROI by distance-based adaptations. Fraction of the original volume. Default: 0.8 (but not used unless roi_adapt_size!=0.0 and roi_adapt_type=distance) -->
+            <eroded_vol_fract></eroded_vol_fract>
+            <!-- Supervoxel-based contour randomisation repetitions for image perturbation. Default: 0 -->
+            <roi_random_rep></roi_random_rep>
+            <!-- There are several settings for roi bulk/rim and heterogeneity-based supervoxel selection that are not documented here. -->
+        </vol_adapt>
+        <roi_resegment>
+            <!-- ROI re-segmentation method for intensity-based re-segmentation. Options are threshold, range, sigma and outlier. Multiple options can be provided,
+            and re-segmentation will take place in the given order. "threshold" and "range" are synonyms, as well as "sigma" and "outlier".
+            If left unset, no re-segmentation is performed.-->
+            <method></method>
+            <!-- Intensity threshold for threshold-based re-segmentation (threshold and range). If set, requires two values for lower and upper range respectively.
+            The upper range value can also be nan for half-open ranges. -->
+            <g_thresh></g_thresh>
+            <!-- Number of standard deviations for outlier-based intensity re-segmentation. 3 is a common setting. -->
+            <sigma></sigma>
+        </roi_resegment>
+        <feature_extr>
+            <!-- Discretisation algorithm. Can be none (default), fixed_bin_number and/or fixed_bin_size. Combinations are possible.-->
+            <discr_method></discr_method>
+            <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. Multiple values are possible. -->
+            <discr_bin_width></discr_bin_width>
+            <!-- Bin number for the fixed_bin_number algorithm. Multiple values are possible. -->
+            <discr_n_bins></discr_n_bins>
+            <!-- Discretisation algorithm for the intensity-volume histogram. Can be none, fixed_bin_number and/or fixed_bin_size. If unset, the image modality determines the algorithm.-->
+            <ivh_discr_method></ivh_discr_method>
+            <!-- Bin number for the fixed_bin_number algorithm. Default: 1000 -->
+            <ivh_discr_n_bins></ivh_discr_n_bins>
+            <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. -->
+            <ivh_discr_bin_width></ivh_discr_bin_width>
+            <!-- Distance (in voxels) for GLCM for determining the neighbourhood. -->
+            <glcm_dist></glcm_dist>
+            <!-- Calculate GLCM in 2D (2d) 2.5D (2.5d) or 3D (3d). Default: same as general/by_slice. -->
+			<glcm_spatial_method></glcm_spatial_method>
+            <!-- How to treat the texture matrices. Can be average (features are calculated from all matrices, then averaged), slice_merge (matrices in the same slice are combined,
+            features calculated and then averaged), dir_merge (matrices with the same direction are combined, features calculated and then averaged) and/or vol_merge (all matrices are combined and a single feature is calculated). -->
+			<glcm_merge_method></glcm_merge_method>
+            <!-- Calculate GLRLM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<glrlm_spatial_method></glrlm_spatial_method>
+            <!-- How to treat the texture matrices. Can be average (features are calculated from all matrices, then averaged), slice_merge (matrices in the same slice are combined,
+            features calculated and then averaged) and/or vol_merge (all matrices are combined and a single feature is calculated). -->
+			<glrlm_merge_method></glrlm_merge_method>
+            <!-- Calculate GLSZM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<glszm_spatial_method></glszm_spatial_method>
+            <!-- Calculate GLDZM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<gldzm_spatial_method></gldzm_spatial_method>
+            <!-- Calculate NGTDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<ngtdm_spatial_method></ngtdm_spatial_method>
+            <!-- Distance (in voxels) for NGLDM for determining the neighbourhood. -->
+            <ngldm_dist></ngldm_dist>
+            <!-- Difference level (alpha) for NGLDM -->
+            <ngldm_diff_lvl></ngldm_diff_lvl>
+            <!-- Calculate NGLDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<ngldm_spatial_method></ngldm_spatial_method>
+        </feature_extr>
+        <img_transform>
+            <!-- General flag for image transformation. Default: False -->
+            <perform_img_transform></perform_img_transform>
+            <!-- Boundary conditions, i.e. how to calculate the filter response for voxels that are less than the filter width removed from the volume edge. -->
+            <boundary_condition></boundary_condition>
+            <!-- Spatial filters to apply. Options: wavelet, laplacian_of_gaussian, laws, mean -->
+            <spatial_filters></spatial_filters>
+            <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets. -->
+            <wavelet_fam></wavelet_fam>
+            <!-- Create rotationally invariant wavelet response maps; True or False -->
+            <wavelet_rot_invar></wavelet_rot_invar>
+            <!-- Create stationary wavelets; True (default) or False (decimation will take place) -->
+            <wavelet_stationary></wavelet_stationary>
+            <!-- Laplacian of Gaussian sigma (in world space units). This specifies the width of the Gaussian filter by its standard deviation. -->
+            <log_sigma></log_sigma>
+            <!-- Number of standard deviations to allow before truncating the Gaussian filter -->
+            <log_sigma_truncate></log_sigma_truncate>
+            <!-- Whether to average over laplacian of gaussian images for different scales; True or False -->
+            <log_average></log_average>
+            <!-- Calculate laws texture energy image, or just the response map; True (default) or False -->
+            <laws_calculate_energy></laws_calculate_energy>
+            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
+            <laws_rot_invar></laws_rot_invar>
+            <!-- Calculate specific laws kernels; all (default) or specific combinations, e.g. L5S5E5, E5E5E5-->
+            <laws_kernel></laws_kernel>
+            <!-- Delta for chebyshev distance between center voxel and neighbourhood boundary used to calculate texture energy: integer, default: 7-->
+            <laws_delta></laws_delta>
+            <!-- Filter size for mean filter. -->
+            <mean_filter_size></mean_filter_size>
+        </img_transform>
+        <deep_learning>
+            <!--Expected size of image and mask. If 2 values are provided, cropping is performed on the x-y plane. If 3 values are provided, cropping is performed along every direction, in z, y, x order-->
+            <expected_size></expected_size>
+            <!--Type of image intensity normalisation performed. Can be one of none, range, standardisation.-->
+            <normalisation></normalisation>
+            <!--Image intensity range. Intensities outside this range receive the nearest valid value-->
+            <intensity_range></intensity_range>
+        </deep_learning>
+    </config>
+</root>

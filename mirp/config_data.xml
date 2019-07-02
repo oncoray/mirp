@@ -1,0 +1,39 @@
+<root>
+    <config>
+        <paths>
+            <!--Full path to main image data folder-->
+            <project_folder></project_folder>
+            <!--Full path to folder where data is to be written to-->
+            <write_folder></write_folder>
+            <!--Cohort name which is appended to the feature tables-->
+            <cohort></cohort>
+            <!--Subjects to be excluded. All others are included-->
+            <subject_exclude></subject_exclude>
+            <!--Subjects to be included. All others are excluded-->
+            <subject_include></subject_include>
+            <!--Extract diagnostic parameters. Can be True or False-->
+            <provide_diagnostics></provide_diagnostics>
+        </paths>
+        <!-- Data tags can be added multiple times -->
+        <data>
+            <!--Image modality. Can be CT, PT, MR.-->
+            <modality></modality>
+            <!--Relative path to image folder. The expected path is constructed as project_folder/subject_name/image_folder. If the data is directly under subject_name, use subject_dir-->
+            <image_folder></image_folder>
+            <!--Relative path to ROI folder. The expected path is constructed as project_folder/subject_name/roi_folder. If the ROI data is directly under subject_name, use subject_dir-->
+            <roi_folder></roi_folder>
+            <!--Relative path to the image set that was used to define the ROI. If left empty, imaging in image_folder are assumed. If provided, both imaging data sets should have the same spatial reference.-->
+            <roi_reg_img_folder></roi_reg_img_folder>
+            <!--Names of the ROIs to be extracted. In case multiple ROIs should be combined, use the following syntax {roi_1 & roi_2 & roi_3} to indicate ROIs that should be merged.-->
+            <roi_names></roi_names>
+            <!--ROI naming may not be standardized between samples, and a table can be provided instead of roi_names. This is the path to a csv file with samples and roi names. Column names should be sample_id and roi_name. Multiple ROIs for one patient should be in separate rows. ROIs can be combined using the syntax described above.-->
+            <roi_list_path></roi_list_path>
+            <!--Determines what should happen with disconnected ROIs within the same structure. Can be combine (default) which keeps the ROI as is, or keep_largest which maintains only the largest of the disconnected volumes.-->
+            <divide_disconnected_roi></divide_disconnected_roi>
+            <!--String that is prepended to data. Can be left empty.-->
+            <data_str></data_str>
+            <!--Name of settings configuration to be used for the current data. If not provided, all configurations are used.-->
+            <extraction_config></extraction_config>
+        </data>
+    </config>
+</root>
