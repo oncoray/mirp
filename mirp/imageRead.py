@@ -178,113 +178,112 @@ def load_image(image_folder, settings, roi_folder=None, roi_reg_img_folder=None,
 
 def read_basic_image_characteristics(image_folder, folder_contains=None):
 
-    # Check folder contents
+    # Check folder contents, keep only files that are recognised as images.
     file_list = os.listdir(image_folder)
+    file_list = [file_name for file_name in file_list if not os.path.isdir(os.path.join(image_folder, file_name))]
+    file_list = [file_name for file_name in file_list if file_name.lower().endswith((".dcm", ".ima", ".nii", ".nii.gz", ".nrrd"))]
 
     # File characteristics (file name, image type, modality, etc)
     list_char = []
 
     for file_name in file_list:
 
-        # Inspect files to determine image characteristics
-        if file_name.lower().endswith((".dcm", ".ima", ".nii", ".nii.gz", ".nrrd")):
+        # Check whether file name contains proper characters
+        file_name = check_file_name(file_name=file_name, file_path=image_folder)
 
-            # Check whether file name contains proper characters
-            file_name = check_file_name(file_name=file_name, file_path=image_folder)
+        # Set path to current file
+        file_path = os.path.normpath(os.path.join(image_folder, file_name))
 
-            # Set path to current file
-            file_path = os.path.normpath(os.path.join(image_folder, file_name))
+        # Set file type
+        if file_name.lower().endswith((".dcm", ".ima")): img_file_type = "dicom"
+        elif file_name.lower().endswith((".nii", ".nii.gz")): img_file_type = "nifti"
+        elif file_name.lower().endswith(".nrrd"): img_file_type = "nrrd"
+        else: img_file_type = "unknown"
 
-            # Set file type
-            if file_name.lower().endswith((".dcm", ".ima")): img_file_type = "dicom"
-            elif file_name.lower().endswith((".nii", ".nii.gz")): img_file_type = "nifti"
-            elif file_name.lower().endswith(".nrrd"): img_file_type = "nrrd"
-            else: img_file_type = "unknown"
+        # Try to read file and get voxel grid data
+        try:
+            sitk_img = sitk.ReadImage(file_path)
+            import_successful = True
+        except:
+            import_successful = False
 
-            # Try to read file and get voxel grid data
-            try:
-                sitk_img = sitk.ReadImage(file_path)
-                import_successful = True
-            except:
-                import_successful = False
+        # If simple ITK was able to read the data
+        if import_successful:
 
-            # If simple ITK was able to read the data
-            if import_successful:
+            # Load spatial data: note that simple ITK reads in (x,y,z) order
+            img_origin    = np.array(sitk_img.GetOrigin())
+            img_spacing   = np.array(sitk_img.GetSpacing())
+            img_dimension = np.array(sitk_img.GetSize())
 
-                # Load spatial data: note that simple ITK reads in (x,y,z) order
-                img_origin    = np.array(sitk_img.GetOrigin())
-                img_spacing   = np.array(sitk_img.GetSpacing())
-                img_dimension = np.array(sitk_img.GetSize())
-
-                # Determine modality
-                if img_file_type == "dicom":
-                    # From file meta information
-                    img_modality = sitk_img.GetMetaData("0008|0060")
+            # Determine modality
+            if img_file_type == "dicom":
+                # From file meta information
+                img_modality = sitk_img.GetMetaData("0008|0060")
+            else:
+                # From file name
+                if "MR" in file_name:    img_modality = "MR"
+                elif "PET" in file_name: img_modality = "PT"
+                elif ("PT" in file_name) and ("PTV" not in file_name): img_modality = "PT"
+                elif ("CT" in file_name) and ("CTV" not in file_name): img_modality = "CT"
                 else:
-                    # From file name
-                    if "MR" in file_name:    img_modality = "MR"
-                    elif "PET" in file_name: img_modality = "PT"
-                    elif ("PT" in file_name) and ("PTV" not in file_name): img_modality = "PT"
-                    elif ("CT" in file_name) and ("CTV" not in file_name): img_modality = "CT"
+                    if folder_contains is not None and len(file_list) == 1:
+                        img_modality = folder_contains
                     else:
-                        if folder_contains is not None and len(file_list) == 1:
-                            img_modality = folder_contains
+                        img_vox = sitk.GetArrayFromImage(sitk_img)
+                        if (np.min(img_vox) == 0 or np.min(img_vox) == 1) and np.max(img_vox) == 1:
+                            img_modality = "SEG"
                         else:
-                            img_vox = sitk.GetArrayFromImage(sitk_img)
-                            if (np.min(img_vox) == 0 or np.min(img_vox) == 1) and np.max(img_vox) == 1:
-                                img_modality = "SEG"
-                            else:
-                                img_modality = "unknown"
+                            img_modality = "unknown"
 
-                # In DICOM, update spacing with slice thickness as z-spacing
-                if img_file_type == "dicom":
-                    img_spacing[2] = get_sitk_dicom_meta_tag(sitk_img=sitk_img, tag="0018|0050", tag_type="float", default=2.0)
+            # In DICOM, update spacing with slice thickness as z-spacing
+            if img_file_type == "dicom":
+                img_spacing[2] = get_sitk_dicom_meta_tag(sitk_img=sitk_img, tag="0018|0050", tag_type="float", default=2.0)
 
-                # Set characteristics
-                df_char_curr = pd.Series({"file_name":        file_name,
-                                          "file_path":        file_path,
-                                          "file_type":        img_file_type,
-                                          "modality":         img_modality,
-                                          "size_x":           img_dimension[0],
-                                          "size_y":           img_dimension[1],
-                                          "size_z":           img_dimension[2],
-                                          "spacing_x":        img_spacing[0],
-                                          "spacing_y":        img_spacing[1],
-                                          "spacing_z":        img_spacing[2],
-                                          "pos_x":            img_origin[0],
-                                          "pos_y":            img_origin[1],
-                                          "pos_z":            img_origin[2]})
+            # Set characteristics
+            df_char_curr = pd.Series({"file_name":        file_name,
+                                      "file_path":        file_path,
+                                      "file_type":        img_file_type,
+                                      "modality":         img_modality,
+                                      "size_x":           img_dimension[0],
+                                      "size_y":           img_dimension[1],
+                                      "size_z":           img_dimension[2],
+                                      "spacing_x":        img_spacing[0],
+                                      "spacing_y":        img_spacing[1],
+                                      "spacing_z":        img_spacing[2],
+                                      "pos_x":            img_origin[0],
+                                      "pos_y":            img_origin[1],
+                                      "pos_z":            img_origin[2]})
+
+            # Append data frame to list
+            list_char.append(df_char_curr)
+
+        else:
+            # Parse data where Simple ITK fails
+            if not file_name.lower().endswith('.dcm'): continue
+
+            # Read DICOM file using pydicom
+            dcm = pydicom.dcmread(image_folder + "/" + file_name, stop_before_pixels=True, force=True)
+
+            # Determine modality
+            img_modality = dcm.Modality
+
+            if dcm.Modality == "RTSTRUCT":
+                df_char_curr = pd.Series({"file_name": file_name,
+                                          "file_path": file_path,
+                                          "file_type": img_file_type,
+                                          "modality":  img_modality,
+                                          "size_x":    -1,
+                                          "size_y":    -1,
+                                          "size_z":    -1,
+                                          "spacing_x": np.nan,
+                                          "spacing_y": np.nan,
+                                          "spacing_z": np.nan,
+                                          "pos_x":     np.nan,
+                                          "pos_y":     np.nan,
+                                          "pos_z":     np.nan})
 
                 # Append data frame to list
                 list_char.append(df_char_curr)
-
-            else:
-                # Parse data where Simple ITK fails
-                if not file_name.lower().endswith('.dcm'): continue
-
-                # Read DICOM file using pydicom
-                dcm = pydicom.dcmread(image_folder + "/" + file_name, stop_before_pixels=True, force=True)
-
-                # Determine modality
-                img_modality = dcm.Modality
-
-                if dcm.Modality == "RTSTRUCT":
-                    df_char_curr = pd.Series({"file_name": file_name,
-                                              "file_path": file_path,
-                                              "file_type": img_file_type,
-                                              "modality":  img_modality,
-                                              "size_x":    -1,
-                                              "size_y":    -1,
-                                              "size_z":    -1,
-                                              "spacing_x": np.nan,
-                                              "spacing_y": np.nan,
-                                              "spacing_z": np.nan,
-                                              "pos_x":     np.nan,
-                                              "pos_y":     np.nan,
-                                              "pos_z":     np.nan})
-
-                    # Append data frame to list
-                    list_char.append(df_char_curr)
 
     # Concatenate list of data frames to single data frame
     df_char = pd.concat(list_char, axis=1).T
