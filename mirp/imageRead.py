@@ -461,7 +461,8 @@ def import_segment_from_volume(df_char, req_roi_names):
                 merge_roi_list += [RoiClass(name=current_roi, contour=None, roi_mask=roi_map_obj)]
 
         # Combine ROI objects to a single ROI
-        roi_list += [merge_roi_objects(roi_list=merge_roi_list)]
+        if len(merge_roi_list) > 0:
+            roi_list += [merge_roi_objects(roi_list=merge_roi_list)]
 
     return roi_list
 
