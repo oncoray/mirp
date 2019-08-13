@@ -13,7 +13,10 @@ def saturate_image(img_obj, intensity_range, fill_value):
     return img_obj
 
 
-def normalise_image(img_obj, norm_method, intensity_range=[np.nan, np.nan]):
+def normalise_image(img_obj, norm_method, intensity_range=None):
+
+    if intensity_range is None:
+        intensity_range = [np.nan, np.nan]
 
     # Normalise intensities
     img_obj.normalise_intensities(norm_method=norm_method, intensity_range=intensity_range)

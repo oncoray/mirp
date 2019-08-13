@@ -1,13 +1,20 @@
 import copy
+import os
+import warnings
+from typing import Union
 
 import numpy as np
 import pandas as pd
+from pydicom import FileDataset
+
+from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
 
 
 class ImageClass:
     # Class for image volumes
 
-    def __init__(self, voxel_grid, origin, slice_z_pos, spacing, orientation, modality=None, spat_transform="base", no_image=False):
+    def __init__(self, voxel_grid, origin, slice_z_pos, spacing, orientation, modality=None, spat_transform="base", no_image=False,
+                 metadata=None):
         self.origin   = origin    # Coordinates of [0,0,0] voxel in mm
         self.spacing  = spacing   # Voxel spacing in mm
         self.slice_z_pos = np.array(slice_z_pos)    # Position along stack axis
@@ -51,6 +58,9 @@ class ImageClass:
             self.set_voxel_grid(voxel_grid=voxel_grid)
         else:
             self.is_missing = True
+
+        # Set metadata and a list of update tags
+        self.metadata: Union[FileDataset, None] = metadata
 
     def copy(self, drop_image=False):
         # Creates a new copy of the image object
@@ -654,6 +664,51 @@ class ImageClass:
         if sitk_img is not None:
             sitk.WriteImage(sitk_img, file_path, True)
 
+    def write_dicom(self, file_path, file_name, bit_depth=16):
+        if self.metadata is None:
+            raise ValueError(f"Image slice cannot be written to DICOM as metadata is missing.")
+
+        # Set pixeldata
+        self.set_pixel_data(bit_depth=bit_depth)
+
+        # Remove 0x0002 group data.
+        for filemeta_tag in list(self.metadata.group_dataset(0x0002).keys()):
+            del self.metadata[filemeta_tag]
+
+        # Save to file
+        self.metadata.save_as(filename=os.path.join(file_path, file_name), write_like_original=False)
+
+    def write_dicom_series(self, file_path, file_name="", bit_depth=16):
+        if self.metadata is None:
+            raise ValueError(f"Image cannot be written as a DICOM series as metadata is missing.")
+
+        # Check if the write folder exists
+        if not os.path.isdir(file_path):
+
+            if os.path.isfile(file_path):
+                # Check if the write folder is a file.
+                raise IOError(f"{file_path} is an existing file, not a directory. No DICOM images were exported.")
+            else:
+                os.makedirs(file_path, exist_ok=True)
+
+        if self.modality == "PT":
+            # Update the number of slices attribute.
+            self.set_metadata(tag=(0x0054, 0x0081), value=self.size[0])
+
+        # Export per slice
+        for ii in np.arange(self.size[0]):
+            # Obtain the slice
+            slice_obj: ImageClass = self.get_slices(slice_number=ii)[0]
+
+            # Generate the file name
+            slice_file_name = file_name + f"{ii:06d}" + ".dcm"
+
+            # Set instance number
+            slice_obj.set_metadata(tag=(0x0020, 0x0013), value=ii)
+
+            # Export
+            slice_obj.write_dicom(file_path=file_path, file_name=slice_file_name, bit_depth=bit_depth)
+
     def get_slices(self, slice_number=None):
 
         img_obj_list = []
@@ -716,3 +771,120 @@ class ImageClass:
         """Drops image, e.g. to free up memory. We don't set the is_m"""
         self.isEncoded_voxel_grid = None
         self.voxel_grid = None
+
+    def get_metadata(self, tag, tag_type, default=None):
+        # Do not attempt to read the metadata if no metadata is present.
+        if self.metadata is None:
+            return
+
+        return get_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, tag_type=tag_type, default=default)
+
+    def set_metadata(self, tag, value, force_vr=None):
+
+        # Do not update the metadata if no metadata is present.
+        if self.metadata is None:
+            return None
+
+        set_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, value=value, force_vr=force_vr)
+
+    def update_image_plane_metadata(self):
+        # Update pixel spacing, image orientation, image position, slice thickness, slice location, rows and columns based on the image object
+
+        # Do not update the metadata if no metadata is present.
+        if self.metadata is None:
+            return
+
+        # Pixel spacing
+        pixel_spacing = [self.spacing[2], self.spacing[1]]
+        self.set_metadata(tag=(0x0028, 0x0030), value=pixel_spacing)
+
+        # Image orientation
+        image_orientation = self.orientation[::-1][:6]
+        self.set_metadata(tag=(0x0020, 0x0037), value=image_orientation)
+
+        # Image position
+        self.set_metadata(tag=(0x0020, 0x0032), value=self.origin[::-1])
+
+        # Slice thickness
+        self.set_metadata(tag=(0x0018, 0x0050), value=self.spacing[0])
+
+        # Slice location
+        self.set_metadata(tag=(0x0020, 0x1041), value=self.origin[0])
+
+        # Rows (y)
+        self.set_metadata(tag=(0x0028, 0x0010), value=self.size[1])
+
+        # Columns (x)
+        self.set_metadata(tag=(0x0028, 0x0011), value=self.size[2])
+
+    def set_pixel_data(self, bit_depth=16):
+        # Important tags to update:
+
+        if self.metadata is None:
+            return
+
+        if self.size[0] > 1:
+            warnings.warn("Cannot set pixel data for image with more than one slice.", UserWarning)
+            return
+
+        # Set dtype for the image
+        if bit_depth == 8:
+            pixel_type = np.int8
+        elif bit_depth == 16:
+            pixel_type = np.int16
+        elif bit_depth == 32:
+            pixel_type = np.int32
+        elif bit_depth == 64:
+            pixel_type = np.int64
+        else:
+            raise ValueError(f"Bit depth of DICOM images should be one of 8, 16 (default), 32, or 64., Found: {bit_depth}")
+
+        # Update metadata related to the image data
+        self.update_image_plane_metadata()
+
+        pixel_grid = np.squeeze(self.get_voxel_grid(), axis=0)
+
+        # Always write 16-bit data
+        self.set_metadata(tag=(0x0028, 0x0100), value=bit_depth)  # Bits allocated
+        self.set_metadata(tag=(0x0028, 0x0101), value=bit_depth)  # Bits stored
+        self.set_metadata(tag=(0x0028, 0x0102), value=bit_depth-1)  # High-bit
+
+        # Standard settings for lowest and highest pixel value
+        if self.modality == "CT" and self.spat_transform == "base":
+            rescale_intercept = 0.0
+            rescale_slope = 1.0
+
+        elif self.modality == "PT" and self.spat_transform == "base":
+            rescale_intercept = 0.0
+            rescale_slope = np.max(pixel_grid) / (2 ** (bit_depth - 1) - 1)
+
+        elif self.modality == "MR" and self.spat_transform == "base":
+            rescale_intercept = 0.0
+            rescale_slope = 1.0
+
+        elif self.modality in ["CT", "PT", "MR"] and self.spat_transform != "base":
+            dcm_range = float(2 ** bit_depth - 1)
+            rescale_intercept = np.min(pixel_grid)
+            rescale_slope = (np.max(pixel_grid) - np.min(pixel_grid)) / dcm_range
+
+        else:
+            raise TypeError(f"Unknown modality {self.modality}")
+
+        # Inverse rescaling prior to dicom storage
+        pixel_grid = (pixel_grid - rescale_intercept) / rescale_slope
+
+        # Convert back to int16
+        pixel_grid = pixel_grid.astype(pixel_type)
+
+        # Store to PixelData
+        self.set_metadata(tag=(0x7fe0, 0x0010), value=pixel_grid.tobytes(), force_vr="OW")
+
+        # Update rescale intercept and slope
+        self.set_metadata(tag=(0x0028, 0x1052), value=rescale_intercept)
+        self.set_metadata(tag=(0x0028, 0x1053), value=rescale_slope)
+
+        # Update smallest and largest image pixel value. Cannot set more than 16 bits due to limitations of the
+        # tag.
+        if bit_depth == 16:
+            self.set_metadata(tag=(0x0028, 0x0106), value=np.min(pixel_grid))
+            self.set_metadata(tag=(0x0028, 0x0107), value=np.max(pixel_grid))

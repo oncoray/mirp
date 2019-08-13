@@ -1,11 +1,14 @@
 import copy
 import logging
+from typing import Union
 
 import numpy as np
 import pandas as pd
+from pydicom import FileDataset
 
 from mirp.contourClass import ContourClass
 from mirp.imageClass import ImageClass
+from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
 
 
 def merge_roi_objects(roi_list):
@@ -69,10 +72,7 @@ def merge_roi_objects(roi_list):
 class RoiClass:
     # Class for regions of interest
 
-    def __init__(self, name, contour, roi_mask=None, g_range=np.array([np.nan, np.nan]), incl_threshold=0.5):
-        """"Set initial variables
-        :type roi_mask: ImageClass
-        """
+    def __init__(self, name, contour, roi_mask=None, g_range=np.array([np.nan, np.nan]), incl_threshold=0.5, metadata=None):
 
         self.name = name
         if contour is not None:
@@ -91,24 +91,28 @@ class RoiClass:
         self.svx_randomisation_id = -1          # Randomisation id for supervoxel roi randomisation
 
         # ROI masks
-        self.roi = roi_mask              # Union of intensity and morphology masks
-        self.roi_intensity = None       # Intensity mask of the ROI
-        self.roi_morphology = None      # Morphological mask of the ROI
+        self.roi: Union[ImageClass, None] = roi_mask             # Union of intensity and morphology masks
+        self.roi_intensity: Union[ImageClass, None] = None       # Intensity mask of the ROI
+        self.roi_morphology: Union[ImageClass, None] = None      # Morphological mask of the ROI
 
         # Diagnostics features
         self.diagnostic_list = []
+        self.metadata: FileDataset = metadata
 
     def copy(self):
         # Creates a new copy of the roi
         return copy.deepcopy(self)
 
-    def create_mask_from_contours(self, img_obj, settings, draw_method="ray_cast"):
+    def create_mask_from_contours(self, img_obj, draw_method="ray_cast", disconnected_segments="keep_as_is", settings=None):
         # Creates an image based on provided contours
 
         # Skip if image object is empty
         if img_obj.is_missing:
             self.roi = None
             return
+
+        if settings is not None:
+            disconnected_segments = settings.general.divide_disconnected_roi
 
         # Create an empty roi volume
         roi_mask = np.zeros(img_obj.size, dtype=np.bool)
@@ -125,7 +129,7 @@ class RoiClass:
                     slice_id = slice_list[ii]
                     roi_mask[slice_id, :, :] = np.logical_or(roi_mask[slice_id, :, :], mask_list[ii])
 
-        if settings.general.divide_disconnected_roi == "keep_largest":
+        if disconnected_segments == "keep_largest":
             # Check if the created roi mask consists of multiple, separate segments, and keep only the largest.
             import skimage.measure
 
@@ -952,3 +956,35 @@ class RoiClass:
             roi_obj_list += [slice_roi_obj]
 
         return roi_obj_list
+
+    def write_dicom(self, file_path, file_name="RS.dcm"):
+        import os
+
+        if self.metadata is None:
+            return None
+
+        # Check if the write folder exists
+        if not os.path.isdir(file_path):
+
+            if os.path.isfile(file_path):
+                # Check if the write folder is a file.
+                raise IOError(f"{file_path} is an existing file, not a directory. No DICOM images were exported.")
+            else:
+                os.makedirs(file_path, exist_ok=True)
+
+        self.metadata.save_as(filename=os.path.join(file_path, file_name), write_like_original=False)
+
+    def get_metadata(self, tag, tag_type, default=None):
+        # Do not attempt to read the metadata if no metadata is present.
+        if self.metadata is None:
+            return
+
+        return get_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, tag_type=tag_type, default=default)
+
+    def set_metadata(self, tag, value, force_vr=None):
+
+        # Do not update the metadata if no metadata is present.
+        if self.metadata is None:
+            return None
+
+        set_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, value=value, force_vr=force_vr)
