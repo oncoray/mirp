@@ -1,5 +1,6 @@
 import numpy as np
 
+from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
 
 
@@ -24,7 +25,7 @@ class LawsFilter:
         # Normalise filters?
         self.kernel_normalise = True
 
-    def apply_transformation(self, img_obj, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+    def apply_transformation(self, img_obj: ImageClass, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
 
         feat_list = []
 
@@ -56,11 +57,14 @@ class LawsFilter:
         img_laws_obj = img_obj.copy(drop_image=True)
 
         # Set spatial transformation filter string
-        img_laws_obj.spat_transform = "laws_" + "".join(filter_set[0])
+        spat_transform = "laws_" + "".join(filter_set[0])
         if self.calculate_energy:
-            img_laws_obj.spat_transform += "_energy"
+            spat_transform += "_energy"
         if self.rot_invariance:
-            img_laws_obj.spat_transform += "_invar"
+            spat_transform += "_invar"
+
+        # Set the transform
+        img_laws_obj.set_spatial_transform(spat_transform)
 
         # Skip transformation in case the input image is missing
         if img_obj.is_missing:

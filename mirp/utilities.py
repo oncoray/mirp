@@ -1,3 +1,4 @@
+import os
 from collections import Counter
 from itertools import product
 
@@ -77,3 +78,9 @@ def get_most_common_element(input_list):
     counts = Counter(input_list)
 
     return counts.most_common(n=1)[0][0]
+
+def get_version():
+    with open(os.path.join("..", 'VERSION.txt')) as version_file:
+        version = version_file.read().strip()
+
+    return version

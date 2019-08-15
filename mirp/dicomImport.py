@@ -123,7 +123,8 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
                          modality=get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str"),
                          spat_transform="base",
                          no_image=False,
-                         metadata=slice_dcm_list[0])
+                         metadata=slice_dcm_list[0],
+                         metadata_sop_instances=[get_pydicom_meta_tag(dcm_seq=slice_dcm, tag=(0x0008, 0x0018), tag_type="str") for slice_dcm in slice_dcm_list])
 
     return img_obj
 

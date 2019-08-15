@@ -1,7 +1,7 @@
 import numpy as np
 
 from mirp.imageProcess import calculate_features
-
+from mirp.imageClass import ImageClass
 
 class LaplacianOfGaussianFilter:
 
@@ -14,7 +14,7 @@ class LaplacianOfGaussianFilter:
         # In-slice (2D) or 3D filtering
         self.by_slice = settings.general.by_slice
 
-    def apply_transformation(self, img_obj, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+    def apply_transformation(self, img_obj: ImageClass, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
         """Run feature extraction for transformed data"""
 
         feat_list = []
@@ -66,7 +66,7 @@ class LaplacianOfGaussianFilter:
         img_log_obj = img_obj.copy(drop_image=True)
 
         # Set spatial transformation string for average laplacian of gaussian image
-        img_log_obj.spat_transform = "log"
+        img_log_obj.set_spatial_transform("log")
 
         # Skip transformation if input image is missing
         if img_obj.is_missing:
@@ -100,7 +100,7 @@ class LaplacianOfGaussianFilter:
 
         if sigma == 0.0:
             # Set spatial transformation string for transformed object
-            img_log_obj.spat_transform = "lapl"
+            img_log_obj.set_spatial_transform("lapl")
 
             # Skip transform in case the input image is missing
             if img_obj.is_missing:
@@ -111,7 +111,7 @@ class LaplacianOfGaussianFilter:
 
         elif sigma > 0.0:
             # Set spatial transformation string for transformed object
-            img_log_obj.spat_transform = "log_s" + str(np.max(sigma))
+            img_log_obj.set_spatial_transform("log_s" + str(np.max(sigma)))
 
             # Skip transform in case the input image is missing
             if img_obj.is_missing:

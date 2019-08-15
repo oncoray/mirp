@@ -1,5 +1,6 @@
 import numpy as np
 
+from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
 
 
@@ -26,7 +27,7 @@ class WaveletFilter:
         # In-slice (2D) or 3D wavelet filters
         self.by_slice = settings.general.by_slice
 
-    def apply_transformation(self, img_obj, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+    def apply_transformation(self, img_obj: ImageClass, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
         """Run feature computation and/or image extraction for transformed data"""
         feat_list = []
 
@@ -105,9 +106,9 @@ class WaveletFilter:
 
         # Set spatial transformation string for transformed object
         if self.rot_invariance:
-            img_wav_obj.spat_transform = "wav_" + self.wavelet_fam + "_" + filter_set[0] + "_invar"
+            img_wav_obj.set_spatial_transform("wav_" + self.wavelet_fam + "_" + filter_set[0] + "_invar")
         else:
-            img_wav_obj.spat_transform = "wav_" + self.wavelet_fam + "_" + filter_set[0]
+            img_wav_obj.set_spatial_transform("wav_" + self.wavelet_fam + "_" + filter_set[0])
 
         # Skip transformations in case the image is missing
         if img_obj.is_missing:

@@ -1,5 +1,6 @@
 import numpy as np
 
+from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
 
 
@@ -12,7 +13,7 @@ class MeanFilter:
         # In-slice (2D) or 3D filtering
         self.by_slice = settings.general.by_slice
 
-    def apply_transformation(self, img_obj, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+    def apply_transformation(self, img_obj: ImageClass, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
         """Run feature extraction for transformed data"""
 
         feat_list = []
@@ -47,7 +48,7 @@ class MeanFilter:
         img_trans_obj = img_obj.copy(drop_image=True)
 
         # Set spatial transformation string for transformed object
-        img_trans_obj.spat_transform = "mean"
+        img_trans_obj.set_spatial_transform("mean")
 
         # Skip transform in case the input image is missing
         if img_obj.is_missing:

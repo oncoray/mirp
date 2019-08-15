@@ -1,20 +1,21 @@
 import copy
 import os
+import time
 import warnings
 from typing import Union
 
 import numpy as np
 import pandas as pd
-from pydicom import FileDataset
+from pydicom import FileDataset, Sequence, Dataset
 
-from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
-
+from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag, create_new_uid
+from mirp.utilities import get_version
 
 class ImageClass:
     # Class for image volumes
 
     def __init__(self, voxel_grid, origin, slice_z_pos, spacing, orientation, modality=None, spat_transform="base", no_image=False,
-                 metadata=None):
+                 metadata=None, metadata_sop_instances=None):
         self.origin   = origin    # Coordinates of [0,0,0] voxel in mm
         self.spacing  = spacing   # Voxel spacing in mm
         self.slice_z_pos = np.array(slice_z_pos)    # Position along stack axis
@@ -61,6 +62,8 @@ class ImageClass:
 
         # Set metadata and a list of update tags
         self.metadata: Union[FileDataset, None] = metadata
+        self.as_parametric_map = False
+        self.metadata_sop_instances = metadata_sop_instances
 
     def copy(self, drop_image=False):
         # Creates a new copy of the image object
@@ -341,17 +344,20 @@ class ImageClass:
             # Set the updated voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
 
-    def normalise_intensities(self, norm_method="none", intensity_range=[np.nan, np.nan]):
+    def normalise_intensities(self, norm_method="none", intensity_range=None):
         """
         Normalises image intensities
         :param norm_method: string defining the normalisation method. Should be one of "none", "range", "standardisation"
-        :intensity_range: range of intensities for normalisation
+        :param intensity_range: range of intensities for normalisation
         :return:
         """
 
         # Skip for missing images
         if self.is_missing:
             return
+
+        if intensity_range is None:
+            intensity_range = [np.nan, np.nan]
 
         if norm_method == "none":
             return
@@ -552,6 +558,15 @@ class ImageClass:
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_grid)
 
+    def set_spatial_transform(self, transform_method: str):
+
+        if transform_method == "base":
+            self.spat_transform = "base"
+
+        else:
+            self.spat_transform = transform_method
+            self.as_parametric_map = True
+
     def compute_diagnostic_features(self, append_str=""):
         """Creates diagnostic features for the image stack"""
 
@@ -600,26 +615,39 @@ class ImageClass:
         Generates an image descriptor based on parameters of the image
         :return:
         """
-        img_append_str = ""
+
+        descr_list = []
 
         # Image name and spatial transformation
         if self.name is not None:
-            img_append_str += self.name + "_" + self.spat_transform
+            descr_list += [self.name]
 
+        if self.interpolated:
             # Interpolation
-            img_append_str += "_intx" + str(self.spacing[2]) + "y" + str(self.spacing[1]) + "z" + str(self.spacing[2])
+            descr_list += [self.interpolation_algorithm,
+                           "x", str(self.spacing[2])[:5],
+                           "y", str(self.spacing[1])[:5],
+                           "z", str(self.spacing[0])[:5]]
 
         if self.rotation_angle != 0.0:
             # Rotation angle
-            img_append_str += "_rot" + str(self.rotation_angle)
+            descr_list += ["rot", str(self.rotation_angle)[:5]]
+
         if not (self.transl_fraction_x == 0.0 and self.transl_fraction_y == 0.0 and self.transl_fraction_z == 0.0):
             # Translation fraction
-            img_append_str += "_trx" + str(self.transl_fraction_x) + "y" + str(self.transl_fraction_y) + str(self.transl_fraction_z)
+            descr_list += ["trans",
+                           "x", str(self.transl_fraction_x)[:5],
+                           "y", str(self.transl_fraction_y)[:5],
+                           "z", str(self.transl_fraction_z)[:5]]
+
         if self.noise != -1.0:
             # Noise level
-            img_append_str += "_noise_lvl" + str(self.noise) + "_iter" + str(self.noise_iter)
+            descr_list += ["noise", str(self.noise)[:5], "iter", str(self.noise_iter)]
 
-        return img_append_str
+        if not self.spat_transform == "base":
+            descr_list += [self.spat_transform]
+
+        return "_".join(descr_list)
 
     def convert2sitk(self):
         """Converts image object back to Simple ITK
@@ -691,6 +719,12 @@ class ImageClass:
             else:
                 os.makedirs(file_path, exist_ok=True)
 
+        if self.as_parametric_map:
+            self._convert_to_parametric_map_iod()
+
+        # Provide a new series UID
+        self.set_metadata(tag=(0x0020, 0x000e), value=create_new_uid(dcm=self.metadata))
+
         if self.modality == "PT":
             # Update the number of slices attribute.
             self.set_metadata(tag=(0x0054, 0x0081), value=self.size[0])
@@ -706,6 +740,13 @@ class ImageClass:
             # Set instance number
             slice_obj.set_metadata(tag=(0x0020, 0x0013), value=ii)
 
+            # Update the SOP instance UID to avoid collisions
+            slice_obj.set_metadata(tag=(0x0008, 0x0018), value=create_new_uid(dcm=slice_obj.metadata))
+
+            # Update instance creation date and time
+            slice_obj.set_metadata(tag=(0x0008, 0x0012), value=time.strftime("%Y%m%d"))
+            slice_obj.set_metadata(tag=(0x0008, 0x0013), value=time.strftime("%H%M%S"))
+
             # Export
             slice_obj.write_dicom(file_path=file_path, file_name=slice_file_name, bit_depth=bit_depth)
 
@@ -718,7 +759,6 @@ class ImageClass:
 
         # Remove attributes that need to be set
         base_img_obj.slice_z_pos = None
-        base_img_obj.origin = None
         base_img_obj.isEncoded_voxel_grid = None
         base_img_obj.voxel_grid = None
         base_img_obj.size = None
@@ -733,8 +773,8 @@ class ImageClass:
                 slice_img_obj = copy.deepcopy(base_img_obj)
 
                 # Update origin and slice position
-                slice_img_obj.origin = self.origin + ii * self.spacing[0]
-                slice_img_obj.slice_z_pos = np.array(self.origin[0])
+                slice_img_obj.origin[0] += ii * slice_img_obj.spacing[0]
+                slice_img_obj.slice_z_pos = np.array(slice_img_obj.origin[0])
 
                 # Update name
                 if slice_img_obj.name is not None:
@@ -751,8 +791,8 @@ class ImageClass:
             slice_img_obj = copy.deepcopy(base_img_obj)
 
             # Update origin and slice position
-            slice_img_obj.origin = self.origin + slice_number * self.spacing[0]
-            slice_img_obj.slice_z_pos = np.array(self.origin[0])
+            slice_img_obj.origin[0] += slice_number * slice_img_obj.spacing[0]
+            slice_img_obj.slice_z_pos = np.array(slice_img_obj.origin[0])
 
             # Update name
             if slice_img_obj.name is not None:
@@ -786,6 +826,34 @@ class ImageClass:
             return None
 
         set_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, value=value, force_vr=force_vr)
+
+    def has_metadata(self, tag):
+
+        if self.metadata is None:
+            return None
+
+        else:
+            return get_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, test_tag=True)
+
+    def delete_metadata(self, tag):
+        if self.metadata is None:
+            return None
+
+        elif self.has_metadata(tag):
+            del self.metadata[tag]
+
+        else:
+            pass
+
+    def cond_set_metadata(self, tag, value, force_vr=None):
+        if self.set_metadata is None:
+            return None
+
+        elif not self.has_metadata(tag):
+            self.set_metadata(tag=tag, value=value, force_vr=force_vr)
+
+        else:
+            pass
 
     def update_image_plane_metadata(self):
         # Update pixel spacing, image orientation, image position, slice thickness, slice location, rows and columns based on the image object
@@ -827,6 +895,24 @@ class ImageClass:
             warnings.warn("Cannot set pixel data for image with more than one slice.", UserWarning)
             return
 
+        # Set samples per pixel
+        self.set_metadata(tag=(0x0028, 0x0002), value=1)
+
+        # Set photometric interpretation
+        self.set_metadata(tag=(0x0028, 0x0004), value="MONOCHROME2")
+
+        # Remove the Pixel Data Provider URL attribute
+        self.delete_metadata(tag=(0x0028, 0x7fe0))
+
+        # Determine how pixel data are stored.
+        if self.as_parametric_map:
+            self._set_pixel_data_float(bit_depth=16)
+
+        else:
+            self._set_pixel_data_int(bit_depth=16)
+
+    def _set_pixel_data_int(self, bit_depth):
+
         # Set dtype for the image
         if bit_depth == 8:
             pixel_type = np.int8
@@ -850,22 +936,17 @@ class ImageClass:
         self.set_metadata(tag=(0x0028, 0x0102), value=bit_depth-1)  # High-bit
 
         # Standard settings for lowest and highest pixel value
-        if self.modality == "CT" and self.spat_transform == "base":
+        if self.modality == "CT":
             rescale_intercept = 0.0
             rescale_slope = 1.0
 
-        elif self.modality == "PT" and self.spat_transform == "base":
+        elif self.modality == "PT":
             rescale_intercept = 0.0
             rescale_slope = np.max(pixel_grid) / (2 ** (bit_depth - 1) - 1)
 
-        elif self.modality == "MR" and self.spat_transform == "base":
+        elif self.modality == "MR":
             rescale_intercept = 0.0
             rescale_slope = 1.0
-
-        elif self.modality in ["CT", "PT", "MR"] and self.spat_transform != "base":
-            dcm_range = float(2 ** bit_depth - 1)
-            rescale_intercept = np.min(pixel_grid)
-            rescale_slope = (np.max(pixel_grid) - np.min(pixel_grid)) / dcm_range
 
         else:
             raise TypeError(f"Unknown modality {self.modality}")
@@ -879,12 +960,188 @@ class ImageClass:
         # Store to PixelData
         self.set_metadata(tag=(0x7fe0, 0x0010), value=pixel_grid.tobytes(), force_vr="OW")
 
-        # Update rescale intercept and slope
-        self.set_metadata(tag=(0x0028, 0x1052), value=rescale_intercept)
-        self.set_metadata(tag=(0x0028, 0x1053), value=rescale_slope)
+        # Delete other PixelData containers
+        self.delete_metadata(tag=(0x7fe0, 0x0008))  # Float pixel data
+        self.delete_metadata(tag=(0x7fe0, 0x0009))  # Double float pixel data
+
+        # Update rescale intercept and slope (in case of CT and PET only)
+        if self.modality in ["CT", "PT"]:
+            self.set_metadata(tag=(0x0028, 0x1052), value=rescale_intercept)
+            self.set_metadata(tag=(0x0028, 0x1053), value=rescale_slope)
+
+        # Remove elements of the VOI LUT module
+        self.delete_metadata(tag=(0x0028, 0x3010))  # VOI LUT sequence
+        self.delete_metadata(tag=(0x0028, 0x1050))  # Window center
+        self.delete_metadata(tag=(0x0028, 0x1051))  # Window width
+        self.delete_metadata(tag=(0x0028, 0x1055))  # Window center and width explanation
+        self.delete_metadata(tag=(0x0028, 0x1056))  # VOI LUT function
 
         # Update smallest and largest image pixel value. Cannot set more than 16 bits due to limitations of the
         # tag.
-        if bit_depth == 16:
+        if bit_depth <= 16:
             self.set_metadata(tag=(0x0028, 0x0106), value=np.min(pixel_grid))
             self.set_metadata(tag=(0x0028, 0x0107), value=np.max(pixel_grid))
+
+
+    def _set_pixel_data_float(self, bit_depth):
+
+        if not self.as_parametric_map:
+            raise ValueError(f"Floating point representation in DICOM is only supported by parametric maps, but the image in MIRP is not marked for conversion of the metadata to"
+                             f"parametric maps.")
+
+        # Set dtype for the image
+        if bit_depth == 16:
+            pixel_type = np.int16
+        elif bit_depth == 32:
+            pixel_type = np.float32
+        elif bit_depth == 64:
+            pixel_type = np.float64
+        else:
+            raise ValueError(f"Bit depth of floating point DICOM images should be 16, 32 (default), or 64. Found: {bit_depth}")
+
+        # Set the number of allocated bits
+        self.set_metadata(tag=(0x0028, 0x0100), value=bit_depth)  # Bits allocated
+
+        # Update metadata related to the image data
+        self.update_image_plane_metadata()
+
+        # Get the pixel grid of the slice
+        pixel_grid = np.squeeze(self.get_voxel_grid(), axis=0)
+
+        # Define rescale intercept and slope
+        if bit_depth == 16:
+
+            # DICOM ranges
+            dcm_range = float(2 ** bit_depth - 1)
+            dcm_min = - float(2 ** (bit_depth - 1))
+            dcm_max = float(2 ** (bit_depth - 1)) - 1.0
+
+            # Data ranges
+            value_min = np.min(pixel_grid)
+            value_max = np.max(pixel_grid)
+            value_range = np.max(pixel_grid) - np.min(pixel_grid)
+
+            # Rescale slope and intercept
+            rescale_slope = value_range / dcm_range
+            rescale_intercept = (value_min * dcm_max - value_max * dcm_min) / dcm_range
+
+            # Inverse rescaling prior to dicom storage
+            pixel_grid = pixel_grid * (dcm_range) - value_min * dcm_max + value_max * dcm_min
+            pixel_grid *= 1.0 / value_range
+
+            # Round pixel values for safety
+            pixel_grid = np.round(pixel_grid)
+        else:
+
+            rescale_intercept = 0.0
+            rescale_slope = 1.0
+
+        # Cast to the right data type
+        pixel_grid = pixel_grid.astype(pixel_type)
+
+        # Store pixel data to the right attribute
+        if bit_depth == 16:
+            # Store to Pixel Data attribute
+            self.set_metadata(tag=(0x7fe0, 0x0010), value=pixel_grid.tobytes(), force_vr="OW")
+
+            # Set Image Pixel module-specific tags
+            self.set_metadata(tag=(0x0028, 0x0101), value=bit_depth)  # Bits stored
+            self.set_metadata(tag=(0x0028, 0x0102), value=bit_depth - 1)  # High-bit
+
+            # Delete other PixelData containers
+            self.delete_metadata(tag=(0x7fe0, 0x0008))  # Float pixel data
+            self.delete_metadata(tag=(0x7fe0, 0x0009))  # Double float pixel data
+
+        elif bit_depth == 32:
+            # Store to Float Pixel Data attribute
+            self.set_metadata(tag=(0x7fe0, 0x0008), value=np.ravel(pixel_grid).tolist(), force_vr="OF")
+
+            # Delete other PixelData containers
+            self.delete_metadata(tag=(0x7fe0, 0x0009))  # Double float pixel data
+            self.delete_metadata(tag=(0x7fe0, 0x0010))  # Integer type data
+
+        elif bit_depth == 64:
+            # Store to Double Float Pixel Data attribute
+            self.set_metadata(tag=(0x7fe0, 0x0009), value=np.ravel(pixel_grid).tolist(), force_vr="OD")
+
+            # Delete other PixelData containers
+            self.delete_metadata(tag=(0x7fe0, 0x0008))  # Float pixel data
+            self.delete_metadata(tag=(0x7fe0, 0x0010))  # Integer type data
+
+        # Reset rescale intercept and slope attributes to default values for parametric maps.
+        self.set_metadata(tag=(0x0028, 0x1052), value=rescale_intercept)  # Rescale intercept
+        self.set_metadata(tag=(0x0028, 0x1053), value=rescale_slope)  # Rescale slope
+
+        # Remove elements of the VOI LUT module
+        self.delete_metadata(tag=(0x0028, 0x3010))  # VOI LUT sequence
+        self.delete_metadata(tag=(0x0028, 0x1050))  # Window center
+        self.delete_metadata(tag=(0x0028, 0x1051))  # Window width
+        self.delete_metadata(tag=(0x0028, 0x1055))  # Window center and width explanation
+        self.delete_metadata(tag=(0x0028, 0x1056))  # VOI LUT function
+
+        # Number of frames
+        self.set_metadata(tag=(0x0028, 0x0008), value=1)
+
+    def _convert_to_parametric_map_iod(self):
+
+        if self.metadata is None:
+            return None
+
+        # Create a copy of the metadata.
+        old_dcm: FileDataset = copy.deepcopy(self.metadata)
+
+        # Update the SOP class to that of a parametric map image
+        self.set_metadata(tag=(0x0008, 0x0016), value="1.2.840.10008.5.1.4.1.1.30")
+
+        # Update the image type attribute
+        image_type = self.get_metadata(tag=(0x0008, 0x0008), tag_type="mult_str", default=[])
+        image_type = [image_type[ii] if ii < len(image_type) else "" for ii in range(4)]
+        image_type[0] = "DERIVED"
+        image_type[1] = "PRIMARY"
+        image_type[2] = image_type[2] if not image_type[2] == "" else "STATIC"
+        image_type[3] = "MIXED" if self.spat_transform == "base" else "FILTERED"
+
+        self.set_metadata(tag=(0x0008, 0x0008), value=image_type)
+
+        # Parametric Map Image module attributes that may be missing.
+        self.cond_set_metadata(tag=(0x2050, 0x0020), value="IDENTITY")  # Presentation LUT shape
+        self.cond_set_metadata(tag=(0x0018, 0x9004), value="RESEARCH")  # Content qualification
+        self.cond_set_metadata(tag=(0x0028, 0x0301), value="NO")  # Burned-in Annotation
+        self.cond_set_metadata(tag=(0x0028, 0x0302), value="YES")  # Recognisable facial features
+        self.cond_set_metadata(tag=(0x0070, 0x0080), value=self.get_export_descriptor().upper().strip()[:15])  # Content label
+        self.cond_set_metadata(tag=(0x0070, 0x0081), value=self.get_export_descriptor()[:63])  # Content description
+        self.cond_set_metadata(tag=(0x0070, 0x0084), value="Doe^John")
+
+        # Set the source instance sequence
+        source_instance_list = []
+        for reference_instance_sop_uid in self.metadata_sop_instances:
+            ref_inst = Dataset()
+            set_pydicom_meta_tag(dcm_seq=ref_inst, tag=(0x0008, 0x1150), value=get_pydicom_meta_tag(dcm_seq=old_dcm, tag=(0x0008, 0x0016), tag_type="str"))
+            set_pydicom_meta_tag(dcm_seq=ref_inst, tag=(0x0008, 0x1155), value=reference_instance_sop_uid)
+
+            source_instance_list += [ref_inst]
+
+        self.set_metadata(tag=(0x0008, 0x2112), value=Sequence(source_instance_list))
+
+        # Attributes from the enhanced general equipment module may be missing.
+        self.cond_set_metadata(tag=(0x0008, 0x0070), value="unknown")  # Manufacturer
+        self.cond_set_metadata(tag=(0x0008, 0x1090), value="unknown")  # Model name
+        self.cond_set_metadata(tag=(0x0018, 0x1000), value="unknown")  # Device Serial Number
+        self.set_metadata(tag=(0x0018, 0x1020), value="MIRP " + get_version())
+
+        # Items from multi-frame function groups may be missing. We currently only use a single frame.
+        self.set_metadata(tag=(0x5200, 0x9229), value=Sequence())  # Shared functional groups sequence
+        self.set_metadata(tag=(0x5200, 0x9230), value=Sequence())  # Per-frame functional groups sequence
+
+        # Multi-frame Dimension module
+
+        # Dimension organisation sequence. We copy the frame of reference as UID.
+        dim_org_seq_elem = Dataset()
+        set_pydicom_meta_tag(dim_org_seq_elem, tag=(0x0020, 0x9164), value=self.get_metadata(tag=(0x0020, 0x0052), tag_type="str"))  # Dimension organisation UID
+        self.set_metadata(tag=(0x0020, 0x9221), value=Sequence([dim_org_seq_elem]))
+
+        # Dimension Index sequence. We point to the instance number.
+        dim_index_seq_elem = Dataset()
+        set_pydicom_meta_tag(dim_index_seq_elem, tag=(0x0020, 0x9165), value=(0x0020, 0x0013))  # Dimension index pointer
+        set_pydicom_meta_tag(dim_index_seq_elem, tag=(0x0020, 0x9164), value=self.get_metadata(tag=(0x00200052), tag_type="str"))  # Dimension organisation UID
+        self.set_metadata(tag=(0x0020, 0x9222), value=Sequence([dim_index_seq_elem]))

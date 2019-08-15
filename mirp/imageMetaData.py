@@ -1,12 +1,14 @@
 import datetime
 import logging
 import os
+import random
 from collections import Iterable
+from typing import Union
 
 import numpy as np
 import pandas as pd
 import pydicom
-from pydicom import FileDataset, datadict
+from pydicom import FileDataset, datadict, Dataset
 from pydicom.tag import Tag
 
 
@@ -150,7 +152,7 @@ def get_pydicom_meta_tag(dcm_seq, tag, tag_type=None, default=None, test_tag=Fal
     return tag_value
 
 
-def set_pydicom_meta_tag(dcm_seq: FileDataset, tag, value, force_vr=None):
+def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force_vr=None):
     # Check tag
     if isinstance(tag, tuple):
         tag = Tag(tag[0], tag[1])
@@ -902,3 +904,35 @@ def parse_image_correction(dcm_seq, tag, correction_abbr, image_corrections):
         is_corrected = ""
 
     return is_corrected
+
+
+def create_new_uid(dcm: FileDataset):
+    # Use series UID as the basis for generating new series and SOP instance UIDs
+    series_uid = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x020, 0x000e), tag_type="str")
+
+    # Set the minimum required length.
+    min_req_len = 16
+
+    # Determine the part of the series uid that should be removed
+    split_series_uid = series_uid.split(".")
+    s_length = np.array([len(s) for s in split_series_uid])
+    s_cum_length = np.cumsum(s_length+1)
+    s_cum_length[-1] -= 1
+
+    # Strip parts of the string that are to be replaced
+    s_keep = [s for ii, s in enumerate(split_series_uid) if s_cum_length[ii] < 64 - min_req_len]
+    s_length = np.array([len(s) for s in s_keep])
+    s_cum_length = np.cumsum(s_length + 1)
+    s_cum_length[-1] -= 1
+
+    # Generate new string
+    available_length = 64 - s_cum_length[-1]
+
+    # Initialise the randomiser
+    random.seed()
+    random_string = "".join([str(random.randint(1, 9)) for ii in range(available_length - 1)])
+    s_keep += [random_string]
+
+    new_uid = ".".join(s_keep)
+
+    return new_uid
