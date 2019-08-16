@@ -934,6 +934,7 @@ class ImageClass:
         self.set_metadata(tag=(0x0028, 0x0100), value=bit_depth)  # Bits allocated
         self.set_metadata(tag=(0x0028, 0x0101), value=bit_depth)  # Bits stored
         self.set_metadata(tag=(0x0028, 0x0102), value=bit_depth-1)  # High-bit
+        self.set_metadata(tag=(0x0028, 0x0103), value=1)  # Pixel representation (we assume signed integers)
 
         # Standard settings for lowest and highest pixel value
         if self.modality == "CT":
@@ -979,8 +980,8 @@ class ImageClass:
         # Update smallest and largest image pixel value. Cannot set more than 16 bits due to limitations of the
         # tag.
         if bit_depth <= 16:
-            self.set_metadata(tag=(0x0028, 0x0106), value=np.min(pixel_grid))
-            self.set_metadata(tag=(0x0028, 0x0107), value=np.max(pixel_grid))
+            self.set_metadata(tag=(0x0028, 0x0106), value=np.min(pixel_grid), force_vr="SS")
+            self.set_metadata(tag=(0x0028, 0x0107), value=np.max(pixel_grid), force_vr="SS")
 
 
     def _set_pixel_data_float(self, bit_depth):
@@ -1047,6 +1048,11 @@ class ImageClass:
             # Set Image Pixel module-specific tags
             self.set_metadata(tag=(0x0028, 0x0101), value=bit_depth)  # Bits stored
             self.set_metadata(tag=(0x0028, 0x0102), value=bit_depth - 1)  # High-bit
+            self.set_metadata(tag=(0x0028, 0x0103), value=1)  # Pixel representation (we assume signed integers)
+
+            # Update smallest and largest pixel value
+            self.set_metadata(tag=(0x0028, 0x0106), value=np.min(pixel_grid), force_vr="SS")
+            self.set_metadata(tag=(0x0028, 0x0107), value=np.max(pixel_grid), force_vr="SS")
 
             # Delete other PixelData containers
             self.delete_metadata(tag=(0x7fe0, 0x0008))  # Float pixel data
