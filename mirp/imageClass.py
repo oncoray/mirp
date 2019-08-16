@@ -332,14 +332,14 @@ class ImageClass:
                 if fill_value is None:
                     voxel_grid[voxel_grid < intensity_range[0]] = intensity_range[0]
                 else:
-                    voxel_grid[voxel_grid < intensity_range[0]] = fill_value
+                    voxel_grid[voxel_grid < intensity_range[0]] = fill_value[0]
 
             # Upper boundary
             if not np.isnan(intensity_range[1]):
                 if fill_value is None:
                     voxel_grid[voxel_grid > intensity_range[1]] = intensity_range[1]
                 else:
-                    voxel_grid[voxel_grid > intensity_range[1]] = fill_value
+                    voxel_grid[voxel_grid > intensity_range[1]] = fill_value[1]
 
             # Set the updated voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
