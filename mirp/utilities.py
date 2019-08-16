@@ -79,8 +79,29 @@ def get_most_common_element(input_list):
 
     return counts.most_common(n=1)[0][0]
 
+
 def get_version():
     with open(os.path.join("..", 'VERSION.txt')) as version_file:
         version = version_file.read().strip()
 
     return version
+
+
+def get_spherical_structure(radius, spacing):
+    import numpy as np
+
+    # Define extent in index coordinates
+    extent = np.ceil(np.divide(radius, spacing)).astype(np.int)
+
+    # Generate coordinate grids. Note that this will generate a grid with 0,0,0 as center voxel.
+    grid_z, grid_y, grid_x= np.mgrid[-extent[0]:extent[0]+1, -extent[1]:extent[1]+1, -extent[2]:extent[2]+1]
+
+    # Transform coordinates back to real world space. We then square the values to compute the Euclidean norm later on.
+    grid_z = np.power(grid_z * spacing[0], 2.0)
+    grid_y = np.power(grid_y * spacing[1], 2.0)
+    grid_x = np.power(grid_x * spacing[2], 2.0)
+
+    # Compute the Euclidean distance to each voxel center and filter by radius.
+    geom_struct = np.sqrt(grid_z + grid_y + grid_x) <= radius
+
+    return geom_struct
