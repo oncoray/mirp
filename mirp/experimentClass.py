@@ -328,7 +328,7 @@ class ExperimentClass:
                 img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=150.0, z_only=True)
 
             # Extract diagnostic features from initial image and rois
-            self.extractDiagnosticFeatures(img_obj=img_obj, roi_list=roi_list, append_str="init")
+            self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
 
             ########################################################################################################
             # Update settings and initialise
@@ -381,7 +381,7 @@ class ExperimentClass:
             # Translate and interpolate image to isometric voxels
             img_obj = interpolate_image(img_obj=img_obj, settings=curr_setting)
             roi_list = interpolate_roi(roi_list=roi_list, img_obj=img_obj, settings=curr_setting)
-            self.extractDiagnosticFeatures(img_obj=img_obj, roi_list=roi_list, append_str="interp")
+            self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
 
             ########################################################################################################
             # ROI-based operations
@@ -399,7 +399,7 @@ class ExperimentClass:
 
             # Resegmentise ROI based on intensities in the base images
             roi_list = resegmentise(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
-            self.extractDiagnosticFeatures(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
+            self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
             # Compose ROI of heterogeneous supervoxels
             # roi_list = imageProcess.selectHeterogeneousSuperVoxels(img_obj=img_obj, roi_list=roi_list, settings=curr_setting,
@@ -669,7 +669,7 @@ class ExperimentClass:
         # Add diagnostic features (optional)
         if self.provide_diagnostics:
             # Parse diagnostic data attached to the different rois to one single list
-            df_diag_data = self.compileDiagnosticData(roi_list=roi_list)
+            df_diag_data = self.collect_diagnostic_data(roi_list=roi_list)
 
             # Add to second position in the list
             feat_list.insert(1, df_diag_data)
@@ -717,23 +717,23 @@ class ExperimentClass:
 
         return True, roi_list
 
-    def extractDiagnosticFeatures(self, img_obj, roi_list=None, append_str=""):
+    def extract_diagnostic_features(self, img_obj, roi_list=None, append_str=""):
         """ Extracts diagnostics features from image objects and lists of roi objects """
 
         if self.provide_diagnostics and roi_list is not None:
 
             # The image diagnostic features are calculated only once, yet are written on every row by concatenation
             # roi diagnostic features
-            img_diag_feat = img_obj.compute_diagnostic_features(append_str="_" + append_str + "_img_" + self.modality)
+            img_diag_feat = img_obj.compute_diagnostic_features(append_str="_".join([append_str, "img", self.modality]).strip("_"))
 
             for curr_roi in roi_list:
                 # Add image diagnostic data to roi
                 curr_roi.diagnostic_list += [img_diag_feat]
 
                 # Add roi diagnostic data to roi
-                curr_roi.compute_diagnostic_features(img_obj=img_obj, append_str="_" + append_str + "_roi")
+                curr_roi.compute_diagnostic_features(img_obj=img_obj, append_str="_".join([append_str, "roi"]).strip("_"))
 
-    def compileDiagnosticData(self, roi_list):
+    def collect_diagnostic_data(self, roi_list):
         """ Compiles diagnostic data from regions of interest """
 
         if self.provide_diagnostics:

@@ -575,31 +575,33 @@ class ImageClass:
             self.spat_transform = transform_method
             self.as_parametric_map = True
 
-    def compute_diagnostic_features(self, append_str=""):
+    def compute_diagnostic_features(self, append_str: str=""):
         """Creates diagnostic features for the image stack"""
 
         # Set feature names
         feat_names = ["img_dim_x", "img_dim_y", "img_dim_z", "vox_dim_x", "vox_dim_y", "vox_dim_z", "mean_int", "min_int", "max_int"]
 
-        # Create pandas dataframe with one row and feature columns
-        df = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
-        df.columns = feat_names
+        # Generate an initial table
+        feature_table = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
+        feature_table.columns = feat_names
 
-        # Return prototype if the image is missing
-        if self.is_missing:
-            return df
+        if not self.is_missing:
 
-        # Set features
-        df.ix[0, ["img_dim_z", "img_dim_y", "img_dim_x"]] = self.size     # Image dimensions (in voxels)
-        df.ix[0, ["vox_dim_z", "vox_dim_y", "vox_dim_x"]] = self.spacing  # Voxel dimensions (in mm)
-        df.ix[0, "mean_int"] = np.mean(self.get_voxel_grid())               # Mean image intensity
-        df.ix[0, "min_int"] = np.min(self.get_voxel_grid())                 # Minimum image intensity
-        df.ix[0, "max_int"] = np.max(self.get_voxel_grid())                 # Maximum image intensity
+            # Update columns with actual values
+            feature_table["img_dim_x"] = self.size[2]
+            feature_table["img_dim_y"] = self.size[1]
+            feature_table["img_dim_z"] = self.size[0]
+            feature_table["vox_dim_x"] = self.spacing[2]
+            feature_table["vox_dim_y"] = self.spacing[1]
+            feature_table["vox_dim_z"] = self.spacing[0]
+            feature_table["mean_int"] = np.mean(self.get_voxel_grid())
+            feature_table["min_int"] = np.min(self.get_voxel_grid())
+            feature_table["max_int"] = np.max(self.get_voxel_grid())
 
-        # Update column names
-        df.columns = ["diag_" + feat + append_str for feat in df.columns]
+            # Update column names
+        feature_table.columns = ["_".join(["diag", feature, append_str]).rstrip("_") for feature in feature_table.columns]
 
-        return df
+        return feature_table
 
     def export(self, file_path):
         """

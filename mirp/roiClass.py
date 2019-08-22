@@ -802,28 +802,44 @@ class RoiClass:
         int_voxel_grid = roi_copy.roi_intensity.get_voxel_grid()
         mrp_voxel_grid = roi_copy.roi_morphology.get_voxel_grid()
 
+        # Compute bounding boxes
+        int_bounding_box_dim = np.squeeze(np.diff(roi_copy.get_bounding_box(roi_voxel_grid=int_voxel_grid), axis=0) + 1)
+        mrp_bounding_box_dim = np.squeeze(np.diff(roi_copy.get_bounding_box(roi_voxel_grid=mrp_voxel_grid), axis=0) + 1)
+
         # Set intensity mask features
-        df.ix[0, ["int_map_dim_z", "int_map_dim_y", "int_map_dim_x"]] = roi_copy.roi_intensity.size                         # ROI map dimensions (in voxels)
-        df.ix[0, ["int_bb_dim_z", "int_bb_dim_y", "int_bb_dim_x"]] = np.squeeze(np.diff(roi_copy.get_bounding_box(roi_voxel_grid=int_voxel_grid), axis=0) + 1)            # ROI bounding box dimensions (in voxels)
-        df.ix[0, ["int_vox_dim_z", "int_vox_dim_y", "int_vox_dim_x"]] = roi_copy.roi_intensity.spacing                      # Voxel dimensions (in mm)
-        df.ix[0, "int_vox_count"] = np.sum(int_voxel_grid)                                                                  # Number of voxels in ROI
-        df.ix[0, "int_mean_int"]  = np.mean(img_voxel_grid[int_voxel_grid])                                                 # Mean intensity in ROI
-        df.ix[0, "int_min_int"]   = np.min(img_voxel_grid[int_voxel_grid])                                                  # Minimum intensity in ROI
-        df.ix[0, "int_max_int"]   = np.max(img_voxel_grid[int_voxel_grid])                                                  # Maximum intensity in ROI
+        df["int_map_dim_x"] = roi_copy.roi_intensity.size[2]
+        df["int_map_dim_y"] = roi_copy.roi_intensity.size[1]
+        df["int_map_dim_z"] = roi_copy.roi_intensity.size[0]
+        df["int_bb_dim_x"] = int_bounding_box_dim[2]
+        df["int_bb_dim_y"] = int_bounding_box_dim[1]
+        df["int_bb_dim_z"] = int_bounding_box_dim[0]
+        df["int_vox_dim_x"] = roi_copy.roi_intensity.spacing[2]
+        df["int_vox_dim_y"] = roi_copy.roi_intensity.spacing[1]
+        df["int_vox_dim_z"] = roi_copy.roi_intensity.spacing[0]
+        df["int_vox_count"] = np.sum(int_voxel_grid)
+        df["int_mean_int"] = np.mean(img_voxel_grid[int_voxel_grid])
+        df["int_min_int"] = np.min(img_voxel_grid[int_voxel_grid])
+        df["int_max_int"] = np.max(img_voxel_grid[int_voxel_grid])
 
         # Set morphological mask features
-        df.ix[0, ["mrp_map_dim_z", "mrp_map_dim_y", "mrp_map_dim_x"]] = roi_copy.roi_morphology.size                        # ROI map dimensions (in voxels)
-        df.ix[0, ["mrp_bb_dim_z", "mrp_bb_dim_y", "mrp_bb_dim_x"]] = np.squeeze(np.diff(roi_copy.get_bounding_box(roi_voxel_grid=mrp_voxel_grid), axis=0) + 1)  # ROI bounding box dimensions (in voxels)
-        df.ix[0, ["mrp_vox_dim_z", "mrp_vox_dim_y", "mrp_vox_dim_x"]] = roi_copy.roi_morphology.spacing                     # Voxel dimensions (in mm)
-        df.ix[0, "mrp_vox_count"] = np.sum(mrp_voxel_grid)                                                                  # Number of voxels in ROI
-        df.ix[0, "mrp_mean_int"] = np.mean(img_voxel_grid[mrp_voxel_grid])                                                  # Mean intensity in ROI
-        df.ix[0, "mrp_min_int"] = np.min(img_voxel_grid[mrp_voxel_grid])                                                    # Minimum intensity in ROI
-        df.ix[0, "mrp_max_int"] = np.max(img_voxel_grid[mrp_voxel_grid])                                                    # Maximum intensity in ROI
-
-        del roi_copy
+        df["mrp_map_dim_x"] = roi_copy.roi_morphology.size[2]
+        df["mrp_map_dim_y"] = roi_copy.roi_morphology.size[1]
+        df["mrp_map_dim_z"] = roi_copy.roi_morphology.size[0]
+        df["mrp_bb_dim_x"] = mrp_bounding_box_dim[2]
+        df["mrp_bb_dim_y"] = mrp_bounding_box_dim[1]
+        df["mrp_bb_dim_z"] = mrp_bounding_box_dim[0]
+        df["mrp_vox_dim_x"] = roi_copy.roi_morphology.spacing[2]
+        df["mrp_vox_dim_y"] = roi_copy.roi_morphology.spacing[1]
+        df["mrp_vox_dim_z"] = roi_copy.roi_morphology.spacing[0]
+        df["mrp_vox_count"] = np.sum(mrp_voxel_grid)
+        df["mrp_mean_int"] = np.mean(img_voxel_grid[mrp_voxel_grid])
+        df["mrp_min_int"] = np.min(img_voxel_grid[mrp_voxel_grid])
+        df["mrp_max_int"] = np.max(img_voxel_grid[mrp_voxel_grid])
 
         # Update column names
-        df.columns = ["diag_" + feat + append_str for feat in df.columns]
+        df.columns = ["_".join(["diag", feature, append_str]).strip("_") for feature in df.columns]
+
+        del roi_copy
 
         self.diagnostic_list += [df]
 
