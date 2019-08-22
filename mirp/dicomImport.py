@@ -184,6 +184,28 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
         return [_convert_rtstruct_to_segmentation(dcm=dcm, roi=current_roi, image_object=image_object) for current_roi in roi]
 
 
+def read_roi_names(dcm_folder):
+
+    # Placeholder list
+    roi_names = []
+    file_name_list = []
+
+    # Find a list of RTSTRUCT files
+    file_list = _find_dicom_image_series(image_folder=dcm_folder, allowed_modalities=["RTSTRUCT"],
+                                         modality="RTSTRUCT", series_uid=None, frame_of_ref_uid=None)
+
+    # Open DICOM files and read names
+    for file_name in file_list:
+        dcm_file = os.path.join(dcm_folder, file_name)
+        dcm = pydicom.dcmread(dcm_file, stop_before_pixels=True, force=True)
+
+        # Obtain ROI names
+        roi_names += _find_dicom_roi_names(dcm=dcm, with_roi_number=False)
+        file_name_list += [file_name] * len(roi_names)
+
+    return file_name_list, roi_names
+
+
 def _find_dicom_image_series(image_folder, allowed_modalities, modality=None, series_uid=None, frame_of_ref_uid=None):
 
     # Check folder contents, keep only files that are recognised as DICOM images.
