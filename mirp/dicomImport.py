@@ -224,8 +224,7 @@ def _find_dicom_image_series(image_folder, allowed_modalities, modality=None, se
     # Identify modality of the files
     for file_name in file_list:
         # Read DICOM header using pydicom
-        dcm = pydicom.dcmread(os.path.join(image_folder, file_name), stop_before_pixels=True, force=True,
-                              specific_tags=[Tag(0x0008, 0x0060), Tag(0x0020, 0x000e), Tag(0x0020, 0x0052)])
+        dcm = pydicom.dcmread(os.path.join(image_folder, file_name), stop_before_pixels=True, force=True)
 
         # Read modality
         series_modality += [get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str")]
@@ -240,17 +239,17 @@ def _find_dicom_image_series(image_folder, allowed_modalities, modality=None, se
     if modality is not None:
 
         if modality.lower() in ["ct"]:
-            requested_modality = "CT"
+            requested_modality = ["CT"]
         elif modality.lower() in ["pet", "pt"]:
-            requested_modality = "PT"
+            requested_modality = ["PT"]
         elif modality.lower() in ["mri", "mr"]:
-            requested_modality = "MR"
+            requested_modality = ["MR"]
         elif modality.lower() in ["rtstruct", "structure_set"]:
-            requested_modality = "RTSTRUCT"
+            requested_modality = ["RTSTRUCT"]
         else:
             raise ValueError(f"Unknown modality requested. Available choices are CT, PT, MR, RTSTRUCT. Found: {modality}")
 
-        if requested_modality not in allowed_modalities:
+        if not any([tmp_modality in allowed_modalities for tmp_modality in requested_modality]):
             raise ValueError(f"The selected modality ({modality}) cannot be used within the current context. This error can occur when attempting to image files instead of"
                              "segmentations when segmentations are intended.")
 
