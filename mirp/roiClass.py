@@ -988,3 +988,33 @@ class RoiClass:
             return None
 
         set_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, value=value, force_vr=force_vr)
+
+    def has_metadata(self, tag):
+
+        if self.metadata is None:
+            return None
+
+        else:
+            return get_pydicom_meta_tag(dcm_seq=self.metadata, tag=tag, test_tag=True)
+
+    def rename(self, new):
+
+        if self.metadata is not None:
+            # Obtain the old name
+            old = self.name
+
+            if not self.has_metadata(tag=(0x3006, 0x0020)):
+                raise ValueError(f"The DICOM metaheader does not contain a Structure Set ROI sequence.")
+
+            # Iterate over roi elements in the roi sequence
+            for ii, roi_element in enumerate(self.metadata[0x3006, 0x0020]):
+
+                # Find ROI name that matches the old name
+                if get_pydicom_meta_tag(dcm_seq=roi_element, tag=(0x3006, 0x0026), tag_type="str") == old:
+                    set_pydicom_meta_tag(dcm_seq=roi_element, tag=(0x3006, 0x0026), value=new)
+
+            # Assign a new name
+            self.name = new
+        else:
+            # Assign a new name
+            self.name = new
