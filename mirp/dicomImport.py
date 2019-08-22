@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from mirp.imageSUV import SUVscalingObj
-from mirp.imageRead import get_pydicom_meta_tag
+from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from pydicom.tag import Tag
@@ -234,7 +234,7 @@ def _find_dicom_image_series(image_folder, allowed_modalities, modality=None, se
         series_series_uid += [get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x000e), tag_type="str")]
 
         # Frame of reference UID
-        series_FOR_uid += [get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052), tag_type="str")]
+        series_FOR_uid += [_get_frame_of_reference_uid(dcm=dcm)]
 
     # User-provided modality
     if modality is not None:
@@ -311,6 +311,23 @@ def _find_dicom_image_series(image_folder, allowed_modalities, modality=None, se
 
     # Filter series with the particular frame of reference uid and series uid
     return [file_list[ii] for ii in range(len(file_list)) if series_series_uid[ii] == series_uid and series_FOR_uid[ii] == frame_of_ref_uid]
+
+
+def _get_frame_of_reference_uid(dcm):
+
+    # Try to obtain a frame of reference UID
+    if has_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052)):
+        return get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052), tag_type="str")
+
+    # For RT structure sets, the FOR UID may be tucked away in the Structure Set ROI Sequence
+    if has_pydicom_meta_tag(dcm_seq=dcm, tag=(0x3006, 0x0020)):
+        structure_set_roi_sequence = dcm[(0x3006, 0x0020)]
+
+        for structure_set_roi_element in structure_set_roi_sequence:
+            if has_pydicom_meta_tag(dcm_seq=structure_set_roi_element, tag=(0x3006, 0x0024)):
+                return get_pydicom_meta_tag(dcm_seq=structure_set_roi_element, tag=(0x3006, 0x0024), tag_type="str")
+
+    return None
 
 
 def _find_dicom_roi_names(dcm, with_roi_number=False):
