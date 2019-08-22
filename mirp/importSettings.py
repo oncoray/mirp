@@ -4,21 +4,6 @@ import numpy as np
 import pandas as pd
 
 
-class SettingsClass:
-
-    def __init__(self, general_settings, img_interpolate_settings, roi_interpolate_settings,
-                 vol_adapt_settings, roi_resegment_settings, feature_extr_settings, img_transform_settings,
-                 deep_learning_settings):
-        self.general         = general_settings
-        self.img_interpolate = img_interpolate_settings
-        self.roi_interpolate = roi_interpolate_settings
-        self.vol_adapt       = vol_adapt_settings
-        self.roi_resegment   = roi_resegment_settings
-        self.feature_extr    = feature_extr_settings
-        self.img_transform   = img_transform_settings
-        self.deep_learning   = deep_learning_settings
-
-
 class GeneralSettingsClass:
 
     def __init__(self):
@@ -141,6 +126,23 @@ class DeepLearningSettingsClass:
         self.expected_size = [np.nan, np.nan, np.nan]
         self.normalisation = "none"
         self.intensity_range = [np.nan, np.nan]
+
+
+class SettingsClass:
+
+    def __init__(self, general_settings: GeneralSettingsClass, img_interpolate_settings: ImageInterpolationSettingsClass, roi_interpolate_settings: RoiInterpolationSettingsClass,
+                 vol_adapt_settings: ImagePerturbationSettingsClass, roi_resegment_settings: ResegmentationSettingsClass, feature_extr_settings: FeatureExtractionSettingsClass,
+                 img_transform_settings: ImageTransformationSettingsClass, deep_learning_settings: DeepLearningSettingsClass):
+
+        self.general         = general_settings
+        self.img_interpolate = img_interpolate_settings
+        self.roi_interpolate = roi_interpolate_settings
+        self.vol_adapt       = vol_adapt_settings
+        self.roi_resegment   = roi_resegment_settings
+        self.feature_extr    = feature_extr_settings
+        self.img_transform   = img_transform_settings
+        self.deep_learning   = deep_learning_settings
+
 
 
 def str2list(strx, data_type, default=None):

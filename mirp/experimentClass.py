@@ -4,6 +4,7 @@
 import numpy as np
 import pandas as pd
 
+from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
 
 
@@ -11,7 +12,7 @@ class ExperimentClass:
 
     def __init__(self, modality, subject, cohort, image_folder, roi_folder, roi_reg_img_folder, image_file_name_pattern,
                  registration_image_file_name_pattern, roi_names, data_str, write_path,
-                 settings, provide_diagnostics=False, compute_features=False, extract_images=False, plot_images=False,
+                 settings: SettingsClass, provide_diagnostics=False, compute_features=False, extract_images=False, plot_images=False,
                  keep_images_in_memory=False):
         """
         Attributes for an experiment.
