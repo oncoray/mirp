@@ -403,7 +403,9 @@ def import_data_settings(path, config_settings, compute_features=False, extract_
             image_modality = str2type(data_branch.find("modality"), "str")
             image_folder = str2type(data_branch.find("image_folder"), "path")
             roi_folder = str2type(data_branch.find("roi_folder"), "path")
-            roi_reg_img_folder = str2type(data_branch.find("roi_reg_img_folder"), "str")
+            roi_reg_img_folder = str2type(data_branch.find("registration_image_folder"), "str")
+            image_file_name_pattern = str2type(data_branch.find("image_filename_pattern"), "str")
+            registration_image_file_name_pattern = str2type(data_branch.find("registration_image_filename_pattern"), "str")
             roi_names = str2list(data_branch.find("roi_names"), "str")
             roi_list_path = str2type(data_branch.find("roi_list_path"), "str")
             divide_disconnected_roi = str2type(data_branch.find("divide_disconnected_roi"), "str", "combine")
@@ -518,6 +520,7 @@ def import_data_settings(path, config_settings, compute_features=False, extract_
 
                     data_obj = ExperimentClass(modality=image_modality, subject=curr_subj, cohort=cohort_id, write_path=write_path,
                                                image_folder=image_dir_subj, roi_folder=roi_dir_subj, roi_reg_img_folder=roi_reg_img_subj,
+                                               image_file_name_pattern=image_file_name_pattern, registration_image_file_name_pattern=registration_image_file_name_pattern,
                                                roi_names=roi_names, data_str=data_string, provide_diagnostics=provide_diagnostics,
                                                settings=curr_config_setting, compute_features=compute_features, extract_images=extract_images,
                                                plot_images=plot_images, keep_images_in_memory=keep_images_in_memory)

@@ -167,7 +167,7 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
     missing_roi = np.setdiff1d(ar1=np.array(deparsed_roi), ar2=np.array(roi_names)).tolist()
     if len(missing_roi) == len(deparsed_roi):
         warnings.warn(f"None of the ROIs could be found in the RT structure set ({dcm_file}).")
-        return None
+        return []
 
     elif len(missing_roi) > 0:
         warnings.warn(f"Some ROIs could not be found in the RT structure set ({dcm_file}): {missing_roi}")

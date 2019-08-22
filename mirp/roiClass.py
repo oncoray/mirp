@@ -61,7 +61,7 @@ def merge_roi_objects(roi_list):
                               slice_z_pos=roi_slice_z_pos)
 
     # Set name of the roi
-    combined_roi_name = "_and_".join([roi.name for roi in roi_list])
+    combined_roi_name = "+".join([roi.name for roi in roi_list])
 
     # Create a merged roi object
     combined_roi = RoiClass(name=combined_roi_name, contour=None, roi_mask=roi_mask_obj)

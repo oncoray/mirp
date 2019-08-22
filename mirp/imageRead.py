@@ -101,8 +101,8 @@ def find_imaging_parameters_deprecated(image_folder, modality, subject, plot_ima
 
     # Check if image parameters need to be read within roi slices
     if roi_names is not None:
-        img_obj, roi_list = load_image(image_folder=image_folder, settings=settings, roi_folder=roi_folder,
-                                       roi_reg_img_folder=roi_reg_img_folder, modality=modality, roi_names=roi_names)
+        img_obj, roi_list = load_image(image_folder=image_folder, roi_folder=roi_folder, registration_image_folder=roi_reg_img_folder,
+                                       modality=modality, roi_names=roi_names)
 
         # Register rois to image
         for ii in np.arange(len(roi_list)):
@@ -146,60 +146,80 @@ def find_imaging_parameters_deprecated(image_folder, modality, subject, plot_ima
     return df_meta.to_frame().T
 
 
-def load_image(image_folder, settings, roi_folder=None, roi_reg_img_folder=None, modality=None, roi_names=None):
+def load_image(image_folder, modality=None, roi_folder=None, registration_image_folder=None, image_name=None, roi_names=None, registration_image_name=None):
 
-    # Provide standard set of modalities
-    # if modality is None: modality = ("CT", "PT", "MR")
+    # Import image
+    img_obj: ImageClass = import_image(folder=image_folder, modality=modality, name_contains=image_name)
 
-    # Convert a single input modality to list
-    if type(modality) is str or modality is None: modality = [modality]
-
-    ####################################################################################################################
-    # Load images
-    ####################################################################################################################
-
-    # Read image characteristics
-    df_char = read_basic_image_characteristics(image_folder=image_folder, folder_contains=modality[0])
-
-    # Load image object from file
-    if np.any(np.logical_and(df_char.file_type.isin(["dicom", "nifti", "nrrd"]), df_char.modality.isin(modality))):
-        img_obj = import_image(df_char=df_char.loc[np.logical_and(df_char.file_type.isin(["dicom", "nifti", "nrrd"]), df_char.modality.isin(modality)),], modality=modality[0])
-    else:
-        img_obj = None
-        logging.error("No image files were read.")
-
-    ####################################################################################################################
-    # Load image for roi registration
-    ####################################################################################################################
-    if roi_reg_img_folder == image_folder or roi_reg_img_folder is None:
+    # Load registration image
+    if registration_image_folder == image_folder or registration_image_folder is None:
         img_reg_obj = img_obj
     else:
-        # Read registration image characteristics
-        df_char = read_basic_image_characteristics(image_folder=roi_reg_img_folder, folder_contains=modality[0])
+        img_reg_obj: ImageClass = import_image(folder=registration_image_folder, modality=modality, name_contains=registration_image_name)
 
-        # Load registration image object from file
-        if np.any(df_char.file_type.isin(["dicom", "nifti", "nrrd"])):
-            img_reg_obj = import_image(df_char=df_char.loc[df_char.file_type.isin(["dicom", "nifti", "nrrd"]),], modality=modality[0])
-        else:
-            img_reg_obj = None
-            logging.warning("Registration image for ROIs was not found.")
-
-    ####################################################################################################################
-    # Load segmentations
-    ####################################################################################################################
-
-    # Read roi characteristics
-    df_char = read_basic_image_characteristics(image_folder=roi_folder, folder_contains="SEG")
-
-    # Load segmentations
-    if np.any(df_char.modality.isin(["RTSTRUCT", "SEG"])):
-        roi_list = import_segmentation(df_char=df_char.loc[df_char.modality.isin(["RTSTRUCT", "SEG"]),], img_obj=img_reg_obj,
-                                       settings=settings, req_roi_names=roi_names)
+    # Load segmentation
+    if roi_names is not None:
+        roi_list = import_segmentations(folder=roi_folder, roi_names=roi_names, image_object=img_reg_obj)
     else:
         roi_list = []
-        logging.error("No segmentation files were read.")
 
     return img_obj, roi_list
+
+
+def import_image(folder, modality=None, name_contains=None):
+    # Check folder contents, keep only files that are recognised as DICOM images or other image files.
+    file_list = os.listdir(folder)
+    file_list = [file_name for file_name in file_list if not os.path.isdir(os.path.join(folder, file_name))]
+
+    # Find DICOM files
+    dcm_file_list = [file_name for file_name in file_list if file_name.lower().endswith(".dcm")]
+
+    # Find other image formats
+    other_file_list = [file_name for file_name in file_list if file_name.lower().endswith((".nii", ".nii.gz", ".nrrd"))]
+
+    if len(dcm_file_list) > 0:
+        img_obj = read_dicom_image_series(image_folder=folder, modality=modality)
+
+    elif len(other_file_list) > 0:
+        img_obj = read_itk_image(image_folder=folder, modality=modality, name_contains=name_contains)
+
+    else:
+        raise FileNotFoundError(f"Could not find image files in the indicated folder: {folder}")
+
+    return img_obj
+
+
+def import_segmentations(folder, image_object, roi_names):
+    # Check folder contents, keep only files that are recognised as DICOM images or other image files.
+    file_list = os.listdir(folder)
+    file_list = [file_name for file_name in file_list if not os.path.isdir(os.path.join(folder, file_name))]
+
+    # Find DICOM files
+    dcm_file_list = [file_name for file_name in file_list if file_name.lower().endswith(".dcm")]
+
+    # Find other image formats
+    other_file_list = [file_name for file_name in file_list if file_name.lower().endswith((".nii", ".nii.gz", ".nrrd"))]
+
+    if len(dcm_file_list) > 0:
+        # Attempt to obtain segmentations from DICOM
+        roi_list = read_dicom_rt_struct(dcm_folder=folder, image_object=image_object, roi=roi_names)
+
+        if len(roi_list) == 0 and len(other_file_list) > 0:
+            # Attempt to obtain segmentation masks from other types of image file.
+            roi_list = read_itk_segmentations(image_folder=folder, roi=roi_names)
+
+    elif len(other_file_list) > 0:
+        # Attempt to obtain segmentation masks from other types of image file.
+        roi_list = read_itk_segmentations(image_folder=folder, roi=roi_names)
+
+    else:
+        roi_list = []
+
+    if len(roi_list) == 0:
+        warnings.warn(f"No segmentations were imported from {folder}. This could be because the folder does not contain segmentations,"
+                      f"or none of the segmentations matches the roi_names argument.")
+
+    return roi_list
 
 
 def read_basic_image_characteristics(image_folder, folder_contains=None):
@@ -315,325 +335,6 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
     df_char = pd.concat(list_char, axis=1).T
 
     return df_char
-
-
-def import_image(df_char, modality):
-    # Read image from file
-
-    # Perform consistency checks - x and y grid dimensions
-    if np.any(np.logical_or(df_char.size_x.values - df_char.size_x.values[0] != 0,
-                            df_char.size_y.values - df_char.size_y.values[0] != 0)):
-        logging.error("Mismatching voxel grid dimensions while reading images from file.")
-
-    # Perform consistency checks - x and y voxel dimensions
-    if np.any(np.logical_or(df_char.spacing_x.values - df_char.spacing_x.values[0] != 0.0,
-                            df_char.spacing_y.values - df_char.spacing_y.values[0] != 0.0)):
-        logging.error("Mismatching voxel dimensions while reading images from file.")
-
-    # Setup empty voxel object - assume that images are stacked in the z-dimension
-    img_dims = np.array([np.sum(df_char.size_z), df_char.size_y[0], df_char.size_x[0]])
-    img_vox  = np.zeros(img_dims, dtype=np.float32)
-
-    # Setup empty slice-position array
-    img_slice_pos = np.zeros(img_dims[0], dtype=np.float32)
-
-    # Sort data frame by increasing slice position
-    df_char = df_char.sort_values(by="pos_z").reset_index(drop=True)
-
-    # Set image origin and spacing from sorted pandas frame
-    img_origin = np.array([df_char.pos_z.values[0], df_char.pos_y.values[0], df_char.pos_x.values[0]])
-
-    # Check if spacing is correct. Slice thickness may be different from what is expected.
-    if len(df_char) > 1:
-        actual_spacing_z = np.median(np.abs(np.diff(df_char.pos_z.values)))
-        if np.around(actual_spacing_z - df_char.spacing_z.values[0], decimals=5) != 0.0:
-            logging.warning("Slice thickness %s is inconsistent with actual spacing %s. z-spacing is replaced.", str(df_char.spacing_z.values[0]), actual_spacing_z)
-            img_spacing = np.array([actual_spacing_z, df_char.spacing_y.values[0], df_char.spacing_x.values[0]])
-        else:
-            img_spacing = np.array([df_char.spacing_z.values[0], df_char.spacing_y.values[0], df_char.spacing_x.values[0]])
-    else:
-        img_spacing = np.array([df_char.spacing_z.values[0], df_char.spacing_y.values[0], df_char.spacing_x.values[0]])
-
-    # Set initial offset for slices: the offset increases after adding slices from files
-    slice_offset = 0
-
-    # Collect imaging-specific data
-    suv_obj_list = []
-    if modality == "PT":
-        for ii in np.arange(0, len(df_char)):
-            if df_char.file_type.values[ii] == "dicom":
-                suv_obj_list += [SUVscalingObj(dcm=pydicom.dcmread(df_char.file_path.values[ii], stop_before_pixels=True, force=True))]
-
-        # Update list, e.g. to find the start of acquisition
-        suv_obj_list = suv_list_update(suv_obj_list=suv_obj_list)
-
-    flag_image_missing = False
-
-    # Iterate over files
-    for ii in np.arange(0, len(df_char)):
-
-        # Read image
-        sitk_img = sitk.ReadImage(df_char.file_path.values[ii])
-
-        # Set slice range
-        slice_range = np.arange(0, df_char.size_z.values[ii]) + slice_offset
-
-        # Get slice voxels
-        slice_vox = sitk.GetArrayFromImage(sitk_img).astype(dtype=np.float32)
-
-        # SUV conversion
-        if modality == "PT" and df_char.file_type.values[ii] == "dicom":
-            # Get suv_scale
-            suv_scale = suv_obj_list[ii].get_scale_factor(suv_normalisation="bw")
-
-            if suv_scale is not None:
-                slice_vox *= suv_scale
-            else:
-                slice_vox = None
-
-        # Add to voxel object; fill with NaN if the range could not be read
-        if slice_vox is not None:
-            img_vox[slice_range, :, :] = slice_vox
-        else:
-            flag_image_missing = True
-
-        # Update slice pos
-        img_slice_pos[slice_range] = df_char.pos_z.values[ii] + np.arange(0, df_char.size_z.values[ii]) * df_char.spacing_z.values[ii]
-
-        # Update offset
-        slice_offset += df_char.size_z.values[ii]
-
-    # Update image direction
-    img_orientation = np.array(sitk_img.GetDirection())[::-1]
-
-    # Create image
-    img_obj = ImageClass(voxel_grid=img_vox, origin=img_origin, spacing=img_spacing, slice_z_pos=img_slice_pos,
-                         orientation=img_orientation, modality=df_char.modality[0], spat_transform="base", no_image=flag_image_missing)
-
-    # Collect garbage
-    del sitk_img
-
-    return img_obj
-
-
-def import_segmentation(df_char, img_obj, settings, req_roi_names=None):
-    # Reads segmentation files
-
-    # Empty roi list
-    roi_list = []
-
-    for ii in np.arange(0, len(df_char)):
-
-        # Parse according to file type and modality
-        if df_char.modality.values[ii] == "SEG" and df_char.file_type.values[ii] != "dicom":
-            # Roi map from voxel volume masks (non-dicom)
-            roi_list += import_segment_from_volume(df_char=df_char.iloc[[ii]], req_roi_names=req_roi_names)
-
-        elif df_char.modality.values[ii] == "SEG" and df_char.file_type.values[ii] == "dicom":
-            # TODO: Roi map from mask voxel volumes (dicom SEG)
-            logging.warning("Cannot parse dicom segmentation file: %s", df_char.file_path.values[ii])  # requires future implementation
-
-        elif df_char.modality.values[ii] == "RTSTRUCT" and df_char.file_type.values[ii] == "dicom":
-            # Roi map from dicom segmentation contours (RT structures)
-            roi_list += import_segment_from_contour(df_char=df_char.iloc[[ii]], img_obj=img_obj, settings=settings, req_roi_names=req_roi_names)
-
-        else:
-            logging.warning("Cannot parse segmentation file:%s", df_char.file_path.values[ii])
-
-    return roi_list
-
-
-def import_segment_from_volume(df_char, req_roi_names):
-    # Read segmentations from voxel volumes
-
-    roi_list = []
-
-    # Iterate over the roi
-    for current_roi in req_roi_names:
-
-        # Parse the current roi to identify the individual rois
-        combined_roi_names = parse_roi_name(roi=current_roi)
-
-        merge_roi_list = []
-
-        # Iterate over individual rois
-        for roi in combined_roi_names:
-            for ii in np.arange(0, len(df_char)):
-
-                # Find the roi name as given by the file
-                file_roi_name = df_char.file_name.values[ii].lower().split(".")[0]
-
-                # Skip files that do not match the current roi name
-                if roi.lower() != file_roi_name:
-                    continue
-
-                # Load image file using simple itk
-                sitk_img = sitk.ReadImage(df_char.file_path.values[ii])
-                roi_map = sitk.GetArrayFromImage(sitk_img) * 1.0 > 0.0
-
-                # Read roi spatial identifiers: note that because simpleitk reads (x,y,z), order is inverted
-                roi_origin = np.array(sitk_img.GetOrigin())[::-1]
-                roi_spacing = np.array(sitk_img.GetSpacing())[::-1]
-                roi_dimension = np.array(sitk_img.GetSize())[::-1]
-                roi_orientation = np.array(sitk_img.GetDirection())[::-1]
-
-                # Calculate z position
-                roi_slice_z_pos = roi_origin[0] + np.arange(0, roi_dimension[0]) * roi_spacing[0]
-
-                # Create roi object using roi_map and roi_name
-                roi_map_obj = ImageClass(voxel_grid=roi_map, origin=roi_origin, spacing=roi_spacing, orientation=roi_orientation,
-                                         slice_z_pos=roi_slice_z_pos)
-                merge_roi_list += [RoiClass(name=current_roi, contour=None, roi_mask=roi_map_obj)]
-
-        # Combine ROI objects to a single ROI
-        if len(merge_roi_list) > 0:
-            roi_list += [merge_roi_objects(roi_list=merge_roi_list)]
-
-    return roi_list
-
-
-def import_segment_from_contour(df_char, img_obj, settings, req_roi_names=None):
-    # Reads contours and perform segmentation
-
-    roi_list = []
-
-    # Contours cannot be properly segmented without an origin
-    if np.any(np.isnan(img_obj.origin)):
-        return roi_list
-
-    for current_roi_name in req_roi_names:
-
-        # Identify rois in a combined name
-        combined_roi_names = parse_roi_name(roi=current_roi_name)
-
-        # Local roi container list
-        merge_roi_list = []
-
-        for individual_roi_name in combined_roi_names:
-            for ii in np.arange(0, len(df_char)):
-
-                # Read the dicom file
-                dcm = pydicom.dcmread(df_char.file_path.values[ii], stop_before_pixels=True, force=True)
-
-                # Find roi names in the current dicom file
-                rtstruct_roi_names, rtstruct_roi_numbers = get_rtstruct_roi_names(dcm=dcm, with_roi_number=True)
-
-                # See if the roi name is in the current dicom file
-                if individual_roi_name not in rtstruct_roi_names:
-                    continue
-
-                # Determine if there is a roi contour sequence (0x3006, 0x0039)
-                if not get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x3006, 0x0039)):
-                    continue
-
-                # Find the roi number corresponding to individual_roi_name
-                individual_roi_number = [rtstruct_roi_numbers[ii] for ii in range(len(rtstruct_roi_numbers)) if rtstruct_roi_names[ii] == individual_roi_name][0]
-
-                # Find which roi contour sequence corresponds has the individual_roi_number
-                for roi_contour_elem in dcm[0x3006, 0x0039]:
-
-                    # Determine if the Reference ROI number tag exists (3006, 0084)
-                    if not get_pydicom_meta_tag(dcm_seq=roi_contour_elem, tag=(0x3006, 0x0084)):
-                        continue
-
-                    # Skip if current roi contour element does not contain the requested roi
-                    if get_pydicom_meta_tag(dcm_seq=roi_contour_elem, tag=(0x3006, 0x0084), tag_type="str") != individual_roi_number:
-                        continue
-
-                    # Determine if the contour sequence element exists (3006, 0040)
-                    if not get_pydicom_meta_tag(dcm_seq=roi_contour_elem, tag=(0x3006, 0x0040)):
-                        continue
-
-                    # Load the contour sequence
-                    contour_sequence = roi_contour_elem[0x3006, 0x0040]
-
-                    # Empty contour_list
-                    contour_data_list = []
-
-                    # Iterate over contours in the contour_sequence
-                    for current_contour_sequence in contour_sequence:
-
-                        # Check if the geometric type exists (3006, 0042)
-                        if not get_pydicom_meta_tag(dcm_seq=current_contour_sequence, tag=(0x3006, 0x0042), test_tag=True):
-                            continue
-
-                        # Check if the geometric type equals "CLOSED_PLANAR"
-                        if get_pydicom_meta_tag(dcm_seq=current_contour_sequence, tag=(0x3006, 0x0042), tag_type="str") != "CLOSED_PLANAR":
-                            continue
-
-                        # Check if contour data exists (3006, 0050)
-                        if not get_pydicom_meta_tag(dcm_seq=current_contour_sequence, tag=(0x3006, 0x0050), test_tag=True):
-                            continue
-
-                        contour_data = np.array(get_pydicom_meta_tag(dcm_seq=current_contour_sequence, tag=(0x3006, 0x0050), tag_type="mult_float"), dtype=np.float64)
-                        contour_data = contour_data.reshape((-1, 3))
-
-                        # Determine if there is an offset (3006, 0045)
-                        contour_offset = np.array(get_pydicom_meta_tag(dcm_seq=current_contour_sequence, tag=(0x3006, 0x0045), tag_type="mult_float", default=[0.0, 0.0, 0.0]),
-                                                  dtype=np.float64)
-
-                        # Remove the offset from the data
-                        contour_data -= contour_offset
-
-                        # Add contour data to the contour list
-                        contour_data_list += [contour_data]
-
-                    # Check if the contour_data_list contains data
-                    if len(contour_data_list) > 0:
-                        # Create a ROIClass object for the current roi
-                        roi_obj = RoiClass(name=individual_roi_name, contour=contour_data_list)
-
-                        # Convert contour into segmentation object
-                        roi_obj.create_mask_from_contours(img_obj=img_obj, settings=settings)
-
-                        # Append the roi_obj to the list
-                        merge_roi_list += [roi_obj]
-
-        # Combine ROI objects to a single ROI
-        if len(merge_roi_list) > 0:
-            roi_list += [merge_roi_objects(roi_list=merge_roi_list)]
-
-    return roi_list
-
-
-def read_segment_names(df_char):
-
-    roi_names = []
-    file_names = []
-
-    # Iterate over files and add roi names
-    for ii in np.arange(0, len(df_char)):
-
-        # Parse according to file type and modality
-        if df_char.modality.values[ii] == "SEG" and df_char.file_type.values[ii] != "dicom":
-            # Roi name from file name (non-dicom)
-            file_name_split = df_char.file_name.values[ii].lower().split(".")
-
-            # Add roi names and corresponding file names
-            roi_names  += [file_name_split[0]]
-            file_names += [df_char.file_name.values[ii]]
-
-        elif df_char.modality.values[ii] == "SEG" and df_char.file_type.values[ii] == "dicom":
-            # Roi map from mask voxel volumes (dicom)
-            logging.warning("Cannot parse dicom segmentation file: %s",
-                            df_char.file_path.values[ii])  # requires future implementation
-
-        elif df_char.modality.values[ii] == "RTSTRUCT" and df_char.file_type.values[ii] == "dicom":
-            # Roi map from dicom segmentation contours (RT structures)
-
-            # Empty place holder
-            dcm_roi = get_rtstruct_roi_names(image_file=df_char.file_path.values[ii])
-
-            # Add roi names and file name
-            if len(dcm_roi) > 0:
-                roi_names += dcm_roi
-                file_names += [df_char.file_name.values[ii]] * len(dcm_roi)
-
-        else:
-            logging.warning("Cannot parse segmentation file: %s", df_char.file_path.values[ii])
-
-    return file_names, roi_names
-
 
 
 def check_file_name(file_name, file_path):

@@ -9,7 +9,8 @@ from mirp.utilities import expand_grid
 
 class ExperimentClass:
 
-    def __init__(self, modality, subject, cohort, image_folder, roi_folder, roi_reg_img_folder, roi_names, data_str, write_path,
+    def __init__(self, modality, subject, cohort, image_folder, roi_folder, roi_reg_img_folder, image_file_name_pattern,
+                 registration_image_file_name_pattern, roi_names, data_str, write_path,
                  settings, provide_diagnostics=False, compute_features=False, extract_images=False, plot_images=False,
                  keep_images_in_memory=False):
         """
@@ -33,19 +34,33 @@ class ExperimentClass:
         """
         import datetime
 
-        # Initial settings
-        self.modality     = modality                        # Image modality
-        self.subject      = subject                         # Patient ID
-        self.cohort       = cohort                          # Cohort name or id
-        self.write_path   = write_path                      # Path for writing results
-        self.image_folder = image_folder                    # Path to images
-        self.roi_folder   = roi_folder                      # Path to roi
-        self.roi_reg_img_folder = roi_reg_img_folder        # Path to image on which the roi is registered
-        self.roi_names    = roi_names                       # Roi names
-        if data_str is None: data_str = ""                  # Data string to specify particular settings, e.g. 0W or pt
-        self.data_str     = data_str
-        self.date = datetime.date.today().isoformat()       # Date at analysis start
+        # General data
+        self.modality = modality  # Image modality
+        self.subject = subject  # Patient ID
+        self.cohort = cohort  # Cohort name or id
 
+        # Path for writing data
+        self.write_path = write_path
+
+        # Paths to image and segmentation folders
+        self.image_folder = image_folder
+        self.roi_folder = roi_folder
+        self.roi_reg_img_folder = roi_reg_img_folder  # Folder containing the image on which the roi was registered
+
+        # File name patterns
+        self.image_file_name_pattern = image_file_name_pattern  # Main image
+        self.registration_image_file_name_pattern = registration_image_file_name_pattern  # Image against which segmentation was registered.
+
+        # Segmentation names
+        self.roi_names = roi_names
+
+        # Identifier strings
+        self.data_str = "" if data_str is None else data_str
+
+        # Date at analysis start
+        self.date = datetime.date.today().isoformat()
+
+        # Settings and iteration settings
         self.settings = settings
         self.iter_settings = None
 
@@ -56,7 +71,7 @@ class ExperimentClass:
         self.plot_images = plot_images
         self.keep_images_in_memory = keep_images_in_memory
 
-    def getRoiList(self):
+    def get_roi_list(self):
         """ Extracts the available region of interest from the roi folder. This function allows identification of
          regions of interest in new projects. """
 
@@ -67,9 +82,9 @@ class ExperimentClass:
         logging.info("Starting extraction of rois for %s.", self.subject)
 
         # Extract regions of interest
-        df_roi = find_regions_of_interest(roi_folder=self.roi_folder, subject=self.subject)
+        roi_table = find_regions_of_interest(roi_folder=self.roi_folder, subject=self.subject)
 
-        return df_roi
+        return roi_table
 
     def get_imaging_parameter_table(self):
         """
@@ -78,15 +93,15 @@ class ExperimentClass:
         """
 
         import logging
-        from mirp.imageRead import find_imaging_parameters
+        from mirp.imageRead import find_imaging_parameters_deprecated
 
         # Notify for start extraction of image meta data
         logging.info("Starting extraction of image metadata for %s.", self.subject)
 
         # Find files and extract meta data to a dataframe
-        df_meta = find_imaging_parameters(image_folder=self.image_folder, modality=self.modality, subject=self.subject, plot_images=self.plot_images,
-                                          write_folder=self.write_path, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
-                                          settings=self.settings, roi_names=self.roi_names)
+        df_meta = find_imaging_parameters_deprecated(image_folder=self.image_folder, modality=self.modality, subject=self.subject, plot_images=self.plot_images,
+                                                     write_folder=self.write_path, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
+                                                     settings=self.settings, roi_names=self.roi_names)
 
         return df_meta
 
@@ -265,8 +280,14 @@ class ExperimentClass:
 
         # Load image and roi
         if self.keep_images_in_memory:
-            base_img_obj, base_roi_list = load_image(image_folder=self.image_folder, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
-                                                     settings=self.settings, modality=self.modality, roi_names=self.roi_names)
+            base_img_obj, base_roi_list = load_image(image_folder=self.image_folder,
+                                                     modality=self.modality,
+                                                     roi_folder=self.roi_folder,
+                                                     registration_image_folder=self.roi_reg_img_folder,
+                                                     image_name=self.image_file_name_pattern,
+                                                     roi_names=self.roi_names,
+                                                     registration_image_name=self.registration_image_file_name_pattern)
+
             self.set_image_name(img_obj=base_img_obj)
         else:
             base_img_obj = base_roi_list = None
@@ -287,25 +308,20 @@ class ExperimentClass:
             # Load and pre-process image and roi
             ########################################################################################################
 
-            # Set verbosity for loading roi - only report issues on first image adaptation
-            if ii == 0:
-                verbosity_roi = True
-            else:
-                verbosity_roi = False
-
             # Use pre-loaded base image and roi_list (more memory used, but may be faster if loading over a network), or load from disk.
             if self.keep_images_in_memory:
                 img_obj = base_img_obj.copy()
                 roi_list = copy.deepcopy(base_roi_list)
             else:
                 # Read image and ROI segmentations
-                img_obj, roi_list = load_image(image_folder=self.image_folder, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
-                                               settings=self.settings, modality=self.modality, roi_names=self.roi_names)
+                img_obj, roi_list = load_image(image_folder=self.image_folder,
+                                                     modality=self.modality,
+                                                     roi_folder=self.roi_folder,
+                                                     registration_image_folder=self.roi_reg_img_folder,
+                                                     image_name=self.image_file_name_pattern,
+                                                     roi_names=self.roi_names,
+                                                     registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
-
-            # Check integrity of the list of regions of interest
-            # roi_integrity_flag, roi_list = self.checkRoiListIntegrity(roi_list=roi_list, verbose=verbosity_roi)
-            # if not roi_integrity_flag: continue
 
             # Crop slice stack (z only)
             if self.settings.vol_adapt.crop:
@@ -463,8 +479,13 @@ class ExperimentClass:
 
         # Load image and roi
         if self.keep_images_in_memory:
-            base_img_obj, base_roi_list = load_image(image_folder=self.image_folder, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
-                                                     settings=self.settings, modality=self.modality, roi_names=self.roi_names)
+            base_img_obj, base_roi_list = load_image(image_folder=self.image_folder,
+                                                     modality=self.modality,
+                                                     roi_folder=self.roi_folder,
+                                                     registration_image_folder=self.roi_reg_img_folder,
+                                                     image_name=self.image_file_name_pattern,
+                                                     roi_names=self.roi_names,
+                                                     registration_image_name=self.registration_image_file_name_pattern)
             self.set_image_name(img_obj=base_img_obj)
         else:
             base_img_obj = base_roi_list = None
@@ -489,25 +510,21 @@ class ExperimentClass:
             # Load and pre-process image and roi
             ########################################################################################################
 
-            # Set verbosity for loading roi - only report issues on first image adaptation
-            if ii == 0:
-                verbosity_roi = True
-            else:
-                verbosity_roi = False
-
             # Use pre-loaded base image and roi_list (more memory used, but may be faster if loading over a network), or load from disk.
             if self.keep_images_in_memory:
                 img_obj = base_img_obj.copy()
                 roi_list = copy.deepcopy(base_roi_list)
             else:
                 # Read image and ROI segmentations
-                img_obj, roi_list = load_image(image_folder=self.image_folder, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
-                                               settings=self.settings, modality=self.modality, roi_names=self.roi_names)
+                img_obj, roi_list = load_image(image_folder=self.image_folder,
+                                               modality=self.modality,
+                                               roi_folder=self.roi_folder,
+                                               registration_image_folder=self.roi_reg_img_folder,
+                                               image_name=self.image_file_name_pattern,
+                                               roi_names=self.roi_names,
+                                               registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
 
-            # Check integrity of the list of regions of interest
-            # roi_integrity_flag, roi_list = self.checkRoiListIntegrity(roi_list=roi_list, verbose=verbosity_roi)
-            # if not roi_integrity_flag: continue
 
             ########################################################################################################
             # Update settings and initialise

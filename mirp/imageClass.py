@@ -16,12 +16,11 @@ class ImageClass:
 
     def __init__(self, voxel_grid, origin, slice_z_pos, spacing, orientation, modality=None, spat_transform="base", no_image=False,
                  metadata=None, metadata_sop_instances=None):
-        self.origin   = origin    # Coordinates of [0,0,0] voxel in mm
-        self.spacing  = spacing   # Voxel spacing in mm
+        self.origin   = np.array(origin)    # Coordinates of [0,0,0] voxel in mm
+        self.spacing  = np.array(spacing)   # Voxel spacing in mm
         self.slice_z_pos = np.array(slice_z_pos)    # Position along stack axis
-        self.modality = modality                    # Imaging modality
         self.spat_transform = spat_transform        # Signifies whether the current image is a base image or not
-        self.orientation = orientation
+        self.orientation = np.array(orientation)
 
         # Image name
         self.name = None

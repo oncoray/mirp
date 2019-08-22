@@ -26,7 +26,7 @@ def get_roi_names(data_config=None, settings_config=None):
 
     # Iterate over data and
     for data_obj in data_obj_list:
-        roi_info_list += [data_obj.getRoiList()]
+        roi_info_list += [data_obj.get_roi_list()]
 
     # Concatenate list
     df_roi = pd.concat(roi_info_list)
