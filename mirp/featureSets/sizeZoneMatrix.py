@@ -183,11 +183,11 @@ class SizeZoneMatrix:
         # Don't return data for empty slices or slices without a good matrix
         if self.matrix is None:
             # Update names
-            df_feat.columns += self.parse_features_names()
+            df_feat.columns += self.parse_feature_names()
             return df_feat
         elif len(self.matrix) == 0:
             # Update names
-            df_feat.columns += self.parse_features_names()
+            df_feat.columns += self.parse_feature_names()
             return df_feat
 
         # Make a local copy of the size zone matrix for processing
@@ -265,12 +265,12 @@ class SizeZoneMatrix:
 
         return df_feat
 
-    def parse_features_names(self):
+    def parse_feature_names(self):
         """"Used for parsing names to feature names"""
-        parse_str = ""
+        parse_str = [""]
 
         # Add spatial method
         if self.spatial_method is not None:
-            parse_str += "_" + self.spatial_method
+            parse_str += [self.spatial_method]
 
-        return parse_str
+        return "_".join(parse_str).rstrip("_")

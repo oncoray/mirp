@@ -387,17 +387,17 @@ class RunLengthMatrix:
 
     def parse_feature_names(self):
         """"Used for parsing names to feature names"""
-        parse_str = ""
+        parse_str = [""]
 
         # Add spatial method
         if self.spatial_method is not None:
-            parse_str += "_" + self.spatial_method
+            parse_str += [self.spatial_method]
 
         # Add merge method
         if self.merge_method is not None:
-            if self.merge_method == "average":     parse_str += "_avg"
-            if self.merge_method == "slice_merge": parse_str += "_s_mrg"
-            if self.merge_method == "dir_merge":   parse_str += "_d_mrg"
-            if self.merge_method == "vol_merge":   parse_str += "_v_mrg"
+            if self.merge_method == "average": parse_str += ["avg"]
+            if self.merge_method == "slice_merge": parse_str += ["s_mrg"]
+            if self.merge_method == "dir_merge":   parse_str += ["d_mrg"]
+            if self.merge_method == "vol_merge":   parse_str += ["v_mrg"]
 
-        return parse_str
+        return "_".join(parse_str).rstrip("_")

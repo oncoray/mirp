@@ -318,16 +318,16 @@ class GreyLevelDependenceMatrix:
 
     def parse_feature_names(self):
         """"Used for parsing names to feature names"""
-        parse_str = ""
+        parse_str = [""]
 
         # Add distance
-        parse_str += "_d" + str(np.round(self.distance, 1))
+        parse_str += ["d" + str(np.round(self.distance, 1))]
 
         # Add difference level
-        parse_str += "_a" + str(np.round(self.diff_lvl, 0))
+        parse_str += ["a" + str(np.round(self.diff_lvl, 0))]
 
         # Add spatial method
         if self.spatial_method is not None:
-            parse_str += "_" + self.spatial_method
+            parse_str += [self.spatial_method]
 
-        return parse_str
+        return "_".join(parse_str).rstrip("_")
