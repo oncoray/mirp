@@ -268,13 +268,8 @@ class ExperimentClass:
         # Initialise empty feature list
         feat_list = []
 
-        # Notifications
-        if self.compute_features and self.extract_images:
-            logging.info("Initialising feature computation and image extraction using %s images and configuration %s for %s.", self.modality + "_" + self.data_str + "_", self.settings.general.config_str, self.subject)
-        elif self.compute_features:
-            logging.info("Initialising feature computation using %s images and configuration %s for %s.", self.modality + "_" + self.data_str + "_", self.settings.general.config_str, self.subject)
-        elif self.extract_images:
-            logging.info("Initialising image extraction using %s images and configuration %s for %s.", self.modality + "_" + self.data_str + "_", self.settings.general.config_str, self.subject)
+        # Notify
+        logging.info(self._message_computation_initialisation())
 
         # Get iterables from current settings which lead to different image adaptations
         iter_set, n_outer_iter, n_inner_iter = self.get_iterable_parameters(settings=self.settings)
@@ -299,9 +294,9 @@ class ExperimentClass:
             # Log current iteration
             if n_outer_iter * n_inner_iter > 1:
                 if n_inner_iter > 1:
-                    logging.info("Starting computations for %s to %s of %s adaptations.", str(ii*n_inner_iter+1), str((ii+1)*n_inner_iter), str(n_outer_iter*n_inner_iter))
+                    logging.info(f"Starting computations for {ii * n_inner_iter + 1} to {(ii+1) * n_inner_iter} of {n_outer_iter * n_inner_iter} perturbations.")
                 else:
-                    logging.info("Starting computations for %s of %s adaptations.", str(ii+1), str(n_outer_iter))
+                    logging.info(f"Starting computations for {ii + 1} of {n_outer_iter} perturbations.")
             else:
                 logging.info("Starting computations.")
 
@@ -446,18 +441,20 @@ class ExperimentClass:
         if self.compute_features:
             # Check if features were extracted
             if len(feat_list) == 0:
-                logging.warning("No features were extracted from %s images for %s.", self.modality + "_" + self.data_str, self.subject)
+                logging.warning(self._message_warning_no_features_extracted())
                 return None
 
             # Concatenate feat list
             df_feat = pd.concat(feat_list, axis=0)
 
             # Write to file
-            file_name = self.subject + "_" + self.modality + "_" + self.data_str + "_" + self.date + "_" + self.settings.general.config_str + "_features.csv"
+            file_name = "_".join([file_name_comp for file_name_comp in [self.subject, self.modality, self.data_str, self.date, self.settings.general.config_str, "features.csv"]
+                                  if file_name_comp != ""]).replace(" ", "_")
+            # file_name = self.subject + "_" + self.modality + "_" + self.data_str + "_" + self.date + "_" + self.settings.general.config_str + "_features.csv"
             df_feat.to_csv(path_or_buf=os.path.join(self.write_path, file_name), sep=";", na_rep="NA", index=False, decimal=".")
 
             # Write successful completion to console or log
-            logging.info("Features were extracted from %s images for %s.", self.modality + "_" + self.data_str + "_" + self.settings.general.config_str, self.subject)
+            logging.info(self._message_feature_extraction_finished())
 
     def process_deep_learning(self, output_slices=False):
 
@@ -722,24 +719,74 @@ class ExperimentClass:
         :param img_obj:
         :return:
         """
-        import copy
+
+        name_string = []
 
         # Add cohort and subject or just subject
         if self.cohort != "NA":
-            name_str = self.cohort + "_" + self.subject
+            name_string += [self.cohort, self.subject]
         else:
-            name_str = copy.deepcopy(self.subject)
+            name_string += [self.subject]
 
         # Add modality
-        name_str += "_" + self.modality
+        name_string += [self.modality]
 
         # Add data string
         if self.data_str != "":
-            name_str += "_" + self.data_str
+            name_string += [self.data_str]
 
-        # Add configuration strin
-        if self.settings.general.config_str is not None:
-            name_str += "_" + self.settings.general.config_str
+        # Add configuration string
+        if self.settings.general.config_str != "":
+            name_string += [self.settings.general.config_str]
 
         # Set name
-        img_obj.name = name_str
+        img_obj.name = "_".join(name_string).replace(" ", "_")
+
+    def _message_computation_initialisation(self):
+
+        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
+        image_descriptor = "_".join(image_descriptor).strip("_")
+
+        message_str = ["Initialising"]
+        if self.compute_features and self.extract_images:
+            message_str += ["feature computation and image extraction"]
+        elif self.compute_features:
+            message_str += ["feature computation"]
+        elif self.extract_images:
+            message_str += ["image extraction"]
+
+        message_str += [f"using {image_descriptor} images"]
+
+        if self.settings.general.config_str != "":
+            message_str += [f"and configuration \"{self.settings.general.config_str}\""]
+
+        message_str += [f"for {self.subject}."]
+
+        return " ".join(message_str)
+
+    def _message_warning_no_features_extracted(self):
+        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
+        image_descriptor = "_".join(image_descriptor).strip("_")
+
+        message_str = [f"No features were extracted from {image_descriptor} images"]
+
+        if self.settings.general.config_str != "":
+            message_str += [f"using configuration \"{self.settings.general.config_str}\""]
+
+        message_str += [f"for {self.subject}."]
+
+        return " ".join(message_str)
+
+    def _message_feature_extraction_finished(self):
+
+        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
+        image_descriptor = "_".join(image_descriptor).strip("_")
+
+        message_str = [f"Features were successfully extracted from {image_descriptor} images"]
+
+        if self.settings.general.config_str != "":
+            message_str += [f"using configuration \"{self.settings.general.config_str}\""]
+
+        message_str += [f"for {self.subject}."]
+
+        return " ".join(message_str)
