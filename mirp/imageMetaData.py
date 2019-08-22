@@ -778,63 +778,6 @@ def get_basic_mr_meta_data(image_file=None, dcm=None):
     return meta_data
 
 
-def get_rtstruct_roi_names(image_file=None, dcm=None, with_roi_number=False):
-
-    # Read dicom
-    if image_file is not None:
-        # Determine image type
-        image_file_type = get_image_type(image_file)
-
-        if image_file_type == "dicom":
-            # Load dicom file
-            dcm = pydicom.dcmread(image_file, stop_before_pixels=True, force=True)
-        else:
-            dcm = None
-
-    # Placeholder roi_names list
-    roi_names = []
-    roi_sequence_numbers = []
-
-    if dcm is not None:
-
-        # Check if the structure set is an RTSTRUCT
-        if get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str") != "RTSTRUCT":
-            if image_file is not None:
-                logging.warning(f"{image_file} is not an RTSTRUCT file.")
-            else:
-                logging.warning(f"The file is not an RTSTRUCT file.")
-
-            if with_roi_number:
-                return roi_names, roi_sequence_numbers
-            else:
-                return roi_names
-
-        # Check if a Structure Set ROI Sequence exists (3006, 0020)
-        if not get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x3006, 0x0020), test_tag=True):
-            if image_file is not None:
-                logging.warning(f"Structure set {image_file} did not contain a roi sequence.")
-            else:
-                logging.warning(f"The structure set did not contain a roi sequence.")
-
-            if with_roi_number:
-                return roi_names, roi_sequence_numbers
-            else:
-                return roi_names
-
-        # Iterate over roi elements in the roi sequence
-        for roi_elem in dcm[0x3006, 0x0020]:
-
-            # Check if the roi element contains a name (3006, 0026)
-            if get_pydicom_meta_tag(dcm_seq=roi_elem, tag=(0x3006, 0x0026), test_tag=True):
-                roi_names += [get_pydicom_meta_tag(dcm_seq=roi_elem, tag=(0x3006, 0x0026), tag_type="str")]
-                roi_sequence_numbers += [get_pydicom_meta_tag(dcm_seq=roi_elem, tag=(0x3006, 0x0022), tag_type="str")]
-
-    if with_roi_number:
-        return roi_names, roi_sequence_numbers
-    else:
-        return roi_names
-
-
 def get_image_type(image_file):
     # Determine image type
     if image_file.lower().endswith((".dcm", ".ima")):
