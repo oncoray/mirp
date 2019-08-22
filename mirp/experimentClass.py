@@ -683,40 +683,6 @@ class ExperimentClass:
 
         return df_iter_feat
 
-    def checkRoiListIntegrity(self, roi_list, verbose=False):
-        # Provides a number of tests to check the integrity of the selected regions of interest
-        # TODO: improve this function and re-enable it. It should be able to parse combined rois, e.g. {roi_1 & roi_2 & roi_3}
-        import logging
-
-        # Log error on completely missing rois
-        if len(roi_list) == 0:
-            if verbose:
-                logging.error("No regions of interest were found within %s images for %s.", self.modality + "_" + self.data_str, self.subject)
-
-            return False, None
-
-        # Check found roi names
-        found_roi_names = np.asarray([roi_obj.name for roi_obj in roi_list])
-        req_roi_names   = np.asarray(self.roi_names)
-
-        # Check roi names that were not found
-        if verbose and not np.all(np.in1d(req_roi_names, found_roi_names)):
-            logging.warning("Some regions of interest were not found within %s images for %s: %s", self.modality + "_" + self.data_str,
-                            self.subject, ", ".join(req_roi_names[~np.in1d(req_roi_names, found_roi_names)]))
-
-        # Check duplicate roi names - maintain only unique rois
-        uniq_roi_names, uniq_index, uniq_counts  = np.unique(np.asarray(found_roi_names), return_index=True, return_counts=True)
-        if np.size(uniq_index) != len(found_roi_names):
-            if verbose:
-                logging.warning("Some duplicate regions of interest were found within %s images for %s: %s",
-                                self.modality + "_" + self.data_str, self.subject,
-                                ", ".join(uniq_roi_names[uniq_counts > 1]))
-                logging.info("Only first non-unique regions of interest are used.")
-
-            roi_list = [roi_list[ii] for ii in uniq_index]
-
-        return True, roi_list
-
     def extract_diagnostic_features(self, img_obj, roi_list=None, append_str=""):
         """ Extracts diagnostics features from image objects and lists of roi objects """
 
