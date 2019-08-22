@@ -189,6 +189,11 @@ def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force
         dcm_seq.add_new(tag=tag, VR=force_vr, value=value)
 
 
+def has_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag):
+
+    return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
+
+
 def get_sitk_dicom_meta_tag(sitk_img, tag, tag_type, default=None):
     # Reads dicom tag
 
