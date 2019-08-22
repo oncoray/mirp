@@ -230,7 +230,7 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
                                data_obj_list[ii].settings.general.config_str
                 worker_list.append(mp.Process(target=parallel_process, args=(data_obj_list[ii],), name=process_name))
                 worker_list[ii].daemon = True
-                df_mngr.ix[ii, "assigned_worker"] = ii
+                df_mngr.loc[ii, "assigned_worker"] = ii
 
             # Initiate a list that keeps track of repeated errors and skips those samples.
             error_skip_list = []
@@ -320,7 +320,7 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
                     worker_list[free_workers[jj]] = mp.Process(target=parallel_process,
                                                                args=(data_obj_list[sel_job_id],), name=process_name)
                     worker_list[free_workers[jj]].daemon = True
-                    df_mngr.ix[sel_job_id, "assigned_worker"] = free_workers[jj]
+                    df_mngr.loc[sel_job_id, "assigned_worker"] = free_workers[jj]
 
             # Exit statement
             logging.info("Feature calculation has been completed.")
