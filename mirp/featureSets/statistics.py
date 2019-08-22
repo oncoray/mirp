@@ -55,72 +55,72 @@ def compute_intensity_statistics_features(df_img):
     ####################################################################################################################
 
     # Mean grey level
-    df_feat.ix[0, "stat_mean"] = np.mean(df_img.g)
+    df_feat["stat_mean"] = np.mean(df_img.g)
 
     # Variance
-    df_feat.ix[0, "stat_var"] = np.var(df_img.g, ddof=0)
+    df_feat["stat_var"] = np.var(df_img.g, ddof=0)
 
     # Skewness
     if np.var(df_img.g) == 0.0:
-        df_feat.ix[0, "stat_skew"] = 0.0
+        df_feat["stat_skew"] = 0.0
     else:
-        df_feat.ix[0, "stat_skew"] = st.skew(df_img.g, bias=True)
+        df_feat["stat_skew"] = st.skew(df_img.g, bias=True)
 
     # Kurtosis
     if np.var(df_img.g) == 0.0:
-        df_feat.ix[0, "stat_kurt"] = 0.0
+        df_feat["stat_kurt"] = 0.0
     else:
-        df_feat.ix[0, "stat_kurt"] = st.kurtosis(df_img.g, bias=True)
+        df_feat["stat_kurt"] = st.kurtosis(df_img.g, bias=True)
 
     # Median grey level
-    df_feat.ix[0, "stat_median"] = np.median(df_img.g)
+    df_feat["stat_median"] = np.median(df_img.g)
 
     # Minimum grey level
-    df_feat.ix[0, "stat_min"] = np.min(df_img.g)
+    df_feat["stat_min"] = np.min(df_img.g)
 
     # 10th percentile
-    df_feat.ix[0, "stat_p10"] = np.percentile(df_img.g, q=10)
+    df_feat["stat_p10"] = np.percentile(df_img.g, q=10)
 
     # 90th percentile
-    df_feat.ix[0, "stat_p90"] = np.percentile(df_img.g, q=90)
+    df_feat["stat_p90"] = np.percentile(df_img.g, q=90)
 
     # Maximum grey level
-    df_feat.ix[0, "stat_max"] = np.max(df_img.g)
+    df_feat["stat_max"] = np.max(df_img.g)
 
     # Interquartile range
-    df_feat.ix[0, "stat_iqr"] = np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)
+    df_feat["stat_iqr"] = np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)
 
     # Range
-    df_feat.ix[0, "stat_range"] = np.max(df_img.g) - np.min(df_img.g)
+    df_feat["stat_range"] = np.max(df_img.g) - np.min(df_img.g)
 
     # Mean absolute deviation
-    df_feat.ix[0, "stat_mad"] = np.mean(np.abs(df_img.g - np.mean(df_img.g)))
+    df_feat["stat_mad"] = np.mean(np.abs(df_img.g - np.mean(df_img.g)))
 
     # Robust mean absolute deviation
     df_sel = df_img[(df_img.g >= np.percentile(df_img.g, q=10)) & (df_img.g <= np.percentile(df_img.g, q=90))]
-    df_feat.ix[0, "stat_rmad"] = np.mean(np.abs(df_sel.g - np.mean(df_sel.g)))
+    df_feat["stat_rmad"] = np.mean(np.abs(df_sel.g - np.mean(df_sel.g)))
     del df_sel
 
     # Median absolute deviation
-    df_feat.ix[0, "stat_medad"] = np.mean(np.abs(df_img.g - np.median(df_img.g)))
+    df_feat["stat_medad"] = np.mean(np.abs(df_img.g - np.median(df_img.g)))
 
     # Coefficient of variance
     if np.var(df_img.g, ddof=0) == 0.0:
-        df_feat.ix[0, "stat_cov"] = 0.0
+        df_feat["stat_cov"] = 0.0
     else:
-        df_feat.ix[0, "stat_cov"] = np.sqrt(np.var(df_img.g, ddof=0)) / np.mean(df_img.g)
+        df_feat["stat_cov"] = np.sqrt(np.var(df_img.g, ddof=0)) / np.mean(df_img.g)
 
     # Quartile coefficient of dispersion
     denominator = np.percentile(df_img.g, q=75) + np.percentile(df_img.g, q=25)
     if denominator == 0.0:
-        df_feat.ix[0, "stat_qcod"] = 1.0E6
+        df_feat["stat_qcod"] = 1.0E6
     else:
-        df_feat.ix[0, "stat_qcod"] = (np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)) / denominator
+        df_feat["stat_qcod"] = (np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)) / denominator
 
     # Energy
-    df_feat.ix[0, "stat_energy"] = np.sum(df_img.g ** 2.0)
+    df_feat["stat_energy"] = np.sum(df_img.g ** 2.0)
 
     # Root mean square
-    df_feat.ix[0, "stat_rms"] = np.sqrt(np.sum(df_img.g ** 2.0) / n_v)
+    df_feat["stat_rms"] = np.sqrt(np.sum(df_img.g ** 2.0) / n_v)
 
     return df_feat

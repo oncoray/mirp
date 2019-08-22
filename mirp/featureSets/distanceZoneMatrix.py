@@ -221,56 +221,56 @@ class DistanceZoneMatrix:
         ###############################################
 
         # Small distance emphasis
-        df_feat.ix[0, "dzm_sde"] = np.sum(df_dj.dj / df_dj.j ** 2.0) / n_s
+        df_feat["dzm_sde"] = np.sum(df_dj.dj / df_dj.j ** 2.0) / n_s
 
         # Large distance emphasis
-        df_feat.ix[0, "dzm_lde"] = np.sum(df_dj.dj * df_dj.j ** 2.0) / n_s
+        df_feat["dzm_lde"] = np.sum(df_dj.dj * df_dj.j ** 2.0) / n_s
 
         # Grey level non-uniformity
-        df_feat.ix[0, "dzm_glnu"] = np.sum(df_di.di ** 2.0) / n_s
+        df_feat["dzm_glnu"] = np.sum(df_di.di ** 2.0) / n_s
 
         # Grey level non-uniformity, normalised
-        df_feat.ix[0, "dzm_glnu_norm"] = np.sum(df_di.di ** 2.0) / n_s ** 2.0
+        df_feat["dzm_glnu_norm"] = np.sum(df_di.di ** 2.0) / n_s ** 2.0
 
         # Zone distance non-uniformity
-        df_feat.ix[0, "dzm_zdnu"] = np.sum(df_dj.dj ** 2.0) / n_s
+        df_feat["dzm_zdnu"] = np.sum(df_dj.dj ** 2.0) / n_s
 
         # Zone distance non-uniformity
-        df_feat.ix[0, "dzm_zdnu_norm"] = np.sum(df_dj.dj ** 2.0) / n_s ** 2.0
+        df_feat["dzm_zdnu_norm"] = np.sum(df_dj.dj ** 2.0) / n_s ** 2.0
 
         # Zone percentage
-        df_feat.ix[0, "dzm_z_perc"] = n_s / n_v
+        df_feat["dzm_z_perc"] = n_s / n_v
 
         # Low grey level emphasis
-        df_feat.ix[0, "dzm_lgze"] = np.sum(df_di.di / df_di.i ** 2.0) / n_s
+        df_feat["dzm_lgze"] = np.sum(df_di.di / df_di.i ** 2.0) / n_s
 
         # High grey level emphasis
-        df_feat.ix[0, "dzm_hgze"] = np.sum(df_di.di * df_di.i ** 2.0) / n_s
+        df_feat["dzm_hgze"] = np.sum(df_di.di * df_di.i ** 2.0) / n_s
 
         # Small distance low grey level emphasis
-        df_feat.ix[0, "dzm_sdlge"] = np.sum(df_dij.dij / (df_dij.i * df_dij.j) ** 2.0) / n_s
+        df_feat["dzm_sdlge"] = np.sum(df_dij.dij / (df_dij.i * df_dij.j) ** 2.0) / n_s
 
         # Small distance high grey level emphasis
-        df_feat.ix[0, "dzm_sdhge"] = np.sum(df_dij.dij * df_dij.i ** 2.0 / df_dij.j ** 2.0) / n_s
+        df_feat["dzm_sdhge"] = np.sum(df_dij.dij * df_dij.i ** 2.0 / df_dij.j ** 2.0) / n_s
 
         # Large distance low grey level emphasis
-        df_feat.ix[0, "dzm_ldlge"] = np.sum(df_dij.dij * df_dij.j ** 2.0 / df_dij.i ** 2.0) / n_s
+        df_feat["dzm_ldlge"] = np.sum(df_dij.dij * df_dij.j ** 2.0 / df_dij.i ** 2.0) / n_s
 
         # Large distance high grey level emphasis
-        df_feat.ix[0, "dzm_ldhge"] = np.sum(df_dij.dij * df_dij.i ** 2.0 * df_dij.j ** 2.0) / n_s
+        df_feat["dzm_ldhge"] = np.sum(df_dij.dij * df_dij.i ** 2.0 * df_dij.j ** 2.0) / n_s
 
         # Grey level variance
         mu = np.sum(df_dij.dij * df_dij.i) / n_s
-        df_feat.ix[0, "dzm_gl_var"] = np.sum((df_dij.i - mu) ** 2.0 * df_dij.dij) / n_s
+        df_feat["dzm_gl_var"] = np.sum((df_dij.i - mu) ** 2.0 * df_dij.dij) / n_s
         del mu
 
         # Zone distance variance
         mu = np.sum(df_dij.dij * df_dij.j) / n_s
-        df_feat.ix[0, "dzm_zd_var"] = np.sum((df_dij.j - mu) ** 2.0 * df_dij.dij) / n_s
+        df_feat["dzm_zd_var"] = np.sum((df_dij.j - mu) ** 2.0 * df_dij.dij) / n_s
         del mu
 
         # Zone distance entropy
-        df_feat.ix[0, "dzm_zd_entr"] = - np.sum(df_dij.dij * np.log2(df_dij.dij / n_s)) / n_s
+        df_feat["dzm_zd_entr"] = - np.sum(df_dij.dij * np.log2(df_dij.dij / n_s)) / n_s
 
         # Update names
         df_feat.columns += self.parse_feature_names()

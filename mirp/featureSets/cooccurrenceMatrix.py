@@ -339,63 +339,63 @@ class CooccurrenceMatrix:
         ###############################################
 
         # Joint maximum
-        df_feat.ix[0, "cm_joint_max"] = np.max(df_pij.pij)
+        df_feat["cm_joint_max"] = np.max(df_pij.pij)
 
         # Joint average
-        df_feat.ix[0, "cm_joint_avg"] = np.sum(df_pij.i * df_pij.pij)
+        df_feat["cm_joint_avg"] = np.sum(df_pij.i * df_pij.pij)
 
         # Joint variance
         mu = np.sum(df_pij.i * df_pij.pij)
-        df_feat.ix[0, "cm_joint_var"] = np.sum((df_pij.i - mu) ** 2.0 * df_pij.pij)
+        df_feat["cm_joint_var"] = np.sum((df_pij.i - mu) ** 2.0 * df_pij.pij)
 
         # Joint entropy
-        df_feat.ix[0, "cm_joint_entr"] = -np.sum(df_pij.pij * np.log2(df_pij.pij))
+        df_feat["cm_joint_entr"] = -np.sum(df_pij.pij * np.log2(df_pij.pij))
 
         # Difference average
-        df_feat.ix[0, "cm_diff_avg"] = np.sum(df_pimj.k * df_pimj.pimj)
+        df_feat["cm_diff_avg"] = np.sum(df_pimj.k * df_pimj.pimj)
 
         # Difference variance
         mu = np.sum(df_pimj.k * df_pimj.pimj)
-        df_feat.ix[0, "cm_diff_var"] = np.sum((df_pimj.k - mu) ** 2.0 * df_pimj.pimj)
+        df_feat["cm_diff_var"] = np.sum((df_pimj.k - mu) ** 2.0 * df_pimj.pimj)
 
         # Difference entropy
-        df_feat.ix[0, "cm_diff_entr"] = -np.sum(df_pimj.pimj * np.log2(df_pimj.pimj))
+        df_feat["cm_diff_entr"] = -np.sum(df_pimj.pimj * np.log2(df_pimj.pimj))
 
         # Sum average
-        df_feat.ix[0, "cm_sum_avg"] = np.sum(df_pipj.k * df_pipj.pipj)
+        df_feat["cm_sum_avg"] = np.sum(df_pipj.k * df_pipj.pipj)
 
         # Sum variance
         mu = np.sum(df_pipj.k * df_pipj.pipj)
-        df_feat.ix[0, "cm_sum_var"] = np.sum((df_pipj.k - mu) ** 2.0 * df_pipj.pipj)
+        df_feat["cm_sum_var"] = np.sum((df_pipj.k - mu) ** 2.0 * df_pipj.pipj)
 
         # Sum entropy
-        df_feat.ix[0, "cm_sum_entr"] = -np.sum(df_pipj.pipj * np.log2(df_pipj.pipj))
+        df_feat["cm_sum_entr"] = -np.sum(df_pipj.pipj * np.log2(df_pipj.pipj))
 
         # Angular second moment
-        df_feat.ix[0, "cm_energy"] = np.sum(df_pij.pij ** 2.0)
+        df_feat["cm_energy"] = np.sum(df_pij.pij ** 2.0)
 
         # Contrast
-        df_feat.ix[0, "cm_contrast"] = np.sum((df_pij.i - df_pij.j) ** 2.0 * df_pij.pij)
+        df_feat["cm_contrast"] = np.sum((df_pij.i - df_pij.j) ** 2.0 * df_pij.pij)
 
         # Dissimilarity
-        df_feat.ix[0, "cm_dissimilarity"] = np.sum(np.abs(df_pij.i - df_pij.j) * df_pij.pij)
+        df_feat["cm_dissimilarity"] = np.sum(np.abs(df_pij.i - df_pij.j) * df_pij.pij)
 
         # Inverse difference
-        df_feat.ix[0, "cm_inv_diff"] = np.sum(df_pij.pij / (1.0 + np.abs(df_pij.i - df_pij.j)))
+        df_feat["cm_inv_diff"] = np.sum(df_pij.pij / (1.0 + np.abs(df_pij.i - df_pij.j)))
 
         # Inverse difference normalised
-        df_feat.ix[0, "cm_inv_diff_norm"] = np.sum(df_pij.pij / (1.0 + np.abs(df_pij.i - df_pij.j) / n_g))
+        df_feat["cm_inv_diff_norm"] = np.sum(df_pij.pij / (1.0 + np.abs(df_pij.i - df_pij.j) / n_g))
 
         # Inverse difference moment
-        df_feat.ix[0, "cm_inv_diff_mom"] = np.sum(df_pij.pij / (1.0 + (df_pij.i - df_pij.j) ** 2.0))
+        df_feat["cm_inv_diff_mom"] = np.sum(df_pij.pij / (1.0 + (df_pij.i - df_pij.j) ** 2.0))
 
         # Inverse difference moment normalised
-        df_feat.ix[0, "cm_inv_diff_mom_norm"] = np.sum(
+        df_feat["cm_inv_diff_mom_norm"] = np.sum(
             df_pij.pij / (1.0 + (df_pij.i - df_pij.j) ** 2.0 / n_g ** 2.0))
 
         # Inverse variance
         df_sel = df_pij[df_pij.i != df_pij.j]
-        df_feat.ix[0, "cm_inv_var"] = np.sum(df_sel.pij / (df_sel.i - df_sel.j) ** 2.0)
+        df_feat["cm_inv_var"] = np.sum(df_sel.pij / (df_sel.i - df_sel.j) ** 2.0)
         del df_sel
 
         # Correlation
@@ -403,23 +403,23 @@ class CooccurrenceMatrix:
         var_marg = np.sum((df_pi.i - mu_marg) ** 2.0 * df_pi.pi)
 
         if var_marg == 0.0:
-            df_feat.ix[0, "cm_corr"] = 1.0
+            df_feat["cm_corr"] = 1.0
         else:
-            df_feat.ix[0, "cm_corr"] = 1.0 / var_marg * (np.sum(df_pij.i * df_pij.j * df_pij.pij) - mu_marg ** 2.0)
+            df_feat["cm_corr"] = 1.0 / var_marg * (np.sum(df_pij.i * df_pij.j * df_pij.pij) - mu_marg ** 2.0)
 
         del mu_marg, var_marg
 
         # Autocorrelation
-        df_feat.ix[0, "cm_auto_corr"] = np.sum(df_pij.i * df_pij.j * df_pij.pij)
+        df_feat["cm_auto_corr"] = np.sum(df_pij.i * df_pij.j * df_pij.pij)
 
         # Information correlation 1
         hxy = - np.sum(df_pij.pij * np.log2(df_pij.pij))
         hxy_1 = - np.sum(df_pij.pij * np.log2(df_pij.pi * df_pij.pj))
         hx = - np.sum(df_pi.pi * np.log2(df_pi.pi))
         if len(df_pij) == 1 or hx == 0.0:
-            df_feat.ix[0, "cm_info_corr1"] = 1.0
+            df_feat["cm_info_corr1"] = 1.0
         else:
-            df_feat.ix[0, "cm_info_corr1"] = (hxy - hxy_1) / hx
+            df_feat["cm_info_corr1"] = (hxy - hxy_1) / hx
         del hxy, hxy_1, hx
 
         # Information correlation 2 - Note: iteration over combinations of i and j
@@ -428,24 +428,24 @@ class CooccurrenceMatrix:
                          np.tile(df_pi.pi, len(df_pj)) * np.repeat(df_pj.pj, len(df_pi))))
         #        hxy_2 = - np.sum(df_pij.pi  * df_pij.pj * np.log2(df_pij.pi * df_pij.pj))
         if hxy_2 < hxy:
-            df_feat.ix[0, "cm_info_corr2"] = 0
+            df_feat["cm_info_corr2"] = 0
         else:
-            df_feat.ix[0, "cm_info_corr2"] = np.sqrt(1 - np.exp(-2.0 * (hxy_2 - hxy)))
+            df_feat["cm_info_corr2"] = np.sqrt(1 - np.exp(-2.0 * (hxy_2 - hxy)))
         del hxy, hxy_2
 
         # Cluster tendency
         mu = np.sum(df_pi.i * df_pi.pi)
-        df_feat.ix[0, "cm_clust_tend"] = np.sum((df_pij.i + df_pij.j - 2 * mu) ** 2.0 * df_pij.pij)
+        df_feat["cm_clust_tend"] = np.sum((df_pij.i + df_pij.j - 2 * mu) ** 2.0 * df_pij.pij)
         del mu
 
         # Cluster shade
         mu = np.sum(df_pi.i * df_pi.pi)
-        df_feat.ix[0, "cm_clust_shade"] = np.sum((df_pij.i + df_pij.j - 2 * mu) ** 3.0 * df_pij.pij)
+        df_feat["cm_clust_shade"] = np.sum((df_pij.i + df_pij.j - 2 * mu) ** 3.0 * df_pij.pij)
         del mu
 
         # Cluster prominence
         mu = np.sum(df_pi.i * df_pi.pi)
-        df_feat.ix[0, "cm_clust_prom"] = np.sum((df_pij.i + df_pij.j - 2 * mu) ** 4.0 * df_pij.pij)
+        df_feat["cm_clust_prom"] = np.sum((df_pij.i + df_pij.j - 2 * mu) ** 4.0 * df_pij.pij)
 
         del df_pi, df_pj, df_pij, df_pimj, df_pipj, n_g
 

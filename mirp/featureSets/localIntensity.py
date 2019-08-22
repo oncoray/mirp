@@ -5,7 +5,7 @@ import scipy.ndimage as ndi
 from mirp.featureSets.utilities import rep
 
 
-def getLocalIntensityFeatures(img_obj, roi_obj):
+def get_local_intensity_features(img_obj, roi_obj):
     """Calculate local intensity features"""
 
     # Determine the number of voxels in the mask
@@ -27,18 +27,18 @@ def getLocalIntensityFeatures(img_obj, roi_obj):
         n_voxels = 0
 
     if n_voxels > 300:
-        df_local_int = calculateMeanIntensityFilter(img_obj=img_obj, roi_obj=roi_obj)
+        df_local_int = compute_local_mean_intensity_filter(img_obj=img_obj, roi_obj=roi_obj)
     elif n_voxels > 1:
-        df_local_int = calculateMeanIntensityDirect(img_obj=img_obj, roi_obj=roi_obj)
+        df_local_int = compute_local_mean_intensity_direct(img_obj=img_obj, roi_obj=roi_obj)
     else:
         df_local_int = None
 
     # Calculate features
-    df_feat = localIntensityFeatureDefinitions(df_local_int)
+    df_feat = compute_local_intensity_features(df_local_int)
 
     return df_feat
 
-def calculateMeanIntensityFilter(img_obj, roi_obj):
+def compute_local_mean_intensity_filter(img_obj, roi_obj):
     """Use a filter to calculate the local mean intensity"""
 
     # Determine distance
@@ -88,7 +88,7 @@ def calculateMeanIntensityFilter(img_obj, roi_obj):
     return df_local
 
 
-def calculateMeanIntensityDirect(img_obj, roi_obj):
+def compute_local_mean_intensity_direct(img_obj, roi_obj):
     "Calculate mean intensity directly from the voxels"
 
     # Determine distance
@@ -129,7 +129,7 @@ def calculateMeanIntensityDirect(img_obj, roi_obj):
     else:
         return None
 
-def localIntensityFeatureDefinitions(df_local_int):
+def compute_local_intensity_features(df_local_int):
 
     # Create feature table
     feat_names = ["loc_peak_loc", "loc_peak_glob"]
@@ -148,9 +148,9 @@ def localIntensityFeatureDefinitions(df_local_int):
         return df_feat
 
     # Global grey level peak
-    df_feat.ix[0, "loc_peak_glob"] = np.max(df_local_int.g_loc)
+    df_feat["loc_peak_glob"] = np.max(df_local_int.g_loc)
 
     # Local grey level peak
-    df_feat.ix[0, "loc_peak_loc"] = np.max(df_local_int.loc[df_local_int.g == np.max(df_local_int.g), "g_loc"])
+    df_feat["loc_peak_loc"] = np.max(df_local_int.loc[df_local_int.g == np.max(df_local_int.g), "g_loc"])
 
     return df_feat

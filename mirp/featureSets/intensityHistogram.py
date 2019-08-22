@@ -75,76 +75,76 @@ def compute_intensity_histogram_features(df_img, g_range):
 
     # Intensity histogram mean
     mu = np.sum(df_his.g * df_his.p)
-    df_feat.ix[0, "ih_mean"] = mu
+    df_feat["ih_mean"] = mu
 
     # Intensity histogram variance
     sigma = np.sqrt(np.sum((df_his.g - mu) ** 2.0 * df_his.p))
-    df_feat.ix[0, "ih_var"] = sigma ** 2.0
+    df_feat["ih_var"] = sigma ** 2.0
 
     # Intensity histogram skewness
     if sigma == 0.0:
-        df_feat.ix[0, "ih_skew"] = 0.0
+        df_feat["ih_skew"] = 0.0
     else:
-        df_feat.ix[0, "ih_skew"] = np.sum((df_his.g - mu) ** 3.0 * df_his.p) / (sigma ** 3.0)
+        df_feat["ih_skew"] = np.sum((df_his.g - mu) ** 3.0 * df_his.p) / (sigma ** 3.0)
 
     # Intensity histogram kurtosis
     if sigma == 0.0:
-        df_feat.ix[0, "ih_kurt"] = 0.0
+        df_feat["ih_kurt"] = 0.0
     else:
-        df_feat.ix[0, "ih_kurt"] = np.sum((df_his.g - mu) ** 4.0 * df_his.p) / (sigma ** 4.0) - 3.0
+        df_feat["ih_kurt"] = np.sum((df_his.g - mu) ** 4.0 * df_his.p) / (sigma ** 4.0) - 3.0
 
     # Intensity histogram median
-    df_feat.ix[0, "ih_median"] = np.median(df_img.g)
+    df_feat["ih_median"] = np.median(df_img.g)
 
     # Intensity histogram minimum grey level
-    df_feat.ix[0, "ih_min"] = np.min(df_img.g)
+    df_feat["ih_min"] = np.min(df_img.g)
 
     # Intensity histogram 10th percentile
-    df_feat.ix[0, "ih_p10"] = np.percentile(df_img.g, q=10)
+    df_feat["ih_p10"] = np.percentile(df_img.g, q=10)
 
     # Intensity histogram 90th percentile
-    df_feat.ix[0, "ih_p90"] = np.percentile(df_img.g, q=90)
+    df_feat["ih_p90"] = np.percentile(df_img.g, q=90)
 
     # Intensity histogram maximum grey level
-    df_feat.ix[0, "ih_max"] = np.max(df_img.g)
+    df_feat["ih_max"] = np.max(df_img.g)
 
     # Intensity histogram mode
     mode_g = df_his.loc[df_his.n == np.max(df_his.n)].g.values
-    df_feat.ix[0, "ih_mode"] = mode_g[
+    df_feat["ih_mode"] = mode_g[
         np.argmin(np.abs(mode_g - mu))]  # Resolves pathological cases where multiple modes are available
 
     # Intensity histogram interquartile range
-    df_feat.ix[0, "ih_iqr"] = np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)
+    df_feat["ih_iqr"] = np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)
 
     # Intensity histogram grey level range
-    df_feat.ix[0, "ih_range"] = np.max(df_img.g) - np.min(df_img.g)
+    df_feat["ih_range"] = np.max(df_img.g) - np.min(df_img.g)
 
     # Mean absolute deviation
-    df_feat.ix[0, "ih_mad"] = np.mean(np.abs(df_img.g - mu))
+    df_feat["ih_mad"] = np.mean(np.abs(df_img.g - mu))
 
     # Intensity histogram robust mean absolute deviation
     df_sel = df_img[(df_img.g >= np.percentile(df_img.g, q=10)) & (df_img.g <= np.percentile(df_img.g, q=90))]
-    df_feat.ix[0, "ih_rmad"] = np.mean(np.abs(df_sel.g - np.mean(df_sel.g)))
+    df_feat["ih_rmad"] = np.mean(np.abs(df_sel.g - np.mean(df_sel.g)))
     del df_sel
 
     # Intensity histogram median absolute deviation
-    df_feat.ix[0, "ih_medad"] = np.mean(np.abs(df_img.g - np.median(df_img.g)))
+    df_feat["ih_medad"] = np.mean(np.abs(df_img.g - np.median(df_img.g)))
 
     # Intensity histogram coefficient of variance
     if sigma == 0.0:
-        df_feat.ix[0, "ih_cov"] = 0.0
+        df_feat["ih_cov"] = 0.0
     else:
-        df_feat.ix[0, "ih_cov"] = sigma / mu
+        df_feat["ih_cov"] = sigma / mu
 
     # Intensity histogram quartile coefficient of dispersion
-    df_feat.ix[0, "ih_qcod"] = (np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)) / (
+    df_feat["ih_qcod"] = (np.percentile(df_img.g, q=75) - np.percentile(df_img.g, q=25)) / (
             np.percentile(df_img.g, q=75) + np.percentile(df_img.g, q=25))
 
     # Intensity histogram entropy
-    df_feat.ix[0, "ih_entropy"] = -np.sum(df_his.p[df_his.p > 0.0] * np.log2(df_his.p[df_his.p > 0.0]))
+    df_feat["ih_entropy"] = -np.sum(df_his.p[df_his.p > 0.0] * np.log2(df_his.p[df_his.p > 0.0]))
 
     # Intensity histogram uniformity
-    df_feat.ix[0, "ih_uniformity"] = np.sum(df_his.p ** 2.0)
+    df_feat["ih_uniformity"] = np.sum(df_his.p ** 2.0)
 
     ####################################################################################################################
     # Histogram gradient features
@@ -157,15 +157,15 @@ def compute_intensity_histogram_features(df_img, g_range):
         df_his["grad"] = 0.0
 
     # Maximum histogram gradient
-    df_feat.ix[0, "ih_max_grad"] = np.max(df_his.grad)
+    df_feat["ih_max_grad"] = np.max(df_his.grad)
 
     # Maximum histogram gradient grey level
-    df_feat.ix[0, "ih_max_grad_g"] = df_his.g[df_his.grad.idxmax]
+    df_feat["ih_max_grad_g"] = df_his.g[df_his.grad.idxmax]
 
     # Minimum histogram gradient
-    df_feat.ix[0, "ih_min_grad"] = np.min(df_his.grad)
+    df_feat["ih_min_grad"] = np.min(df_his.grad)
 
     # Minimum histogram gradient grey level
-    df_feat.ix[0, "ih_min_grad_g"] = df_his.g[df_his.grad.idxmin]
+    df_feat["ih_min_grad_g"] = df_his.g[df_his.grad.idxmin]
 
     return df_feat

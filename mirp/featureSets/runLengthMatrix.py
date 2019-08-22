@@ -331,54 +331,54 @@ class RunLengthMatrix:
         ###############################################
 
         # Short runs emphasis
-        df_feat.ix[0, "rlm_sre"] = np.sum(df_rj.rj / df_rj.j ** 2.0) / n_s
+        df_feat["rlm_sre"] = np.sum(df_rj.rj / df_rj.j ** 2.0) / n_s
 
         # Long runs emphasis
-        df_feat.ix[0, "rlm_lre"] = np.sum(df_rj.rj * df_rj.j ** 2.0) / n_s
+        df_feat["rlm_lre"] = np.sum(df_rj.rj * df_rj.j ** 2.0) / n_s
 
         # Grey level non-uniformity
-        df_feat.ix[0, "rlm_glnu"] = np.sum(df_ri.ri ** 2.0) / n_s
+        df_feat["rlm_glnu"] = np.sum(df_ri.ri ** 2.0) / n_s
 
         # Grey level non-uniformity, normalised
-        df_feat.ix[0, "rlm_glnu_norm"] = np.sum(df_ri.ri ** 2.0) / n_s ** 2.0
+        df_feat["rlm_glnu_norm"] = np.sum(df_ri.ri ** 2.0) / n_s ** 2.0
 
         # Run length non-uniformity
-        df_feat.ix[0, "rlm_rlnu"] = np.sum(df_rj.rj ** 2.0) / n_s
+        df_feat["rlm_rlnu"] = np.sum(df_rj.rj ** 2.0) / n_s
 
         # Run length non-uniformity
-        df_feat.ix[0, "rlm_rlnu_norm"] = np.sum(df_rj.rj ** 2.0) / n_s ** 2.0
+        df_feat["rlm_rlnu_norm"] = np.sum(df_rj.rj ** 2.0) / n_s ** 2.0
 
         # Run percentage
-        df_feat.ix[0, "rlm_r_perc"] = n_s / n_v
+        df_feat["rlm_r_perc"] = n_s / n_v
 
         # Low grey level run emphasis
-        df_feat.ix[0, "rlm_lgre"] = np.sum(df_ri.ri / df_ri.i ** 2.0) / n_s
+        df_feat["rlm_lgre"] = np.sum(df_ri.ri / df_ri.i ** 2.0) / n_s
 
         # High grey level run emphasis
-        df_feat.ix[0, "rlm_hgre"] = np.sum(df_ri.ri * df_ri.i ** 2.0) / n_s
+        df_feat["rlm_hgre"] = np.sum(df_ri.ri * df_ri.i ** 2.0) / n_s
 
         # Short run low grey level emphasis
-        df_feat.ix[0, "rlm_srlge"] = np.sum(df_rij.rij / (df_rij.i * df_rij.j) ** 2.0) / n_s
+        df_feat["rlm_srlge"] = np.sum(df_rij.rij / (df_rij.i * df_rij.j) ** 2.0) / n_s
 
         # Short run high grey level emphasis
-        df_feat.ix[0, "rlm_srhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 / df_rij.j ** 2.0) / n_s
+        df_feat["rlm_srhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 / df_rij.j ** 2.0) / n_s
 
         # Long run low grey level emphasis
-        df_feat.ix[0, "rlm_lrlge"] = np.sum(df_rij.rij * df_rij.j ** 2.0 / df_rij.i ** 2.0) / n_s
+        df_feat["rlm_lrlge"] = np.sum(df_rij.rij * df_rij.j ** 2.0 / df_rij.i ** 2.0) / n_s
 
         # Long run high grey level emphasis
-        df_feat.ix[0, "rlm_lrhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 * df_rij.j ** 2.0) / n_s
+        df_feat["rlm_lrhge"] = np.sum(df_rij.rij * df_rij.i ** 2.0 * df_rij.j ** 2.0) / n_s
 
         # Grey level variance
         mu = np.sum(df_rij.rij * df_rij.i) / n_s
-        df_feat.ix[0, "rlm_gl_var"] = np.sum((df_rij.i - mu) ** 2.0 * df_rij.rij) / n_s
+        df_feat["rlm_gl_var"] = np.sum((df_rij.i - mu) ** 2.0 * df_rij.rij) / n_s
 
         # Run length variance
         mu = np.sum(df_rij.rij * df_rij.j) / n_s
-        df_feat.ix[0, "rlm_rl_var"] = np.sum((df_rij.j - mu) ** 2.0 * df_rij.rij) / n_s
+        df_feat["rlm_rl_var"] = np.sum((df_rij.j - mu) ** 2.0 * df_rij.rij) / n_s
 
         # Zone size entropy
-        df_feat.ix[0, "rlm_rl_entr"] = - np.sum(df_rij.rij * np.log2(df_rij.rij / n_s)) / n_s
+        df_feat["rlm_rl_entr"] = - np.sum(df_rij.rij * np.log2(df_rij.rij / n_s)) / n_s
 
         # Update names
         df_feat.columns += self.parse_feature_names()

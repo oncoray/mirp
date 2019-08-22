@@ -209,59 +209,59 @@ class SizeZoneMatrix:
         ###############################################
 
         # Small zone emphasis
-        df_feat.ix[0, "szm_sze"] = np.sum(df_sj.sj / df_sj.j ** 2.0) / n_s
+        df_feat["szm_sze"] = np.sum(df_sj.sj / df_sj.j ** 2.0) / n_s
 
         # Large zone emphasis
-        df_feat.ix[0, "szm_lze"] = np.sum(df_sj.sj * df_sj.j ** 2.0) / n_s
+        df_feat["szm_lze"] = np.sum(df_sj.sj * df_sj.j ** 2.0) / n_s
 
         # Grey level non-uniformity
-        df_feat.ix[0, "szm_glnu"] = np.sum(df_si.si ** 2.0) / n_s
+        df_feat["szm_glnu"] = np.sum(df_si.si ** 2.0) / n_s
 
         # Grey level non-uniformity, normalised
-        df_feat.ix[0, "szm_glnu_norm"] = np.sum(df_si.si ** 2.0) / n_s ** 2.0
+        df_feat["szm_glnu_norm"] = np.sum(df_si.si ** 2.0) / n_s ** 2.0
 
         # Zone size non-uniformity
-        df_feat.ix[0, "szm_zsnu"] = np.sum(df_sj.sj ** 2.0) / n_s
+        df_feat["szm_zsnu"] = np.sum(df_sj.sj ** 2.0) / n_s
 
         # Zone size non-uniformity
-        df_feat.ix[0, "szm_zsnu_norm"] = np.sum(df_sj.sj ** 2.0) / n_s ** 2.0
+        df_feat["szm_zsnu_norm"] = np.sum(df_sj.sj ** 2.0) / n_s ** 2.0
 
         # Zone percentage
-        df_feat.ix[0, "szm_z_perc"] = n_s / n_v
+        df_feat["szm_z_perc"] = n_s / n_v
 
         # Low grey level emphasis
-        df_feat.ix[0, "szm_lgze"] = np.sum(df_si.si / df_si.i ** 2.0) / n_s
+        df_feat["szm_lgze"] = np.sum(df_si.si / df_si.i ** 2.0) / n_s
 
         # High grey level emphasis
-        df_feat.ix[0, "szm_hgze"] = np.sum(df_si.si * df_si.i ** 2.0) / n_s
+        df_feat["szm_hgze"] = np.sum(df_si.si * df_si.i ** 2.0) / n_s
 
         # Small zone low grey level emphasis
-        df_feat.ix[0, "szm_szlge"] = np.sum(df_sij.sij / (df_sij.i * df_sij.j) ** 2.0) / n_s
+        df_feat["szm_szlge"] = np.sum(df_sij.sij / (df_sij.i * df_sij.j) ** 2.0) / n_s
 
         # Small zone high grey level emphasis
-        df_feat.ix[0, "szm_szhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 / df_sij.j ** 2.0) / n_s
+        df_feat["szm_szhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 / df_sij.j ** 2.0) / n_s
 
         # Large zone low grey level emphasis
-        df_feat.ix[0, "szm_lzlge"] = np.sum(df_sij.sij * df_sij.j ** 2.0 / df_sij.i ** 2.0) / n_s
+        df_feat["szm_lzlge"] = np.sum(df_sij.sij * df_sij.j ** 2.0 / df_sij.i ** 2.0) / n_s
 
         # Large zone high grey level emphasis
-        df_feat.ix[0, "szm_lzhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 * df_sij.j ** 2.0) / n_s
+        df_feat["szm_lzhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 * df_sij.j ** 2.0) / n_s
 
         # Grey level variance
         mu = np.sum(df_sij.sij * df_sij.i) / n_s
-        df_feat.ix[0, "szm_gl_var"] = np.sum((df_sij.i - mu) ** 2.0 * df_sij.sij) / n_s
+        df_feat["szm_gl_var"] = np.sum((df_sij.i - mu) ** 2.0 * df_sij.sij) / n_s
         del mu
 
         # Zone size variance
         mu = np.sum(df_sij.sij * df_sij.j) / n_s
-        df_feat.ix[0, "szm_zs_var"] = np.sum((df_sij.j - mu) ** 2.0 * df_sij.sij) / n_s
+        df_feat["szm_zs_var"] = np.sum((df_sij.j - mu) ** 2.0 * df_sij.sij) / n_s
         del mu
 
         # Zone size entropy
-        df_feat.ix[0, "szm_zs_entr"] = - np.sum(df_sij.sij * np.log2(df_sij.sij / n_s)) / n_s
+        df_feat["szm_zs_entr"] = - np.sum(df_sij.sij * np.log2(df_sij.sij / n_s)) / n_s
 
         # Update names
-        df_feat.columns += self.parse_features_names()
+        df_feat.columns += self.parse_feature_names()
 
         return df_feat
 

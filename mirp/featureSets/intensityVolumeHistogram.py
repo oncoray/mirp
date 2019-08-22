@@ -211,62 +211,62 @@ def compute_intensity_volume_histogram_features(df_ivh, n_bins):
 
     # Volume fraction at 10% intensity
     v10 = df_ivh.loc[df_ivh.gamma >= 0.10, :].nu.max()
-    df_feat.ix[0, "ivh_v10"] = v10
+    df_feat["ivh_v10"] = v10
 
     # Volume fraction at 25% intensity
     v25 = df_ivh.loc[df_ivh.gamma >= 0.25, :].nu.max()
-    df_feat.ix[0, "ivh_v25"] = v25
+    df_feat["ivh_v25"] = v25
 
     # Volume fraction at 50% intensity
     v50 = df_ivh.loc[df_ivh.gamma >= 0.50, :].nu.max()
-    df_feat.ix[0, "ivh_v50"] = v50
+    df_feat["ivh_v50"] = v50
 
     # Volume fraction at 75% intensity
     v75 = df_ivh.loc[df_ivh.gamma >= 0.75, :].nu.max()
-    df_feat.ix[0, "ivh_v75"] = v75
+    df_feat["ivh_v75"] = v75
 
     # Volume fraction at 90% intensity
     v90 = df_ivh.loc[df_ivh.gamma >= 0.90, :].nu.max()
-    df_feat.ix[0, "ivh_v90"] = v90
+    df_feat["ivh_v90"] = v90
 
     # Intensity at 10% volume
     i10 = df_ivh.loc[df_ivh.nu <= 0.10, :].g.min()
     if np.isnan(i10): i10 = n_bins + 1.0
-    df_feat.ix[0, "ivh_i10"] = i10
+    df_feat["ivh_i10"] = i10
 
     # Intensity at 25% volume
     i25 = df_ivh.loc[df_ivh.nu <= 0.25, :].g.min()
     if np.isnan(i25): i25 = n_bins + 1.0
-    df_feat.ix[0, "ivh_i25"] = i25
+    df_feat["ivh_i25"] = i25
 
     # Intensity at 50% volume
     i50 = df_ivh.loc[df_ivh.nu <= 0.50, :].g.min()
     if np.isnan(i50): i50 = n_bins + 1.0
-    df_feat.ix[0, "ivh_i50"] = i50
+    df_feat["ivh_i50"] = i50
 
     # Intensity at 75% volume
     i75 = df_ivh.loc[df_ivh.nu <= 0.75, :].g.min()
     if np.isnan(i75): i75 = n_bins + 1.0
-    df_feat.ix[0, "ivh_i75"] = i75
+    df_feat["ivh_i75"] = i75
 
     # Intensity at 90% volume
     i90 = df_ivh.loc[df_ivh.nu <= 0.90, :].g.min()
     if np.isnan(i90): i90 = n_bins + 1.0
-    df_feat.ix[0, "ivh_i90"] = i90
+    df_feat["ivh_i90"] = i90
 
     # Difference in volume fraction between 10% and 90% intensity
-    df_feat.ix[0, "ivh_diff_v10_v90"] = v10 - v90
+    df_feat["ivh_diff_v10_v90"] = v10 - v90
 
     # Difference in volume fraction between 25% and 75% intensity
-    df_feat.ix[0, "ivh_diff_v25_v75"] = v25 - v75
+    df_feat["ivh_diff_v25_v75"] = v25 - v75
 
     # Difference in intensity between 10% and 90% volume
-    df_feat.ix[0, "ivh_diff_i10_i90"] = i10 - i90
+    df_feat["ivh_diff_i10_i90"] = i10 - i90
 
     # Difference in intensity between 25% and 75% volume
-    df_feat.ix[0, "ivh_diff_i25_i75"] = i25 - i75
+    df_feat["ivh_diff_i25_i75"] = i25 - i75
 
     # Area under IVH curve
-    df_feat.ix[0, "ivh_auc"] = np.trapz(y=df_ivh.nu, x=df_ivh.gamma)
+    df_feat["ivh_auc"] = np.trapz(y=df_ivh.nu, x=df_ivh.gamma)
 
     return df_feat

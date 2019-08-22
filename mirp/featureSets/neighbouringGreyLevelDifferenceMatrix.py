@@ -257,59 +257,59 @@ class GreyLevelDependenceMatrix:
         ###############################################
 
         # Low dependence emphasis
-        df_feat.ix[0, "ngl_lde"] = np.sum(df_sj.sj / df_sj.j ** 2.0) / n_s
+        df_feat["ngl_lde"] = np.sum(df_sj.sj / df_sj.j ** 2.0) / n_s
 
         # High dependence emphasis
-        df_feat.ix[0, "ngl_hde"] = np.sum(df_sj.sj * df_sj.j ** 2.0) / n_s
+        df_feat["ngl_hde"] = np.sum(df_sj.sj * df_sj.j ** 2.0) / n_s
 
         # Grey level non-uniformity
-        df_feat.ix[0, "ngl_glnu"] = np.sum(df_si.si ** 2.0) / n_s
+        df_feat["ngl_glnu"] = np.sum(df_si.si ** 2.0) / n_s
 
         # Grey level non-uniformity, normalised
-        df_feat.ix[0, "ngl_glnu_norm"] = np.sum(df_si.si ** 2.0) / n_s ** 2.0
+        df_feat["ngl_glnu_norm"] = np.sum(df_si.si ** 2.0) / n_s ** 2.0
 
         # Dependence count non-uniformity
-        df_feat.ix[0, "ngl_dcnu"] = np.sum(df_sj.sj ** 2.0) / n_s
+        df_feat["ngl_dcnu"] = np.sum(df_sj.sj ** 2.0) / n_s
 
         # Dependence count non-uniformity, normalised
-        df_feat.ix[0, "ngl_dcnu_norm"] = np.sum(df_sj.sj ** 2.0) / n_s ** 2.0
+        df_feat["ngl_dcnu_norm"] = np.sum(df_sj.sj ** 2.0) / n_s ** 2.0
 
         # Dependence count percentage
-        df_feat.ix[0, "ngl_dc_perc"] = n_s / n_v
+        df_feat["ngl_dc_perc"] = n_s / n_v
 
         # Low grey level count emphasis
-        df_feat.ix[0, "ngl_lgce"] = np.sum(df_si.si / df_si.i ** 2.0) / n_s
+        df_feat["ngl_lgce"] = np.sum(df_si.si / df_si.i ** 2.0) / n_s
 
         # High grey level count emphasis
-        df_feat.ix[0, "ngl_hgce"] = np.sum(df_si.si * df_si.i ** 2.0) / n_s
+        df_feat["ngl_hgce"] = np.sum(df_si.si * df_si.i ** 2.0) / n_s
 
         # Low dependence low grey level emphasis
-        df_feat.ix[0, "ngl_ldlge"] = np.sum(df_sij.sij / (df_sij.i * df_sij.j) ** 2.0) / n_s
+        df_feat["ngl_ldlge"] = np.sum(df_sij.sij / (df_sij.i * df_sij.j) ** 2.0) / n_s
 
         # Low dependence high grey level emphasis
-        df_feat.ix[0, "ngl_ldhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 / df_sij.j ** 2.0) / n_s
+        df_feat["ngl_ldhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 / df_sij.j ** 2.0) / n_s
 
         # High dependence low grey level emphasis
-        df_feat.ix[0, "ngl_hdlge"] = np.sum(df_sij.sij * df_sij.j ** 2.0 / df_sij.i ** 2.0) / n_s
+        df_feat["ngl_hdlge"] = np.sum(df_sij.sij * df_sij.j ** 2.0 / df_sij.i ** 2.0) / n_s
 
         # High dependence high grey level emphasis
-        df_feat.ix[0, "ngl_hdhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 * df_sij.j ** 2.0) / n_s
+        df_feat["ngl_hdhge"] = np.sum(df_sij.sij * df_sij.i ** 2.0 * df_sij.j ** 2.0) / n_s
 
         # Grey level variance
         mu = np.sum(df_sij.sij * df_sij.i) / n_s
-        df_feat.ix[0, "ngl_gl_var"] = np.sum((df_sij.i - mu) ** 2.0 * df_sij.sij) / n_s
+        df_feat["ngl_gl_var"] = np.sum((df_sij.i - mu) ** 2.0 * df_sij.sij) / n_s
         del mu
 
         # Dependence count variance
         mu = np.sum(df_sij.sij * df_sij.j) / n_s
-        df_feat.ix[0, "ngl_dc_var"] = np.sum((df_sij.j - mu) ** 2.0 * df_sij.sij) / n_s
+        df_feat["ngl_dc_var"] = np.sum((df_sij.j - mu) ** 2.0 * df_sij.sij) / n_s
         del mu
 
         # Dependence count entropy
-        df_feat.ix[0, "ngl_dc_entr"] = - np.sum(df_sij.sij * np.log2(df_sij.sij / n_s)) / n_s
+        df_feat["ngl_dc_entr"] = - np.sum(df_sij.sij * np.log2(df_sij.sij / n_s)) / n_s
 
         # Dependence count energy
-        df_feat.ix[0, "ngl_dc_energy"] = np.sum(df_sij.sij ** 2.0) / (n_s ** 2.0)
+        df_feat["ngl_dc_energy"] = np.sum(df_sij.sij ** 2.0) / (n_s ** 2.0)
 
         # Update names
         df_feat.columns += self.parse_feature_names()

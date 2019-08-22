@@ -264,35 +264,35 @@ class GreyToneDifferenceMatrix:
 
         # Coarseness
         if np.sum(df_pi.pi * df_pi.s) < 1E-6:
-            df_feat.ix[0, "ngt_coarseness"] = 1.0 / 1E-6
+            df_feat["ngt_coarseness"] = 1.0 / 1E-6
         else:
-            df_feat.ix[0, "ngt_coarseness"] = 1.0 / np.sum(df_pi.pi * df_pi.s)
+            df_feat["ngt_coarseness"] = 1.0 / np.sum(df_pi.pi * df_pi.s)
 
         # Contrast
         if n_p > 1.0:
-            df_feat.ix[0, "ngt_contrast"] = np.sum(df_pij.pi * df_pij.pj * (df_pij.i - df_pij.j) ** 2.0) / (
+            df_feat["ngt_contrast"] = np.sum(df_pij.pi * df_pij.pj * (df_pij.i - df_pij.j) ** 2.0) / (
                 n_p * (n_p - 1.0)) * np.sum(df_pi.s) / n_v
         else:
-            df_feat.ix[0, "ngt_contrast"] = 0.0
+            df_feat["ngt_contrast"] = 0.0
 
         # Busyness
         if n_p > 1.0 and np.sum(np.abs(df_pij.i * df_pij.pi - df_pij.j * df_pij.pj)) > 0.0:
-            df_feat.ix[0, "ngt_busyness"] = np.sum(df_pi.pi * df_pi.s) / (
+            df_feat["ngt_busyness"] = np.sum(df_pi.pi * df_pi.s) / (
                 np.sum(np.abs(df_pij.i * df_pij.pi - df_pij.j * df_pij.pj)))
         else:
-            df_feat.ix[0, "ngt_busyness"] = 0.0
+            df_feat["ngt_busyness"] = 0.0
 
         # Complexity
-        df_feat.ix[0, "ngt_complexity"] = np.sum(
+        df_feat["ngt_complexity"] = np.sum(
             np.abs(df_pij.i - df_pij.j) * (df_pij.pi * df_pij.si + df_pij.pj * df_pij.sj) / (
                 df_pij.pi + df_pij.pj)) / n_v
 
         # Strength
         if np.sum(df_pi.s) > 0.0:
-            df_feat.ix[0, "ngt_strength"] = np.sum((df_pij.pi + df_pij.pj) * (df_pij.i - df_pij.j) ** 2.0) / np.sum(
+            df_feat["ngt_strength"] = np.sum((df_pij.pi + df_pij.pj) * (df_pij.i - df_pij.j) ** 2.0) / np.sum(
                 df_pi.s)
         else:
-            df_feat.ix[0, "ngt_strength"] = 0.0
+            df_feat["ngt_strength"] = 0.0
 
         # Update names
         df_feat.columns += self.parse_feature_names()

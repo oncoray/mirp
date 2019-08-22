@@ -48,33 +48,33 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
 
     # Volume
     volume = mesh_volume(vertices=mesh_verts, faces=mesh_faces)
-    df_feat.ix[0, "morph_volume"] = volume
+    df_feat["morph_volume"] = volume
 
     # Approximate volume
-    df_feat.ix[0, "morph_vol_approx"] = n_v_morph * np.prod(roi_obj.roi_morphology.spacing)
+    df_feat["morph_vol_approx"] = n_v_morph * np.prod(roi_obj.roi_morphology.spacing)
 
     # Surface area
     area = mesh_surface_area(verts=mesh_verts, faces=mesh_faces)
-    df_feat.ix[0, "morph_area_mesh"] = area
+    df_feat["morph_area_mesh"] = area
 
     # Surface to volume ratio
-    df_feat.ix[0, "morph_av"] = area / volume
+    df_feat["morph_av"] = area / volume
 
     # Compactness 1
     sphericity_base_feature = 36 * np.pi * volume ** 2.0 / area ** 3.0
-    df_feat.ix[0, "morph_comp_1"] = 1.0 / (6.0 * np.pi) * sphericity_base_feature ** (1.0 / 2.0)
+    df_feat["morph_comp_1"] = 1.0 / (6.0 * np.pi) * sphericity_base_feature ** (1.0 / 2.0)
 
     # Compactness 2
-    df_feat.ix[0, "morph_comp_2"] = sphericity_base_feature
+    df_feat["morph_comp_2"] = sphericity_base_feature
 
     # Spherical disproportion
-    df_feat.ix[0, "morph_sph_dispr"] = sphericity_base_feature ** (-1.0 / 3.0)
+    df_feat["morph_sph_dispr"] = sphericity_base_feature ** (-1.0 / 3.0)
 
     # Sphericity
-    df_feat.ix[0, "morph_sphericity"] = sphericity_base_feature ** (1.0 / 3.0)
+    df_feat["morph_sphericity"] = sphericity_base_feature ** (1.0 / 3.0)
 
     # Asphericity
-    df_feat.ix[0, "morph_asphericity"] = sphericity_base_feature ** (-1.0 / 3.0) - 1.0
+    df_feat["morph_asphericity"] = sphericity_base_feature ** (-1.0 / 3.0) - 1.0
     del sphericity_base_feature
 
     ####################################################################################################################
@@ -88,13 +88,13 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
     hull_verts = mesh_verts[conv_hull.vertices, :] - np.mean(mesh_verts, axis=0)
 
     # Maximum 3D diameter
-    df_feat.ix[0, "morph_diam"] = np.max(pdist(hull_verts))
+    df_feat["morph_diam"] = np.max(pdist(hull_verts))
 
     # Volume density - convex hull
-    df_feat.ix[0, "morph_vol_dens_conv_hull"] = volume / conv_hull.volume
+    df_feat["morph_vol_dens_conv_hull"] = volume / conv_hull.volume
 
     # Area density - convex hull
-    df_feat.ix[0, "morph_area_dens_conv_hull"] = area / conv_hull.area
+    df_feat["morph_area_dens_conv_hull"] = area / conv_hull.area
     del conv_hull
 
     ####################################################################################################################
@@ -103,20 +103,20 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
 
     # Volume density - axis-aligned bounding box
     aabb_dims = np.max(hull_verts, axis=0) - np.min(hull_verts, axis=0)
-    df_feat.ix[0, "morph_vol_dens_aabb"] = volume / np.product(aabb_dims)
+    df_feat["morph_vol_dens_aabb"] = volume / np.product(aabb_dims)
 
     # Area density - axis-aligned bounding box
-    df_feat.ix[0, "morph_area_dens_aabb"] = area / (2.0 * aabb_dims[0] * aabb_dims[1] +
+    df_feat["morph_area_dens_aabb"] = area / (2.0 * aabb_dims[0] * aabb_dims[1] +
                                                     2.0 * aabb_dims[0] * aabb_dims[2] +
                                                     2.0 * aabb_dims[1] * aabb_dims[2])
     del aabb_dims
 
     # Volume density - oriented minimum bounding box
     ombb_dims = get_minimum_oriented_bounding_box(pos_mat=hull_verts)
-    df_feat.ix[0, "morph_vol_dens_ombb"] = volume / np.product(ombb_dims)
+    df_feat["morph_vol_dens_ombb"] = volume / np.product(ombb_dims)
 
     # Area density - oriented minimum bounding box
-    df_feat.ix[0, "morph_area_dens_ombb"] = area / (2.0 * ombb_dims[0] * ombb_dims[1] +
+    df_feat["morph_area_dens_ombb"] = area / (2.0 * ombb_dims[0] * ombb_dims[1] +
                                                     2.0 * ombb_dims[0] * ombb_dims[2] +
                                                     2.0 * ombb_dims[1] * ombb_dims[2])
     del ombb_dims
@@ -129,10 +129,10 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
     semi_axes = get_minimum_volume_enclosing_ellipsoid(pos_mat=hull_verts, tolerance=10E-4)
 
     # Volume density - minimum volume enclosing ellipsoid
-    df_feat.ix[0, "morph_vol_dens_mvee"] = 3 * volume / (4 * np.pi * np.prod(semi_axes))
+    df_feat["morph_vol_dens_mvee"] = 3 * volume / (4 * np.pi * np.prod(semi_axes))
 
     # Area density - minimum volume enclosing ellipsoid
-    df_feat.ix[0, "morph_area_dens_mvee"] = area / get_ellipsoid_surface_area(semi_axes, n_degree=20)
+    df_feat["morph_area_dens_mvee"] = area / get_ellipsoid_surface_area(semi_axes, n_degree=20)
     del semi_axes, hull_verts
 
     ####################################################################################################################
@@ -159,31 +159,31 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
         semi_axes = 2.0 * np.sqrt(np.sort(eigen_val))
 
         # Major axis length
-        df_feat.ix[0, "morph_pca_maj_axis"] = semi_axes[2] * 2.0
+        df_feat["morph_pca_maj_axis"] = semi_axes[2] * 2.0
 
         # Minor axis length
-        df_feat.ix[0, "morph_pca_min_axis"] = semi_axes[1] * 2.0
+        df_feat["morph_pca_min_axis"] = semi_axes[1] * 2.0
 
         # Least axis length
-        df_feat.ix[0, "morph_pca_least_axis"] = semi_axes[0] * 2.0
+        df_feat["morph_pca_least_axis"] = semi_axes[0] * 2.0
 
         # Elongation
-        df_feat.ix[0, "morph_pca_elongation"] = semi_axes[1] / semi_axes[2]
+        df_feat["morph_pca_elongation"] = semi_axes[1] / semi_axes[2]
 
         # Flatness
-        df_feat.ix[0, "morph_pca_flatness"] = semi_axes[0] / semi_axes[2]
+        df_feat["morph_pca_flatness"] = semi_axes[0] / semi_axes[2]
 
         # Volume density - approximate enclosing ellipsoid
         if not np.any(semi_axes == 0):
-            df_feat.ix[0, "morph_vol_dens_aee"] = 3 * volume / (4 * np.pi * np.prod(semi_axes))
+            df_feat["morph_vol_dens_aee"] = 3 * volume / (4 * np.pi * np.prod(semi_axes))
         else:
-            df_feat.ix[0, "morph_vol_dens_aee"] = np.nan
+            df_feat["morph_vol_dens_aee"] = np.nan
 
         # Area density - approximate enclosing ellipsoid
         if not np.any(semi_axes == 0):
-            df_feat.ix[0, "morph_area_dens_aee"] = area / get_ellipsoid_surface_area(semi_axes, n_degree=20)
+            df_feat["morph_area_dens_aee"] = area / get_ellipsoid_surface_area(semi_axes, n_degree=20)
         else:
-            df_feat.ix[0, "morph_area_dens_aee"] = np.nan
+            df_feat["morph_area_dens_aee"] = np.nan
         del semi_axes, pos_mat_pca
 
     ####################################################################################################################
@@ -194,8 +194,8 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
         # Calculate geospatial features using a brute force approach
         moran_i, geary_c = geospatial(df_int=df_int, spacing=roi_obj.roi_intensity.spacing)
 
-        df_feat.ix[0, "morph_moran_i"] = moran_i
-        df_feat.ix[0, "morph_geary_c"] = geary_c
+        df_feat["morph_moran_i"] = moran_i
+        df_feat["morph_geary_c"] = geary_c
 
     elif n_v_int >= 1000:
         # Use monte carlo approach to estimate geospatial features
@@ -231,8 +231,8 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
             del curr_points, moran_i, geary_c
 
         # Calculate approximate Moran's I and Geary's C
-        df_feat.ix[0, "morph_moran_i"] = np.mean(moran_list)
-        df_feat.ix[0, "morph_geary_c"] = np.mean(geary_list)
+        df_feat["morph_moran_i"] = np.mean(moran_list)
+        df_feat["morph_geary_c"] = np.mean(geary_list)
 
         del iter_nr
 
@@ -248,11 +248,11 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
                               np.sum(df_int.g * df_int.x)]) / np.sum(df_int.g)
 
         # Calculate shift
-        df_feat.ix[0, "morph_com"] = np.sqrt(np.sum(np.multiply((com_morph - com_int), roi_obj.roi.spacing) ** 2.0))
+        df_feat["morph_com"] = np.sqrt(np.sum(np.multiply((com_morph - com_int), roi_obj.roi.spacing) ** 2.0))
         del com_morph, com_int
 
         # Integrated intensity
-        df_feat.ix[0, "morph_integ_int"] = volume * np.mean(df_int.g)
+        df_feat["morph_integ_int"] = volume * np.mean(df_int.g)
 
     return df_feat
 
@@ -287,21 +287,6 @@ def mesh_volume(vertices, faces):
     volume = np.abs(np.sum(1.0 / 6.0 * np.einsum("ij,ij->i", a, np.cross(b, c, 1, 1))))
 
     return volume
-
-
-# def mesh_normals(vertices, faces, normalise=True):
-#     # Calculates normals of mesh faces
-#
-#     # Calculate norms using cross product and normalisation
-#     u = vertices[faces[:,0],:] - vertices[faces[:,1],:]
-#     v = vertices[faces[:,1],:] - vertices[faces[:,2],:]
-#
-#     # Calculate cross product and normalise
-#     norms = np.cross(u, v, axisa=1, axisb=1)
-#     if normalise==True:
-#         norms /= np.linalg.norm(norms, ord=None, axis=1)[:,None]
-#
-#     return norms
 
 
 def get_ellipsoid_surface_area(semi_axes, n_degree=10):
@@ -483,26 +468,26 @@ def get_minimum_oriented_bounding_box(pos_mat):
                            "vol":         np.zeros(12)})
 
     # Rotate over different sequences
-    for i in np.arange(0, len(rot_df)):
+    for ii in np.arange(0, len(rot_df)):
         # Create a local copy
         work_pos = copy.deepcopy(pos_mat)
 
         # Rotate over sequence of rotation axes
-        work_pos = get_optimally_rotated_volume(input_pos=work_pos, rot_axis=rot_df.rot_axis_0[i])
-        work_pos = get_optimally_rotated_volume(input_pos=work_pos, rot_axis=rot_df.rot_axis_1[i])
-        work_pos = get_optimally_rotated_volume(input_pos=work_pos, rot_axis=rot_df.rot_axis_2[i])
+        work_pos = get_optimally_rotated_volume(input_pos=work_pos, rot_axis=rot_df.rot_axis_0[ii])
+        work_pos = get_optimally_rotated_volume(input_pos=work_pos, rot_axis=rot_df.rot_axis_1[ii])
+        work_pos = get_optimally_rotated_volume(input_pos=work_pos, rot_axis=rot_df.rot_axis_2[ii])
 
         # Determine resultant minimum bounding box
         aabb_dims = np.max(work_pos, axis=0) - np.min(work_pos, axis=0)
-        rot_df.ix[i, "aabb_axis_0"] = aabb_dims[0]
-        rot_df.ix[i, "aabb_axis_1"] = aabb_dims[1]
-        rot_df.ix[i, "aabb_axis_2"] = aabb_dims[2]
-        rot_df.ix[i, "vol"]         = np.product(aabb_dims)
+        rot_df.loc[ii, "aabb_axis_0"] = aabb_dims[0]
+        rot_df.loc[ii, "aabb_axis_1"] = aabb_dims[1]
+        rot_df.loc[ii, "aabb_axis_2"] = aabb_dims[2]
+        rot_df.loc[ii, "vol"] = np.product(aabb_dims)
 
         del work_pos, aabb_dims
 
     # Find minimal volume of all rotations and return bounding box dimensions
-    sel_row   = rot_df.ix[rot_df.vol.idxmin, :]
+    sel_row   = rot_df.loc[rot_df.vol.idxmin, :]
     ombb_dims = np.array([sel_row.aabb_axis_0, sel_row.aabb_axis_1, sel_row.aabb_axis_2])
 
     return ombb_dims
