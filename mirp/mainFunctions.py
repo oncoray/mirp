@@ -1,15 +1,15 @@
+# from mirp.configThreading import disable_multi_threading
+# disable_multi_threading()
+
 import logging
 import multiprocessing as mp
 import os
 import time
-
-from mirp.configThreading import disable_multi_threading
-disable_multi_threading()
+from inspect import stack, getmodule
 
 import numpy as np
 import pandas as pd
 
-from inspect import stack, getmodule
 from mirp.importSettings import import_configuration_settings, import_data_settings
 
 

@@ -1,5 +1,5 @@
-from mirp.configThreading import disable_multi_threading
-disable_multi_threading()
+# from mirp.configThreading import disable_multi_threading
+# disable_multi_threading()
 
 import numpy as np
 import pandas as pd
