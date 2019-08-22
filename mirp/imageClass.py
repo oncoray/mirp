@@ -65,6 +65,15 @@ class ImageClass:
         self.as_parametric_map = False
         self.metadata_sop_instances = metadata_sop_instances
 
+        # Image modality
+        if modality is None and metadata is not None:
+            # Set imaging modality using metadata
+            self.modality = self.get_metadata(tag=(0x0008, 0x0060), tag_type="str")  # Imaging modality
+        elif modality is None:
+            self.modality = "GENERIC"
+        else:
+            self.modality = modality
+
     def copy(self, drop_image=False):
         # Creates a new copy of the image object
         img_copy = copy.deepcopy(self)
