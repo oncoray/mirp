@@ -1,49 +1,75 @@
 import logging
 import os
+import warnings
 
 import SimpleITK as sitk
 import numpy as np
 import pandas as pd
 import pydicom
 
+from mirp.dicomImport import read_dicom_image_series, read_dicom_rt_struct, read_roi_names
 from mirp.imageClass import ImageClass
-from mirp.imageMetaData import get_sitk_dicom_meta_tag, get_pydicom_meta_tag, get_rtstruct_roi_names
-from mirp.imageSUV import SUVscalingObj, suv_list_update
+from mirp.imageMetaData import get_sitk_dicom_meta_tag
+from mirp.itkImport import read_itk_image, read_itk_segmentations
 # Monkey patch for dicom files with implicit VR tags that also export meta file tags (0x0002 0x----) as meta data.
 # This seems to have happened for some RayStation exports
 from mirp.pydicom_fix import read_dataset
-from mirp.roiClass import RoiClass, merge_roi_objects
-from mirp.utilities import parse_roi_name
 
 pydicom.filereader.read_dataset = read_dataset
 
 
 def find_regions_of_interest(roi_folder, subject):
 
-    # Read roi characteristics
-    df_char = read_basic_image_characteristics(image_folder=roi_folder, folder_contains=None)
+    # Obtain file names and ROI names
+    file_names, roi_names = read_roi_names(dcm_folder=roi_folder)
 
-    # Remove non-roi objects from the list
-    df_char = df_char.loc[df_char.modality.isin(["RTSTRUCT", "SEG"]), ]
+    if len(roi_names) == 0:
+        warnings.warn(f"No ROI segmentations were found for the current subject ({subject}).")
 
-    if len(df_char) == 0:
-        logging.warning("No segmentation files were found for %s.", subject)
-        return None
+    roi_table = pd.DataFrame({"subject": subject, "file_name": file_names, "roi": roi_names})
 
-    # Find roi names in files on path
-    file_names, roi_names = read_segment_names(df_char)
-
-    # Add subject, file names and roi names to data frame
-    df_roi = pd.DataFrame({"subject":   subject,
-                           "file_name": file_names,
-                           "roi":       roi_names})
-
-    return df_roi
+    return roi_table
 
 
-def find_imaging_parameters(image_folder, modality, subject, plot_images, write_folder, roi_folder=None, roi_reg_img_folder=None, settings=None, roi_names=None):
+def find_imaging_parameters(image_folder, modality, subject, plot_images, write_folder,
+                            roi_folder=None, registration_image_folder=None, settings=None, roi_names=None):
+    """
+    :param image_folder: path; path to folder containing image data.
+    :param modality: string; identifies modality of the image in the image folder.
+    :param subject: string; name of the subject.
+    :param plot_images: bool; flag to set image extraction. An image is created at the center of each ROI.
+    :param write_folder: path; path to folder where the analysis should be written.
+    :param roi_folder: path; path to folder containing the region of interest definitions.
+    :param registration_image_folder: path; path to folder containing image data on which the region of interest was originally created. If None, it is assumed that the image in
+    image_folder was used to the define the roi.
+    :param settings:
+    :param roi_names:
+    :return:
     """
 
+    # TODO: make it so that advanced meta-data can actually be obtained.
+
+    from mirp.imagePlot import plot_image
+    from mirp.imageMetaData import get_meta_data
+    from mirp.imageProcess import estimate_image_noise
+
+    # Read DICOM series
+    img_obj: ImageClass = read_dicom_image_series(image_folder=image_folder, modality=modality)
+
+    # Load registration image
+    if registration_image_folder == image_folder or registration_image_folder is None:
+        img_reg_obj = img_obj
+    else:
+        img_reg_obj: ImageClass = read_dicom_image_series(image_folder=image_folder, modality=modality)
+
+    # Load segmentations
+    roi_list = read_dicom_rt_struct(dcm_folder=roi_folder, image_object=img_reg_obj, roi=roi_names)
+
+    # metadata_table =
+
+
+def find_imaging_parameters_deprecated(image_folder, modality, subject, plot_images, write_folder, roi_folder=None, roi_reg_img_folder=None, settings=None, roi_names=None):
+    """
     :param image_folder: path; path to folder containing image data.
     :param modality: string; identifies modality of the image in the image folder.
     :param subject: string; name of the subject.
