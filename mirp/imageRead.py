@@ -87,14 +87,14 @@ def find_imaging_parameters_deprecated(image_folder, modality, subject, plot_ima
     from mirp.imageMetaData import get_meta_data
     from mirp.imageProcess import estimate_image_noise
 
-    # Convert a single input modality to list
-    if type(modality) is str: modality = [modality]
+    # # Convert a single input modality to list
+    # if type(modality) is str: modality = [modality]
 
     # Read image characteristics
     df_img_char = read_basic_image_characteristics(image_folder=image_folder)
 
     # Remove non-modality objects
-    df_img_char = df_img_char.loc[np.logical_and(df_img_char.modality.isin(modality), df_img_char.file_type.isin(["dicom"]))]
+    df_img_char = df_img_char.loc[np.logical_and(df_img_char.modality.isin([modality]), df_img_char.file_type.isin(["dicom"]))]
     if len(df_img_char) == 0:
         logging.warning("No dicom images with modality %s were found for %s.", modality[0], subject)
         return None
@@ -111,8 +111,8 @@ def find_imaging_parameters_deprecated(image_folder, modality, subject, plot_ima
         roi_list = None
 
     # Read meta tags
-    if modality[0] in ["CT", "PT", "MR"]:
-        df_meta = get_meta_data(image_file_list=df_img_char.file_path.values.tolist(), modality=modality[0])
+    if modality in ["CT", "PT", "MR"]:
+        df_meta = get_meta_data(image_file_list=df_img_char.file_path.values.tolist(), modality=modality)
     else:
         logging.warning("Dicom images could not be analysed for provided modality.")
         return None
