@@ -1,5 +1,6 @@
 import numpy as np
 
+from mirp.imageClass import ImageClass
 
 class ContourClass:
 
@@ -12,11 +13,28 @@ class ContourClass:
 
         self.contour=vertices
 
+    def contour_to_image_space(self, img_obj: ImageClass):
+        # Transforms patient reference back to image space. Uses the 0x0020, 0x0037 tag
+        spatial_affine = np.ones((3), dtype=np.float)
+
+        # z-coordinates
+        spatial_affine[0] = np.inner(img_obj.spacing, [img_obj.orientation[0], img_obj.orientation[3], img_obj.orientation[6]])
+
+        # y-coordinates
+        spatial_affine[1] = np.inner(img_obj.spacing, [img_obj.orientation[1], img_obj.orientation[4], img_obj.orientation[7]])
+
+        # x-coordinates
+        spatial_affine[2] = np.inner(img_obj.spacing, [img_obj.orientation[2], img_obj.orientation[5], img_obj.orientation[8]])
+
+        contour_vox = np.divide(self.contour - img_obj.origin, spatial_affine)
+
+        return contour_vox
+
     def contour_to_grid_ray_cast(self, img_obj):
         from mirp.morphologyUtilities import poly2grid
 
         # Convert contours to voxel space
-        contour_vox = np.divide(self.contour - img_obj.origin, img_obj.spacing)
+        contour_vox = self.contour_to_image_space(img_obj=img_obj)
 
         # Reduce numerical issues by rounding precision
         contour_vox[:, 0] = np.rint(contour_vox[:, 0])
