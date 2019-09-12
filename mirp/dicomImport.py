@@ -181,7 +181,8 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
         return dcm
 
     else:
-        return [_convert_rtstruct_to_segmentation(dcm=dcm, roi=current_roi, image_object=image_object) for current_roi in roi]
+        roi_list = [_convert_rtstruct_to_segmentation(dcm=dcm, roi=current_roi, image_object=image_object) for current_roi in roi]
+        return [roi_obj for roi_obj in roi_list if roi_obj is not None]
 
 
 def read_roi_names(dcm_folder):
@@ -387,7 +388,7 @@ def _filter_rt_structure_set(dcm, roi_numbers=None, roi_names=None):
         roi_numbers = [roi_number for ii, roi_number in enumerate(roi_numbers_available) if roi_names_available[ii] in roi_names]
 
     if len(roi_numbers) == 0:
-        raise ValueError(f"No matches were found for the provided ROI names ({roi_names}).")
+        return None
 
     for ii, current_roi_number in enumerate(roi_numbers):
 
@@ -454,6 +455,10 @@ def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: 
 
     # Keep only structure data corresponding to the current ROIs.
     dcm = _filter_rt_structure_set(dcm=dcm, roi_names=deparsed_roi)
+
+    # Check if the roi is found.
+    if dcm is None:
+        return None
 
     # Initialise a data list
     contour_data_list = []
