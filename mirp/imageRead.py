@@ -216,7 +216,7 @@ def import_segmentations(folder, image_object, roi_names):
         roi_list = []
 
     if len(roi_list) == 0:
-        warnings.warn(f"No segmentations were imported from {folder}. This could be because the folder does not contain segmentations,"
+        warnings.warn(f"No segmentations were imported from {folder}. This could be because the folder does not contain segmentations, "
                       f"or none of the segmentations matches the roi_names argument.")
 
     return roi_list
