@@ -1095,9 +1095,13 @@ def calculate_features(img_obj, roi_list, settings, append_str=""):
     ####################################################################################################################
 
     # Concatenate feature data frames
-    df_feat = pd.concat(feat_list, axis=0)
+    if len(feat_list) > 0:
+        df_feat = pd.concat(feat_list, axis=0)
 
-    return df_feat
+        return df_feat
+
+    else:
+        return None
 
 
 def compute_discretised_features(img_obj, roi_obj, settings, discr_method="none", bin_width=None, bin_number=None):

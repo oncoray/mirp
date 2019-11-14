@@ -439,6 +439,10 @@ class ExperimentClass:
         ########################################################################################################
 
         if self.compute_features:
+
+            # Strip empty entries
+            feat_list = [list_entry for list_entry in feat_list if list_entry is not None]
+
             # Check if features were extracted
             if len(feat_list) == 0:
                 logging.warning(self._message_warning_no_features_extracted())
@@ -662,6 +666,9 @@ class ExperimentClass:
                                     "img_data_roi": [roi_obj.name for roi_obj in roi_list]},
                                    index=np.arange(len(roi_list)))
 
+        if len(df_img_data) == 0:
+            df_img_data = None
+
         feat_list.insert(0, df_img_data)  # Add to front of list
 
         # Add diagnostic features (optional)
@@ -676,10 +683,14 @@ class ExperimentClass:
         # Concatenation of results for the current image adaptation
         ########################################################################################################
 
-        # Concatenate features - first reset indices for correct alignment
-        df_iter_feat = pd.concat([df.reset_index(drop=True) for df in feat_list], axis=1)
+        # Strip empty entries.
+        feat_list = [df.reset_index(drop=True) for df in feat_list if df is not None]
 
-        return df_iter_feat
+        if len(feat_list) > 0:
+            # Concatenate features - first reset indices for correct alignment
+            return pd.concat(feat_list, axis=1)
+        else:
+            return None
 
     def extract_diagnostic_features(self, img_obj, roi_list=None, append_str=""):
         """ Extracts diagnostics features from image objects and lists of roi objects """
@@ -706,12 +717,16 @@ class ExperimentClass:
 
             # Iterate over rois and combine lists of diagnostic tables into single frame, representing a row
             for curr_roi in roi_list:
+
                 diag_feat_list += [pd.concat(curr_roi.diagnostic_list, axis=1)]
 
             # Combine rows into single table
-            df_diag_feat = pd.concat(diag_feat_list, axis=0)
+            if len(diag_feat_list) > 0:
+                df_diag_feat = pd.concat(diag_feat_list, axis=0)
 
-            return df_diag_feat
+                return df_diag_feat
+            else:
+                return None
 
     def set_image_name(self, img_obj):
         """
