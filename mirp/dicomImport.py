@@ -317,7 +317,8 @@ def _get_frame_of_reference_uid(dcm):
 
     # Try to obtain a frame of reference UID
     if has_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052)):
-        return get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052), tag_type="str")
+        if get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052), tag_type="str") is not None:
+            return get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052), tag_type="str")
 
     # For RT structure sets, the FOR UID may be tucked away in the Structure Set ROI Sequence
     if has_pydicom_meta_tag(dcm_seq=dcm, tag=(0x3006, 0x0020)):
