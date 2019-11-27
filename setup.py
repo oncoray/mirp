@@ -1,6 +1,6 @@
 from setuptools import setup
 
-with open("VERSION.txt", "R") as version_file:
+with open("VERSION.txt", "r") as version_file:
     version = version_file.read().strip()
 
 setup(
