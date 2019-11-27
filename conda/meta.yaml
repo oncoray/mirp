@@ -1,0 +1,23 @@
+package:
+  name: "mirp"
+  version: "1.0.1"
+
+source:
+  path: ../
+
+requirements:
+  build:
+    - python {{ python }}
+    - setuptools
+    - pip
+
+  run:
+    - python
+
+about:
+  home: https://github.com/oncoray/mirp
+  license: EUPL1.2
+  license_family: OTHER
+  license_file: LICENSE.txt
+  summary: Medical Image Radiomics Processor
+  doc_url: https://github.com/oncoray/mirp
