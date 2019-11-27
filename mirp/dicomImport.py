@@ -11,10 +11,10 @@ from mirp.imageSUV import SUVscalingObj
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
+from mirp.utilities import parse_roi_name
 from pydicom.tag import Tag
 from pydicom import FileDataset
 
-from utilities import parse_roi_name
 
 
 def read_dicom_image_series(image_folder, modality=None, series_uid=None):
