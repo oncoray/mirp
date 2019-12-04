@@ -330,7 +330,7 @@ class RoiClass:
                 else:
                     updated_range[0] = mean_int - sigma * sd_int
 
-                if not np.isnan(updated_range[0]):
+                if not np.isnan(updated_range[1]):
                     updated_range[1] = np.min([updated_range[1], mean_int + sigma * sd_int])
                 else:
                     updated_range[1] = mean_int + sigma * sd_int
