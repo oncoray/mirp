@@ -11,4 +11,6 @@ setup(
     license="EUPL1.2",
     author="Alex Zwanenburg",
     packages=["mirp", "mirp.featureSets", "mirp.imageFilters"],
+    install_requires=["numpy", "scipy", "pandas", "scikit-image", "pydicom", "pywavelets", "SimpleITK"],
+    python_requires=">=3.6.0",
 )
