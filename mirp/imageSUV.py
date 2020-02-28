@@ -421,41 +421,41 @@ class SUVscalingObj:
 
         return dcm
 
-def suv_list_update(suv_obj_list):
-    """
-    Update settings based on multiple SUV objects (e.g. slices for the same patient)
-    :param suv_obj_list: list of suv class pbjects
-    :return:
-    """
-
-    # Set initial (lowest) acquisition start time for all suv objects
-    overall_start_time = min(get_valid_elements(input_list=[suv_obj.start_ref_time for suv_obj in suv_obj_list]))
-
-    # Get most common radionucleide administration time in case it is missing
-    common_radio_admin_time = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.radio_admin_ref_time for suv_obj in suv_obj_list]))
-
-    # Get most common total dose in case it is missing
-    common_total_dose = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.total_dose for suv_obj in suv_obj_list]))
-
-    # Get most common radionucleitide half-life in case it is missing from the list
-    common_half_life = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.half_life for suv_obj in suv_obj_list]))
-
-    # Get most commonly reported gender
-    common_gender = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.patient_gender for suv_obj in suv_obj_list]))
-
-    # Get most commonly reported height
-    common_height = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.patient_height for suv_obj in suv_obj_list]))
-
-    # Get most commonly reported weight
-    common_weight = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.patient_weight for suv_obj in suv_obj_list]))
-
-    for suv_obj in suv_obj_list:
-        suv_obj.start_ref_time = overall_start_time
-        suv_obj.radio_admin_start_time = common_radio_admin_time
-        suv_obj.total_dose = common_total_dose
-        suv_obj.half_life = common_half_life
-        suv_obj.patient_gender = common_gender
-        suv_obj.patient_height = common_height
-        suv_obj.patient_weight = common_weight
-
-    return suv_obj_list
+# def suv_list_update(suv_obj_list):
+#     """
+#     Update settings based on multiple SUV objects (e.g. slices for the same patient)
+#     :param suv_obj_list: list of suv class pbjects
+#     :return:
+#     """
+#
+#     # Set initial (lowest) acquisition start time for all suv objects
+#     overall_start_time = min(get_valid_elements(input_list=[suv_obj.start_ref_time for suv_obj in suv_obj_list]))
+#
+#     # Get most common radionucleide administration time in case it is missing
+#     common_radio_admin_time = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.radio_admin_ref_time for suv_obj in suv_obj_list]))
+#
+#     # Get most common total dose in case it is missing
+#     common_total_dose = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.total_dose for suv_obj in suv_obj_list]))
+#
+#     # Get most common radionucleitide half-life in case it is missing from the list
+#     common_half_life = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.half_life for suv_obj in suv_obj_list]))
+#
+#     # Get most commonly reported gender
+#     common_gender = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.patient_gender for suv_obj in suv_obj_list]))
+#
+#     # Get most commonly reported height
+#     common_height = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.patient_height for suv_obj in suv_obj_list]))
+#
+#     # Get most commonly reported weight
+#     common_weight = get_most_common_element(input_list=get_valid_elements(input_list=[suv_obj.patient_weight for suv_obj in suv_obj_list]))
+#
+#     for suv_obj in suv_obj_list:
+#         suv_obj.start_ref_time = overall_start_time
+#         suv_obj.radio_admin_start_time = common_radio_admin_time
+#         suv_obj.total_dose = common_total_dose
+#         suv_obj.half_life = common_half_life
+#         suv_obj.patient_gender = common_gender
+#         suv_obj.patient_height = common_height
+#         suv_obj.patient_weight = common_weight
+#
+#     return suv_obj_list
