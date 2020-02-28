@@ -3,6 +3,7 @@
 
 import numpy as np
 import pandas as pd
+import os
 
 from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
@@ -42,6 +43,8 @@ class ExperimentClass:
 
         # Path for writing data
         self.write_path = write_path
+        if not os.path.isdir(self.write_path):
+            os.makedirs(self.write_path)
 
         # Paths to image and segmentation folders
         self.image_folder = image_folder
