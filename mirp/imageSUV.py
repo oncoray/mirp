@@ -16,10 +16,10 @@ class SUVscalingObj:
         acquisition_start_date = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0022), tag_type="str")
         acquisition_start_time = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0032), tag_type="str")
         self.acquisition_ref_time = convert_dicom_time(date_str=acquisition_start_date, time_str=acquisition_start_time)
-        self.start_ref_time = deepcopy(self.acquisition_ref_time)
 
         # Frame reference time frame (ms)
         self.frame_duration = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0018, 0x1242), tag_type="float")
+        self.frame_reference_time = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0054, 0x1300), tag_type="float")
 
         # Radionuclide administration
         if get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0054, 0x0016), test_tag=True):
@@ -202,18 +202,13 @@ class SUVscalingObj:
             logging.warning("Radionuclide total dose (0x0018, 0x1074) was not specified in the Radiopharmaceutical information sequence (0x0054, 0x0016).")
             return None
 
-        if self.decay_correction == "NONE":
+        if self.decay_correction in ["NONE", "START"]:
             if self.frame_duration is None:
                 logging.warning("Frame duration (0x0018, 0x1242) is not known.")
                 return None
 
-        if self.decay_correction in ["NONE", "START"]:
             if self.acquisition_ref_time is None:
                 logging.warning("Acquisition date (0x0008, 0x0022) and time (0x0008, 0x0032) are not known.")
-                return None
-
-            if self.start_ref_time is None:
-                logging.warning("Start of first acquisition is not known.")
                 return None
 
             if self.radio_admin_ref_time is None:
@@ -223,6 +218,10 @@ class SUVscalingObj:
             if self.half_life is None:
                 logging.warning("Radionucleitide half-life (0x0018, 0x1075) in the Radiopharmaceutical information sequence (0x0054, 0x0016) is not known.")
                 return None
+
+        if self.decay_correction in ["START"]:
+            if self.frame_reference_time is None:
+                logging.warning("Frame reference time (0x0054, 0x1300) is not known.")
 
         # Process for different decay corrections
         if self.decay_correction == "NONE":
@@ -234,7 +233,20 @@ class SUVscalingObj:
         elif self.decay_correction == "START":
             # Decay correction of pixel values for the period from pixel acquisition up to scan start
             # Additionally correct for decay between administration and acquisition start
-            decay_factor = np.power(2.0, (self.start_ref_time - self.radio_admin_ref_time).seconds / self.half_life)
+
+            # Back compute start reference time from acquisition date and time.
+            decay_constant = np.log(2) / self.half_life
+
+            # Compute decay during frame. Note that frame duration is converted from ms to s.
+            decay_during_frame = decay_constant * self.frame_duration / 1000.0
+
+            # Time at which the average count rate is found.
+            time_count_average = 1 / decay_constant * np.log(decay_during_frame / (1.0 - np.exp(-decay_during_frame)))
+
+            # Set reference start time (this may coincide with the series time, but series time may be unreliable).
+            reference_start_time = self.acquisition_ref_time + datetime.timedelta(seconds=(time_count_average - self.frame_reference_time / 1000.0))
+
+            decay_factor = np.power(2.0, (reference_start_time - self.radio_admin_ref_time).seconds / self.half_life)
             decayed_dose = self.total_dose / decay_factor
 
         elif self.decay_correction == "ADMIN":
