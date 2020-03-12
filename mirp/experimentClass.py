@@ -2,8 +2,9 @@
 # disable_multi_threading()
 
 import numpy as np
-import pandas as pd
 import os
+import pandas as pd
+import sys
 
 from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
@@ -266,7 +267,9 @@ class ExperimentClass:
         import copy
 
         # Configure logger
-        logging.basicConfig(format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s", level=logging.INFO)
+        logging.basicConfig(
+            format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
+            level=logging.INFO, stream=sys.stdout)
 
         # Initialise empty feature list
         feat_list = []
@@ -474,10 +477,12 @@ class ExperimentClass:
         from mirp.imagePlot import plot_image
 
         # Configure logger
-        logging.basicConfig(format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s", level=logging.INFO)
+        logging.basicConfig(
+            format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
+            level=logging.INFO, stream=sys.stdout)
 
         # Notifications
-        logging.info("Initialising image and mask processing using %s images for %s.", self.modality + "_" + self.data_str + "_", self.subject)
+        logging.info("\nInitialising image and mask processing using %s images for %s.", self.modality + "_" + self.data_str + "_", self.subject)
 
         # Get iterables from current settings which lead to different image adaptations
         iter_set, n_outer_iter, n_inner_iter = self.get_iterable_parameters(settings=self.settings)
@@ -504,12 +509,12 @@ class ExperimentClass:
             # Log current iteration
             if n_outer_iter * n_inner_iter > 1:
                 if n_inner_iter > 1:
-                    logging.info("Processing image and mask for %s to %s of %s adaptations.", str(ii * n_inner_iter + 1), str((ii + 1) * n_inner_iter),
+                    logging.info("\nProcessing image and mask for %s to %s of %s adaptations.\n", str(ii * n_inner_iter + 1), str((ii + 1) * n_inner_iter),
                                  str(n_outer_iter * n_inner_iter))
                 else:
-                    logging.info("Processing image and mask for %s of %s adaptations.", str(ii + 1), str(n_outer_iter))
+                    logging.info("\nProcessing image and mask for %s of %s adaptations.\n", str(ii + 1), str(n_outer_iter))
             else:
-                logging.info("Starting image and mask processing.")
+                logging.info("\nStarting image and mask processing.\n")
 
             ########################################################################################################
             # Load and pre-process image and roi
