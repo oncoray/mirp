@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ElemTree
 
 import numpy as np
 import pandas as pd
+import sys
 
 
 class GeneralSettingsClass:
@@ -372,7 +373,9 @@ def import_data_settings(path, config_settings, compute_features=False, extract_
         return file_found
 
     # Configure logger
-    logging.basicConfig(format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s", level=logging.INFO)
+    logging.basicConfig(
+        format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
+        level=logging.INFO, stream=sys.stdout)
 
     # Load xml
     tree = ElemTree.parse(path)

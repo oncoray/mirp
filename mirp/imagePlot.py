@@ -4,7 +4,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mirp.utilities import check_string
+from mirp.utilities import check_string, makedirs_check
 
 
 def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=None, file_name="plot", g_range=None):
@@ -107,6 +107,12 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
     else:
         roi_flag = None
 
+    # create directory for the given patient
+    img_descriptor = check_string(img_obj.get_export_descriptor())
+    plot_path = os.path.join(file_path, img_descriptor) if file_path is not None else None
+    if plot_path is not None:
+        makedirs_check(plot_path)
+
     # Plot without roi ################################################
     # If no rois are present, iterate over slices only
     if roi_list is None:
@@ -119,8 +125,8 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
         for curr_slice in slice_id:
 
             # Set file name
-            if file_path is not None:
-                plot_file_name = os.path.join(file_path, check_string(file_name + "_" + img_obj.get_export_descriptor() + "_" + str(curr_slice) + ".png"))
+            if plot_path is not None:
+                plot_file_name = os.path.join(plot_path, check_string(file_name + "_" + str(curr_slice) + ".png"))
             else:
                 plot_file_name = None
 
@@ -138,6 +144,10 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
 
         # Iterate over rois in roi_list
         for curr_roi in roi_list:
+            roi_descriptor = check_string(curr_roi.get_export_descriptor())
+            plot_path_roi = os.path.join(plot_path, roi_descriptor) if plot_path is not None else None
+            if plot_path_roi is not None:
+                makedirs_check(plot_path_roi)
 
             # Find roi center slice
             if slice_id is None:
@@ -154,8 +164,8 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
             for curr_slice in slice_id:
 
                 # Set file name
-                if file_path is not None:
-                    plot_file_name = os.path.join(file_path, check_string(file_name + "_" + img_obj.get_export_descriptor() + curr_roi.get_export_descriptor() + "_" + str(curr_slice) + ".png"))
+                if plot_path_roi is not None:
+                    plot_file_name = os.path.join(plot_path_roi, check_string(file_name + "_" + str(curr_slice) + ".png"))
                 else:
                     plot_file_name = None
 

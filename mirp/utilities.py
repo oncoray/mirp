@@ -105,3 +105,13 @@ def get_spherical_structure(radius, spacing):
     geom_struct = np.sqrt(grid_z + grid_y + grid_x) <= radius
 
     return geom_struct
+
+
+def makedirs_check(path):
+    """
+    Checks if the given path is an existing directory
+    structure, otherwise creates it.
+    """
+
+    if not os.path.isdir(path):
+        os.makedirs(path)

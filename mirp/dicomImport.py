@@ -304,7 +304,7 @@ def _find_dicom_image_series(image_folder, allowed_modalities, modality=None, se
     elif frame_of_ref_uid is not None:
 
         if frame_of_ref_uid not in series_FOR_uid:
-            raise ValueError(f"The requested frame of reference UID ({frame_of_ref_uid}) was not found in the DICOM folder. Found: {list(set(series_FOR_uid))}")
+            raise ValueError(f"The requested frame of reference UID ({frame_of_ref_uid}) was not found in the DICOM folder {image_folder}. Found: {list(set(series_FOR_uid))}")
 
     else:
         frame_of_ref_uid = series_FOR_uid[0]
