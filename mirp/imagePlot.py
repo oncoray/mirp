@@ -31,7 +31,7 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
         g_range = deepcopy(g_range)
 
     # Adapt unset intensity ranges
-    if img_obj.modality == "PT":
+    if img_obj.modality == "PT" and not img_obj.is_normalised:
         # PET specific settings
         if np.isnan(g_range[0]):
             g_range[0] = 0.0
@@ -39,7 +39,7 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
         if np.isnan(g_range[1]):
             g_range[1] = np.max(img_obj.get_voxel_grid())
 
-    elif img_obj.modality == "CT":
+    elif img_obj.modality == "CT" and not img_obj.is_normalised:
         # CT specific settings
         if np.isnan(g_range[0]):
             g_range[0] = -1024.0
@@ -47,13 +47,17 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
         if np.isnan(g_range[1]):
             g_range[1] = np.max(img_obj.get_voxel_grid())
 
-    elif img_obj.modality == "MR":
+    elif img_obj.modality == "MR" and not img_obj.is_normalised:
         # MR specific settings
         if np.isnan(g_range[0]):
             g_range[0] = np.min(img_obj.get_voxel_grid())
 
         if np.isnan(g_range[1]):
             g_range[1] = np.max(img_obj.get_voxel_grid())
+
+    elif img_obj.is_normalised:
+        g_range[0] = np.min(img_obj.get_voxel_grid())
+        g_range[1] = np.max(img_obj.get_voxel_grid())
 
     # Create custom colour map for rois ###################################
 
@@ -165,7 +169,10 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
                     roi_slice = curr_roi.roi.get_voxel_grid()[curr_slice, :, :]
 
                 # Determine minimum and maximum luminance:
-                img_g_range = crop_image_intensity(img_slice=img_slice, g_range=g_range, modality=img_obj.modality)
+                if img_obj.is_normalised:
+                    img_g_range = deepcopy(g_range)
+                else:
+                    img_g_range = crop_image_intensity(img_slice=img_slice, g_range=g_range, modality=img_obj.modality)
 
                 # Create figure
                 plotter(slice_list=[img_slice, roi_slice], colour_map_list=[img_colour_map, "colour_roi"], file_name=plot_file_name, intensity_range=img_g_range,

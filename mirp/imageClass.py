@@ -73,6 +73,9 @@ class ImageClass:
         else:
             self.modality = modality
 
+        # Normalisation flags.
+        self.is_normalised = False
+
     def copy(self, drop_image=False):
         # Creates a new copy of the image object
         img_copy = copy.deepcopy(self)
@@ -369,6 +372,7 @@ class ImageClass:
 
         if norm_method == "none":
             return
+
         elif norm_method == "range":
 
             # Get voxel grid
@@ -391,6 +395,8 @@ class ImageClass:
             # Update the voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
 
+            self.is_normalised = True
+
         elif norm_method == "standardisation":
 
             # Get voxel grid
@@ -406,6 +412,7 @@ class ImageClass:
             # Update the voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
 
+            self.is_normalised = True
         else:
             raise ValueError("\"%s\" is not a valid method for normalising intensity values.", norm_method)
 
