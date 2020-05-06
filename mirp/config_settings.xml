@@ -59,6 +59,8 @@
             <sigma></sigma>
         </roi_resegment>
         <feature_extr>
+            <!-- Set of feature families to be computed from the image. Default is all. -->
+            <families></families>
             <!-- Discretisation algorithm. Can be none (default), fixed_bin_number and/or fixed_bin_size. Combinations are possible.-->
             <discr_method></discr_method>
             <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. Multiple values are possible. -->
