@@ -13,9 +13,10 @@ from mirp.imageMetaData import get_sitk_dicom_meta_tag
 from mirp.itkImport import read_itk_image, read_itk_segmentations
 # Monkey patch for dicom files with implicit VR tags that also export meta file tags (0x0002 0x----) as meta data.
 # This seems to have happened for some RayStation exports
-from mirp.pydicom_fix import read_dataset
+# from mirp.pydicom_fix import read_dataset
+# pydicom.filereader.read_dataset = read_dataset
 
-pydicom.filereader.read_dataset = read_dataset
+from pydicom.filereader import read_dataset
 
 
 def find_regions_of_interest(roi_folder, subject):
