@@ -129,6 +129,27 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     return img_obj
 
 
+def get_all_dicom_headers(image_folder, modality=None, series_uid=None, sop_instance_uid=None):
+
+    # Parse to list
+    if sop_instance_uid is not None:
+        if isinstance(sop_instance_uid, str):
+            sop_instance_uid = [sop_instance_uid]
+
+    # Obtain a list with image files
+    file_list = _find_dicom_image_series(image_folder=image_folder, allowed_modalities=["CT", "PT", "MR"],
+                                             modality=modality, series_uid=series_uid)
+
+    # Obtain dicom metadata for each file
+    slice_dcm = [pydicom.dcmread(os.path.join(image_folder, file_name), stop_before_pixels=True, force=True) for file_name in file_list]
+
+    # Filter slices according to sop instance UIDs that are in the provided list.
+    if sop_instance_uid is not None:
+        slice_dcm = [slice_dcm_metadata for slice_sop_instance_uid in sop_instance_uid for slice_dcm_metadata in slice_dcm if get_pydicom_meta_tag(dcm_seq=slice_dcm_metadata, tag=(0x0008, 0x0018), tag_type="str") == slice_sop_instance_uid]
+
+    return slice_dcm
+
+
 def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = None, series_uid=None, roi=None, frame_of_ref_uid=None):
 
     # Parse to list
