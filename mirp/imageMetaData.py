@@ -10,6 +10,7 @@ import pandas as pd
 import pydicom
 from pydicom import FileDataset, datadict, Dataset
 from pydicom.tag import Tag
+from mirp.imageRead import get_all_dicom_headers
 
 
 def get_image_directory_meta_data(image_folder, subject):
@@ -56,39 +57,34 @@ def get_image_directory_meta_data(image_folder, subject):
     return df_meta
 
 
-def get_meta_data(image_file_list, modality):
+def get_meta_data(modality, dcm_list=None, image_folder=None):
 
-    # Determine image type
-    image_file_type = get_image_type(image_file=image_file_list[0])
+    if dcm_list is None and image_folder is None:
+        raise ValueError("One of dcm_list and image_folder parameters needs to be provided.")
 
-    # Load dicom file
-    if image_file_type == "dicom":
-        # Avoid corrupted headers
-        try:
-            dcm = pydicom.dcmread(image_file_list[0], stop_before_pixels=True, force=True)
-        except OSError:
-            logging.warning("DICOM header could not be read for %s.", image_file_list[0])
-            dcm = None
-    else:
-        dcm = None
+    elif dcm_list is None:
+        dcm_list = get_all_dicom_headers(image_folder=image_folder, modality=modality)
+
+    if len(dcm_list) == 0:
+        return
 
     # Collect general information
-    image_meta_list = [get_series_meta_data(dcm=dcm, shorten_uid=True)]
-    image_meta_list += [get_basic_image_meta_data(dcm=dcm)]
+    image_meta_list = [get_series_meta_data(dcm=dcm_list[0], shorten_uid=True)]
+    image_meta_list += [get_basic_image_meta_data(dcm=dcm_list[0])]
 
     if modality == "CT":
         # Read basic meta data for CT imaging
-        image_meta_list += [get_basic_ct_meta_data(dcm=dcm)]
+        image_meta_list += [get_basic_ct_meta_data(dcm=dcm_list[0])]
 
         # Read advanced meta data for CT imaging per slice, then average
-        adv_meta = [get_advanced_ct_meta_data(image_file=image_file) for image_file in image_file_list]
+        adv_meta = [get_advanced_ct_meta_data(dcm=dcm) for dcm in dcm_list]
         image_meta_list += [pd.concat(adv_meta, axis=1).T.mean()]
 
     elif modality == "PT":
-        image_meta_list += [get_basic_pet_meta_data(dcm=dcm)]
-        image_meta_list += [get_advanced_pet_meta_data(dcm=dcm)]
+        image_meta_list += [get_basic_pet_meta_data(dcm=dcm_list[0])]
+        image_meta_list += [get_advanced_pet_meta_data(dcm=dcm_list[0])]
     elif modality == "MR":
-        image_meta_list += [get_basic_mr_meta_data(dcm=dcm)]
+        image_meta_list += [get_basic_mr_meta_data(dcm=dcm_list[0])]
 
     return pd.concat(image_meta_list, axis=0)
 
