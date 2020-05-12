@@ -50,7 +50,7 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
     elif img_obj.modality == "MR" and not img_obj.is_normalised:
         # MR specific settings
         if np.isnan(g_range[0]):
-            g_range[0] = np.min(img_obj.get_voxel_grid())
+            g_range[0] = 0.0
 
         if np.isnan(g_range[1]):
             g_range[1] = np.max(img_obj.get_voxel_grid())
@@ -136,8 +136,16 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
             # Determine minimum and maximum luminance:
             img_g_range = crop_image_intensity(img_slice=img_slice, g_range=g_range, modality=img_obj.modality)
 
+            # Determine the extent of the image in mm so that it maintains the pixel size.
+            extent = [img_obj.spacing[1] * img_obj.size[1],
+                      img_obj.spacing[2] * img_obj.size[2]]
+
             # Plot
-            plotter(slice_list=[img_slice], colour_map_list=[img_colour_map], file_name=plot_file_name, intensity_range=img_g_range, enhance=img_obj.spacing[2])
+            plotter(slice_list=[img_slice],
+                    colour_map_list=[img_colour_map],
+                    file_name=plot_file_name,
+                    intensity_range=img_g_range,
+                    extent=extent)
 
     # Plot with roi ##################################################
     else:
@@ -184,12 +192,19 @@ def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=
                 else:
                     img_g_range = crop_image_intensity(img_slice=img_slice, g_range=g_range, modality=img_obj.modality)
 
+                # Determine the extent of the image in mm so that it maintains the pixel size.
+                extent = [img_obj.spacing[1] * img_obj.size[1],
+                          img_obj.spacing[2] * img_obj.size[2]]
+
                 # Create figure
-                plotter(slice_list=[img_slice, roi_slice], colour_map_list=[img_colour_map, "colour_roi"], file_name=plot_file_name, intensity_range=img_g_range,
-                        enhance=img_obj.spacing[2])
+                plotter(slice_list=[img_slice, roi_slice],
+                        colour_map_list=[img_colour_map, "colour_roi"],
+                        file_name=plot_file_name,
+                        intensity_range=img_g_range,
+                        extent=extent)
 
 
-def plotter(slice_list, colour_map_list, file_name=None, overlay_alpha=1.0, intensity_range=None, enhance=1.0):
+def plotter(slice_list, colour_map_list, file_name=None, overlay_alpha=1.0, intensity_range=None, extent=(1.0, 1.0)):
     """
     This is the background plotting function that does the actual plotting of images.
 
@@ -201,51 +216,41 @@ def plotter(slice_list, colour_map_list, file_name=None, overlay_alpha=1.0, inte
     :return: None
     """
 
-    from skimage.transform import rescale
+    # Create axes and figure
+    fig, ax = plt.subplots(1)
 
-    # Determine whether the image should be plotted or written
-    if file_name is None:
-        display_frame = True
-    else:
-        display_frame = False
+    # Set figure space in axis
+    fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
 
-    # Determine width and height of the figure
-    dpi = 72
-    fig_width = slice_list[0].shape[1] / dpi
-    fig_height = (slice_list[0].shape[0]) / dpi
+    # Invisible axis
+    ax.axis('off')
 
-    # Create figure
-    fig = plt.figure(frameon=display_frame, dpi=dpi, figsize=(fig_width, fig_height))
-
-    # Create image list
-    im_list = []
-
-    # Iterate over slices, starting with the first slice
+    # Plot input image
     for ii in np.arange(len(slice_list)):
-        # Determine transparency. The first image is always opaque.
-        if ii == 0:
-            curr_alpha = 1.0
-        else:
-            curr_alpha = overlay_alpha
-
-        # Add images to figure
         if ii == 0 and intensity_range is not None:
-            im_list.append(plt.figimage(rescale(image=slice_list[ii], scale=enhance, anti_aliasing=False, multichannel=False, mode="edge"), cmap=plt.get_cmap(colour_map_list[ii]),
-                                        alpha=curr_alpha, vmin=intensity_range[0], vmax=intensity_range[1], resize=True))
+            plt.imshow(slice_list[ii],
+                       cmap=plt.get_cmap(colour_map_list[ii]),
+                       extent=[0, extent[1], 0, extent[0]],
+                       vmin=intensity_range[0],
+                       vmax=intensity_range[1],
+                       alpha=1.0,
+                       interpolation="none")
+
         else:
-            im_list.append(plt.figimage(rescale(image=slice_list[ii], scale=enhance, anti_aliasing=False, multichannel=False, order=0, mode="edge"), cmap=plt.get_cmap(colour_map_list[ii]),
-                                        alpha=curr_alpha, resize=True))
+            plt.imshow(slice_list[ii],
+                       cmap=plt.get_cmap(colour_map_list[ii]),
+                       extent=[0, extent[1], 0, extent[0]],
+                       vmin=0,
+                       vmax=1,
+                       alpha=overlay_alpha,
+                       interpolation="none")
 
-    # Show figure
-    if display_frame:
-        plt.show()
 
-    # Save figure to file
-    if not display_frame:
-        plt.savefig(file_name, pad_inches=0.0, bbox_inches='tight')
 
-        # Close figure
-        plt.close()
+    # Save plot
+    plt.savefig(file_name, pad_inches=0.0, bbox_inches="tight", dpi=150)
+
+    plt.close()
 
 
 def crop_image_intensity(img_slice, g_range, modality):
@@ -273,5 +278,8 @@ def crop_image_intensity(img_slice, g_range, modality):
         img_g_range[0] = -1000.0
     elif modality == "CT" and img_g_range[1] > 3000.0:
         img_g_range[1] = 3000.0
+
+    if modality == "MR" and img_g_range[0] < 0.0:
+        img_g_range[0] = 0.0
 
     return img_g_range
