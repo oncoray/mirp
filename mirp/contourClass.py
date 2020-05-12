@@ -4,7 +4,7 @@ from mirp.imageClass import ImageClass
 
 class ContourClass:
 
-    def __init__(self, contour):
+    def __init__(self, contour, sop_instance_uid):
         # Convert contour to internal vertices, i.e. from (x, y, z) to (z, y, x)
         vertices = np.zeros(contour.shape, dtype=np.float64)
         vertices[:, 0] = contour[:, 2]
@@ -12,23 +12,13 @@ class ContourClass:
         vertices[:, 2] = contour[:, 0]
 
         self.contour=vertices
+        self.sop_instance_uid = sop_instance_uid
 
     def contour_to_image_space(self, img_obj: ImageClass):
-        # Transforms patient reference back to image space. Uses the 0x0020, 0x0037 tag
-        spatial_affine = np.ones((3), dtype=np.float)
 
-        # z-coordinates
-        spatial_affine[0] = np.inner(img_obj.spacing, [img_obj.orientation[0], img_obj.orientation[3], img_obj.orientation[6]])
+        contour_vox = np.dot(img_obj.m_affine_inv, np.transpose(self.contour - img_obj.origin))
 
-        # y-coordinates
-        spatial_affine[1] = np.inner(img_obj.spacing, [img_obj.orientation[1], img_obj.orientation[4], img_obj.orientation[7]])
-
-        # x-coordinates
-        spatial_affine[2] = np.inner(img_obj.spacing, [img_obj.orientation[2], img_obj.orientation[5], img_obj.orientation[8]])
-
-        contour_vox = np.divide(self.contour - img_obj.origin, spatial_affine)
-
-        return contour_vox
+        return np.transpose(contour_vox)
 
     def contour_to_grid_ray_cast(self, img_obj):
         from mirp.morphologyUtilities import poly2grid

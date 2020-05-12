@@ -10,7 +10,6 @@ import pandas as pd
 import pydicom
 from pydicom import FileDataset, datadict, Dataset
 from pydicom.tag import Tag
-from mirp.imageRead import get_all_dicom_headers
 
 
 def get_image_directory_meta_data(image_folder, subject):
@@ -58,6 +57,9 @@ def get_image_directory_meta_data(image_folder, subject):
 
 
 def get_meta_data(modality, dcm_list=None, image_folder=None):
+
+    # Import locally to prevent circular references.
+    from mirp.imageRead import get_all_dicom_headers
 
     if dcm_list is None and image_folder is None:
         raise ValueError("One of dcm_list and image_folder parameters needs to be provided.")

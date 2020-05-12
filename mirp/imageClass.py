@@ -14,13 +14,29 @@ from mirp.utilities import get_version
 class ImageClass:
     # Class for image volumes
 
-    def __init__(self, voxel_grid, origin, slice_z_pos, spacing, orientation, modality=None, spat_transform="base", no_image=False,
-                 metadata=None, metadata_sop_instances=None):
+    def __init__(self, voxel_grid, origin, spacing, orientation, modality=None, spat_transform="base", no_image=False,
+                 metadata=None, slice_table=None):
+
         self.origin   = np.array(origin)    # Coordinates of [0,0,0] voxel in mm
         self.spacing  = np.array(spacing)   # Voxel spacing in mm
-        self.slice_z_pos = np.array(slice_z_pos)    # Position along stack axis
         self.spat_transform = spat_transform        # Signifies whether the current image is a base image or not
         self.orientation = np.array(orientation)
+        self.slice_table = slice_table
+
+        # Find affine and inverse matrix
+        m_affine = np.zeros((3, 3), dtype=np.float)
+
+        # z-coordinates
+        m_affine[:, 0] = self.spacing[0] * np.array([self.orientation[0], self.orientation[1], self.orientation[2]])
+
+        # y-coordinates
+        m_affine[:, 1] = self.spacing[1] * np.array([self.orientation[3], self.orientation[4], self.orientation[5]])
+
+        # x-coordinates
+        m_affine[:, 2] = self.spacing[2] * np.array([self.orientation[6], self.orientation[7], self.orientation[8]])
+
+        self.m_affine = m_affine
+        self.m_affine_inv = np.linalg.inv(self.m_affine)
 
         # Image name
         self.name = None
@@ -62,7 +78,6 @@ class ImageClass:
         # Set metadata and a list of update tags
         self.metadata: Union[FileDataset, None] = metadata
         self.as_parametric_map = False
-        self.metadata_sop_instances = metadata_sop_instances
 
         # Image modality
         if modality is None and metadata is not None:
@@ -266,9 +281,6 @@ class ImageClass:
             upd_voxel_grid = np.round(upd_voxel_grid)
         elif (self.modality == "PT") and (self.spat_transform == "base"):
             upd_voxel_grid[upd_voxel_grid < 0.0] = 0.0
-
-        # Update slice z positions
-        self.slice_z_pos = self.origin[0] + np.arange(start=0, stop=self.size[0]) * self.spacing[0]
 
         # Set interpolation
         self.interpolated = True
@@ -514,8 +526,8 @@ class ImageClass:
                                     min_bound_ind[2]:max_bound_ind[2] + 1]
 
         # Update origin and z-slice position
-        self.origin = self.origin + np.multiply(min_bound_ind, self.spacing)
-        self.slice_z_pos = self.origin[0] + np.arange(0, max_bound_ind[0]-min_bound_ind[0]+1) * self.spacing[0]
+        self.origin = self.origin + np.dot(self.m_affine, np.transpose(min_bound_ind))
+        # self.origin = self.origin + np.multiply(min_bound_ind, self.spacing)
 
         # Update voxel grid
         self.set_voxel_grid(voxel_grid=voxel_grid)
@@ -566,9 +578,8 @@ class ImageClass:
         # Restore the original dtype in case it got lost
         cropped_grid = cropped_grid.astype(voxel_grid.dtype)
 
-        # Update origin and slice positions
+        # Update origin
         self.origin = self.origin + np.multiply(grid_origin, self.spacing)
-        self.slice_z_pos = self.origin[0] + np.arange(crop_size[0]) * self.spacing[0]
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_grid)
@@ -775,7 +786,6 @@ class ImageClass:
         base_img_obj = self.copy()
 
         # Remove attributes that need to be set
-        base_img_obj.slice_z_pos = None
         base_img_obj.isEncoded_voxel_grid = None
         base_img_obj.voxel_grid = None
         base_img_obj.size = None
@@ -791,7 +801,6 @@ class ImageClass:
 
                 # Update origin and slice position
                 slice_img_obj.origin[0] += ii * slice_img_obj.spacing[0]
-                slice_img_obj.slice_z_pos = np.array(slice_img_obj.origin[0])
 
                 # Update name
                 if slice_img_obj.name is not None:
@@ -809,7 +818,6 @@ class ImageClass:
 
             # Update origin and slice position
             slice_img_obj.origin[0] += slice_number * slice_img_obj.spacing[0]
-            slice_img_obj.slice_z_pos = np.array(slice_img_obj.origin[0])
 
             # Update name
             if slice_img_obj.name is not None:
@@ -1137,7 +1145,7 @@ class ImageClass:
 
         # Set the source instance sequence
         source_instance_list = []
-        for reference_instance_sop_uid in self.metadata_sop_instances:
+        for reference_instance_sop_uid in self.slice_table.sop_instance_uid:
             ref_inst = Dataset()
             set_pydicom_meta_tag(dcm_seq=ref_inst, tag=(0x0008, 0x1150), value=get_pydicom_meta_tag(dcm_seq=old_dcm, tag=(0x0008, 0x0016), tag_type="str"))
             set_pydicom_meta_tag(dcm_seq=ref_inst, tag=(0x0008, 0x1155), value=reference_instance_sop_uid)

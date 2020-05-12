@@ -30,14 +30,10 @@ def read_itk_image(image_folder, modality=None, name_contains=None):
     image_spacing = np.array(sitk_img.GetSpacing())[::-1]
     image_orientation = np.array(sitk_img.GetDirection())[::-1]
 
-    # Determine z-positions of the slices
-    slice_z_pos = image_origin[0] + np.arange(voxel_grid.shape[0]) * image_spacing[0]
-
     # Create an ImageClass object from the input image.
     image_obj = ImageClass(voxel_grid=voxel_grid,
                            origin=image_origin,
                            spacing=image_spacing,
-                           slice_z_pos=slice_z_pos,
                            orientation=image_orientation,
                            modality=modality,
                            spat_transform="base",
@@ -145,14 +141,10 @@ def _load_itk_segmentation(image_folder, roi: str):
         mask_spacing = np.array(sitk_img.GetSpacing())[::-1]
         mask_orientation = np.array(sitk_img.GetDirection())[::-1]
 
-        # Determine z-positions of the slices
-        slice_z_pos = mask_origin[0] + np.arange(mask.shape[0]) * mask_spacing[0]
-
         # Create an ImageClass object using the mask.
         roi_mask_obj = ImageClass(voxel_grid=mask,
                                   origin=mask_origin,
                                   spacing=mask_spacing,
-                                  slice_z_pos=slice_z_pos,
                                   orientation=mask_orientation,
                                   modality="SEG",
                                   spat_transform="base",

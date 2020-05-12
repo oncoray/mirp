@@ -7,6 +7,7 @@ import pydicom
 import pandas as pd
 import numpy as np
 
+from mirp.contourClass import ContourClass
 from mirp.imageSUV import SUVscalingObj
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
@@ -24,20 +25,46 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
                                          modality=modality, series_uid=series_uid)
 
     # Obtain slice positions for each file
+    file_table = pd.DataFrame({"file_name": file_list,
+                               "position_z": 0.0,
+                               "position_y": 0.0,
+                               "position_x": 0.0,
+                               "sop_instance_uid": ""})
+
+    image_position_x = []
+    image_position_y = []
     image_position_z = []
+    sop_instance_uid = []
+
     for file_name in file_list:
+        # Load the dicom header
+        dcm = pydicom.dcmread(os.path.join(image_folder, file_name),
+                              stop_before_pixels=True,
+                              force=True)
 
-        # Read DICOM header
-        dcm = pydicom.dcmread(os.path.join(image_folder, file_name), stop_before_pixels=True, force=True,
-                              specific_tags=[Tag(0x0020, 0x0032)])
+        # Find the origin of each slice.
+        slice_origin = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0032), tag_type="mult_float",
+                                            default=np.array([0.0, 0.0, 0.0]))[::-1]
 
-        # Obtain the z position
-        image_position_z += [get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0032), tag_type="mult_float")[2]]
+        # Update with slice positions
+        image_position_x += [slice_origin[2]]
+        image_position_y += [slice_origin[1]]
+        image_position_z += [slice_origin[0]]
+
+        # Find the sop instance UID of each slice.
+        slice_sop_instance_uid = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0018), tag_type="str")
+
+        # Update with the slice SOP instance UID.
+        sop_instance_uid += [slice_sop_instance_uid]
 
     # Order ascending position (DICOM: z increases from feet to head)
-    file_table = pd.DataFrame({"file_name": file_list, "position_z": image_position_z}).sort_values(by="position_z")
+    file_table = pd.DataFrame({"file_name": file_list,
+                               "position_z": image_position_z,
+                               "position_y": image_position_y,
+                               "position_x": image_position_x,
+                               "sop_instance_uid": sop_instance_uid}).sort_values(by="position_z")
 
-    # Obtain DICOM metadata from the bottom slice. This will be used to fill out all the different details.
+    # Obtain DICOM metadata from the bottom slice. This will be used to fill most of the different details.
     dcm = pydicom.dcmread(os.path.join(image_folder, file_table.file_name.values[0]), stop_before_pixels=True, force=True)
 
     # Find the number of rows (y) and columns (x) in the data set.
@@ -84,8 +111,11 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     image_slice_thickness = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0018, 0x0050), tag_type="float", default=None)
 
     if len(file_table) > 1:
-        # Slice spacing can be determined from the slice positions
-        image_slice_spacing = np.median(np.abs(np.diff(file_table.position_z.values)))
+        # Compute the distance between the origins of the slices. This is the slice spacing.
+        image_slice_spacing = np.median(np.sqrt(np.sum(np.array([np.power(np.diff(file_table.position_z.values), 2.0),
+                                                                 np.power(np.diff(file_table.position_y.values), 2.0),
+                                                                 np.power(np.diff(file_table.position_x.values), 2.0)]),
+                                                       axis=0)))
 
         if image_slice_thickness is None:
             # TODO: Update slice thickness tag in dcm
@@ -107,9 +137,18 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     # Combine pixel spacing and slice spacing into the voxel spacing, using z, y, x order.
     image_spacing = np.array([image_slice_spacing, image_pixel_spacing[1], image_pixel_spacing[0]])
 
-    # Obtain image orientation and add the 3rd dimension
+    # Obtain image orientation (Xx, Xy, Xz, Yx, Yy, Yz; see DICOM C.7.6.2 Image Plane Module)
     image_orientation = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0037), tag_type="mult_float")
-    image_orientation += [0.0, 0.0, 1.0]
+
+    # Add (Zx, Zy, Zz)
+    if len(file_table) > 1:
+        z_orientation = np.array([np.median(np.diff(file_table.position_x.values)),
+                                  np.median(np.diff(file_table.position_y.values)),
+                                  np.median(np.diff(file_table.position_z.values))]) / image_slice_spacing
+
+        image_orientation += z_orientation.tolist()
+    else:
+        image_orientation += [0.0, 0.0, 1.0]
 
     # Revert to z, y, x order
     image_orientation = image_orientation[::-1]
@@ -118,13 +157,12 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     img_obj = ImageClass(voxel_grid=voxel_grid,
                          origin=image_origin,
                          spacing=image_spacing,
-                         slice_z_pos=file_table.position_z.values,
                          orientation=image_orientation,
                          modality=get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str"),
                          spat_transform="base",
                          no_image=False,
                          metadata=slice_dcm_list[0],
-                         metadata_sop_instances=[get_pydicom_meta_tag(dcm_seq=slice_dcm, tag=(0x0008, 0x0018), tag_type="str") for slice_dcm in slice_dcm_list])
+                         slice_table=file_table)
 
     return img_obj
 
@@ -511,8 +549,15 @@ def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: 
             # Remove the offset from the data
             contour_data -= contour_offset
 
+            # Obtain the sop instance uid.
+            contour_image_sequence = contour_sequence[(0x3006, 0x0016)][0]
+            sop_instance_uid = get_pydicom_meta_tag(dcm_seq=contour_image_sequence, tag=(0x0008, 0x1155), tag_type="str", default=None)
+
+            # Store as contour.
+            contour = ContourClass(contour=contour_data, sop_instance_uid=sop_instance_uid)
+
             # Add contour data to the contour list
-            contour_data_list += [contour_data]
+            contour_data_list += [contour]
 
     if len(contour_data_list) > 0:
         # Create a new ROI object.

@@ -65,7 +65,7 @@ def find_imaging_parameters(image_folder, modality, subject, plot_images, write_
     # Load dicom headers for all slices in the image object.
     dcm_list = get_all_dicom_headers(image_folder=image_folder,
                                      modality=modality,
-                                     sop_instance_uid=img_obj.metadata_sop_instances)
+                                     sop_instance_uid=img_obj.slice_table.sop_instance_uid.values)
 
     # Parse metadata
     metadata_table = get_meta_data(dcm_list=dcm_list, modality=modality)

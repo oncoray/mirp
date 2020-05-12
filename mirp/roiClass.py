@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from pydicom import FileDataset
 
-from mirp.contourClass import ContourClass
+# from mirp.contourClass import ContourClass
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
 
@@ -27,7 +27,6 @@ def merge_roi_objects(roi_list):
     roi_spacing = roi_list[0].roi.spacing
     roi_orientation = roi_list[0].roi.orientation
     roi_size = roi_list[0].roi.size
-    roi_slice_z_pos = roi_list[0].roi.slice_z_pos
 
     roi_mask = np.zeros(roi_size, dtype=np.bool)
 
@@ -57,8 +56,7 @@ def merge_roi_objects(roi_list):
         roi_mask = np.logical_or(roi_mask, roi.roi.get_voxel_grid())
 
     # Create a roi mask object
-    roi_mask_obj = ImageClass(voxel_grid=roi_mask, origin=roi_origin, spacing=roi_spacing, orientation=roi_orientation,
-                              slice_z_pos=roi_slice_z_pos)
+    roi_mask_obj = ImageClass(voxel_grid=roi_mask, origin=roi_origin, spacing=roi_spacing, orientation=roi_orientation)
 
     # Set name of the roi
     combined_roi_name = "+".join([roi.name for roi in roi_list])
@@ -76,11 +74,12 @@ class RoiClass:
 
         self.name = name
         if contour is not None:
-            contour_list = []
-            for curr_contour in contour:
-                contour_list.append(ContourClass(contour=curr_contour))
-
-            self.contour = contour_list
+            # contour_list = []
+            # for curr_contour in contour:
+            #     contour_list.append(ContourClass(contour=curr_contour))
+            #
+            # self.contour = contour_list
+            self.contour = contour
         else:
             self.contour = None
 
@@ -145,8 +144,7 @@ class RoiClass:
             roi_mask = roi_label_mask == np.argmax(roi_sizes) + 1
 
         # Store roi as image object
-        self.roi = ImageClass(voxel_grid=roi_mask, origin=img_obj.origin, spacing=img_obj.spacing, orientation=img_obj.orientation,
-                              slice_z_pos=img_obj.slice_z_pos)
+        self.roi = ImageClass(voxel_grid=roi_mask, origin=img_obj.origin, spacing=img_obj.spacing, orientation=img_obj.orientation)
 
         # Remove contour information
         self.contour = None
@@ -221,9 +219,6 @@ class RoiClass:
                 interpolate_to_new_grid(orig_dim=self.roi.size, orig_origin=self.roi.origin, orig_spacing=self.roi.spacing, orig_vox=self.roi.get_voxel_grid(),
                                         sample_dim=img_obj.size, sample_origin=img_obj.origin, sample_spacing=img_obj.spacing,
                                         order=1, mode="nearest", align_to_center=False)
-
-            # Update slice position
-            self.roi.slice_z_pos = self.roi.origin[0] + np.arange(self.roi.size[0]) * self.roi.spacing[0]
 
             # Update voxel grid
             self.roi.set_voxel_grid(voxel_grid=voxel_grid)
