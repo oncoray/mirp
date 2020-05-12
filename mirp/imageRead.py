@@ -1,4 +1,3 @@
-import logging
 import os
 import warnings
 
@@ -7,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pydicom
 
-from mirp.dicomImport import read_dicom_image_series, read_dicom_rt_struct, read_roi_names
+from mirp.dicomImport import read_dicom_image_series, read_dicom_rt_struct, read_roi_names, get_all_dicom_headers
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_sitk_dicom_meta_tag
 from mirp.itkImport import read_itk_image, read_itk_segmentations
@@ -15,8 +14,7 @@ from mirp.itkImport import read_itk_image, read_itk_segmentations
 # This seems to have happened for some RayStation exports
 # from mirp.pydicom_fix import read_dataset
 # pydicom.filereader.read_dataset = read_dataset
-
-from pydicom.filereader import read_dataset
+# from pydicom.filereader import read_dataset
 
 
 def find_regions_of_interest(roi_folder, subject):
@@ -41,14 +39,12 @@ def find_imaging_parameters(image_folder, modality, subject, plot_images, write_
     :param plot_images: bool; flag to set image extraction. An image is created at the center of each ROI.
     :param write_folder: path; path to folder where the analysis should be written.
     :param roi_folder: path; path to folder containing the region of interest definitions.
-    :param registration_image_folder: path; path to folder containing image data on which the region of interest was originally created. If None, it is assumed that the image in
-    image_folder was used to the define the roi.
+    :param registration_image_folder: path; path to folder containing image data on which the region of interest was
+     originally created. If None, it is assumed that the image in image_folder was used to the define the roi.
     :param settings:
     :param roi_names:
     :return:
     """
-
-    # TODO: make it so that advanced meta-data can actually be obtained.
 
     from mirp.imagePlot import plot_image
     from mirp.imageMetaData import get_meta_data
@@ -66,88 +62,59 @@ def find_imaging_parameters(image_folder, modality, subject, plot_images, write_
     # Load segmentations
     roi_list = read_dicom_rt_struct(dcm_folder=roi_folder, image_object=img_reg_obj, roi=roi_names)
 
-    # metadata_table =
+    # Load dicom headers for all slices in the image object.
+    dcm_list = get_all_dicom_headers(image_folder=image_folder,
+                                     modality=modality,
+                                     sop_instance_uid=img_obj.metadata_sop_instances)
 
+    # Parse metadata
+    metadata_table = get_meta_data(dcm_list=dcm_list, modality=modality)
 
-def find_imaging_parameters_deprecated(image_folder, modality, subject, plot_images, write_folder, roi_folder=None, roi_reg_img_folder=None, settings=None, roi_names=None):
-    """
-    :param image_folder: path; path to folder containing image data.
-    :param modality: string; identifies modality of the image in the image folder.
-    :param subject: string; name of the subject.
-    :param plot_images: bool; flag to set image extraction. An image is created at the center of each ROI.
-    :param write_folder: path; path to folder where the analysis should be written.
-    :param roi_folder: path; path to folder containing the region of interest definitions.
-    :param roi_reg_img_folder: path; path to folder containing image data on which the region of interest was originally created. If None, it is assumed that the image in
-    image_folder was used to the define the roi.
-    :param settings:
-    :param roi_names:
-    :return:
-    """
+    # Add sample identifier, folder and image noise
+    metadata_table["subject"] = subject
+    metadata_table["folder"] = image_folder
+    metadata_table["noise"] = estimate_image_noise(img_obj=img_obj, settings=None, method="chang")
 
-    from mirp.imagePlot import plot_image
-    from mirp.imageMetaData import get_meta_data
-    from mirp.imageProcess import estimate_image_noise
-
-    # # Convert a single input modality to list
-    # if type(modality) is str: modality = [modality]
-
-    # Read image characteristics
-    df_img_char = read_basic_image_characteristics(image_folder=image_folder)
-
-    # Remove non-modality objects
-    df_img_char = df_img_char.loc[np.logical_and(df_img_char.modality.isin([modality]), df_img_char.file_type.isin(["dicom"]))]
-    if len(df_img_char) == 0:
-        logging.warning("No dicom images with modality %s were found for %s.", modality[0], subject)
-        return None
-
-    # Check if image parameters need to be read within roi slices
-    if roi_names is not None:
-        img_obj, roi_list = load_image(image_folder=image_folder, roi_folder=roi_folder, registration_image_folder=roi_reg_img_folder,
-                                       modality=modality, roi_names=roi_names)
-
-        # Register rois to image
-        for ii in np.arange(len(roi_list)):
-            roi_list[ii].register(img_obj=img_obj)
+    # Find the segmentation range.
+    if settings is None:
+        g_range = None
     else:
-        roi_list = None
-
-    # Read meta tags
-    if modality in ["CT", "PT", "MR"]:
-        df_meta = get_meta_data(image_file_list=df_img_char.file_path.values.tolist(), modality=modality)
-    else:
-        logging.warning("Dicom images could not be analysed for provided modality.")
-        return None
-
-    df_meta["subject"] = subject
-    df_meta["folder"] = image_folder
-
-    if roi_names is not None:
-        df_meta["noise"] = estimate_image_noise(img_obj=img_obj, settings=settings, method="chang")
+        g_range = settings.roi_resegment.g_thresh
 
     # Plot images
     if isinstance(plot_images, str):
         if plot_images == "single":
-            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="roi_center", file_path=write_folder, file_name=subject + "_" + modality[0],
-                       g_range=settings.roi_resegment.g_thresh)
+            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="roi_center", file_path=write_folder,
+                       file_name=subject + "_" + modality,
+                       g_range=g_range)
         elif plot_images == "all_roi":
-            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="all_roi", file_path=write_folder, file_name=subject + "_" + modality[0],
-                       g_range=settings.roi_resegment.g_thresh)
+            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="all_roi", file_path=write_folder,
+                       file_name=subject + "_" + modality,
+                       g_range=g_range)
         elif plot_images == "all":
-            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="all", file_path=write_folder, file_name=subject + "_" + modality[0],
-                       g_range=settings.roi_resegment.g_thresh)
-    else:
+            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="all", file_path=write_folder,
+                       file_name=subject + "_" + modality,
+                       g_range=g_range)
+
+    elif isinstance(plot_images, bool):
         if plot_images:
-            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="roi_center", file_path=write_folder, file_name=subject + "_" + modality[0],
+            plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="roi_center", file_path=write_folder,
+                       file_name=subject + "_" + modality,
                        g_range=settings.roi_resegment.g_thresh)
+
+    else:
+        raise TypeError("plot_image is expected to be a string or boolean.")
 
     # Write table to single file for case-by-case analysis
-    df_meta.to_frame().T.to_csv(path_or_buf=os.path.normpath(os.path.join(write_folder, subject + "_" + modality[0] + "_meta_data.csv")), sep=";", na_rep="NA", index=False,
-                                decimal=".")
+    metadata_table.to_frame().T.to_csv(
+        path_or_buf=os.path.normpath(os.path.join(write_folder, subject + "_" + modality + "_meta_data.csv")),
+        sep=";", na_rep="NA", index=False, decimal=".")
 
-    return df_meta.to_frame().T
+    return metadata_table.to_frame().T
 
 
-def load_image(image_folder, modality=None, roi_folder=None, registration_image_folder=None, image_name=None, roi_names=None, registration_image_name=None):
+def load_image(image_folder, modality=None, roi_folder=None, registration_image_folder=None, image_name=None,
+               roi_names=None, registration_image_name=None):
 
     # Import image
     img_obj: ImageClass = import_image(folder=image_folder, modality=modality, name_contains=image_name)
@@ -156,7 +123,8 @@ def load_image(image_folder, modality=None, roi_folder=None, registration_image_
     if registration_image_folder == image_folder or registration_image_folder is None:
         img_reg_obj = img_obj
     else:
-        img_reg_obj: ImageClass = import_image(folder=registration_image_folder, modality=modality, name_contains=registration_image_name)
+        img_reg_obj: ImageClass = import_image(folder=registration_image_folder, modality=modality,
+                                               name_contains=registration_image_name)
 
     # Load segmentation
     if roi_names is not None:

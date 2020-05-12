@@ -98,17 +98,23 @@ class ExperimentClass:
         """
 
         import logging
-        from mirp.imageRead import find_imaging_parameters_deprecated
+        from mirp.imageRead import find_imaging_parameters
 
         # Notify for start extraction of image meta data
         logging.info("Starting extraction of image metadata for %s.", self.subject)
 
         # Find files and extract meta data to a dataframe
-        df_meta = find_imaging_parameters_deprecated(image_folder=self.image_folder, modality=self.modality, subject=self.subject, plot_images=self.plot_images,
-                                                     write_folder=self.write_path, roi_folder=self.roi_folder, roi_reg_img_folder=self.roi_reg_img_folder,
-                                                     settings=self.settings, roi_names=self.roi_names)
+        metadata_table = find_imaging_parameters(image_folder=self.image_folder,
+                                                 modality=self.modality,
+                                                 subject=self.subject,
+                                                 plot_images=self.plot_images,
+                                                 write_folder=self.write_path,
+                                                 roi_folder=self.roi_folder,
+                                                 registration_image_folder=self.roi_reg_img_folder,
+                                                 settings=self.settings,
+                                                 roi_names=self.roi_names)
 
-        return df_meta
+        return metadata_table
 
     def get_file_structure_information(self, include_path_info=False):
         # Extract image metadata
