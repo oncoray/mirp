@@ -17,26 +17,20 @@ class ImageClass:
     def __init__(self, voxel_grid, origin, spacing, orientation, modality=None, spat_transform="base", no_image=False,
                  metadata=None, slice_table=None):
 
-        self.origin   = np.array(origin)    # Coordinates of [0,0,0] voxel in mm
-        self.spacing  = np.array(spacing)   # Voxel spacing in mm
-        self.spat_transform = spat_transform        # Signifies whether the current image is a base image or not
+        # Set details regarding voxel orientation and such
+        self.origin = np.array(origin)
         self.orientation = np.array(orientation)
+
+        self.spat_transform = spat_transform        # Signifies whether the current image is a base image or not
         self.slice_table = slice_table
 
-        # Find affine and inverse matrix
-        m_affine = np.zeros((3, 3), dtype=np.float)
+        # The spacing, the affine matrix and its inverse are set using the set_spacing method.
+        self.spacing = None
+        self.m_affine = None
+        self.m_affine_inv = None
 
-        # z-coordinates
-        m_affine[:, 0] = self.spacing[0] * np.array([self.orientation[0], self.orientation[1], self.orientation[2]])
-
-        # y-coordinates
-        m_affine[:, 1] = self.spacing[1] * np.array([self.orientation[3], self.orientation[4], self.orientation[5]])
-
-        # x-coordinates
-        m_affine[:, 2] = self.spacing[2] * np.array([self.orientation[6], self.orientation[7], self.orientation[8]])
-
-        self.m_affine = m_affine
-        self.m_affine_inv = np.linalg.inv(self.m_affine)
+        # Set voxel spacing. This also set the affine matrix and its inverse.
+        self.set_spacing(new_spacing=np.array(spacing))
 
         # Image name
         self.name = None
@@ -109,11 +103,31 @@ class ImageClass:
         pylab.imshow(self.get_voxel_grid()[img_slice, :, :], cmap=pylab.cm.bone)
         pylab.show()
 
+    def set_spacing(self, new_spacing):
+
+        # Update spacing
+        self.spacing: np.ndarray = new_spacing
+
+        # Recompute the affine matrices
+        m_affine = np.zeros((3, 3), dtype=np.float)
+
+        # z-coordinates
+        m_affine[:, 0] = self.spacing[0] * np.array([self.orientation[0], self.orientation[1], self.orientation[2]])
+
+        # y-coordinates
+        m_affine[:, 1] = self.spacing[1] * np.array([self.orientation[3], self.orientation[4], self.orientation[5]])
+
+        # x-coordinates
+        m_affine[:, 2] = self.spacing[2] * np.array([self.orientation[6], self.orientation[7], self.orientation[8]])
+
+        self.m_affine = m_affine
+        self.m_affine_inv = np.linalg.inv(self.m_affine)
+
     def set_voxel_grid(self, voxel_grid):
         """ Sets voxel grid """
 
         # Determine size
-        self.size  = np.array(voxel_grid.shape)
+        self.size = np.array(voxel_grid.shape)
         self.dtype_name = voxel_grid.dtype.name
 
         # Encode voxel grid
@@ -150,7 +164,8 @@ class ImageClass:
         if self.dtype_name == "bool":
 
             # Run length encoding for "True"
-            rle_end = np.array(np.append(np.where(voxel_grid.ravel()[1:] != voxel_grid.ravel()[:-1]), np.prod(self.size) - 1))
+            rle_end = np.array(np.append(np.where(voxel_grid.ravel()[1:] != voxel_grid.ravel()[:-1]),
+                                         np.prod(self.size) - 1))
             rle_start = np.cumsum(np.append(0, np.diff(np.append(-1, rle_end))))[:-1]
             rle_val = voxel_grid.ravel()[rle_start]
 
@@ -268,13 +283,29 @@ class ImageClass:
 
         # Check if pre-processing is required
         if settings.img_interpolate.anti_aliasing:
-            self.set_voxel_grid(voxel_grid=gaussian_preprocess_filter(orig_vox=self.get_voxel_grid(), orig_spacing=self.spacing, sample_spacing=new_spacing,
-                                                                      param_beta=settings.img_interpolate.smoothing_beta, mode="nearest", by_slice=by_slice))
+            self.set_voxel_grid(voxel_grid=gaussian_preprocess_filter(orig_vox=self.get_voxel_grid(),
+                                                                      orig_spacing=self.spacing,
+                                                                      sample_spacing=new_spacing,
+                                                                      param_beta=settings.img_interpolate.smoothing_beta,
+                                                                      mode="nearest",
+                                                                      by_slice=by_slice))
 
         # Interpolate image and positioning
-        self.size, self.origin, self.spacing, upd_voxel_grid = \
-            interpolate_to_new_grid(orig_dim=self.size, orig_origin=self.origin, orig_spacing=self.spacing, orig_vox=self.get_voxel_grid(),
-                                    sample_spacing=new_spacing, translation=trans_vec, order=order, mode="nearest", align_to_center=True)
+        self.size, sample_spacing, upd_voxel_grid, grid_origin = \
+            interpolate_to_new_grid(orig_dim=self.size,
+                                    orig_spacing=self.spacing,
+                                    orig_vox=self.get_voxel_grid(),
+                                    sample_spacing=new_spacing,
+                                    translation=trans_vec,
+                                    order=order,
+                                    mode="nearest",
+                                    align_to_center=True)
+
+        # Update origin before spacing, because computing the origin requires the original affine matrix.
+        self.origin = self.origin + np.dot(self.m_affine, np.transpose(grid_origin))
+
+        # Update spacing and affine matrix.
+        self.set_spacing(sample_spacing)
 
         # Round intensities in case of modalities with inherently discretised intensities
         if (self.modality == "CT") and (self.spat_transform == "base"):
@@ -463,29 +494,30 @@ class ImageClass:
         # Update voxel grid with rotated voxels
         self.set_voxel_grid(voxel_grid=voxel_grid)
 
-    def translate(self, t_x=0.0, t_y=0.0, t_z=0.0):
-        """Translate image volume"""
-        from mirp.imageProcess import interpolate_to_new_grid
+    # def translate(self, t_x=0.0, t_y=0.0, t_z=0.0):
+    #     """Translate image volume"""
+    #     from mirp.imageProcess import interpolate_to_new_grid
+    #
+    #     # Skip for missing images
+    #     if self.is_missing:
+    #         return
+    #
+    #     # Calculate the new sample origin after translation
+    #     sample_origin = np.array(self.origin)
+    #     sample_origin[0] += t_z * self.spacing[0]
+    #     sample_origin[1] += t_y * self.spacing[1]
+    #     sample_origin[2] += t_x * self.spacing[2]
+    #
+    #     # Interpolate at shift points
+    #     self.size, self.origin, self.spacing, upd_voxel_grid = \
+    #         interpolate_to_new_grid(orig_dim=self.size, orig_origin=self.origin, orig_spacing=self.spacing, orig_vox=self.get_voxel_grid(),
+    #                                 sample_dim=self.size, sample_origin=sample_origin, sample_spacing=self.spacing, order=1, mode="nearest")
+    #
+    #     # Update voxel grid
+    #     self.set_voxel_grid(voxel_grid=upd_voxel_grid)
 
-        # Skip for missing images
-        if self.is_missing:
-            return
-
-        # Calculate the new sample origin after translation
-        sample_origin = np.array(self.origin)
-        sample_origin[0] += t_z * self.spacing[0]
-        sample_origin[1] += t_y * self.spacing[1]
-        sample_origin[2] += t_x * self.spacing[2]
-
-        # Interpolate at shift points
-        self.size, self.origin, self.spacing, upd_voxel_grid = \
-            interpolate_to_new_grid(orig_dim=self.size, orig_origin=self.origin, orig_spacing=self.spacing, orig_vox=self.get_voxel_grid(),
-                                    sample_dim=self.size, sample_origin=sample_origin, sample_spacing=self.spacing, order=1, mode="nearest")
-
-        # Update voxel grid
-        self.set_voxel_grid(voxel_grid=upd_voxel_grid)
-
-    def crop(self, map_ext_z, map_ext_y, map_ext_x, xy_only=False, z_only=False):
+    def crop(self, ind_ext_z=None, ind_ext_y=None, ind_ext_x=None,
+             xy_only=False, z_only=False):
         """"Crop image to the provided map extent."""
         from mirp.utilities import world_to_index
 
@@ -493,18 +525,13 @@ class ImageClass:
         if self.is_missing:
             return
 
-        # Determine map extent in normalised image space
-        ind_ext_z = np.around(world_to_index(map_ext_z, self.origin[0], self.spacing[0]), 5)
-        ind_ext_y = np.around(world_to_index(map_ext_y, self.origin[1], self.spacing[1]), 5)
-        ind_ext_x = np.around(world_to_index(map_ext_x, self.origin[2], self.spacing[2]), 5)
-
         # Determine corresponding voxel indices
         max_ind = np.ceil(np.array((np.max(ind_ext_z), np.max(ind_ext_y), np.max(ind_ext_x)))).astype(np.int)
         min_ind = np.floor(np.array((np.min(ind_ext_z), np.min(ind_ext_y), np.min(ind_ext_x)))).astype(np.int)
 
         # Set bounding indices
         max_bound_ind = np.minimum(max_ind, self.size).astype(np.int)
-        min_bound_ind = np.maximum(min_ind, [0, 0, 0]).astype(np.int)
+        min_bound_ind = np.maximum(min_ind, np.array([0, 0, 0])).astype(np.int)
 
         # Get voxel grid
         voxel_grid = self.get_voxel_grid()
@@ -527,7 +554,6 @@ class ImageClass:
 
         # Update origin and z-slice position
         self.origin = self.origin + np.dot(self.m_affine, np.transpose(min_bound_ind))
-        # self.origin = self.origin + np.multiply(min_bound_ind, self.spacing)
 
         # Update voxel grid
         self.set_voxel_grid(voxel_grid=voxel_grid)
@@ -579,7 +605,7 @@ class ImageClass:
         cropped_grid = cropped_grid.astype(voxel_grid.dtype)
 
         # Update origin
-        self.origin = self.origin + np.multiply(grid_origin, self.spacing)
+        self.origin = self.origin + np.dot(self.m_affine, np.transpose(grid_origin))
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_grid)
@@ -800,7 +826,7 @@ class ImageClass:
                 slice_img_obj = copy.deepcopy(base_img_obj)
 
                 # Update origin and slice position
-                slice_img_obj.origin[0] += ii * slice_img_obj.spacing[0]
+                slice_img_obj.origin += np.dot(self.m_affine, np.array([ii, 0, 0]))
 
                 # Update name
                 if slice_img_obj.name is not None:
@@ -817,7 +843,7 @@ class ImageClass:
             slice_img_obj = copy.deepcopy(base_img_obj)
 
             # Update origin and slice position
-            slice_img_obj.origin[0] += slice_number * slice_img_obj.spacing[0]
+            slice_img_obj.origin += np.dot(self.m_affine, np.array([slice_number, 0, 0]))
 
             # Update name
             if slice_img_obj.name is not None:

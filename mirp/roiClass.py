@@ -183,7 +183,7 @@ class RoiClass:
         # Binarise
         self.binarise_mask()
 
-    def register(self, img_obj, apply_to_self=True):
+    def register(self, img_obj: ImageClass, apply_to_self=True):
         """Register roi with image
         Do not apply threshold until after interpolation"""
 
@@ -213,12 +213,28 @@ class RoiClass:
         if np.any([np.abs(self.roi.spacing - img_obj.spacing) > 0.0]):
             registration_required = True
 
+        if not np.allclose(self.roi.orientation, img_obj.orientation):
+            raise ValueError("Cannot register segmentation and image object due to different alignments. "
+                             "Please use an external programme to transfer segmentation to the image.")
+
         if registration_required:
             # Register roi to image; this transforms the roi grid into
-            self.roi.size, self.roi.origin, self.roi.spacing, voxel_grid = \
-                interpolate_to_new_grid(orig_dim=self.roi.size, orig_origin=self.roi.origin, orig_spacing=self.roi.spacing, orig_vox=self.roi.get_voxel_grid(),
-                                        sample_dim=img_obj.size, sample_origin=img_obj.origin, sample_spacing=img_obj.spacing,
-                                        order=1, mode="nearest", align_to_center=False)
+            self.roi.size, sample_spacing, voxel_grid, grid_origin = \
+                interpolate_to_new_grid(orig_dim=self.roi.size,
+                                        orig_spacing=self.roi.spacing,
+                                        orig_vox=self.roi.get_voxel_grid(),
+                                        sample_dim=img_obj.size,
+                                        sample_spacing=img_obj.spacing,
+                                        grid_origin=np.dot(img_obj.m_affine_inv, np.transpose(img_obj.origin - self.roi.origin)),
+                                        order=1,
+                                        mode="nearest",
+                                        align_to_center=False)
+
+            # Update origin before spacing, because computing the origin requires the original affine matrix.
+            self.roi.origin = self.roi.origin + np.dot(self.roi.m_affine, np.transpose(grid_origin))
+
+            # Update spacing and affine matrix.
+            self.roi.set_spacing(sample_spacing)
 
             # Update voxel grid
             self.roi.set_voxel_grid(voxel_grid=voxel_grid)
@@ -249,16 +265,31 @@ class RoiClass:
 
         self.roi.set_voxel_grid(voxel_grid=np.logical_or(self.roi_intensity.get_voxel_grid(), self.roi_morphology.get_voxel_grid()))
 
-    def crop(self, map_ext_z, map_ext_y, map_ext_x, xy_only=False, z_only=False):
+    def crop(self, ind_ext_z=None, ind_ext_y=None, ind_ext_x=None,
+             xy_only=False, z_only=False):
         """"Resects roi"""
 
         # Resect masks
         if self.roi is not None:
-            self.roi.crop(map_ext_z=map_ext_z, map_ext_y=map_ext_y, map_ext_x=map_ext_x, xy_only=xy_only, z_only=z_only)
+            self.roi.crop(ind_ext_z=ind_ext_z,
+                          ind_ext_y=ind_ext_y,
+                          ind_ext_x=ind_ext_x,
+                          xy_only=xy_only,
+                          z_only=z_only)
+
         if self.roi_intensity is not None:
-            self.roi_intensity.crop(map_ext_z=map_ext_z, map_ext_y=map_ext_y, map_ext_x=map_ext_x, xy_only=xy_only, z_only=z_only)
+            self.roi_intensity.crop(ind_ext_z=ind_ext_z,
+                                    ind_ext_y=ind_ext_y,
+                                    ind_ext_x=ind_ext_x,
+                                    xy_only=xy_only,
+                                    z_only=z_only)
+
         if self.roi_morphology is not None:
-            self.roi_morphology.crop(map_ext_z=map_ext_z, map_ext_y=map_ext_y, map_ext_x=map_ext_x, xy_only=xy_only, z_only=z_only)
+            self.roi_morphology.crop(ind_ext_z=ind_ext_z,
+                                     ind_ext_y=ind_ext_y,
+                                     ind_ext_x=ind_ext_x,
+                                     xy_only=xy_only,
+                                     z_only=z_only)
 
     def crop_to_size(self, center, crop_size, xy_only=False):
         """"Crops roi to a pre-defined size"""
@@ -267,9 +298,9 @@ class RoiClass:
         if self.roi is not None:
             self.roi.crop_to_size(center=center, crop_size=crop_size, xy_only=xy_only)
         if self.roi_intensity is not None:
-            self.roi_intensity.crop(center=center, crop_size=crop_size, xy_only=xy_only)
+            self.roi_intensity.crop_to_size(center=center, crop_size=crop_size, xy_only=xy_only)
         if self.roi_morphology is not None:
-            self.roi_morphology.crop(center=center, crop_size=crop_size, xy_only=xy_only)
+            self.roi_morphology.crop_to_size(center=center, crop_size=crop_size, xy_only=xy_only)
 
     def resegmentise_mask(self, img_obj, by_slice, method, settings):
         # Resegmentation of the roi map based on grey level values

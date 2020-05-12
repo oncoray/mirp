@@ -419,24 +419,30 @@ def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False)
         if len(z_ind) == 0 or len(y_ind) == 0 or len(x_ind) == 0:
             continue
 
-        roi_ext_z.append(index_to_world(index=np.array([np.min(z_ind), np.max(z_ind)]), origin=roi_obj.roi.origin[0], spacing=roi_obj.roi.spacing[0]))
-        roi_ext_y.append(index_to_world(index=np.array([np.min(y_ind), np.max(y_ind)]), origin=roi_obj.roi.origin[1], spacing=roi_obj.roi.spacing[1]))
-        roi_ext_x.append(index_to_world(index=np.array([np.min(x_ind), np.max(x_ind)]), origin=roi_obj.roi.origin[2], spacing=roi_obj.roi.spacing[2]))
+        roi_ext_z += [np.min(z_ind), np.max(z_ind)]
+        roi_ext_y += [np.min(y_ind), np.max(y_ind)]
+        roi_ext_x += [np.min(x_ind), np.max(x_ind)]
+        # roi_ext_z.append(index_to_world(index=np.array([np.min(z_ind), np.max(z_ind)]), origin=roi_obj.roi.origin[0], spacing=roi_obj.roi.spacing[0]))
+        # roi_ext_y.append(index_to_world(index=np.array([np.min(y_ind), np.max(y_ind)]), origin=roi_obj.roi.origin[1], spacing=roi_obj.roi.spacing[1]))
+        # roi_ext_x.append(index_to_world(index=np.array([np.min(x_ind), np.max(x_ind)]), origin=roi_obj.roi.origin[2], spacing=roi_obj.roi.spacing[2]))
 
     # Check if the combined ROIs are empty
     if not (len(roi_ext_z) == 0 or len(roi_ext_y) == 0 or len(roi_ext_x) == 0):
 
+        # Express boundary in voxels.
+        boundary = np.ceil(boundary / img_obj.spacing).astype(np.int)
+
         # Concatenate extents for rois and add boundary to generate map extent
-        map_ext_z = np.array([np.min(roi_ext_z) - boundary, np.max(roi_ext_z) + boundary])
-        map_ext_y = np.array([np.min(roi_ext_y) - boundary, np.max(roi_ext_y) + boundary])
-        map_ext_x = np.array([np.min(roi_ext_x) - boundary, np.max(roi_ext_x) + boundary])
+        ind_ext_z = np.array([np.min(roi_ext_z) - boundary[0], np.max(roi_ext_z) + boundary[0]])
+        ind_ext_y = np.array([np.min(roi_ext_y) - boundary[1], np.max(roi_ext_y) + boundary[1]])
+        ind_ext_x = np.array([np.min(roi_ext_x) - boundary[2], np.max(roi_ext_x) + boundary[2]])
 
         ####################################################################################################################
         # Resect image based on roi extent
         ####################################################################################################################
 
         img_res = img_obj.copy()
-        img_res.crop(map_ext_z=map_ext_z, map_ext_y=map_ext_y, map_ext_x=map_ext_x, z_only=z_only)
+        img_res.crop(ind_ext_z=ind_ext_z, ind_ext_y=ind_ext_y, ind_ext_x=ind_ext_x, z_only=z_only)
 
         ####################################################################################################################
         # Resect rois based on roi extent
@@ -446,7 +452,7 @@ def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False)
         roi_res_list = [roi_res_obj.copy() for roi_res_obj in roi_list]
 
         # Resect in place
-        [roi_res_obj.crop(map_ext_z=map_ext_z, map_ext_y=map_ext_y, map_ext_x=map_ext_x, z_only=z_only) for roi_res_obj in roi_res_list]
+        [roi_res_obj.crop(ind_ext_z=ind_ext_z, ind_ext_y=ind_ext_y, ind_ext_x=ind_ext_x, z_only=z_only) for roi_res_obj in roi_res_list]
 
     else:
         # This happens if all rois are empty - only copies of the original image object and the roi are returned
@@ -676,7 +682,12 @@ def discretise_image_intensities(img_obj, roi_obj, discr_method="none", bin_widt
     return img_discr, roi_discr
 
 
-def interpolate_to_new_grid(orig_dim, orig_origin, orig_spacing, orig_vox, sample_dim=None, sample_origin=None, sample_spacing=None,
+def interpolate_to_new_grid(orig_dim,
+                            orig_spacing,
+                            orig_vox,
+                            sample_dim=None,
+                            sample_spacing=None,
+                            grid_origin=None,
                             translation=np.array([0.0, 0.0, 0.0]), order=1, mode="nearest", align_to_center=True, processor="scipy"):
     """
     Resamples input grid and returns the output grid.
@@ -696,7 +707,7 @@ def interpolate_to_new_grid(orig_dim, orig_origin, orig_spacing, orig_vox, sampl
     """
 
     # Check if sample spacing is provided
-    if (sample_dim is None or sample_origin is None) and sample_spacing is None:
+    if sample_dim is None and sample_spacing is None:
         logging.error("Sample spacing is required for interpolation, but not provided.")
 
     # If no sample spacing is provided, assume original spacing. Note that for most purposes sample spacing should be provided
@@ -705,50 +716,58 @@ def interpolate_to_new_grid(orig_dim, orig_origin, orig_spacing, orig_vox, sampl
 
     # Set sample spacing and orig_spacing to float
     sample_spacing = sample_spacing.astype(np.float)
-    orig_spacing   = orig_spacing.astype(np.float)
+    orig_spacing = orig_spacing.astype(np.float)
 
     # If no sample dimensions are provided, assume that the user wants to sample the original grid
     if sample_dim is None:
         sample_dim = np.ceil(np.multiply(orig_dim, orig_spacing / sample_spacing))
 
-    # If no sample origin is provided, assume that the user wants to sample the original grid.
-    if sample_origin is None:
-        if align_to_center: sample_origin = orig_origin + 0.5 * (np.array(orig_dim) - 1.0) * orig_spacing - 0.5 * (np.array(sample_dim) - 1.0) * sample_spacing
-        else:               sample_origin = orig_origin
+    # Set grid spacing (i.e. a fractional spacing in input voxel dimensions)
+    grid_spacing = sample_spacing / orig_spacing
+
+    # Set grid origin, if not provided previously
+    if grid_origin is None:
+        if align_to_center:
+            grid_origin = 0.5 * (np.array(orig_dim) - 1.0) - 0.5 * (np.array(sample_dim) - 1.0) * grid_spacing
+
+        else:
+            grid_origin = np.array([0.0, 0.0, 0.0])
 
         # Update with translation vector
-        sample_origin += translation * sample_spacing
+        grid_origin += translation * grid_spacing
 
     if processor == "scipy":
         import scipy.ndimage as ndi
 
         # Convert sample_spacing and sample_origin to normalised original spacing (where voxel distance is 1 in each direction)
         # This is required for the use of ndi.map_coordinates, which uses the original grid as reference.
-        map_origin = (sample_origin - orig_origin) / orig_spacing
-        map_spacing = sample_spacing / orig_spacing
 
         # Generate interpolation map grid
         map_z, map_y, map_x = np.mgrid[:sample_dim[0], :sample_dim[1], :sample_dim[2]]
 
         # Transform map to normalised original space
-        map_z = map_z * map_spacing[0] + map_origin[0]
+        map_z = map_z * grid_spacing[0] + grid_origin[0]
         map_z = map_z.astype(np.float32)
-        map_y = map_y * map_spacing[1] + map_origin[1]
+        map_y = map_y * grid_spacing[1] + grid_origin[1]
         map_y = map_y.astype(np.float32)
-        map_x = map_x * map_spacing[2] + map_origin[2]
+        map_x = map_x * grid_spacing[2] + grid_origin[2]
         map_x = map_x.astype(np.float32)
 
         # Interpolate orig_vox on interpolation grid
-        map_vox = ndi.map_coordinates(input=orig_vox.astype(np.float32), coordinates=np.array([map_z, map_y, map_x], dtype=np.float32), order=order, mode=mode)
+        map_vox = ndi.map_coordinates(input=orig_vox.astype(np.float32),
+                                      coordinates=np.array([map_z, map_y, map_x], dtype=np.float32),
+                                      order=order,
+                                      mode=mode)
 
     elif processor == "sitk":
         import SimpleITK as sitk
 
-        # Convert input voxel grid to sitk image. Note that SimpleITK expects x,y,z ordering, while we use z,y,x ordering. Hence origins, spacings and sizes are inverted
-        # for both input image (sitk_orig_img) and ResampleImageFilter objects.
+        # Convert input voxel grid to sitk image. Note that SimpleITK expects x,y,z ordering, while we use z,y,
+        # x ordering. Hence origins, spacings and sizes are inverted for both input image (sitk_orig_img) and
+        # ResampleImageFilter objects.
         sitk_orig_img = sitk.GetImageFromArray(orig_vox.astype(np.float32), isVector=False)
-        sitk_orig_img.SetOrigin(orig_origin[::-1])
-        sitk_orig_img.SetSpacing(orig_spacing[::-1])
+        sitk_orig_img.SetOrigin(np.array([0.0, 0.0, 0.0]))
+        sitk_orig_img.SetSpacing(np.array([1.0, 1.0, 1.0]))
 
         interpolator = sitk.ResampleImageFilter()
 
@@ -763,8 +782,8 @@ def interpolate_to_new_grid(orig_dim, orig_origin, orig_spacing, orig_vox, sampl
             interpolator.SetInterpolator(sitk.sitkBSpline)
 
         # Set output origin and output spacing
-        interpolator.SetOutputOrigin(sample_origin[::-1])
-        interpolator.SetOutputSpacing(sample_spacing[::-1])
+        interpolator.SetOutputOrigin(grid_origin[::-1])
+        interpolator.SetOutputSpacing(grid_spacing[::-1])
         interpolator.SetSize(sample_dim[::-1].astype(int).tolist())
 
         map_vox = sitk.GetArrayFromImage(interpolator.Execute(sitk_orig_img))
@@ -772,7 +791,7 @@ def interpolate_to_new_grid(orig_dim, orig_origin, orig_spacing, orig_vox, sampl
         raise ValueError("The selected processor should be one of \"scipy\" or \"sitk\"")
 
     # Return interpolated grid and spatial coordinates
-    return sample_dim, sample_origin, sample_spacing, map_vox
+    return sample_dim, sample_spacing, map_vox, grid_origin
 
 
 def gaussian_preprocess_filter(orig_vox, orig_spacing, sample_spacing=None, param_beta=0.93, mode="nearest", by_slice=False):
