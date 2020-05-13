@@ -225,7 +225,7 @@ class RoiClass:
                                         orig_vox=self.roi.get_voxel_grid(),
                                         sample_dim=img_obj.size,
                                         sample_spacing=img_obj.spacing,
-                                        grid_origin=np.dot(img_obj.m_affine_inv, np.transpose(img_obj.origin - self.roi.origin)),
+                                        grid_origin=np.dot(self.roi.m_affine_inv, np.transpose(img_obj.origin - self.roi.origin)),
                                         order=1,
                                         mode="nearest",
                                         align_to_center=False)
