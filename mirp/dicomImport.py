@@ -550,8 +550,10 @@ def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: 
             contour_data -= contour_offset
 
             # Obtain the sop instance uid.
-            contour_image_sequence = contour_sequence[(0x3006, 0x0016)][0]
-            sop_instance_uid = get_pydicom_meta_tag(dcm_seq=contour_image_sequence, tag=(0x0008, 0x1155), tag_type="str", default=None)
+            if get_pydicom_meta_tag(dcm_seq=contour_sequence, tag=(0x3006, 0x0016), test_tag=True):
+                sop_instance_uid = get_pydicom_meta_tag(dcm_seq=contour_sequence[(0x3006, 0x0016)][0], tag=(0x0008, 0x1155), tag_type="str", default=None)
+            else:
+                sop_instance_uid = None
 
             # Store as contour.
             contour = ContourClass(contour=contour_data, sop_instance_uid=sop_instance_uid)
