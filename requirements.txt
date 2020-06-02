@@ -6,3 +6,4 @@ pydicom>=1.3.0
 pywavelets>=1.0.0
 scikit-image>=0.15.0
 SimpleITK>=1.2.0
+itk>=5.1.0

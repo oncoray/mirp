@@ -364,7 +364,7 @@ class ImageClass:
 
         self.set_voxel_grid(voxel_grid=voxel_grid)
 
-    def saturate(self, intensity_range, fill_value=np.nan):
+    def saturate(self, intensity_range, fill_value=None):
         """
         Saturate image intensities using an intensity range
         :param intensity_range: range of intensity values
@@ -398,7 +398,7 @@ class ImageClass:
             # Set the updated voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
 
-    def normalise_intensities(self, norm_method="none", intensity_range=None):
+    def normalise_intensities(self, norm_method="none", intensity_range=None, saturation_range=None, mask=None):
         """
         Normalises image intensities
         :param norm_method: string defining the normalisation method. Should be one of "none", "range", "standardisation"
@@ -413,27 +413,101 @@ class ImageClass:
         if intensity_range is None:
             intensity_range = [np.nan, np.nan]
 
+        if mask is None:
+            mask = np.ones(self.size, dtype=np.bool)
+        else:
+            mask = mask.astype(np.bool)
+
+        if np.sum(mask) == 0:
+            mask = np.ones(self.size, dtype=np.bool)
+
+        if saturation_range is None:
+            saturation_range = [np.nan, np.nan]
+
         if norm_method == "none":
             return
 
         elif norm_method == "range":
+            # Normalisation to [0, 1] range using fixed intensities.
 
             # Get voxel grid
             voxel_grid = self.get_voxel_grid()
 
             # Find maximum and minimum intensities
             if np.isnan(intensity_range[0]):
-                min_int = np.min(voxel_grid)
+                min_int = np.min(voxel_grid[mask])
             else:
                 min_int = intensity_range[0]
 
             if np.isnan(intensity_range[1]):
-                max_int = np.max(voxel_grid)
+                max_int = np.max(voxel_grid[mask])
             else:
                 max_int = intensity_range[1]
 
             # Normalise by range
-            voxel_grid = (voxel_grid - min_int) / (max_int - min_int)
+            if not max_int == min_int:
+                voxel_grid = (voxel_grid - min_int) / (max_int - min_int)
+            else:
+                voxel_grid = voxel_grid - min_int
+
+            # Update the voxel grid
+            self.set_voxel_grid(voxel_grid=voxel_grid)
+
+            self.is_normalised = True
+
+        elif norm_method == "relative_range":
+            # Normalisation to [0, 1]-ish range using relative intensities.
+
+            # Get voxel grid
+            voxel_grid = self.get_voxel_grid()
+
+            min_int_rel = 0.0
+            if not np.isnan(intensity_range[0]):
+                min_int_rel = intensity_range[0]
+
+            max_int_rel = 1.0
+            if not np.isnan(intensity_range[1]):
+                max_int_rel = intensity_range[1]
+
+            # Compute minimum and maximum intensities.
+            value_range = [np.min(voxel_grid[mask]), np.max(voxel_grid[mask])]
+            min_int = value_range[0] + min_int_rel * (value_range[1] - value_range[0])
+            max_int = value_range[0] + max_int_rel * (value_range[1] - value_range[0])
+
+            # Normalise by range
+            if not max_int == min_int:
+                voxel_grid = (voxel_grid - min_int) / (max_int - min_int)
+            else:
+                voxel_grid = voxel_grid - min_int
+
+            # Update the voxel grid
+            self.set_voxel_grid(voxel_grid=voxel_grid)
+
+            self.is_normalised = True
+
+        elif norm_method == "quantile_range":
+            # Normalisation to [0, 1]-ish range based on quantiles.
+
+            # Get voxel grid
+            voxel_grid = self.get_voxel_grid()
+
+            min_quantile = 0.0
+            if not np.isnan(intensity_range[0]):
+                min_quantile = intensity_range[0]
+
+            max_quantile = 1.0
+            if not np.isnan(intensity_range[1]):
+                max_quantile = intensity_range[1]
+
+            # Compute quantiles from voxel grid.
+            min_int = np.quantile(voxel_grid[mask], q=min_quantile)
+            max_int = np.quantile(voxel_grid[mask], q=max_quantile)
+
+            # Normalise by range
+            if not max_int == min_int:
+                voxel_grid = (voxel_grid - min_int) / (max_int - min_int)
+            else:
+                voxel_grid = voxel_grid - min_int
 
             # Update the voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
@@ -441,13 +515,17 @@ class ImageClass:
             self.is_normalised = True
 
         elif norm_method == "standardisation":
+            # Normalisation to mean 0 and standard deviation 1.
 
             # Get voxel grid
             voxel_grid = self.get_voxel_grid()
 
             # Determine mean and standard deviation of the voxel intensities
-            mean_int = np.mean(voxel_grid)
-            sd_int = np.std(voxel_grid)
+            mean_int = np.mean(voxel_grid[mask])
+            sd_int = np.std(voxel_grid[mask])
+
+            # Protect against invariance.
+            if sd_int == 0.0: sd_int = 1.0
 
             # Normalise
             voxel_grid = (voxel_grid - mean_int) / sd_int
@@ -457,7 +535,9 @@ class ImageClass:
 
             self.is_normalised = True
         else:
-            raise ValueError("\"%s\" is not a valid method for normalising intensity values.", norm_method)
+            raise ValueError(f"{norm_method} is not a valid method for normalising intensity values.")
+
+        self.saturate(intensity_range=saturation_range)
 
     def rotate(self, angle):
         """Rotate volume along z-axis."""

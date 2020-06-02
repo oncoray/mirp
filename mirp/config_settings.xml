@@ -26,9 +26,31 @@
             <!-- Threshold for ROIS with partial volumes after interpolation. Default: 0.5 -->
             <incl_threshold></incl_threshold>
         </roi_interpolate>
+        <post_processing>
+            <!-- Type of algorithm used to produce an approximate mask of the tissue. Can be none, range (requires intensity values), relative_range (default; requires fractions). -->
+            <tissue_mask_type></tissue_mask_type>
+            <!-- Range values for creating an approximate mask of the tissue. Required for range and relative range options. Default: 0.02, 1.0 (relative_range); 0.0, nan (range; effectively none) -->
+            <tissue_mask_range></tissue_mask_range>
+            <!-- Whether N4 bias field correction should be performed. Disabled by default (False); only applicable to MR imaging. If a tissue mask is created, this is used to determine  -->
+            <bias_field_correction></bias_field_correction>
+            <!-- Number of fitting levels for N4 bias field correction. Default: 3 -->
+            <n_fitting_levels></n_fitting_levels>
+            <!-- Max number of iterations for each of the fitting levels for N4 bias field correction. Default: 100, 100, 100 -->
+            <n_max_iterations></n_max_iterations>
+            <!-- Convergence threshold for N4 bias field correction. Default: 0.001 -->
+            <convergence_threshold></convergence_threshold>
+            <!-- Algorithm used to normalise intensities in the image. Will use only intensities in voxels masked by the tissue mask. Can be none (default), range (maps to an intensity range), relative_range (maps to a range of relative intensities), quantile_range (maps to a range of relative intensities based on intensity percentiles),  standardisation (performs z-normalisation). -->
+            <intensity_normalisation></intensity_normalisation>
+            <!-- Intensity range for range, relative_range and quantile_range normalisation. -->
+            <intensity_normalisation_range></intensity_normalisation_range>
+            <!-- Intensity saturation after normalisation. Values outside the given range are limited to this range. You may define two values for lower and upper boundary respectively. Default: [np.nan, np.nan] (no saturation). -->
+            <intensity_normalisation_saturation></intensity_normalisation_saturation>
+        </post_processing>
         <vol_adapt>
             <!-- Whether the image may be cut to only maintain the interesting parts. Default: False. Setting this to True speeds up calculations and saves memory. -->
             <resect></resect>
+            <!-- Distance (in mm) around the ROI mask that should be maintained when cropping. Default: 150 mm. -->
+            <crop_distance></crop_distance>
             <!-- Number of times noise is randomly added to the image. Used in noise addition image perturbations. Default: 0 -->
             <noise_repetitions></noise_repetitions>
             <!-- Manually provided noise level in intensity units. If left unset, noise is determined from the image itself. -->

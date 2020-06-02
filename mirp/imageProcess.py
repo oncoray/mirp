@@ -1,6 +1,9 @@
 import logging
 from copy import deepcopy
 
+from mirp.importSettings import SettingsClass
+from mirp.imageClass import ImageClass
+
 import numpy as np
 import pandas as pd
 
@@ -13,13 +16,19 @@ def saturate_image(img_obj, intensity_range, fill_value):
     return img_obj
 
 
-def normalise_image(img_obj, norm_method, intensity_range=None):
+def normalise_image(img_obj, norm_method, intensity_range=None, saturation_range=None, mask=None):
 
     if intensity_range is None:
         intensity_range = [np.nan, np.nan]
 
+    if saturation_range is None:
+        saturation_range = [np.nan, np.nan]
+
     # Normalise intensities
-    img_obj.normalise_intensities(norm_method=norm_method, intensity_range=intensity_range)
+    img_obj.normalise_intensities(norm_method=norm_method,
+                                  intensity_range=intensity_range,
+                                  saturation_range=saturation_range,
+                                  mask=mask)
 
     return img_obj
 
@@ -388,8 +397,6 @@ def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False)
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
 
-    from mirp.utilities import index_to_world
-
     ####################################################################################################################
     # Initial steps
     ####################################################################################################################
@@ -422,9 +429,6 @@ def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False)
         roi_ext_z += [np.min(z_ind), np.max(z_ind)]
         roi_ext_y += [np.min(y_ind), np.max(y_ind)]
         roi_ext_x += [np.min(x_ind), np.max(x_ind)]
-        # roi_ext_z.append(index_to_world(index=np.array([np.min(z_ind), np.max(z_ind)]), origin=roi_obj.roi.origin[0], spacing=roi_obj.roi.spacing[0]))
-        # roi_ext_y.append(index_to_world(index=np.array([np.min(y_ind), np.max(y_ind)]), origin=roi_obj.roi.origin[1], spacing=roi_obj.roi.spacing[1]))
-        # roi_ext_x.append(index_to_world(index=np.array([np.min(x_ind), np.max(x_ind)]), origin=roi_obj.roi.origin[2], spacing=roi_obj.roi.spacing[2]))
 
     # Check if the combined ROIs are empty
     if not (len(roi_ext_z) == 0 or len(roi_ext_y) == 0 or len(roi_ext_x) == 0):
@@ -1193,3 +1197,71 @@ def compute_discretised_features(img_obj, roi_obj, settings, discr_method="none"
     df_feat.columns += parse_str
 
     return df_feat
+
+
+def create_tissue_mask(img_obj: ImageClass, settings: SettingsClass):
+
+    if settings.post_process.tissue_mask_type == "none":
+        # The entire image is the tissue mask.
+        mask = np.ones(img_obj.size, dtype=np.uint8)
+
+    elif settings.post_process.tissue_mask_type == "range":
+        # The intensity range provided forms the mask range.
+        tissue_range = deepcopy(settings.post_process.tissue_mask_range)
+        if np.isnan(tissue_range[1]): tissue_range[1] = 0.0
+        if np.isnan(tissue_range[2]): tissue_range[2] = np.max(img_obj.get_voxel_grid())
+
+        voxel_grid = img_obj.get_voxel_grid()
+        mask = np.logical_and(voxel_grid >= tissue_range[1], voxel_grid <= tissue_range[2])
+
+    elif settings.post_process.tissue_mask_type == "relative_range":
+        # The relative intensity range provided forms the mask range. This means that we need to convert the relative
+        # range to the range present in the image.
+        tissue_range = deepcopy(settings.post_process.tissue_mask_range)
+        if np.isnan(tissue_range[0]): tissue_range[0] = 0.0
+        if np.isnan(tissue_range[1]): tissue_range[1] = 1.0
+
+        voxel_grid = img_obj.get_voxel_grid()
+        intensity_range = [np.min(voxel_grid), np.max(voxel_grid)]
+
+        # Convert relative range to the image intensities
+        tissue_range = [intensity_range[0] + tissue_range[0] * (intensity_range[1] - intensity_range[0]),
+                        intensity_range[0] + tissue_range[1] * (intensity_range[1] - intensity_range[0])]
+
+        mask = np.logical_and(voxel_grid >= tissue_range[0], voxel_grid <= tissue_range[1])
+    else:
+        raise ValueError(f"The tissue_mask_type configuration parameter is expected to be one of none, range, "
+                         f"or relative_range. Encountered: {settings.post_process.tissue_mask_type}")
+
+    return mask
+
+
+def bias_field_correction(img_obj: ImageClass, settings: SettingsClass, mask=None):
+    import itk
+
+    if not settings.post_process.bias_field_correction:
+        return img_obj
+
+    if img_obj.modality != "MR":
+        return img_obj
+
+    if mask is None:
+        mask = np.ones(img_obj.size, dtype=np.uint8)
+
+    # Create ITK input masks
+    input_image = itk.GetImageFromArray(img_obj.get_voxel_grid())
+    input_image.SetSpacing(img_obj.spacing[::-1])
+    input_mask = itk.GetImageFromArray(mask.astype(np.uint8))
+    input_mask.SetSpacing(img_obj.spacing[::-1])
+
+    # Start N4 bias correction
+    corrector = itk.N4BiasFieldCorrectionImageFilter.New(input_image, input_mask)
+    corrector.SetNumberOfFittingLevels(settings.post_process.n_fitting_levels)
+    corrector.SetMaximumNumberOfIterations(settings.post_process.n_max_iterations)
+    corrector.SetConvergenceThreshold(settings.post_process.convergence_threshold)
+    output_image = corrector.GetOutput()
+
+    # Save bias-corrected image.
+    img_obj.set_voxel_grid(voxel_grid=itk.GetArrayFromImage(output_image).astype(dtype=np.float32))
+
+    return img_obj

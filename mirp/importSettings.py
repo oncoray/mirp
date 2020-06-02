@@ -24,6 +24,20 @@ class RoiInterpolationSettingsClass:
         # self.new_spacing = None
 
 
+class ImagePostProcessingClass:
+    def __init__(self):
+
+        self.tissue_mask_type = "relative_range"
+        self.tissue_mask_range = [0.02, 1.00]
+        self.bias_field_correction = False
+        self.n_fitting_levels = 3
+        self.n_max_iterations = [100, 100, 100]
+        self.convergence_threshold = 0.001
+        self.intensity_normalisation = "none"
+        self.intensity_normalisation_range = [np.nan, np.nan]
+        self.intensity_normalisation_saturation = [np.nan, np.nan]
+
+
 class ImagePerturbationSettingsClass:
 
     def __init__(self):
@@ -33,6 +47,7 @@ class ImagePerturbationSettingsClass:
         self.rot_angles = [0.0]
         self.eroded_vol_fract = 0.8
         self.crop = False
+        self.crop_distance = 150.0
         self.translate_frac = [0.0]
         self.add_noise = False
         self.noise_repetitions = 0
@@ -131,13 +146,20 @@ class DeepLearningSettingsClass:
 
 class SettingsClass:
 
-    def __init__(self, general_settings: GeneralSettingsClass, img_interpolate_settings: ImageInterpolationSettingsClass, roi_interpolate_settings: RoiInterpolationSettingsClass,
-                 vol_adapt_settings: ImagePerturbationSettingsClass, roi_resegment_settings: ResegmentationSettingsClass, feature_extr_settings: FeatureExtractionSettingsClass,
-                 img_transform_settings: ImageTransformationSettingsClass, deep_learning_settings: DeepLearningSettingsClass):
+    def __init__(self, general_settings: GeneralSettingsClass,
+                 img_interpolate_settings: ImageInterpolationSettingsClass,
+                 roi_interpolate_settings: RoiInterpolationSettingsClass,
+                 post_process_settings: ImagePostProcessingClass,
+                 vol_adapt_settings: ImagePerturbationSettingsClass,
+                 roi_resegment_settings: ResegmentationSettingsClass,
+                 feature_extr_settings: FeatureExtractionSettingsClass,
+                 img_transform_settings: ImageTransformationSettingsClass,
+                 deep_learning_settings: DeepLearningSettingsClass):
 
         self.general         = general_settings
         self.img_interpolate = img_interpolate_settings
         self.roi_interpolate = roi_interpolate_settings
+        self.post_process    = post_process_settings
         self.vol_adapt       = vol_adapt_settings
         self.roi_resegment   = roi_resegment_settings
         self.feature_extr    = feature_extr_settings
@@ -250,6 +272,21 @@ def import_configuration_settings(path):
         roi_interp_settings.spline_order   = str2type(roi_interp_branch.find("spline_order"), "int", 1)
         roi_interp_settings.incl_threshold = str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5)
 
+        # Image post-acquisition processing settings
+        post_process_branch = branch.find("post_processing")
+        post_process_settings = ImagePostProcessingClass()
+
+        if post_process_branch is not None:
+            post_process_settings.tissue_mask_type              = str2type(post_process_branch.find("tissue_mask_type"), "str", "relative_range")
+            post_process_settings.tissue_mask_range             = str2list(post_process_branch.find("tissue_mask_range"), "float", [0.02, 1.00])
+            post_process_settings.bias_field_correction         = str2type(post_process_branch.find("bias_field_correction"), "bool", False)
+            post_process_settings.n_fitting_levels              = str2type(post_process_branch.find("n_fitting_levels"), "int", 3)
+            post_process_settings.n_max_iterations              = str2list(post_process_branch.find("n_max_iterations"), "int", [100, 100, 100])
+            post_process_settings.convergence_threshold         = str2type(post_process_branch.find("convergence_threshold"), "float", 0.001)
+            post_process_settings.intensity_normalisation       = str2type(post_process_branch.find("intensity_normalisation"), "str", "none")
+            post_process_settings.intensity_normalisation_range = str2list(post_process_branch.find("intensity_normalisation_range"), "float", [np.nan, np.nan])
+            post_process_settings.intensity_normalisation_saturation = str2list(post_process_branch.find("intensity_normalisation_saturation"), "float", [np.nan, np.nan])
+
         # Image and roi volume adaptation settings
         vol_adapt_branch = branch.find("vol_adapt")
         vol_adapt_settings = ImagePerturbationSettingsClass()
@@ -259,6 +296,7 @@ def import_configuration_settings(path):
             vol_adapt_settings.roi_adapt_type          = str2type(vol_adapt_branch.find("roi_adapt_type"), "str", "distance")
             vol_adapt_settings.eroded_vol_fract        = str2type(vol_adapt_branch.find("eroded_vol_fract"), "float", 0.8)
             vol_adapt_settings.crop                    = str2type(vol_adapt_branch.find("resect"), "bool", False)
+            vol_adapt_settings.crop_distance           = str2type(vol_adapt_branch.find("crop_distance"), "float", 150.0)
             vol_adapt_settings.rot_angles              = str2list(vol_adapt_branch.find("rot_angles"), "float", 0.0)
             vol_adapt_settings.translate_frac          = str2list(vol_adapt_branch.find("translate_frac"), "float", 0.0)
             vol_adapt_settings.noise_repetitions       = str2type(vol_adapt_branch.find("noise_repetitions"), "int", 0)
@@ -342,9 +380,13 @@ def import_configuration_settings(path):
 
         # Parse to settings
         settings_list.append(SettingsClass(general_settings=general_settings,
-                                           img_interpolate_settings=img_interp_settings, roi_interpolate_settings=roi_interp_settings,
-                                           vol_adapt_settings=vol_adapt_settings, roi_resegment_settings=roi_resegment_settings,
-                                           feature_extr_settings=feature_extr_settings, img_transform_settings=img_transform_settings,
+                                           img_interpolate_settings=img_interp_settings,
+                                           roi_interpolate_settings=roi_interp_settings,
+                                           post_process_settings=post_process_settings,
+                                           vol_adapt_settings=vol_adapt_settings,
+                                           roi_resegment_settings=roi_resegment_settings,
+                                           feature_extr_settings=feature_extr_settings,
+                                           img_transform_settings=img_transform_settings,
                                            deep_learning_settings=deep_learning_settings))
 
     return settings_list
