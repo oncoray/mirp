@@ -129,7 +129,7 @@ class ImageTransformationSettingsClass:
         self.log_average = False
         self.log_sigma_truncate = 4.0
         self.laws_calculate_energy = True
-        self.laws_kernel = ["all"]
+        self.laws_kernel = None
         self.laws_delta  = 7
         self.laws_rot_invar = True
         self.mean_filter_size = None
@@ -355,7 +355,7 @@ def import_configuration_settings(path):
             img_transform_settings.wavelet_rot_invar     = str2type(img_transform_branch.find("wavelet_rot_invar"), "bool", True)
             img_transform_settings.wavelet_stationary    = str2type(img_transform_branch.find("wavelet_stationary"), "bool", True)
             img_transform_settings.laws_calculate_energy = str2type(img_transform_branch.find("laws_calculate_energy"), "bool", True)
-            img_transform_settings.laws_kernel           = str2list(img_transform_branch.find("laws_kernel"), "str", "all")
+            img_transform_settings.laws_kernel           = str2type(img_transform_branch.find("laws_kernel"), "str")
             img_transform_settings.laws_delta            = str2type(img_transform_branch.find("laws_delta"), "int", 7)
             img_transform_settings.laws_rot_invar        = str2type(img_transform_branch.find("laws_rot_invar"), "bool", True)
             img_transform_settings.log_sigma             = str2list(img_transform_branch.find("log_sigma"), "float")
