@@ -139,14 +139,16 @@
             <log_sigma_truncate></log_sigma_truncate>
             <!-- Whether to average over laplacian of gaussian images for different scales; True or False -->
             <log_average></log_average>
-            <!-- Calculate laws texture energy image, or just the response map; True (default) or False -->
-            <laws_calculate_energy></laws_calculate_energy>
-            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
-            <laws_rot_invar></laws_rot_invar>
             <!-- Calculate specific laws kernels; all (default) or specific combinations, e.g. L5S5E5, E5E5E5-->
             <laws_kernel></laws_kernel>
+            <!-- Calculate laws texture energy image, or just the response map; True (default) or False -->
+            <laws_calculate_energy></laws_calculate_energy>
             <!-- Delta for chebyshev distance between center voxel and neighbourhood boundary used to calculate texture energy: integer, default: 7-->
             <laws_delta></laws_delta>
+            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
+            <laws_rot_invar></laws_rot_invar>
+            <!-- Pooling method used for rotationally invariant Laws response maps and energy images; max (default) or mean. -->
+            <laws_pooling_method></laws_pooling_method>
             <!-- Filter size for mean filter. -->
             <mean_filter_size></mean_filter_size>
         </img_transform>

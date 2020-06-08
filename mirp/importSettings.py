@@ -132,6 +132,7 @@ class ImageTransformationSettingsClass:
         self.laws_kernel = None
         self.laws_delta  = 7
         self.laws_rot_invar = True
+        self.laws_pooling_method = "max"
         self.mean_filter_size = None
         self.boundary_condition = "nearest"
 
@@ -259,18 +260,21 @@ def import_configuration_settings(path):
         img_interp_branch   = branch.find("img_interpolate")
         img_interp_settings = ImageInterpolationSettingsClass()
 
-        img_interp_settings.interpolate  = str2type(img_interp_branch.find("interpolate"), "bool")
-        img_interp_settings.spline_order = str2type(img_interp_branch.find("spline_order"), "int")
-        img_interp_settings.new_spacing  = np.unique(str2list(img_interp_branch.find("new_spacing"), "float"))
-        img_interp_settings.new_non_iso_spacing = str2list(img_interp_branch.find("new_non_iso_spacing"), "float")
-        img_interp_settings.anti_aliasing = str2type(img_interp_branch.find("anti_aliasing"), "bool", True)
-        img_interp_settings.smoothing_beta = str2type(img_interp_branch.find("smoothing_beta"), "float", 0.95)
+        if img_interp_branch is not None:
+            img_interp_settings.interpolate  = str2type(img_interp_branch.find("interpolate"), "bool")
+            img_interp_settings.spline_order = str2type(img_interp_branch.find("spline_order"), "int")
+            img_interp_settings.new_spacing  = np.unique(str2list(img_interp_branch.find("new_spacing"), "float"))
+            img_interp_settings.new_non_iso_spacing = str2list(img_interp_branch.find("new_non_iso_spacing"), "float")
+            img_interp_settings.anti_aliasing = str2type(img_interp_branch.find("anti_aliasing"), "bool", True)
+            img_interp_settings.smoothing_beta = str2type(img_interp_branch.find("smoothing_beta"), "float", 0.95)
 
         # Process roi interpolation settings
         roi_interp_branch   = branch.find("roi_interpolate")
         roi_interp_settings = RoiInterpolationSettingsClass()
-        roi_interp_settings.spline_order   = str2type(roi_interp_branch.find("spline_order"), "int", 1)
-        roi_interp_settings.incl_threshold = str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5)
+
+        if roi_interp_branch is not None:
+            roi_interp_settings.spline_order   = str2type(roi_interp_branch.find("spline_order"), "int", 1)
+            roi_interp_settings.incl_threshold = str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5)
 
         # Image post-acquisition processing settings
         post_process_branch = branch.find("post_processing")
@@ -358,6 +362,7 @@ def import_configuration_settings(path):
             img_transform_settings.laws_kernel           = str2type(img_transform_branch.find("laws_kernel"), "str")
             img_transform_settings.laws_delta            = str2type(img_transform_branch.find("laws_delta"), "int", 7)
             img_transform_settings.laws_rot_invar        = str2type(img_transform_branch.find("laws_rot_invar"), "bool", True)
+            img_transform_settings.laws_pooling_method   = str2type(img_transform_branch.find("laws_pooling_method"), "str", "max")
             img_transform_settings.log_sigma             = str2list(img_transform_branch.find("log_sigma"), "float")
             img_transform_settings.log_sigma_truncate    = str2type(img_transform_branch.find("log_sigma_truncate"), "float", 4.0)
             img_transform_settings.log_average           = str2type(img_transform_branch.find("log_average"), "bool")
