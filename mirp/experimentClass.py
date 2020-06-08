@@ -325,12 +325,12 @@ class ExperimentClass:
             else:
                 # Read image and ROI segmentations
                 img_obj, roi_list = load_image(image_folder=self.image_folder,
-                                                     modality=self.modality,
-                                                     roi_folder=self.roi_folder,
-                                                     registration_image_folder=self.roi_reg_img_folder,
-                                                     image_name=self.image_file_name_pattern,
-                                                     roi_names=self.roi_names,
-                                                     registration_image_name=self.registration_image_file_name_pattern)
+                                               modality=self.modality,
+                                               roi_folder=self.roi_folder,
+                                               registration_image_folder=self.roi_reg_img_folder,
+                                               image_name=self.image_file_name_pattern,
+                                               roi_names=self.roi_names,
+                                               registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
 
             # Crop slice stack
@@ -453,8 +453,11 @@ class ExperimentClass:
 
             if self.settings.img_transform.perform_img_transform:
                 # Get image features from transformed images (may be empty if no features are computed)
-                iter_feat_list += transform_images(img_obj=img_obj, roi_list=roi_list, settings=curr_setting,
-                                                   compute_features=self.compute_features, extract_images=self.extract_images,
+                iter_feat_list += transform_images(img_obj=img_obj,
+                                                   roi_list=roi_list,
+                                                   settings=curr_setting,
+                                                   compute_features=self.compute_features,
+                                                   extract_images=self.extract_images,
                                                    file_path=self.write_path)
 
             ########################################################################################################
