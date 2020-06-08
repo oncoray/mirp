@@ -23,7 +23,7 @@ def read_itk_image(image_folder, modality=None, name_contains=None):
     sitk_img = sitk.ReadImage(os.path.join(image_folder, itk_file))
 
     # Import the image volume
-    voxel_grid = sitk.GetArrayFromImage(sitk_img)
+    voxel_grid = sitk.GetArrayFromImage(sitk_img).astype(np.float)
 
     # Determine origin, spacing, and orientation
     image_origin = np.array(sitk_img.GetOrigin())[::-1]
