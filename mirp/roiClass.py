@@ -910,15 +910,17 @@ class RoiClass:
         :return:
         """
 
-        roi_str = img_obj.get_export_descriptor()
-        roi_str += self.get_export_descriptor()
+        roi_str_components = [img_obj.get_export_descriptor()]
+        roi_str_components += [self.get_export_descriptor()]
 
         # Write morphological and intensity roi
         if self.roi_morphology is not None and self.roi_intensity is not None:
-            self.roi_morphology.write(file_path=file_path, file_name=roi_str + "_morph.nii.gz")
-            self.roi_intensity.write(file_path=file_path, file_name=roi_str + "_int.nii.gz")
+            self.roi_morphology.write(file_path=file_path, file_name="_".join(roi_str_components + ["morph.nii.gz"]))
+            self.roi_intensity.write(file_path=file_path, file_name="_".join(roi_str_components + ["int.nii.gz"]))
+
         elif self.roi is not None:
-            self.roi.write(file_path=file_path, file_name=roi_str + ".nii.gz")
+            self.roi.write(file_path=file_path, file_name="_".join(roi_str_components + ["nii.gz"]))
+
         else:
             return
 
@@ -927,18 +929,20 @@ class RoiClass:
         Generates an export string for identifying a file
         :return: export string
         """
-        export_str = ""
+        descr_list = []
 
         if self.adapt_size != 0.0:
             # Volume adaptation
-            export_str += "_vol" + str(self.adapt_size)
+            descr_list += ["vol",
+                           str(self.adapt_size)]
         if self.svx_randomisation_id != -1:
             # Contour randomisation
-            export_str += "_svx" + str(self.svx_randomisation_id)
+            descr_list += ["svx",
+                           str(self.svx_randomisation_id)]
 
-        export_str += self.name
+        descr_list += [self.name]
 
-        return export_str
+        return "_".join(descr_list)
 
     def get_slices(self, slice_number=None):
         # Extract roi objects for each slice
