@@ -55,6 +55,8 @@ class MeanFilter:
             return img_trans_obj
 
         # If sigma equals 0.0, perform only a laplacian transformation
-        img_trans_obj.set_voxel_grid(voxel_grid=ndi.uniform_filter(input=img_obj.get_voxel_grid, size=self.filter_size, mode=self.mode))
+        img_trans_obj.set_voxel_grid(voxel_grid=ndi.uniform_filter(input=img_obj.get_voxel_grid(),
+                                                                   size=self.filter_size,
+                                                                   mode=self.mode))
 
         return img_trans_obj
