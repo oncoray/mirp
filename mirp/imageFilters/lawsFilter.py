@@ -177,7 +177,7 @@ class LawsFilter:
 
             # Normalise kernel
             if self.kernel_normalise:
-                laws_kernel /= np.sum(np.abs(laws_kernel))
+                laws_kernel /= np.sqrt(np.sum(np.power(laws_kernel, 2.0)))
 
             # Assign filter to variable.
             if ii == 0:
