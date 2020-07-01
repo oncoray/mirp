@@ -120,11 +120,13 @@ class ImageTransformationSettingsClass:
 
     def __init__(self):
         self.perform_img_transform = False
-        # self.interp_prior_filter = True
         self.spatial_filters = None
         self.wavelet_fam = None
-        self.wavelet_rot_invar = False
+        self.wavelet_filter_set = "all"
         self.wavelet_stationary = True
+        self.wavelet_decomposition_level = 1
+        self.wavelet_rot_invar = True
+        self.wavelet_pooling_method = "max"
         self.log_sigma = None
         self.log_average = False
         self.log_sigma_truncate = 4.0
@@ -356,8 +358,11 @@ def import_configuration_settings(path):
             img_transform_settings.perform_img_transform = str2type(img_transform_branch.find("perform_img_transform"), "bool", False)
             img_transform_settings.spatial_filters       = str2list(img_transform_branch.find("spatial_filters"), "str")
             img_transform_settings.wavelet_fam           = str2type(img_transform_branch.find("wavelet_fam"), "str")
-            img_transform_settings.wavelet_rot_invar     = str2type(img_transform_branch.find("wavelet_rot_invar"), "bool", True)
+            img_transform_settings.wavelet_filter_set    = str2list(img_transform_branch.find("wavelet_filter_set"), "str", "all")
             img_transform_settings.wavelet_stationary    = str2type(img_transform_branch.find("wavelet_stationary"), "bool", True)
+            img_transform_settings.wavelet_decomposition_level = str2list(img_transform_branch.find("wavelet_decomposition_level"), "int", 1)
+            img_transform_settings.wavelet_rot_invar     = str2type(img_transform_branch.find("wavelet_rot_invar"), "bool", True)
+            img_transform_settings.wavelet_pooling_method = str2type(img_transform_branch.find("wavelet_pooling_method"), "str", "max")
             img_transform_settings.laws_calculate_energy = str2type(img_transform_branch.find("laws_calculate_energy"), "bool", True)
             img_transform_settings.laws_kernel           = str2type(img_transform_branch.find("laws_kernel"), "str")
             img_transform_settings.laws_delta            = str2type(img_transform_branch.find("laws_delta"), "int", 7)

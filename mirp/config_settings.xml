@@ -129,10 +129,16 @@
             <spatial_filters></spatial_filters>
             <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets. -->
             <wavelet_fam></wavelet_fam>
+            <!-- Wavelet filter set to be used (for separable wavelets), e.g. LLL. LLH. Default: all. -->
+            <wavelet_filter_set></wavelet_filter_set>
+            <!-- Create stationary separable wavelets; True (default) or False (decimation will take place) -->
+            <wavelet_stationary></wavelet_stationary>
+            <!-- Decomposition level of the response map: 1 (default) or greater integer. -->
+            <wavelet_decomposition_level></wavelet_decomposition_level>
             <!-- Create rotationally invariant wavelet response maps; True or False -->
             <wavelet_rot_invar></wavelet_rot_invar>
-            <!-- Create stationary wavelets; True (default) or False (decimation will take place) -->
-            <wavelet_stationary></wavelet_stationary>
+            <!-- Pooling method used for rotationally invariant wavelet response maps for separable wavelets; max (default) or mean. -->
+            <wavelet_pooling_method></wavelet_pooling_method>
             <!-- Laplacian of Gaussian sigma (in world space units). This specifies the width of the Gaussian filter by its standard deviation. -->
             <log_sigma></log_sigma>
             <!-- Number of standard deviations to allow before truncating the Gaussian filter -->

@@ -156,24 +156,24 @@ class LawsFilter:
         filter_z = None
 
         for ii, kernel in enumerate(kernel_list):
-            if kernel == "L5":
+            if kernel.lower() == "l5":
                 laws_kernel = np.array([1.0, 4.0, 6.0, 4.0, 1.0])
-            elif kernel == "E5":
+            elif kernel.lower() == "e5":
                 laws_kernel = np.array([-1.0, -2.0, 0.0, 2.0, 1.0])
-            elif kernel == "S5":
+            elif kernel.lower() == "s5":
                 laws_kernel = np.array([-1.0, 0.0, 2.0, 0.0, -1.0])
-            elif kernel == "W5":
+            elif kernel.lower() == "w5":
                 laws_kernel = np.array([-1.0, 2.0, 0.0, -2.0, 1.0])
-            elif kernel == "R5":
+            elif kernel.lower() == "r5":
                 laws_kernel = np.array([1.0, -4.0, 6.0, -4.0, 1.0])
-            elif kernel == "L3":
+            elif kernel.lower() == "l3":
                 laws_kernel = np.array([1.0, 2.0, 1.0])
-            elif kernel == "E3":
+            elif kernel.lower() == "e3":
                 laws_kernel = np.array([-1.0, 0.0, 1.0])
-            elif kernel == "S3":
+            elif kernel.lower() == "s3":
                 laws_kernel = np.array([-1.0, 2.0, -1.0])
             else:
-                raise ValueError("%s is not an implemented Laws kernel")
+                raise ValueError(f"{kernel} is not an implemented Laws kernel")
 
             # Normalise kernel
             if self.kernel_normalise:
