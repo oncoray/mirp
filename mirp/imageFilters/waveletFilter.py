@@ -11,8 +11,6 @@ class WaveletFilter:
     def __init__(self, settings: SettingsClass):
         import pywt
 
-        self.filter_list = []
-
         # In-slice (2D) or 3D wavelet filters
         self.by_slice = settings.general.by_slice
 
@@ -109,6 +107,8 @@ class WaveletFilter:
         spat_transform = ["wavelet", self.wavelet_family, filter_configuration]
         if not self.stationary_wavelet:
             spat_transform += ["decimated"]
+        if self.rot_invariance:
+            spat_transform += ["invar"]
         spat_transform += ["level", str(decomposition_level)]
 
         # Set the name of the transformation.
@@ -119,18 +119,19 @@ class WaveletFilter:
             return img_wav_obj
 
         # Create the low-pass image for the current configuration.
-        input_img_obj = img_obj
-        # TODO: implement
+        input_img_obj = self.create_initial_separable_response_map(img_obj=img_obj,
+                                                                   decomposition_level=decomposition_level)
 
         # Create empty voxel grid
         img_voxel_grid = np.zeros(input_img_obj.size, dtype=np.float32)
 
         # Create the list of filters from the configuration.
-        main_filter_set = self.get_filter_set(filter_configuration=filter_configuration)
+        main_filter_set = self.get_filter_set(filter_configuration=filter_configuration,
+                                              decomposition_level=decomposition_level)
         filter_list = main_filter_set.permute_filters(rotational_invariance=self.rot_invariance)
 
+        # Iterate over the filters.
         for ii, filter_set in enumerate(filter_list):
-            pass
 
             # Convolve and compute response map.
             img_wavelet_grid = filter_set.convolve(voxel_grid=input_img_obj.get_voxel_grid(),
@@ -138,7 +139,7 @@ class WaveletFilter:
 
             # Perform pooling
             if ii == 0:
-                # Initially, update img_voxel_grid.
+                # Initially, set img_voxel_grid.
                 img_voxel_grid = img_wavelet_grid
             else:
                 # Pool grids.
@@ -150,7 +151,7 @@ class WaveletFilter:
 
         if self.pooling_method == "mean":
             # Perform final pooling step for mean pooling.
-            img_voxel_grid = np.divide(img_voxel_grid, len(self.filter_list))
+            img_voxel_grid = np.divide(img_voxel_grid, len(filter_list))
 
         # Store the voxel grid in the ImageObject.
         img_wav_obj.set_voxel_grid(voxel_grid=img_voxel_grid)
@@ -182,7 +183,7 @@ class WaveletFilter:
 
         return img_wav_obj
 
-    def get_filter_set(self, filter_configuration):
+    def get_filter_set(self, filter_configuration, decomposition_level=1):
         import pywt
 
         # Deparse convolution kernels to a list
@@ -201,6 +202,13 @@ class WaveletFilter:
                 raise ValueError(f"{kernel} was not recognised as the component of a separable wavelet filter. It "
                                  f"should be L or H.")
 
+            # Add in 0s for the à trous algorithm
+            if decomposition_level > 1:
+                for jj in np.arange(start=1, stop=decomposition_level):
+                    new_wavelet_kernel = np.zeros(len(wavelet_kernel) * 2 - 1, dtype=np.float)
+                    new_wavelet_kernel[::2] = wavelet_kernel
+                    wavelet_kernel = new_wavelet_kernel
+
             # Assign filter to variable.
             if ii == 0:
                 filter_x = wavelet_kernel
@@ -213,3 +221,57 @@ class WaveletFilter:
         return FilterSet(filter_x=filter_x,
                          filter_y=filter_y,
                          filter_z=filter_z)
+
+    def create_initial_separable_response_map(self, img_obj: ImageClass, decomposition_level=1):
+
+        # If the decomposition level equals 1, use the initial image:
+        if decomposition_level == 1:
+            return img_obj.copy()
+
+        # Create empty voxel grid
+        img_voxel_grid = np.zeros(img_obj.size, dtype=np.float32)
+
+        # Set the filter configuration. These are low-pass filters.
+        if self.by_slice:
+            filter_configuration = "ll"
+        else:
+            filter_configuration = "lll"
+
+        # Get the voxel grid from the original dataset.
+        main_voxel_grid = img_obj.get_voxel_grid()
+
+        for current_level in np.arange(start=1, stop=decomposition_level):
+
+            # Create the list of filters from the configuration.
+            main_filter_set = self.get_filter_set(filter_configuration=filter_configuration,
+                                                  decomposition_level=current_level)
+            filter_list = main_filter_set.permute_filters(rotational_invariance=self.rot_invariance)
+
+            for ii, filter_set in enumerate(filter_list):
+
+                # Convolve and compute response map.
+                img_wavelet_grid = filter_set.convolve(voxel_grid=main_voxel_grid,
+                                                       mode=self.mode)
+
+                # Perform pooling
+                if ii == 0:
+                    # Initially, set img_voxel_grid.
+                    img_voxel_grid = img_wavelet_grid
+                else:
+                    # Pool grids.
+                    img_voxel_grid = pool_voxel_grids(x1=img_voxel_grid, x2=img_wavelet_grid,
+                                                      pooling_method="max")
+
+                    # Remove img_wavelet_grid to explicitly release memory when collecting garbage.
+                    del img_wavelet_grid
+
+            # Set main voxel grid.
+            main_voxel_grid = img_voxel_grid
+
+        # Copy the image object
+        img_decomp_obj = img_obj.copy(drop_image=True)
+
+        # Store the voxel grid in the ImageObject.
+        img_decomp_obj.set_voxel_grid(voxel_grid=main_voxel_grid)
+
+        return img_decomp_obj
