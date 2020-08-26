@@ -24,12 +24,27 @@ def pool_voxel_grids(x1, x2, pooling_method):
 
 
 class FilterSet:
-    def __init__(self, filter_x, filter_y, filter_z=None):
+    def __init__(self, filter_x, filter_y, filter_z=None,
+                 pre_filter_x=None, pre_filter_y=None, pre_filter_z=None):
         self.x = filter_x
         self.y = filter_y
         self.z = filter_z
 
-    def permute_filters(self, rotational_invariance=True):
+        self.pr_x = pre_filter_x
+        self.pr_y = pre_filter_y
+        self.pr_z = pre_filter_z
+
+    def permute_filters(self, rotational_invariance=True, require_pre_filter=False, as_filter_table=False):
+
+        if require_pre_filter:
+            if self.pr_x is None or self.pr_y is None:
+                raise ValueError("The pre-filter should be set for all dimensions.")
+
+            if self.z is not None and self.pr_z is None:
+                raise ValueError("The pre-filter should have a component in the z-direction.")
+
+            elif self.z is None and self.pr_z is not None:
+                raise ValueError("The pre-filter should not have a component in the z-direction.")
 
         # Return an encapsulated version of the object.
         if not rotational_invariance:
@@ -117,6 +132,27 @@ class FilterSet:
         # Combine filters into a table.
         permuted_filters = pd.DataFrame(permuted_filters)
 
+        if require_pre_filter:
+            # Create a pre-filter to derive a table with filter orientations.
+            pre_filter_set = FilterSet(filter_x=self.pr_x,
+                                       filter_y=self.pr_y,
+                                       filter_z=self.pr_z)
+
+            permuted_pre_filters = pre_filter_set.permute_filters(rotational_invariance=rotational_invariance,
+                                                                  as_filter_table=True)
+
+            # Update the columns names
+            permuted_pre_filters.rename(columns={"x": "pr_x",
+                                                 "y": "pr_y",
+                                                 "z": "pr_z"},
+                                        inplace=True)
+
+            # Join with the permuted_filters table.
+            permuted_filters = pd.concat([permuted_pre_filters, permuted_filters], axis=1)
+
+        if as_filter_table:
+            return permuted_filters
+
         # Remove duplicates.
         permuted_filters = permuted_filters.drop_duplicates(ignore_index=True)
 
@@ -124,48 +160,125 @@ class FilterSet:
         for ii in range(len(permuted_filters)):
             permuted_filter_set = permuted_filters.loc[ii, :]
 
-            if self.z is None:
-                filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
-                                              filter_y=self._translate_filter(permuted_filter_set.y))]
+            if require_pre_filter:
+                if self.z is None:
+                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
+                                                  filter_y=self._translate_filter(permuted_filter_set.y),
+                                                  pre_filter_x=self._translate_filter(permuted_filter_set.pr_x, True),
+                                                  pre_filter_y=self._translate_filter(permuted_filter_set.pr_y, True))]
+
+                else:
+                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
+                                                  filter_y=self._translate_filter(permuted_filter_set.y),
+                                                  filter_z=self._translate_filter(permuted_filter_set.z),
+                                                  pre_filter_x=self._translate_filter(permuted_filter_set.pr_x, True),
+                                                  pre_filter_y=self._translate_filter(permuted_filter_set.pr_y, True),
+                                                  pre_filter_z=self._translate_filter(permuted_filter_set.pr_z, True))]
 
             else:
-                filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
-                                              filter_y=self._translate_filter(permuted_filter_set.y),
-                                              filter_z=self._translate_filter(permuted_filter_set.z))]
+                if self.z is None:
+                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
+                                                  filter_y=self._translate_filter(permuted_filter_set.y))]
+
+                else:
+                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
+                                                  filter_y=self._translate_filter(permuted_filter_set.y),
+                                                  filter_z=self._translate_filter(permuted_filter_set.z))]
 
         return filter_set_list
 
-    def _translate_filter(self, filter_symbol):
+    def _translate_filter(self, filter_symbol, use_pre_filter=False):
 
         if filter_symbol == "gx":
-            return self.x
+            if use_pre_filter:
+                return self.pr_x
+            else:
+                return self.x
+
         elif filter_symbol == "gy":
-            return self.y
+            if use_pre_filter:
+                return self.pr_y
+            else:
+                return self.y
+
         elif filter_symbol == "gz":
-            return self.z
+            if use_pre_filter:
+                return self.pr_z
+            else:
+                return self.z
+
         elif filter_symbol == "jgx":
-            return np.flip(self.x)
+            if use_pre_filter:
+                return np.flip(self.pr_x)
+            else:
+                return np.flip(self.x)
+
         elif filter_symbol == "jgy":
-            return np.flip(self.y)
+            if use_pre_filter:
+                return np.flip(self.pr_y)
+            else:
+                return np.flip(self.y)
+
         elif filter_symbol == "jgz":
-            return np.flip(self.z)
+            if use_pre_filter:
+                return np.flip(self.pr_z)
+            else:
+                return np.flip(self.z)
+
         else:
             raise ValueError(f"Encountered unrecognised filter symbol: {filter_symbol}")
 
-    def convolve(self, voxel_grid, mode):
+    def decompose_filter(self, method="a_trous"):
+
+        if method == "a_trous":
+            # Add in 0s for the à trous algorithm
+
+            # Iterate over filters.
+            for attr in ["x", "y", "z", "pr_x", "pr_y", "pr_z"]:
+                if self.__dict__[attr] is not None:
+                    # Create an array of zeros
+                    new_filter_kernel = np.zeros(len(self.__dict__[attr]) * 2 - 1, dtype=np.float)
+
+                    # Place the original filter constants at every second position. This creates a hole (0.0) between
+                    # each of the filter constants.
+                    new_filter_kernel[::2] = self.__dict__[attr]
+
+                    # Update the attribute.
+                    self.__dict__[attr] = new_filter_kernel
+
+        else:
+            raise ValueError(f"Unknown filter decomposition method: {method}")
+
+    def convolve(self, voxel_grid, mode, use_pre_filter=False):
 
         # Ensure that we work from a local copy of voxel_grid to prevent updating it by reference.
         voxel_grid = deepcopy(voxel_grid)
 
-        # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the z-axis is
-        # the first axis, the y-axis the second, and the x-axis the third.
-        if self.z is not None:
-            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.z, axis=0, mode=mode)
+        if use_pre_filter:
+            if self.pr_x is None or self.pr_y is None or (self.z is not None and self.pr_z is None):
+                raise ValueError("Pre-filter kernels are expected, but not found.")
 
-        # Apply filter along the y-axis.
-        voxel_grid = ndi.convolve1d(voxel_grid, weights=self.y, axis=1, mode=mode)
+            # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the z-axis is
+            # the first axis, the y-axis the second, and the x-axis the third.
+            if self.pr_z is not None:
+                voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_z, axis=0, mode=mode)
 
-        # Apply filter along the x-axis.
-        voxel_grid = ndi.convolve1d(voxel_grid, weights=self.x, axis=2, mode=mode)
+            # Apply filter along the y-axis.
+            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_y, axis=1, mode=mode)
+
+            # Apply filter along the x-axis.
+            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_x, axis=2, mode=mode)
+
+        else:
+            # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the z-axis is
+            # the first axis, the y-axis the second, and the x-axis the third.
+            if self.z is not None:
+                voxel_grid = ndi.convolve1d(voxel_grid, weights=self.z, axis=0, mode=mode)
+
+            # Apply filter along the y-axis.
+            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.y, axis=1, mode=mode)
+
+            # Apply filter along the x-axis.
+            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.x, axis=2, mode=mode)
 
         return voxel_grid
