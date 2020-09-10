@@ -259,9 +259,12 @@ def read_roi_names(dcm_folder):
         dcm_file = os.path.join(dcm_folder, file_name)
         dcm = pydicom.dcmread(dcm_file, stop_before_pixels=True, force=True)
 
-        # Obtain ROI names
-        roi_names += _find_dicom_roi_names(dcm=dcm, with_roi_number=False)
-        file_name_list += [file_name] * len(roi_names)
+        # Obtain ROI names from the file
+        found_roi_names = _find_dicom_roi_names(dcm=dcm, with_roi_number=False)
+
+        # Update the roi_names and file_name_list lists.
+        roi_names += found_roi_names
+        file_name_list += [file_name] * len(found_roi_names)
 
     return file_name_list, roi_names
 
