@@ -314,10 +314,10 @@ class SUVscalingObj:
         :return:
         """
 
-        if suv_type is "BW":
+        if suv_type == "BW":
             # Body weight-corrected SUV
             norm_factor = self.patient_weight * 1000.0
-        elif suv_type is "BSA":
+        elif suv_type == "BSA":
             # Kim et al. Journal of Nuclear Medicine. Volume 35, No. 1, January 1994. pp 164-167
             norm_factor = self.patient_weight ** 0.425 * (self.patient_height * 100.0) ** 0.725 * 0.007184
         elif suv_type in ["LBM", "LBMJAMES128"]:
