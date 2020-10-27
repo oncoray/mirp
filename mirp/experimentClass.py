@@ -220,7 +220,7 @@ class ExperimentClass:
         rot_angles = settings.vol_adapt.rot_angles
 
         # Noise addition
-        noise_reps  = settings.vol_adapt.noise_repetitions
+        noise_reps = settings.vol_adapt.noise_repetitions
         if noise_reps > 0:
             noise_reps = np.arange(0, noise_reps)
         else:
@@ -564,7 +564,6 @@ class ExperimentClass:
                                                roi_names=self.roi_names,
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
-
 
             ########################################################################################################
             # Update settings and initialise
