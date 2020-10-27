@@ -160,30 +160,33 @@ class FilterSet:
         for ii in range(len(permuted_filters)):
             permuted_filter_set = permuted_filters.loc[ii, :]
 
+            # Make a copy of the filter, and append a 0.0 if it is even.
+            filter_obj: FilterSet = self.extend_filter(in_place=False)
+
             if require_pre_filter:
                 if self.z is None:
-                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
-                                                  filter_y=self._translate_filter(permuted_filter_set.y),
-                                                  pre_filter_x=self._translate_filter(permuted_filter_set.pr_x, True),
-                                                  pre_filter_y=self._translate_filter(permuted_filter_set.pr_y, True))]
+                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                                                  pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
+                                                  pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True))]
 
                 else:
-                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
-                                                  filter_y=self._translate_filter(permuted_filter_set.y),
-                                                  filter_z=self._translate_filter(permuted_filter_set.z),
-                                                  pre_filter_x=self._translate_filter(permuted_filter_set.pr_x, True),
-                                                  pre_filter_y=self._translate_filter(permuted_filter_set.pr_y, True),
-                                                  pre_filter_z=self._translate_filter(permuted_filter_set.pr_z, True))]
+                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                                                  filter_z=filter_obj._translate_filter(permuted_filter_set.z),
+                                                  pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
+                                                  pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True),
+                                                  pre_filter_z=filter_obj._translate_filter(permuted_filter_set.pr_z, True))]
 
             else:
                 if self.z is None:
-                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
-                                                  filter_y=self._translate_filter(permuted_filter_set.y))]
+                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y))]
 
                 else:
-                    filter_set_list += [FilterSet(filter_x=self._translate_filter(permuted_filter_set.x),
-                                                  filter_y=self._translate_filter(permuted_filter_set.y),
-                                                  filter_z=self._translate_filter(permuted_filter_set.z))]
+                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                                                  filter_z=filter_obj._translate_filter(permuted_filter_set.z))]
 
         return filter_set_list
 
@@ -228,6 +231,26 @@ class FilterSet:
         else:
             raise ValueError(f"Encountered unrecognised filter symbol: {filter_symbol}")
 
+    def extend_filter(self, in_place=False):
+
+        if in_place:
+            self._extend_filter()
+
+        else:
+            filter_obj = deepcopy(self)
+            filter_obj.extend_filter(in_place=True)
+            return filter_obj
+
+    def _extend_filter(self):
+
+        # Iterate over filters.
+        for attr in ["x", "y", "z", "pr_x", "pr_y", "pr_z"]:
+            if self.__dict__[attr] is not None:
+
+                # Check if the kernel is even or odd.
+                if len(self.__dict__[attr]) % 2 == 0:
+                    self.__dict__[attr] = np.append(self.__dict__[attr], 0.0)
+
     def decompose_filter(self, method="a_trous"):
 
         if method == "a_trous":
@@ -236,12 +259,15 @@ class FilterSet:
             # Iterate over filters.
             for attr in ["x", "y", "z", "pr_x", "pr_y", "pr_z"]:
                 if self.__dict__[attr] is not None:
+                    # Strip zeros from tail and head.
+                    old_filter_kernel = np.trim_zeros(deepcopy(self.__dict__[attr]))
+
                     # Create an array of zeros
-                    new_filter_kernel = np.zeros(len(self.__dict__[attr]) * 2 - 1, dtype=np.float)
+                    new_filter_kernel = np.zeros(len(old_filter_kernel) * 2 - 1, dtype=np.float)
 
                     # Place the original filter constants at every second position. This creates a hole (0.0) between
                     # each of the filter constants.
-                    new_filter_kernel[::2] = self.__dict__[attr]
+                    new_filter_kernel[::2] = old_filter_kernel
 
                     # Update the attribute.
                     self.__dict__[attr] = new_filter_kernel
@@ -258,8 +284,8 @@ class FilterSet:
             if self.pr_x is None or self.pr_y is None or (self.z is not None and self.pr_z is None):
                 raise ValueError("Pre-filter kernels are expected, but not found.")
 
-            # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the z-axis is
-            # the first axis, the y-axis the second, and the x-axis the third.
+            # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the
+            # z-axis is the first axis, the y-axis the second, and the x-axis the third.
             if self.pr_z is not None:
                 voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_z, axis=0, mode=mode)
 
@@ -270,8 +296,8 @@ class FilterSet:
             voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_x, axis=2, mode=mode)
 
         else:
-            # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the z-axis is
-            # the first axis, the y-axis the second, and the x-axis the third.
+            # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the
+            # z-axis is the first axis, the y-axis the second, and the x-axis the third.
             if self.z is not None:
                 voxel_grid = ndi.convolve1d(voxel_grid, weights=self.z, axis=0, mode=mode)
 

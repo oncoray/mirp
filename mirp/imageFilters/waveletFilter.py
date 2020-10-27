@@ -22,14 +22,19 @@ class WaveletFilter:
 
         # Set the filter set for separable wavelets.
         self.filter_config = settings.img_transform.wavelet_filter_set
-        if "all" in self.filter_config:
-            if self.by_slice:
-                self.filter_config = ["HH", "HL", "LH", "LL"]
-            else:
-                self.filter_config = ["HHH", "HHL", "HLH", "LHH", "LLH", "LHL", "HLL", "LLL"]
 
-        if not self.is_separable:
-            self.filter_config = ["default"]
+        if self.filter_config is None:
+            self.filter_config = ["all"]
+
+        if "all" in self.filter_config:
+            if self.is_separable:
+                if self.by_slice:
+                    self.filter_config = ["HH", "HL", "LH", "LL"]
+                else:
+                    self.filter_config = ["HHH", "HHL", "HLH", "LHH", "LLH", "LHL", "HLL", "LLL"]
+
+            else:
+                self.filter_config = ["B"]
 
         # Set rotational invariance
         self.rot_invariance = settings.img_transform.wavelet_rot_invar
@@ -95,7 +100,9 @@ class WaveletFilter:
                                                    decomposition_level=decomposition_level)
 
         else:
-            img_wav_obj = self.transform_non_separable(img_obj=img_obj, decomposition_level=decomposition_level)
+            img_wav_obj = self.transform_non_separable(img_obj=img_obj,
+                                                       filter_configuration=filter_configuration,
+                                                       decomposition_level=decomposition_level)
 
         return img_wav_obj
 
@@ -168,12 +175,12 @@ class WaveletFilter:
 
         return img_wav_obj
 
-    def transform_non_separable(self, img_obj: ImageClass, decomposition_level):
+    def transform_non_separable(self, img_obj: ImageClass, filter_configuration, decomposition_level):
         # Copy base image
         img_wav_obj = img_obj.copy(drop_image=True)
 
         # Prepare the string for the spatial transformation.
-        spat_transform = ["wavelet", self.wavelet_family]
+        spat_transform = ["wavelet", self.wavelet_family, filter_configuration]
         if not self.stationary_wavelet:
             spat_transform += ["decimated"]
         spat_transform += ["level", str(decomposition_level)]
@@ -185,11 +192,19 @@ class WaveletFilter:
         if img_obj.is_missing:
             return img_wav_obj
 
-        # Create the low-pass image for the current configuration.
-        input_img_obj = img_obj
-        # TODO: implement
+        if self.wavelet_family == "simoncelli":
+            filter_set = NonSeperableWavelet(by_slice=self.by_slice,
+                                             mode=self.mode,
+                                             wavelet_family=self.wavelet_family)
+        else:
+            raise ValueError(f"{self.wavelet_family} is not a known separable wavelet.")
 
-        # TODO: missing code - Stefan
+        # Create voxel grid
+        img_wavelet_grid = filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
+                                               decomposition_level=decomposition_level)
+
+        # Store the voxel grid in the ImageObject.
+        img_wav_obj.set_voxel_grid(voxel_grid=img_wavelet_grid)
 
         return img_wav_obj
 
@@ -234,3 +249,62 @@ class WaveletFilter:
                          pre_filter_x=pre_filter_x,
                          pre_filter_y=pre_filter_y,
                          pre_filter_z=pre_filter_z)
+
+
+class NonSeperableWavelet:
+    def __init__(self, by_slice, mode, wavelet_family):
+        self.by_slice = by_slice
+        self.mode = mode
+        self.wavelet_family = wavelet_family
+
+    def convolve(self, voxel_grid, decomposition_level=1):
+
+        from numpy.fft import fftn, ifftn, fftshift, ifftshift
+
+        # Specify shape of the fft.
+        max_img_dim = np.max(voxel_grid.shape)
+
+        # Determine the size of the FFT transform of the image and the filter.
+        fft_shape = (max_img_dim, max_img_dim, max_img_dim)
+
+        # Compute fourier transform of the voxel grid.
+        voxel_grid_f = fftshift(fftn(voxel_grid, fft_shape))
+
+        # Determine the grid center.
+        grid_center = (np.array(fft_shape, dtype=np.float) - 1.0) / 2.0
+
+        # Determine distance from center
+        distance_grid = list(np.indices(voxel_grid_f.shape, sparse=True))
+        distance_grid = [distance_grid[ii] - center_pos for ii, center_pos in enumerate(grid_center)]
+
+        # Compute the distances in the grid.
+        distance_grid = np.linalg.norm(distance_grid)
+
+        # Set the Nyquist frequency
+        nyquist_freq = max_img_dim / 2.0
+
+        # Iterate over decomposition levels to update the wavelet filter.
+        for ii in np.arange(decomposition_level):
+
+            # Set up a wavelet filter for the decomposition specifically.
+            wavelet_filter = np.zeros(voxel_grid_f.shape, dtype=np.float)
+
+            # Set the mask for the filter.
+            mask = np.logical_and(distance_grid >= nyquist_freq / 4.0, distance_grid <= nyquist_freq)
+
+            # Update the filter.
+            wavelet_filter[mask] += np.cos(np.pi / 2.0 * np.log2(2.0 * distance_grid[mask] / nyquist_freq))
+
+            # Update the Nyquist frequency
+            nyquist_freq /= 2.0
+
+            # Filter the grid.
+            voxel_grid_f = np.multiply(voxel_grid_f, wavelet_filter)
+
+            # Perform the inverse Fourier transformation, and keep the real values.
+            voxel_grid = ifftn(ifftshift(voxel_grid_f)).real
+
+            # Compute fourier transform of the voxel grid.
+            voxel_grid_f = fftshift(fftn(voxel_grid, fft_shape))
+
+        return voxel_grid
