@@ -101,7 +101,7 @@ def parse_file_structure(data_config, file, use_folder_name=True):
         data_obj.restructure_files(file=file, use_folder_name=use_folder_name)
 
 
-def extract_images_for_deep_learning(data_config, settings_config, output_slices=False, plot_images=False):
+def extract_images_for_deep_learning(data_config, settings_config, output_slices=False, plot_images=False, skip_errors=False):
     """
     Extract images for deep learning.
 
@@ -122,7 +122,16 @@ def extract_images_for_deep_learning(data_config, settings_config, output_slices
     # Process images for deep learning
     image_list = []
     for data_obj in data_obj_list:
-        image_list += [data_obj.process_deep_learning(output_slices=output_slices)]
+
+        if skip_errors:
+            try:
+                image_list += [data_obj.process_deep_learning(output_slices=output_slices)]
+            except Exception as e:
+                logging.error(f"Failed to extract data for {data_obj.subject}: {e}")
+                pass
+
+        else:
+            image_list += [data_obj.process_deep_learning(output_slices=output_slices)]
 
     return image_list
 
