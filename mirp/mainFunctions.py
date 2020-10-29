@@ -128,7 +128,6 @@ def extract_images_for_deep_learning(data_config, settings_config, output_slices
                 image_list += [data_obj.process_deep_learning(output_slices=output_slices)]
             except Exception as e:
                 logging.error(f"Failed to extract data for {data_obj.subject}: {e}")
-                pass
 
         else:
             image_list += [data_obj.process_deep_learning(output_slices=output_slices)]
