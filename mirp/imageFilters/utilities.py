@@ -34,6 +34,14 @@ class FilterSet:
         self.pr_y = pre_filter_y
         self.pr_z = pre_filter_z
 
+        # Extend even-sized filters.
+        for attr in ["x", "y", "z", "pr_x", "pr_y", "pr_z"]:
+            if self.__dict__[attr] is not None:
+
+                # Check if the kernel is even or odd.
+                if len(self.__dict__[attr]) % 2 == 0:
+                    self.__dict__[attr] = np.append(self.__dict__[attr], 0.0)
+
     def permute_filters(self, rotational_invariance=True, require_pre_filter=False, as_filter_table=False):
 
         if require_pre_filter:
@@ -160,8 +168,7 @@ class FilterSet:
         for ii in range(len(permuted_filters)):
             permuted_filter_set = permuted_filters.loc[ii, :]
 
-            # Make a copy of the filter, and append a 0.0 if it is even.
-            filter_obj: FilterSet = self.extend_filter(in_place=False)
+            filter_obj = deepcopy(self)
 
             if require_pre_filter:
                 if self.z is None:
@@ -230,26 +237,6 @@ class FilterSet:
 
         else:
             raise ValueError(f"Encountered unrecognised filter symbol: {filter_symbol}")
-
-    def extend_filter(self, in_place=False):
-
-        if in_place:
-            self._extend_filter()
-
-        else:
-            filter_obj = deepcopy(self)
-            filter_obj.extend_filter(in_place=True)
-            return filter_obj
-
-    def _extend_filter(self):
-
-        # Iterate over filters.
-        for attr in ["x", "y", "z", "pr_x", "pr_y", "pr_z"]:
-            if self.__dict__[attr] is not None:
-
-                # Check if the kernel is even or odd.
-                if len(self.__dict__[attr]) % 2 == 0:
-                    self.__dict__[attr] = np.append(self.__dict__[attr], 0.0)
 
     def decompose_filter(self, method="a_trous"):
 
