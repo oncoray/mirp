@@ -121,7 +121,11 @@ class LaplacianOfGaussianFilter:
             vox_sigma = np.divide(np.full(shape=(3), fill_value=sigma), img_obj.spacing)
 
             # Apply filters
-            img_log_obj.set_voxel_grid(voxel_grid=self.transform_grid(voxel_grid=img_obj.get_voxel_grid(), sigma=vox_sigma, mode=self.mode, truncate=self.sigma_cutoff))
+            img_log_obj.set_voxel_grid(voxel_grid=self.transform_grid(voxel_grid=img_obj.get_voxel_grid(),
+                                                                      sigma=vox_sigma,
+                                                                      mode=self.mode,
+                                                                      truncate=self.sigma_cutoff,
+                                                                      transform_method="custom"))
 
         else:
             raise ValueError("Laplacian of Gaussian transformation with negative sigma values are not allowed.")
@@ -131,29 +135,67 @@ class LaplacianOfGaussianFilter:
     def transform_grid(self, voxel_grid, sigma, mode, truncate, transform_method="scipy"):
 
         import scipy.ndimage as ndi
+        from mirp.imageFilters.utilities import FilterSet
 
         if transform_method == "scipy":
 
             if self.by_slice:
-                sigma[0] = 0.0
+                raise NotImplementedError("slice-wise Laplacian-of-Gaussian filter is not supported by scipy.")
 
             return ndi.gaussian_laplace(voxel_grid, sigma=sigma, mode=mode, truncate=truncate)
 
         else:
             # Determine the size of the filter
-            filter_size = np.round(2.0 * np.multiply(sigma, truncate))
+            filter_size = 1 + 2 * np.floor(truncate * sigma + 0.5)
+            filter_size.astype(np.int)
 
-            z, y, x = np.mgrid[:filter_size[0], :filter_size[1], :filter_size[2]]
-            z -= (filter_size[0] - 1.0) / 2.0
-            y -= (filter_size[1] - 1.0) / 2.0
-            x -= (filter_size[2] - 1.0) / 2.0
+            if self.by_slice:
+                # Set the number of dimensions.
+                D = 2.0
 
-            g_2 = np.power(z, 2.0) + np.power(y, 2.0) + np.power(x, 2.0)
+                # Create the grid coordinates, with [0, 0, 0] in the center.
+                y, x = np.mgrid[:filter_size[1], :filter_size[2]]
+                y -= (filter_size[1] - 1.0) / 2.0
+                x -= (filter_size[2] - 1.0) / 2.0
 
+                # Compute the square of the norm.
+                norm_2 = np.power(y, 2.0) + np.power(x, 2.0)
+
+            else:
+                # Set the number of dimensions.
+                D = 3.0
+
+                # Create the grid coordinates, with [0, 0, 0] in the center.
+                z, y, x = np.mgrid[:filter_size[0], :filter_size[1], :filter_size[2]]
+                z -= (filter_size[0] - 1.0) / 2.0
+                y -= (filter_size[1] - 1.0) / 2.0
+                x -= (filter_size[2] - 1.0) / 2.0
+
+                # Compute the square of the norm.
+                norm_2 = np.power(z, 2.0) + np.power(y, 2.0) + np.power(x, 2.0)
+
+            # Set a single sigma value.
             sigma = np.max(sigma)
-            log_pre_factor = (g_2 - 3.0 * sigma**2.0) / (sigma**4.0 * np.sqrt(2.0 * np.pi * sigma**2.0)**3.0)
-            log_gaussian_factor = np.exp(-g_2 / (2.0 * sigma**2.0))
 
-            filter_weights = np.multiply(log_pre_factor, log_gaussian_factor)
+            # Compute the scale factor
+            scale_factor = - 1.0 / sigma ** 2.0 * np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), D) * (D - norm_2 /
+                                                                                                          sigma ** 2.0)
 
-            return ndi.convolve(voxel_grid, weights=filter_weights, mode=mode)
+            # Compute the exponent which determines filter width.
+            width_factor = - norm_2 / (2.0 * sigma ** 2.0)
+
+            # Compute the weights of the filter.
+            filter_weights = np.multiply(scale_factor, np.exp(width_factor))
+
+            if self.by_slice:
+                # Laplacian-of-Gaussian filter has to be applied slice-by-slice. Here we iterate over the slices,
+                # convolve each slice with the filter and stack the responses.
+                response_map = np.stack([ndi.convolve(np.squeeze(current_grid, axis=0),
+                                                      weights=filter_weights,
+                                                      mode=mode)
+                                         for current_grid in np.split(voxel_grid, 64, axis=0)])
+            else:
+                response_map = ndi.convolve(voxel_grid, weights=filter_weights, mode=mode)
+
+            # Compute the convolution
+            return response_map
