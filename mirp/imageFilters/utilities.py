@@ -1,5 +1,6 @@
 import numpy as np
 import scipy.ndimage as ndi
+import scipy.fft as fft
 import pandas as pd
 
 from copy import deepcopy
@@ -24,8 +25,13 @@ def pool_voxel_grids(x1, x2, pooling_method):
 
 
 class FilterSet:
-    def __init__(self, filter_x, filter_y, filter_z=None,
-                 pre_filter_x=None, pre_filter_y=None, pre_filter_z=None):
+    def __init__(self,
+                 filter_x,
+                 filter_y,
+                 filter_z=None,
+                 pre_filter_x=None,
+                 pre_filter_y=None,
+                 pre_filter_z=None):
         self.x = filter_x
         self.y = filter_y
         self.z = filter_z
@@ -295,3 +301,90 @@ class FilterSet:
             voxel_grid = ndi.convolve1d(voxel_grid, weights=self.x, axis=2, mode=mode)
 
         return voxel_grid
+
+
+class FilterSet2D:
+    def __init__(self,
+                 filter_set: np.ndarray):
+        self.filter_set = filter_set
+
+    def convolve(self,
+                 voxel_grid: np.ndarray,
+                 mode,
+                 response,
+                 axis=0):
+
+        # Modes in scipy and numpy are defined differently.
+        if mode == "reflect":
+            mode = "symmetric"
+        elif mode == "symmetric":
+            mode = "reflect"
+
+        # Ensure that we work from a local copy of voxel_grid to prevent updating it by reference.
+        voxel_grid = deepcopy(voxel_grid)
+
+        # Determine the original shape
+        original_shape = voxel_grid.shape
+
+        # Pad original image with half the kernel size on axes other than axis.
+        kernel_size = np.max(self.filter_set.shape)
+        pad_size = int(np.floor(kernel_size / 2.0))
+        # pad_size = np.max(self.filter_set.shape)
+
+        # Determine pad widths.
+        pad_width = []
+        original_offset = []
+
+        for current_axis in range(3):
+            if current_axis != axis:
+                pad_width.append((pad_size, pad_size))
+                original_offset.append(2 * pad_size)
+            else:
+                pad_width.append((0, 0))
+                original_offset.append(0)
+
+        # Set padding
+        voxel_grid = np.pad(voxel_grid,
+                            pad_width=pad_width,
+                            mode=mode)
+
+        # Compute the fft of the filter, with output shape of the image.
+        filter_output_shape = [dim_size for current_axis, dim_size in enumerate(voxel_grid.shape) if current_axis != axis]
+        f_filter = fft.fft2(self.filter_set,
+                            filter_output_shape)
+
+        # Iterate over slices, compute fft, multiply with filter, and compute ifft.
+        voxel_grid = np.stack([self._convolve(voxel_slice=np.squeeze(current_grid, axis=axis),
+                                              f_filter=f_filter)
+                               for current_grid in np.split(voxel_grid, voxel_grid.shape[axis], axis=axis)],
+                              axis=axis)
+
+        # Compute response map.
+        if response in ["modulus", "abs", "magnitude"]:
+            voxel_grid = np.abs(voxel_grid)
+
+        elif response in ["angle", "phase", "argument"]:
+            voxel_grid = np.angle(voxel_grid)
+
+        elif response in ["real"]:
+            voxel_grid = np.real(voxel_grid)
+
+        elif response in ["imaginary"]:
+            voxel_grid = np.imag(voxel_grid)
+
+        # Crop image to original size.
+        voxel_grid = voxel_grid[original_offset[0]:original_offset[0] + original_shape[0],
+                                original_offset[1]:original_offset[1] + original_shape[1],
+                                original_offset[2]:original_offset[2] + original_shape[2]]
+
+        return voxel_grid
+
+    def _convolve(self,
+                  voxel_slice,
+                  f_filter):
+
+        # Compute FFT of the slice.
+        f_voxel = fft.fft2(voxel_slice)
+
+        # Multiply with
+        return fft.ifft2(f_voxel * f_filter)

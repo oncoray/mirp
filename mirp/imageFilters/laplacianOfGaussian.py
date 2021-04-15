@@ -2,6 +2,7 @@ import numpy as np
 
 from mirp.imageProcess import calculate_features
 from mirp.imageClass import ImageClass
+from mirp.imageFilters.utilities import FilterSet2D
 
 class LaplacianOfGaussianFilter:
 
@@ -188,12 +189,14 @@ class LaplacianOfGaussianFilter:
             filter_weights = np.multiply(scale_factor, np.exp(width_factor))
 
             if self.by_slice:
-                # Laplacian-of-Gaussian filter has to be applied slice-by-slice. Here we iterate over the slices,
-                # convolve each slice with the filter and stack the responses.
-                response_map = np.stack([ndi.convolve(np.squeeze(current_grid, axis=0),
-                                                      weights=filter_weights,
-                                                      mode=mode)
-                                         for current_grid in np.split(voxel_grid, 64, axis=0)])
+                # Set filter weights and create a filter.
+                log_filter = FilterSet2D(filter_weights)
+
+                # Convolve laplacian of gaussian filter with the image.
+                response_map = log_filter.convolve(voxel_grid=voxel_grid,
+                                                   mode=self.mode,
+                                                   response="real")
+
             else:
                 response_map = ndi.convolve(voxel_grid, weights=filter_weights, mode=mode)
 
