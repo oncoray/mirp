@@ -96,9 +96,7 @@ class LawsFilter:
             img_laws_grid = filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
                                                 mode=self.mode)
 
-            # Compute energy map from the response map.
-            if self.calculate_energy:
-                img_laws_grid = self.response_to_energy(voxel_grid=img_laws_grid)
+
 
             # Perform pooling
             if ii == 0:
@@ -115,6 +113,10 @@ class LawsFilter:
         if self.pooling_method == "mean":
             # Perform final pooling step for mean pooling.
             img_voxel_grid = np.divide(img_voxel_grid, len(self.filter_list))
+
+        # Compute energy map from the response map.
+        if self.calculate_energy:
+            img_voxel_grid = self.response_to_energy(voxel_grid=img_voxel_grid)
 
         # Store the voxel grid in the ImageObject.
         img_laws_obj.set_voxel_grid(voxel_grid=img_voxel_grid)
