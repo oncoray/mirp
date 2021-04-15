@@ -125,7 +125,7 @@
             <perform_img_transform></perform_img_transform>
             <!-- Boundary conditions, i.e. how to calculate the filter response for voxels that are less than the filter width removed from the volume edge. -->
             <boundary_condition></boundary_condition>
-            <!-- Spatial filters to apply. Options: wavelet, laplacian_of_gaussian, laws, mean -->
+            <!-- Spatial filters to apply. Options: gabor, wavelet, laplacian_of_gaussian, laws, mean -->
             <spatial_filters></spatial_filters>
             <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets. -->
             <wavelet_fam></wavelet_fam>
@@ -139,7 +139,8 @@
             <wavelet_rot_invar></wavelet_rot_invar>
             <!-- Pooling method used for rotationally invariant wavelet response maps for separable wavelets; max (default) or mean. -->
             <wavelet_pooling_method></wavelet_pooling_method>
-            <!-- Laplacian of Gaussian sigma (in world space units). This specifies the width of the Gaussian filter by its standard deviation. -->
+            <!-- Laplacian of Gaussian sigma (in mm). This specifies the width of the Gaussian filter by
+            its standard deviation. -->
             <log_sigma></log_sigma>
             <!-- Number of standard deviations to allow before truncating the Gaussian filter -->
             <log_sigma_truncate></log_sigma_truncate>
@@ -155,6 +156,31 @@
             <laws_rot_invar></laws_rot_invar>
             <!-- Pooling method used for rotationally invariant Laws response maps and energy images; max (default) or mean. -->
             <laws_pooling_method></laws_pooling_method>
+            <!-- Gabor kernel sigma (in mm). Together with gamma, this specifies the width of the filter. -->
+            <gabor_sigma></gabor_sigma>
+            <!-- Number of standard deviations at which the filter should be truncated. -->
+            <gabor_sigma_truncate></gabor_sigma_truncate>
+            <!-- Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
+            relative to x-axis for 0-angle Gabor kernel. -->
+            <gabor_gamma></gabor_gamma>
+            <!-- Wavelength of the Gaussian kernel (in mm) -->
+            <gabor_lambda></gabor_lambda>
+            <!-- Initial angle of the Gabor filter. Defined in units of pi, e.g. 0.5 equals 0.5 pi internally. -->
+            <gabor_theta_initial></gabor_theta_initial>
+            <!-- Angle step size for in-plane rotational invariance. Defined in units of pi, e.g. 0.5 equals a step
+            of 0.5 pi internally. A value of 0.0 (default) disables stepping. -->
+            <gabor_theta_step></gabor_theta_step>
+            <!-- Type of response map created by Gabor filters. Gabor kernels consist of complex numbers, and the
+            direct response map will be complex as well. The complex-valued response map is converted to a
+            real-valued response map using the specified method; one of magnitude (default), argument, real,
+            imaginary -->
+            <gabor_response></gabor_response>
+             <!-- Create rotationally invariant Gabor response maps by stacking 2D response over orthogonal planes;
+             True (default for 3D) or False. Not possible for 2D analysis (by_slice). -->
+            <gabor_rot_invar></gabor_rot_invar>
+            <!-- Pooling method used for rotationally invariant response maps for gabor kernels; max (default)
+             or mean. -->
+            <gabor_pooling_method></gabor_pooling_method>
             <!-- Filter size for mean filter. -->
             <mean_filter_size></mean_filter_size>
         </img_transform>

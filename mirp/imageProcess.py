@@ -377,6 +377,17 @@ def transform_images(img_obj, roi_list, settings, compute_features=False, extrac
             feat_list += filter_obj.apply_transformation(img_obj=img_obj, roi_list=roi_list, settings=settings,
                                                          compute_features=compute_features, extract_images=extract_images,
                                                          file_path=file_path)
+        elif curr_filter == "gabor":
+            # Gabor kernels
+            from mirp.imageFilters.gaborFilter import GaborFilter
+
+            filter_obj = GaborFilter(settings=settings)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
+                                                         file_path=file_path)
 
         elif curr_filter == "mean":
             # Mean / uniform filter

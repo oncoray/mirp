@@ -135,6 +135,15 @@ class ImageTransformationSettingsClass:
         self.laws_delta  = 7
         self.laws_rot_invar = True
         self.laws_pooling_method = "max"
+        self.gabor_sigma = None
+        self.gabor_sigma_truncate = 4.0
+        self.gabor_gamma = 1.0
+        self.gabor_lambda = None
+        self.gabor_theta = 0.0
+        self.gabor_theta_step = 0.5 * np.pi
+        self.gabor_response = "modulus"
+        self.gabor_rot_invar = True
+        self.gabor_pooling_method = "max"
         self.mean_filter_size = None
         self.boundary_condition = "nearest"
 
@@ -371,6 +380,15 @@ def import_configuration_settings(path):
             img_transform_settings.log_sigma             = str2list(img_transform_branch.find("log_sigma"), "float")
             img_transform_settings.log_sigma_truncate    = str2type(img_transform_branch.find("log_sigma_truncate"), "float", 4.0)
             img_transform_settings.log_average           = str2type(img_transform_branch.find("log_average"), "bool")
+            img_transform_settings.gabor_sigma           = str2type(img_transform_branch.find("gabor_sigma"), "float")
+            img_transform_settings.gabor_sigma_truncate  = str2type(img_transform_branch.find("gabor_sigma_truncate"), "float", 4.0)
+            img_transform_settings.gabor_gamma           = str2type(img_transform_branch.find("gabor_gamma"), "float", 1.0)
+            img_transform_settings.gabor_lambda          = str2type(img_transform_branch.find("gabor_lambda"), "float")
+            img_transform_settings.gabor_theta           = str2type(img_transform_branch.find("gabor_theta_initial"), "float", 0.0)
+            img_transform_settings.gabor_theta_step      = str2type(img_transform_branch.find("gabor_theta_step"), "float", 0.0)
+            img_transform_settings.gabor_response        = str2type(img_transform_branch.find("gabor_response"), "str", "modulus")
+            img_transform_settings.gabor_rot_invar       = str2type(img_transform_branch.find("gabor_rot_invar"), "bool", True)
+            img_transform_settings.gabor_pooling_method  = str2type(img_transform_branch.find("gabor_pooling_method"), "str", "max")
             img_transform_settings.mean_filter_size      = str2type(img_transform_branch.find("mean_filter_size"), "int")
             img_transform_settings.boundary_condition    = str2type(img_transform_branch.find("boundary_condition"), "str", "nearest")
 
