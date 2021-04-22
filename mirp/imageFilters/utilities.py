@@ -253,7 +253,8 @@ class FilterSet:
             for attr in ["x", "y", "z", "pr_x", "pr_y", "pr_z"]:
                 if self.__dict__[attr] is not None:
                     # Strip zeros from tail and head.
-                    old_filter_kernel = np.trim_zeros(deepcopy(self.__dict__[attr]))
+                    # old_filter_kernel = np.trim_zeros(deepcopy(self.__dict__[attr]))
+                    old_filter_kernel = deepcopy(self.__dict__[attr])
 
                     # Create an array of zeros
                     new_filter_kernel = np.zeros(len(old_filter_kernel) * 2 - 1, dtype=np.float)
