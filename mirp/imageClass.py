@@ -939,9 +939,12 @@ class ImageClass:
         return img_obj_list
 
     def drop_image(self):
-        """Drops image, e.g. to free up memory. We don't set the is_m"""
+        """Drops image, e.g. to free up memory."""
         self.isEncoded_voxel_grid = None
         self.voxel_grid = None
+
+    def drop_metadata(self):
+        self.metadata = None
 
     def get_metadata(self, tag, tag_type, default=None):
         # Do not attempt to read the metadata if no metadata is present.

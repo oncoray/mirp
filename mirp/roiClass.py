@@ -1003,6 +1003,18 @@ class RoiClass:
 
         return roi_obj_list
 
+    def drop_metadata(self):
+        self.metadata = None
+
+        if self.roi is not None:
+            self.roi.drop_metadata()
+
+        if self.roi_intensity is not None:
+            self.roi_intensity.drop_metadata()
+
+        if self.roi_morphology is not None:
+            self.roi_morphology.drop_metadata()
+
     def write_dicom(self, file_path, file_name="RS.dcm"):
         import os
 
