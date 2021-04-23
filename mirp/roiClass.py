@@ -98,9 +98,19 @@ class RoiClass:
         self.diagnostic_list = []
         self.metadata: FileDataset = metadata
 
-    def copy(self):
+    def copy(self, drop_image=False):
+
+        roi_copy = copy.deepcopy(self)
+
+        if drop_image:
+            roi_copy.roi.drop_image()
+            if roi_copy.roi_intensity is not None:
+                roi_copy.roi_intensity.drop_image()
+            if roi_copy.roi_morphology is not None:
+                roi_copy.roi_morphology.drop_image()
+
         # Creates a new copy of the roi
-        return copy.deepcopy(self)
+        return roi_copy
 
     def create_mask_from_contours(self, img_obj, draw_method="ray_cast", disconnected_segments="keep_as_is", settings=None):
         # Creates an image based on provided contours
