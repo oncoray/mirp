@@ -760,7 +760,7 @@ class ExperimentClass:
             # Return processed imaging.
             processed_image_list = []
             for jj in np.arange(len(img_list)):
-                processed_image_list += [{"image": img_list[jj], "mask": roi_list[jj]}]
+                processed_image_list += [{"name": img_obj.name, "image": img_list[jj], "mask": roi_list[jj]}]
 
         # Return list of processed images and masks
         return processed_image_list
