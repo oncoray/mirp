@@ -74,11 +74,6 @@ class RoiClass:
 
         self.name = name
         if contour is not None:
-            # contour_list = []
-            # for curr_contour in contour:
-            #     contour_list.append(ContourClass(contour=curr_contour))
-            #
-            # self.contour = contour_list
             self.contour = contour
         else:
             self.contour = None
@@ -98,9 +93,19 @@ class RoiClass:
         self.diagnostic_list = []
         self.metadata: FileDataset = metadata
 
-    def copy(self):
+    def copy(self, drop_image=False):
+
+        roi_copy = copy.deepcopy(self)
+
+        if drop_image:
+            roi_copy.roi.drop_image()
+            if roi_copy.roi_intensity is not None:
+                roi_copy.roi_intensity.drop_image()
+            if roi_copy.roi_morphology is not None:
+                roi_copy.roi_morphology.drop_image()
+
         # Creates a new copy of the roi
-        return copy.deepcopy(self)
+        return roi_copy
 
     def create_mask_from_contours(self, img_obj, draw_method="ray_cast", disconnected_segments="keep_as_is", settings=None):
         # Creates an image based on provided contours
@@ -950,7 +955,7 @@ class RoiClass:
         roi_obj_list = []
 
         # Create a copy of the current object
-        base_roi_obj = self.copy()
+        base_roi_obj = self.copy(drop_image=True)
 
         # Remove attributes that need to be set
         base_roi_obj.roi = None
@@ -992,16 +997,39 @@ class RoiClass:
 
             # Add the mask for the requested slice
             if self.roi is not None:
-                slice_roi_obj.roi = self.roi.get_slices(slice_number=slice_number)
+                slice_roi_obj.roi = self.roi.get_slices(slice_number=slice_number)[0]
             if self.roi_intensity is not None:
-                slice_roi_obj.roi_intensity = self.roi_intensity.get_slices(slice_number=slice_number)
+                slice_roi_obj.roi_intensity = self.roi_intensity.get_slices(slice_number=slice_number)[0]
             if self.roi_morphology is not None:
-                slice_roi_obj.roi_morphology = self.roi_morphology.get_slices(slice_number=slice_number)
+                slice_roi_obj.roi_morphology = self.roi_morphology.get_slices(slice_number=slice_number)[0]
 
             # Add to list
             roi_obj_list += [slice_roi_obj]
 
         return roi_obj_list
+
+    def drop_image(self):
+        """Drops image, e.g. to free up memory."""
+        if self.roi is not None:
+            self.roi.drop_image()
+
+        if self.roi_intensity is not None:
+            self.roi_intensity.drop_image()
+
+        if self.roi_morphology is not None:
+            self.roi_morphology.drop_image()
+
+    def drop_metadata(self):
+        self.metadata = None
+
+        if self.roi is not None:
+            self.roi.drop_metadata()
+
+        if self.roi_intensity is not None:
+            self.roi_intensity.drop_metadata()
+
+        if self.roi_morphology is not None:
+            self.roi_morphology.drop_metadata()
 
     def write_dicom(self, file_path, file_name="RS.dcm"):
         import os

@@ -1,3 +1,4 @@
 .idea/
 /scripts/
 mirp/__pycache__/
+*.pyc

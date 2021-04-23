@@ -225,10 +225,15 @@ def plotter(slice_list, colour_map_list, file_name=None, overlay_alpha=1.0, inte
     # Invisible axis
     ax.axis('off')
 
+    plt.ioff()
+
     # Plot input image
     for ii in np.arange(len(slice_list)):
+        plot_data = deepcopy(slice_list[ii])
+
         if ii == 0 and intensity_range is not None:
-            plt.imshow(slice_list[ii],
+            # Plot image.
+            plt.imshow(plot_data,
                        cmap=plt.get_cmap(colour_map_list[ii]),
                        extent=[0, extent[1], 0, extent[0]],
                        vmin=intensity_range[0],
@@ -237,7 +242,11 @@ def plotter(slice_list, colour_map_list, file_name=None, overlay_alpha=1.0, inte
                        interpolation="none")
 
         else:
-            plt.imshow(slice_list[ii],
+            # Plot mask. First check if the slice contains any part of the mask.
+            if np.sum(plot_data) == 0:
+                continue
+
+            plt.imshow(plot_data,
                        cmap=plt.get_cmap(colour_map_list[ii]),
                        extent=[0, extent[1], 0, extent[0]],
                        vmin=0,
@@ -245,12 +254,10 @@ def plotter(slice_list, colour_map_list, file_name=None, overlay_alpha=1.0, inte
                        alpha=overlay_alpha,
                        interpolation="none")
 
-
-
     # Save plot
     plt.savefig(file_name, pad_inches=0.0, bbox_inches="tight", dpi=150)
 
-    plt.close()
+    plt.close(fig)
 
 
 def crop_image_intensity(img_slice, g_range, modality):
