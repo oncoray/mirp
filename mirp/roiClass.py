@@ -950,7 +950,7 @@ class RoiClass:
         roi_obj_list = []
 
         # Create a copy of the current object
-        base_roi_obj = self.copy()
+        base_roi_obj = self.copy(drop_image=True)
 
         # Remove attributes that need to be set
         base_roi_obj.roi = None
@@ -1002,6 +1002,17 @@ class RoiClass:
             roi_obj_list += [slice_roi_obj]
 
         return roi_obj_list
+
+    def drop_image(self):
+        """Drops image, e.g. to free up memory."""
+        if self.roi is not None:
+            self.roi.drop_image()
+
+        if self.roi_intensity is not None:
+            self.roi_intensity.drop_image()
+
+        if self.roi_morphology is not None:
+            self.roi_morphology.drop_image()
 
     def drop_metadata(self):
         self.metadata = None
