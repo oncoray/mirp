@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import sys
 
+from warnings import warn
 from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
 
@@ -496,12 +497,20 @@ class ExperimentClass:
             # Write successful completion to console or log
             logging.info(self._message_feature_extraction_finished())
 
-    def process_deep_learning(self, output_slices=False):
+    def process_deep_learning(self,
+                              output_slices=False,
+                              crop_size=None,
+                              center_crops_per_slice=True,
+                              remove_empty_crops=True,
+                              intensity_range=None,
+                              normalisation="none",
+                              as_numpy=False):
 
         import logging
         from mirp.imageRead import load_image
         from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, saturate_image, normalise_image
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
+        from mirp.roiClass import merge_roi_objects
         import copy
 
         from mirp.imagePlot import plot_image
@@ -513,6 +522,32 @@ class ExperimentClass:
 
         # Notifications
         logging.info("\nInitialising image and mask processing using %s images for %s.", self.modality + "_" + self.data_str + "_", self.subject)
+
+        # Process input parameters.
+        crop_as_3d = crop_size is None or len(crop_size) == 3
+
+        # Set crop_size.
+        if crop_size is None:
+            crop_size = [np.nan, np.nan, np.nan]
+        elif len(crop_size) == 1:
+            crop_size = [np.nan, crop_size, crop_size]
+        elif len(crop_size) == 2:
+            crop_size = [np.nan, crop_size[0], crop_size[1]]
+        elif len(crop_size) == 3:
+            crop_size = [crop_size[0], crop_size[1], crop_size[2]]
+        else:
+            raise ValueError(f"The crop_size parameter is longer than 3: {len(crop_size)}")
+
+        # Ignore settings for center_crops_per_slice and remove_empty_crops for 3D crops.
+        if crop_as_3d:
+            center_crops_per_slice = False
+            remove_empty_crops = False
+
+        # Set default intensity ranges.
+        if intensity_range is None:
+            intensity_range = [np.nan, np.nan]
+        elif len(intensity_range) > 2:
+            raise ValueError(f"The intensity_range parameter is longer than 2: {len(intensity_range)}")
 
         # Get iterables from current settings which lead to different image adaptations
         iter_set, n_outer_iter, n_inner_iter = self.get_iterable_parameters(settings=self.settings)
@@ -564,7 +599,12 @@ class ExperimentClass:
                                                roi_names=self.roi_names,
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
-
+            
+            # Remove metadata
+            img_obj.drop_metadata()
+            for roi_obj in roi_list:
+                roi_obj.drop_metadata()
+            
             ########################################################################################################
             # Update settings and initialise
             ########################################################################################################
@@ -628,39 +668,99 @@ class ExperimentClass:
             # Standardise output
             ########################################################################################################
 
-            # Crop image
-            img_obj, roi_list = crop_image_to_size(img_obj=img_obj, crop_size=curr_setting.deep_learning.expected_size, roi_list=roi_list)
-
             # Set intensity range
-            img_obj = saturate_image(img_obj=img_obj, intensity_range=curr_setting.deep_learning.intensity_range, fill_value=None)
+            img_obj = saturate_image(img_obj=img_obj, intensity_range=intensity_range, fill_value=None)
 
             # Normalise the image to a standard range
-            img_obj = normalise_image(img_obj=img_obj, norm_method=curr_setting.deep_learning.normalisation, intensity_range=curr_setting.deep_learning.intensity_range)
+            img_obj = normalise_image(img_obj=img_obj, norm_method=normalisation, intensity_range=intensity_range)
 
             ########################################################################################################
             # Collect output
             ########################################################################################################
 
-            if self.extract_images:
-                img_obj.export(file_path=self.write_path)
-                for roi_obj in roi_list:
-                    roi_obj.export(img_obj=img_obj, file_path=self.write_path)
+            # Merge ROIs
+            roi_obj = merge_roi_objects(roi_list=roi_list)
 
-            # Store processed imaging
-            if output_slices:
-                # 2D slices
-                slice_img_obj_list = img_obj.get_slices()
-                for jj in np.arange(len(slice_img_obj_list)):
-                    for roi_obj in roi_list:
-                        processed_image_list += [{"image": slice_img_obj_list[jj], "mask": roi_obj.get_slices(slice_number=jj)}]
+            # Crop slices
+            if crop_as_3d:
+                # Create 3D crop.
+                img_obj, roi_obj = crop_image_to_size(img_obj=img_obj,
+                                                      crop_size=crop_size,
+                                                      roi_obj=roi_obj)
+
+                img_list = [img_obj]
+                roi_list = [roi_obj]
+
+            elif not center_crops_per_slice:
+                # Create 3D crop, then chop into slices.
+                img_obj, roi_obj = crop_image_to_size(img_obj=img_obj,
+                                                      crop_size=crop_size,
+                                                      roi_obj=roi_obj)
+
+                img_list = img_obj.get_slices()
+                roi_list = roi_obj.get_slices()
+
             else:
-                # 3D volumes
-                for roi_obj in roi_list:
-                    processed_image_list += [{"image": img_obj, "mask": roi_obj}]
+                # Create 2D crops that are centered on the ROI.
+                img_list = []
+                roi_list = []
+
+                for jj in np.arange(img_obj.size[0]):
+                    slice_img_obj, slice_roi_obj = crop_image_to_size(img_obj=img_obj.get_slices(slice_number=jj)[0],
+                                                                      roi_obj=roi_obj.get_slices(slice_number=jj)[0],
+                                                                      crop_size=crop_size)
+
+                    img_list += [slice_img_obj]
+                    roi_list += [slice_roi_obj]
+
+            # Iterate over list to remove empty slices.
+            if remove_empty_crops and not crop_as_3d:
+                slice_empty = [slice_roi_obj.is_empty() for slice_roi_obj in roi_list]
+
+                img_list = [img_list[jj] for jj in range(len(slice_empty)) if not slice_empty[jj]]
+                roi_list = [roi_list[jj] for jj in range(len(slice_empty)) if not slice_empty[jj]]
+
+            # Convert 3D crops to axial slices.
+            if crop_as_3d and output_slices:
+                img_list = img_list[0].get_slices()
+                roi_list = roi_list[0].get_slices()
+
+            # Check consistency
+            if len(img_list) == 0:
+                warn("No valid, non-empty image crops were created. A ROI may be missing?")
+                return None
+
+            if all([slice_roi_obj.is_empty() for slice_roi_obj in roi_list]):
+                warn("No image crops were created that contain a mask. A ROI may be missing?.")
+                return None
+
+            # Update the name of the images.
+            for slice_img_obj in img_list:
+                slice_img_obj.name = img_obj.name
 
             # Plot images
             if self.plot_images:
-                plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="all", file_path=self.write_path, file_name="plot", g_range=[np.nan, np.nan])
+                for jj in np.arange(len(img_list)):
+                    # Generate a file name that depends on the number of list elements.
+                    file_name = "plot" if len(img_list) == 1 else "plot_" + str(jj)
+
+                    # Plot images.
+                    plot_image(img_obj=img_list[jj],
+                               roi_list=[roi_list[jj]],
+                               slice_id="all",
+                               file_path=self.write_path,
+                               file_name=file_name,
+                               g_range=[np.nan, np.nan])
+
+            # Convert to numpy arrays, if required.
+            if as_numpy:
+                img_list = [np.squeeze(slice_img_obj.get_voxel_grid()) for slice_img_obj in img_list]
+                roi_list = [np.squeeze(slice_roi_obj.roi.get_voxel_grid()) for slice_roi_obj in roi_list]
+
+            # Return processed imaging.
+            processed_image_list = []
+            for jj in np.arange(len(img_list)):
+                processed_image_list += [{"image": img_list[jj], "mask": roi_list[jj]}]
 
         # Return list of processed images and masks
         return processed_image_list

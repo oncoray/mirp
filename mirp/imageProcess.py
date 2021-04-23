@@ -538,13 +538,13 @@ def crop_image_to_size(img_obj, crop_size, roi_list=None, roi_obj=None):
             roi_m_z += np.sum(z_ind)
             roi_n   += len(x_ind)
 
-        # Calculate the mean roi center
-        roi_m_x = roi_m_x / roi_n
-        roi_m_y = roi_m_y / roi_n
-        roi_m_z = roi_m_z / roi_n
-
         # Check if the combined ROIs are empty
         if not (roi_n == 0):
+
+            # Calculate the mean roi center
+            roi_m_x = roi_m_x / roi_n
+            roi_m_y = roi_m_y / roi_n
+            roi_m_z = roi_m_z / roi_n
 
             ####################################################################################################################
             # Resect image based on roi center

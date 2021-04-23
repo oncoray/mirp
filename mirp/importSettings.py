@@ -148,14 +148,6 @@ class ImageTransformationSettingsClass:
         self.boundary_condition = "nearest"
 
 
-class DeepLearningSettingsClass:
-
-    def __init__(self):
-        self.expected_size = [np.nan, np.nan, np.nan]
-        self.normalisation = "none"
-        self.intensity_range = [np.nan, np.nan]
-
-
 class SettingsClass:
 
     def __init__(self, general_settings: GeneralSettingsClass,
@@ -165,8 +157,7 @@ class SettingsClass:
                  vol_adapt_settings: ImagePerturbationSettingsClass,
                  roi_resegment_settings: ResegmentationSettingsClass,
                  feature_extr_settings: FeatureExtractionSettingsClass,
-                 img_transform_settings: ImageTransformationSettingsClass,
-                 deep_learning_settings: DeepLearningSettingsClass):
+                 img_transform_settings: ImageTransformationSettingsClass):
 
         self.general         = general_settings
         self.img_interpolate = img_interpolate_settings
@@ -176,8 +167,6 @@ class SettingsClass:
         self.roi_resegment   = roi_resegment_settings
         self.feature_extr    = feature_extr_settings
         self.img_transform   = img_transform_settings
-        self.deep_learning   = deep_learning_settings
-
 
 
 def str2list(strx, data_type, default=None):
@@ -243,6 +232,8 @@ def str2type(strx, data_type, default=None):
 
 
 def import_configuration_settings(path):
+
+    from warnings import warn
 
     def slice_to_spatial(by_slice):
         if by_slice:
@@ -399,12 +390,11 @@ def import_configuration_settings(path):
 
         # Deep learning branch
         deep_learning_branch = branch.find("deep_learning")
-        deep_learning_settings = DeepLearningSettingsClass()
 
         if deep_learning_branch is not None:
-            deep_learning_settings.expected_size = str2list(deep_learning_branch.find("expected_size"), "int", [np.nan, np.nan, np.nan])
-            deep_learning_settings.normalisation = str2type(deep_learning_branch.find("normalisation"), "str", "none")
-            deep_learning_settings.intensity_range = str2list(deep_learning_branch.find("intensity_range"), "float", [np.nan, np.nan])
+            warn("deep_learning parameter branch has been deprecated. Parameters for image processing for deep "
+                 "learning can now be set directly for the extract_images_for_deep_learning.",
+                 category=DeprecationWarning)
 
         # Parse to settings
         settings_list.append(SettingsClass(general_settings=general_settings,
@@ -414,8 +404,7 @@ def import_configuration_settings(path):
                                            vol_adapt_settings=vol_adapt_settings,
                                            roi_resegment_settings=roi_resegment_settings,
                                            feature_extr_settings=feature_extr_settings,
-                                           img_transform_settings=img_transform_settings,
-                                           deep_learning_settings=deep_learning_settings))
+                                           img_transform_settings=img_transform_settings))
 
     return settings_list
 
@@ -482,7 +471,7 @@ def import_data_settings(path, config_settings, compute_features=False, extract_
             image_file_name_pattern = str2type(data_branch.find("image_filename_pattern"), "str")
             registration_image_file_name_pattern = str2type(data_branch.find("registration_image_filename_pattern"), "str")
             roi_names = str2list(data_branch.find("roi_names"), "str")
-            roi_list_path = str2type(data_branch.find("roi_list_path"), "str")
+            roi_list_path: str = str2type(data_branch.find("roi_list_path"), "str")
             divide_disconnected_roi = str2type(data_branch.find("divide_disconnected_roi"), "str", "combine")
             data_string = str2type(data_branch.find("data_str"), "str")
             extraction_config = str2list(data_branch.find("extraction_config"), "str")

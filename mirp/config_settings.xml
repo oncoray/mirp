@@ -184,13 +184,5 @@
             <!-- Filter size for mean filter. -->
             <mean_filter_size></mean_filter_size>
         </img_transform>
-        <deep_learning>
-            <!--Expected size of image and mask. If 2 values are provided, cropping is performed on the x-y plane. If 3 values are provided, cropping is performed along every direction, in z, y, x order-->
-            <expected_size></expected_size>
-            <!--Type of image intensity normalisation performed. Can be one of none, range, standardisation.-->
-            <normalisation></normalisation>
-            <!--Image intensity range. Intensities outside this range receive the nearest valid value-->
-            <intensity_range></intensity_range>
-        </deep_learning>
     </config>
 </root>
