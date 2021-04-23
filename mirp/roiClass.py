@@ -74,11 +74,6 @@ class RoiClass:
 
         self.name = name
         if contour is not None:
-            # contour_list = []
-            # for curr_contour in contour:
-            #     contour_list.append(ContourClass(contour=curr_contour))
-            #
-            # self.contour = contour_list
             self.contour = contour
         else:
             self.contour = None
@@ -1002,11 +997,11 @@ class RoiClass:
 
             # Add the mask for the requested slice
             if self.roi is not None:
-                slice_roi_obj.roi = self.roi.get_slices(slice_number=slice_number)
+                slice_roi_obj.roi = self.roi.get_slices(slice_number=slice_number)[0]
             if self.roi_intensity is not None:
-                slice_roi_obj.roi_intensity = self.roi_intensity.get_slices(slice_number=slice_number)
+                slice_roi_obj.roi_intensity = self.roi_intensity.get_slices(slice_number=slice_number)[0]
             if self.roi_morphology is not None:
-                slice_roi_obj.roi_morphology = self.roi_morphology.get_slices(slice_number=slice_number)
+                slice_roi_obj.roi_morphology = self.roi_morphology.get_slices(slice_number=slice_number)[0]
 
             # Add to list
             roi_obj_list += [slice_roi_obj]
