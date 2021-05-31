@@ -328,18 +328,25 @@ class FilterSet2D:
         original_shape = voxel_grid.shape
 
         # Pad original image with half the kernel size on axes other than axis.
-        kernel_size = np.max(self.filter_set.shape)
-        pad_size = int(np.floor(kernel_size / 2.0))
-        # pad_size = np.max(self.filter_set.shape)
+        pad_size = np.floor(np.array(self.filter_set.shape) / 2.0)
 
         # Determine pad widths.
         pad_width = []
         original_offset = []
+        axis_id = 0
 
         for current_axis in range(3):
             if current_axis != axis:
-                pad_width.append((pad_size, pad_size))
-                original_offset.append(2 * pad_size)
+                # Select current axis.
+                current_pad_size = int(pad_size[axis_id])
+
+                # Add to elements.
+                pad_width.append((current_pad_size, current_pad_size))
+                original_offset.append(2 * current_pad_size)
+
+                # Update axis_id to skip to next element.
+                axis_id += 1
+
             else:
                 pad_width.append((0, 0))
                 original_offset.append(0)

@@ -99,10 +99,10 @@ class GaborFilter:
         else:
             sigma = np.max(np.divide(np.full(shape=(3), fill_value=self.sigma), img_obj.spacing))
             lamda = np.max(np.divide(np.full(shape=(3), fill_value=self.lambda_parameter), img_obj.spacing))
-        gamma_trunc = self.gamma if self.gamma > 1.0 else 1.0
+        # gamma_trunc = self.gamma if self.gamma > 1.0 else 1.0
 
         # Determine filter size.
-        filter_size = int(1 + 2 * np.floor(self.sigma_cutoff * sigma * gamma_trunc + 0.5))
+        # filter_size = int(1 + 2 * np.floor(self.sigma_cutoff * sigma * gamma_trunc + 0.5))
 
         # Determine theta including steps.
         if self.theta_step > 0.0:
@@ -129,7 +129,7 @@ class GaborFilter:
                                                      gamma=self.gamma,
                                                      lamda=lamda,
                                                      theta=current_theta * np.pi,
-                                                     filter_size=filter_size,
+                                                     # filter_size=filter_size,
                                                      stack_axis=current_axis)
 
                 # Perform pooling
@@ -159,24 +159,37 @@ class GaborFilter:
                        gamma: np.float,
                        lamda: np.float,
                        theta: np.float,
-                       filter_size,
+                       # filter_size,
                        stack_axis):
 
-        # Create empty filter.
+        # Determine size for x (alpha) and y (beta), prior to rotation.
+        alpha = self.sigma_cutoff * sigma
+        beta = self.sigma_cutoff * sigma * gamma
+
+        # Determine filter size.
+        x_size = max(np.abs(alpha * np.cos(theta) + beta * np.sin(theta)),
+                     np.abs(-alpha * np.cos(theta) + beta * np.sin(theta)),
+                     1)
+        y_size = max(np.abs(alpha * np.sin(theta) - beta * np.cos(theta)),
+                     np.abs(-alpha * np.sin(theta) - beta * np.cos(theta)),
+                     1)
+
+        x_size = int(1 + 2 * np.floor(x_size + 0.5))
+        y_size = int(1 + 2 * np.floor(y_size + 0.5))
 
         # Create grid coordinates with [0, 0] in the center.
-        y, x = np.mgrid[:filter_size, :filter_size].astype(np.float)
-        y -= (filter_size - 1.0) / 2.0
-        x -= (filter_size - 1.0) / 2.0
+        y, x = np.mgrid[:y_size, :x_size].astype(np.float)
+        y -= (y_size - 1.0) / 2.0
+        x -= (x_size - 1.0) / 2.0
 
-        # Compute rotation matrix.
-        rotation_matrix = np.array([[np.cos(theta), np.sin(theta)],
-                                    [-np.sin(theta), np.cos(theta)]])
+        # Compute rotation matrix: Since we are computing clock-wise rotations, use negative angles.
+        rotation_matrix = np.array([[-np.cos(theta), np.sin(theta)],
+                                    [np.sin(theta), np.cos(theta)]])
 
         # Compute rotated grid coordinates around the center.
         rotated_scan_coordinates = np.dot(rotation_matrix, np.array((y.flatten(), x.flatten())))
-        y = rotated_scan_coordinates[0, :].reshape((filter_size, filter_size))
-        x = rotated_scan_coordinates[1, :].reshape((filter_size, filter_size))
+        y = rotated_scan_coordinates[0, :].reshape((y_size, x_size))
+        x = rotated_scan_coordinates[1, :].reshape((y_size, x_size))
 
         # Create filter weights.
         gabor_filter = np.exp(-(np.power(x, 2.0) + gamma ** 2.0 * np.power(y, 2.0)) / (2.0 * sigma ** 2.0) + 1.0j * (
