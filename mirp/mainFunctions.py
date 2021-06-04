@@ -37,6 +37,8 @@ def get_roi_names(data_config=None, settings_config=None, to_file=True):
         file_path = os.path.normpath(os.path.join(write_path, "project_roi.csv"))
         df_roi.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
 
+        logging.info(f"Writing list of ROI names to {file_path}.")
+
     else:
         return df_roi
 
@@ -67,6 +69,8 @@ def get_image_acquisition_parameters(data_config=None, settings_config=None, plo
         file_path = os.path.normpath(os.path.join(write_path, "project_image_meta_data.csv"))
         df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
 
+        logging.info(f"Writing list of acquisition parameters to {file_path}.")
+
     else:
         return df_meta
 
@@ -91,6 +95,8 @@ def get_file_structure_parameters(data_config, to_file=True):
         write_path = data_obj_list[0].write_path
         file_path = os.path.normpath(os.path.join(write_path, "file_meta_data.csv"))
         df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+
+        logging.info(f"Writing overview of images files to {file_path}.")
 
     else:
         return df_meta
