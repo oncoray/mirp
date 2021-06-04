@@ -13,7 +13,7 @@ import pandas as pd
 from mirp.importSettings import import_configuration_settings, import_data_settings
 
 
-def get_roi_names(data_config=None, settings_config=None):
+def get_roi_names(data_config=None, settings_config=None, to_file=True):
     """ Allows automatic extraction of roi names """
 
     if settings_config is not None:
@@ -32,12 +32,16 @@ def get_roi_names(data_config=None, settings_config=None):
     df_roi = pd.concat(roi_info_list)
 
     # Export list to project path
-    write_path = data_obj_list[0].write_path
-    file_path = os.path.normpath(os.path.join(write_path, "project_roi.csv"))
-    df_roi.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+    if to_file:
+        write_path = data_obj_list[0].write_path
+        file_path = os.path.normpath(os.path.join(write_path, "project_roi.csv"))
+        df_roi.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+
+    else:
+        return df_roi
 
 
-def get_image_acquisition_parameters(data_config=None, settings_config=None, plot_images="single"):
+def get_image_acquisition_parameters(data_config=None, settings_config=None, plot_images="single", to_file=True):
     """ Allows automatic extraction of imaging parameters """
 
     # Read settings from settings files and create the appropriate data objects.
@@ -58,12 +62,16 @@ def get_image_acquisition_parameters(data_config=None, settings_config=None, plo
     df_meta = pd.concat(meta_list)
 
     # Export list to project path
-    write_path = data_obj_list[0].write_path
-    file_path = os.path.normpath(os.path.join(write_path, "project_image_meta_data.csv"))
-    df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+    if to_file:
+        write_path = data_obj_list[0].write_path
+        file_path = os.path.normpath(os.path.join(write_path, "project_image_meta_data.csv"))
+        df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+
+    else:
+        return df_meta
 
 
-def get_file_structure_parameters(data_config):
+def get_file_structure_parameters(data_config, to_file=True):
 
     # Create separate data object for each subject
     data_obj_list = import_data_settings(data_config, None, file_structure=True)
@@ -79,9 +87,13 @@ def get_file_structure_parameters(data_config):
     df_meta = pd.concat(meta_list, sort=False)
 
     # Write to file
-    write_path = data_obj_list[0].write_path
-    file_path = os.path.normpath(os.path.join(write_path, "file_meta_data.csv"))
-    df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+    if to_file:
+        write_path = data_obj_list[0].write_path
+        file_path = os.path.normpath(os.path.join(write_path, "file_meta_data.csv"))
+        df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
+
+    else:
+        return df_meta
 
 
 def parse_file_structure(data_config, file, use_folder_name=True):
