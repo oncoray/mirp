@@ -113,22 +113,32 @@ def find_imaging_parameters(image_folder, modality, subject, plot_images, write_
     return metadata_table.to_frame().T
 
 
-def load_image(image_folder, modality=None, roi_folder=None, registration_image_folder=None, image_name=None,
-               roi_names=None, registration_image_name=None):
+def load_image(image_folder,
+               modality=None,
+               roi_folder=None,
+               registration_image_folder=None,
+               image_name=None,
+               roi_names=None,
+               registration_image_name=None):
 
     # Import image
-    img_obj: ImageClass = import_image(folder=image_folder, modality=modality, name_contains=image_name)
+    img_obj: ImageClass = import_image(folder=image_folder,
+                                       modality=modality,
+                                       name_contains=image_name)
 
     # Load registration image
     if registration_image_folder == image_folder or registration_image_folder is None:
         img_reg_obj = img_obj
     else:
-        img_reg_obj: ImageClass = import_image(folder=registration_image_folder, modality=modality,
+        img_reg_obj: ImageClass = import_image(folder=registration_image_folder,
+                                               modality=modality,
                                                name_contains=registration_image_name)
 
     # Load segmentation
     if roi_names is not None:
-        roi_list = import_segmentations(folder=roi_folder, roi_names=roi_names, image_object=img_reg_obj)
+        roi_list = import_segmentations(folder=roi_folder,
+                                        roi_names=roi_names,
+                                        image_object=img_reg_obj)
     else:
         roi_list = []
 
