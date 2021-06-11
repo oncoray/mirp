@@ -33,6 +33,13 @@ class ContourClass:
         # Set contour slices
         contour_slice = np.unique(contour_vox[:, 0])
 
+        # Remove contour slices that lie outside the [0, size[0]] range.
+        contour_slice = [current_contour_slice for current_contour_slice in contour_slice if
+                         0 <= current_contour_slice < img_obj.size[0]]
+
+        if len(contour_slice) == 0:
+            return None, None
+
         # Initiate a slice list and a mask list
         slice_list = []
         mask_list = []
@@ -45,7 +52,10 @@ class ContourClass:
             lines = np.vstack(([np.arange(0, vertices.shape[0])], [np.arange(-1, vertices.shape[0] - 1)])).transpose()
 
             slice_list.append(np.int(curr_slice))
-            mask_list.append(poly2grid(verts=vertices, lines=lines, spacing=np.array([1.0, 1.0]), origin=np.array([0.0, 0.0]),
+            mask_list.append(poly2grid(verts=vertices,
+                                       lines=lines,
+                                       spacing=np.array([1.0, 1.0]),
+                                       origin=np.array([0.0, 0.0]),
                                        shape=np.array([img_obj.size[1], img_obj.size[2]])))
 
         return slice_list, mask_list
