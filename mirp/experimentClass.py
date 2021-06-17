@@ -599,12 +599,12 @@ class ExperimentClass:
                                                roi_names=self.roi_names,
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
-
+            
             # Remove metadata
             img_obj.drop_metadata()
             for roi_obj in roi_list:
                 roi_obj.drop_metadata()
-
+            
             ########################################################################################################
             # Update settings and initialise
             ########################################################################################################

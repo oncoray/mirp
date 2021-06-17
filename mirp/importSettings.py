@@ -119,15 +119,28 @@ class ImageTransformationSettingsClass:
         self.perform_img_transform = False
         self.spatial_filters = None
         self.wavelet_fam = None
-        self.wavelet_rot_invar = False
+        self.wavelet_filter_set = "all"
         self.wavelet_stationary = True
+        self.wavelet_decomposition_level = 1
+        self.wavelet_rot_invar = True
+        self.wavelet_pooling_method = "max"
         self.log_sigma = None
         self.log_average = False
         self.log_sigma_truncate = 4.0
         self.laws_calculate_energy = True
-        self.laws_kernel = ["all"]
+        self.laws_kernel = None
         self.laws_delta  = 7
         self.laws_rot_invar = True
+        self.laws_pooling_method = "max"
+        self.gabor_sigma = None
+        self.gabor_sigma_truncate = 4.0
+        self.gabor_gamma = 1.0
+        self.gabor_lambda = None
+        self.gabor_theta = 0.0
+        self.gabor_theta_step = 0.5 * np.pi
+        self.gabor_response = "modulus"
+        self.gabor_rot_invar = True
+        self.gabor_pooling_method = "max"
         self.mean_filter_size = None
         self.boundary_condition = "nearest"
 
@@ -276,6 +289,7 @@ def import_configuration_settings(path):
         # Process roi interpolation settings
         roi_interp_branch   = branch.find("roi_interpolate")
         roi_interp_settings = RoiInterpolationSettingsClass()
+
         if roi_interp_branch is not None:
             roi_interp_settings.spline_order   = str2type(roi_interp_branch.find("spline_order"), "int", 1)
             roi_interp_settings.incl_threshold = str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5)
@@ -360,15 +374,28 @@ def import_configuration_settings(path):
             img_transform_settings.perform_img_transform = str2type(img_transform_branch.find("perform_img_transform"), "bool", False)
             img_transform_settings.spatial_filters       = str2list(img_transform_branch.find("spatial_filters"), "str")
             img_transform_settings.wavelet_fam           = str2type(img_transform_branch.find("wavelet_fam"), "str")
-            img_transform_settings.wavelet_rot_invar     = str2type(img_transform_branch.find("wavelet_rot_invar"), "bool", True)
+            img_transform_settings.wavelet_filter_set    = str2list(img_transform_branch.find("wavelet_filter_set"), "str", "all")
             img_transform_settings.wavelet_stationary    = str2type(img_transform_branch.find("wavelet_stationary"), "bool", True)
+            img_transform_settings.wavelet_decomposition_level = str2list(img_transform_branch.find("wavelet_decomposition_level"), "int", 1)
+            img_transform_settings.wavelet_rot_invar     = str2type(img_transform_branch.find("wavelet_rot_invar"), "bool", True)
+            img_transform_settings.wavelet_pooling_method = str2type(img_transform_branch.find("wavelet_pooling_method"), "str", "max")
             img_transform_settings.laws_calculate_energy = str2type(img_transform_branch.find("laws_calculate_energy"), "bool", True)
-            img_transform_settings.laws_kernel           = str2list(img_transform_branch.find("laws_kernel"), "str", "all")
+            img_transform_settings.laws_kernel           = str2type(img_transform_branch.find("laws_kernel"), "str")
             img_transform_settings.laws_delta            = str2type(img_transform_branch.find("laws_delta"), "int", 7)
             img_transform_settings.laws_rot_invar        = str2type(img_transform_branch.find("laws_rot_invar"), "bool", True)
+            img_transform_settings.laws_pooling_method   = str2type(img_transform_branch.find("laws_pooling_method"), "str", "max")
             img_transform_settings.log_sigma             = str2list(img_transform_branch.find("log_sigma"), "float")
             img_transform_settings.log_sigma_truncate    = str2type(img_transform_branch.find("log_sigma_truncate"), "float", 4.0)
             img_transform_settings.log_average           = str2type(img_transform_branch.find("log_average"), "bool")
+            img_transform_settings.gabor_sigma           = str2type(img_transform_branch.find("gabor_sigma"), "float")
+            img_transform_settings.gabor_sigma_truncate  = str2type(img_transform_branch.find("gabor_sigma_truncate"), "float", 4.0)
+            img_transform_settings.gabor_gamma           = str2type(img_transform_branch.find("gabor_gamma"), "float", 1.0)
+            img_transform_settings.gabor_lambda          = str2type(img_transform_branch.find("gabor_lambda"), "float")
+            img_transform_settings.gabor_theta           = str2type(img_transform_branch.find("gabor_theta_initial"), "float", 0.0)
+            img_transform_settings.gabor_theta_step      = str2type(img_transform_branch.find("gabor_theta_step"), "float", 0.0)
+            img_transform_settings.gabor_response        = str2type(img_transform_branch.find("gabor_response"), "str", "modulus")
+            img_transform_settings.gabor_rot_invar       = str2type(img_transform_branch.find("gabor_rot_invar"), "bool", True)
+            img_transform_settings.gabor_pooling_method  = str2type(img_transform_branch.find("gabor_pooling_method"), "str", "max")
             img_transform_settings.mean_filter_size      = str2type(img_transform_branch.find("mean_filter_size"), "int")
             img_transform_settings.boundary_condition    = str2type(img_transform_branch.find("boundary_condition"), "str", "nearest")
 

@@ -2,12 +2,15 @@ import numpy as np
 
 from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
-
+from mirp.imageFilters.utilities import FilterSet
 
 class MeanFilter:
 
     def __init__(self, settings):
+        # Set the filter size
         self.filter_size = settings.img_transform.mean_filter_size
+
+        # Set the filter mode
         self.mode = settings.img_transform.boundary_condition
 
         # In-slice (2D) or 3D filtering
@@ -54,9 +57,17 @@ class MeanFilter:
         if img_obj.is_missing:
             return img_trans_obj
 
-        # If sigma equals 0.0, perform only a laplacian transformation
-        img_trans_obj.set_voxel_grid(voxel_grid=ndi.uniform_filter(input=img_obj.get_voxel_grid(),
-                                                                   size=self.filter_size,
-                                                                   mode=self.mode))
+        # Set up the filter kernel.
+        filter_kernel = np.ones(self.filter_size, dtype=np.float) / self.filter_size
+
+        # Create a filter set.
+        if self.by_slice:
+            filter_set = FilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
+        else:
+            filter_set = FilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
+
+        # Apply the filter.
+        img_trans_obj.set_voxel_grid(voxel_grid=filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
+                                                                    mode=self.mode))
 
         return img_trans_obj
