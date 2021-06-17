@@ -31,8 +31,15 @@ def parse_roi_name(roi):
         # Strip curly brackets
         roi = roi.strip("{}")
 
-        # Get individual rois
-        indiv_roi = roi.split("&")
+        # Get individual rois. & and | are valid splitting variables.
+        if "&" in roi:
+            indiv_roi = roi.split("&")
+
+        elif "|" in roi:
+            indiv_roi = roi.split("|")
+
+        else:
+            indiv_roi = [roi]
 
         # Remove white space around individual rois
         indiv_roi = [curr_roi.strip() for curr_roi in indiv_roi]
@@ -41,6 +48,7 @@ def parse_roi_name(roi):
         indiv_roi = [roi]
 
     return indiv_roi
+
 
 def expand_grid(data_dict):
     rows = product(*data_dict.values())
@@ -94,7 +102,7 @@ def get_spherical_structure(radius, spacing):
     extent = np.ceil(np.divide(radius, spacing)).astype(np.int)
 
     # Generate coordinate grids. Note that this will generate a grid with 0,0,0 as center voxel.
-    grid_z, grid_y, grid_x= np.mgrid[-extent[0]:extent[0]+1, -extent[1]:extent[1]+1, -extent[2]:extent[2]+1]
+    grid_z, grid_y, grid_x = np.mgrid[-extent[0]:extent[0]+1, -extent[1]:extent[1]+1, -extent[2]:extent[2]+1]
 
     # Transform coordinates back to real world space. We then square the values to compute the Euclidean norm later on.
     grid_z = np.power(grid_z * spacing[0], 2.0)
