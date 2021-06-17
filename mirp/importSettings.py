@@ -17,11 +17,8 @@ class GeneralSettingsClass:
 class RoiInterpolationSettingsClass:
 
     def __init__(self):
-        # self.interpolate = None
-        # self.method = "grid"        # Alternative: mesh for mesh-based interpolation
-        self.spline_order = None
-        self.incl_threshold = None
-        # self.new_spacing = None
+        self.spline_order = 1
+        self.incl_threshold = 0.5
 
 
 class ImagePostProcessingClass:
@@ -73,7 +70,7 @@ class ImagePerturbationSettingsClass:
 class ImageInterpolationSettingsClass:
 
     def __init__(self):
-        self.interpolate = None
+        self.interpolate = False
         self.spline_order = None
         self.new_spacing = [None]
         self.new_non_iso_spacing = [None]
@@ -120,7 +117,6 @@ class ImageTransformationSettingsClass:
 
     def __init__(self):
         self.perform_img_transform = False
-        # self.interp_prior_filter = True
         self.spatial_filters = None
         self.wavelet_fam = None
         self.wavelet_rot_invar = False
@@ -222,12 +218,30 @@ def str2type(strx, data_type, default=None):
 def import_configuration_settings(path):
 
     from warnings import warn
+    import os.path
 
     def slice_to_spatial(by_slice):
         if by_slice:
             return "2d"
         else:
             return "3d"
+
+    # Check if
+    if path is None:
+        warn("No settings configuration file was provided.",
+             UserWarning)
+
+        return [SettingsClass(general_settings=GeneralSettingsClass(),
+                              img_interpolate_settings=ImageInterpolationSettingsClass(),
+                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
+                              post_process_settings=ImagePostProcessingClass(),
+                              vol_adapt_settings=ImagePerturbationSettingsClass(),
+                              roi_resegment_settings=ResegmentationSettingsClass(),
+                              feature_extr_settings=FeatureExtractionSettingsClass(),
+                              img_transform_settings=ImageTransformationSettingsClass())]
+
+    elif not os.path.exists(path):
+        raise FileNotFoundError(f"The settings file could not be found at {path}.")
 
     # Load xml
     tree = ElemTree.parse(path)
@@ -242,26 +256,29 @@ def import_configuration_settings(path):
         general_branch   = branch.find("general")
         general_settings = GeneralSettingsClass()
 
-        general_settings.by_slice = str2type(general_branch.find("by_slice"), "bool", False)
-        general_settings.config_str = str2type(general_branch.find("config_str"), "str", "")
-        general_settings.no_approximation = str2type(general_branch.find("no_approximation"), "bool", False)
+        if general_branch is not None:
+            general_settings.by_slice = str2type(general_branch.find("by_slice"), "bool", False)
+            general_settings.config_str = str2type(general_branch.find("config_str"), "str", "")
+            general_settings.no_approximation = str2type(general_branch.find("no_approximation"), "bool", False)
 
         # Process image interpolation settings
         img_interp_branch   = branch.find("img_interpolate")
         img_interp_settings = ImageInterpolationSettingsClass()
 
-        img_interp_settings.interpolate  = str2type(img_interp_branch.find("interpolate"), "bool")
-        img_interp_settings.spline_order = str2type(img_interp_branch.find("spline_order"), "int")
-        img_interp_settings.new_spacing  = np.unique(str2list(img_interp_branch.find("new_spacing"), "float"))
-        img_interp_settings.new_non_iso_spacing = str2list(img_interp_branch.find("new_non_iso_spacing"), "float")
-        img_interp_settings.anti_aliasing = str2type(img_interp_branch.find("anti_aliasing"), "bool", True)
-        img_interp_settings.smoothing_beta = str2type(img_interp_branch.find("smoothing_beta"), "float", 0.95)
+        if img_interp_branch is not None:
+            img_interp_settings.interpolate  = str2type(img_interp_branch.find("interpolate"), "bool")
+            img_interp_settings.spline_order = str2type(img_interp_branch.find("spline_order"), "int")
+            img_interp_settings.new_spacing  = np.unique(str2list(img_interp_branch.find("new_spacing"), "float"))
+            img_interp_settings.new_non_iso_spacing = str2list(img_interp_branch.find("new_non_iso_spacing"), "float")
+            img_interp_settings.anti_aliasing = str2type(img_interp_branch.find("anti_aliasing"), "bool", True)
+            img_interp_settings.smoothing_beta = str2type(img_interp_branch.find("smoothing_beta"), "float", 0.95)
 
         # Process roi interpolation settings
         roi_interp_branch   = branch.find("roi_interpolate")
         roi_interp_settings = RoiInterpolationSettingsClass()
-        roi_interp_settings.spline_order   = str2type(roi_interp_branch.find("spline_order"), "int", 1)
-        roi_interp_settings.incl_threshold = str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5)
+        if roi_interp_branch is not None:
+            roi_interp_settings.spline_order   = str2type(roi_interp_branch.find("spline_order"), "int", 1)
+            roi_interp_settings.incl_threshold = str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5)
 
         # Image post-acquisition processing settings
         post_process_branch = branch.find("post_processing")
@@ -554,12 +571,24 @@ def import_data_settings(path, config_settings, compute_features=False, extract_
                     if curr_config_setting is not None:
                         curr_config_setting.general.divide_disconnected_roi = divide_disconnected_roi
 
-                    data_obj = ExperimentClass(modality=image_modality, subject=curr_subj, cohort=cohort_id, write_path=write_path,
-                                               image_folder=image_dir_subj, roi_folder=roi_dir_subj, roi_reg_img_folder=roi_reg_img_subj,
-                                               image_file_name_pattern=image_file_name_pattern, registration_image_file_name_pattern=registration_image_file_name_pattern,
-                                               roi_names=roi_names, data_str=data_string, provide_diagnostics=provide_diagnostics,
-                                               settings=curr_config_setting, compute_features=compute_features, extract_images=extract_images,
-                                               plot_images=plot_images, keep_images_in_memory=keep_images_in_memory)
+                    data_obj = ExperimentClass(modality=image_modality,
+                                               subject=curr_subj,
+                                               cohort=cohort_id,
+                                               write_path=write_path,
+                                               image_folder=image_dir_subj,
+                                               roi_folder=roi_dir_subj,
+                                               roi_reg_img_folder=roi_reg_img_subj,
+                                               image_file_name_pattern=image_file_name_pattern,
+                                               registration_image_file_name_pattern=registration_image_file_name_pattern,
+                                               roi_names=roi_names,
+                                               data_str=data_string,
+                                               provide_diagnostics=provide_diagnostics,
+                                               settings=curr_config_setting,
+                                               compute_features=compute_features,
+                                               extract_images=extract_images,
+                                               plot_images=plot_images,
+                                               keep_images_in_memory=keep_images_in_memory)
+
                     data_obj_list.append(data_obj)
 
     return data_obj_list

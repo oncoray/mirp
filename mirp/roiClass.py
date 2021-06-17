@@ -129,6 +129,11 @@ class RoiClass:
             # Ray casting method to draw segmentation map based on polygon contour
             if draw_method == "ray_cast":
                 slice_list, mask_list = contour.contour_to_grid_ray_cast(img_obj=img_obj)
+
+                # Skip if the slice list is None (i.e. contours fall outside the current slices).
+                if slice_list is None:
+                    continue
+
                 for ii in np.arange(len(slice_list)):
                     slice_id = slice_list[ii]
                     roi_mask[slice_id, :, :] = np.logical_or(roi_mask[slice_id, :, :], mask_list[ii])

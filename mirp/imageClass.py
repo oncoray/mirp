@@ -279,7 +279,8 @@ class ImageClass:
         self.transl_fraction_z = translate_z
 
         # Skip if translation in both directions is 0.0
-        if translate_x == 0.0 and translate_y == 0.0 and translate_z == 0.0  and not interpolate_flag: return None
+        if translate_x == 0.0 and translate_y == 0.0 and translate_z == 0.0 and not interpolate_flag:
+            return None
 
         # Check if pre-processing is required
         if settings.img_interpolate.anti_aliasing:
