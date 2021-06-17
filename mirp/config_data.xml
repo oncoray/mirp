@@ -28,7 +28,8 @@
             <image_filename_pattern></image_filename_pattern>
             <!--Same as above, but for the image used to register the segmentation. Currently not used, as only RT-structure sets may require registration.-->
             <registration_image_filename_pattern></registration_image_filename_pattern>
-            <!--Names of the ROIs to be extracted. In case multiple ROIs should be combined, use the following syntax {roi_1 & roi_2 & roi_3} to indicate ROIs that should be merged.-->
+            <!--Names of the ROIs to be extracted. In case multiple ROIs should be combined, use the following syntax
+             {roi_1 | roi_2 | roi_3} to indicate ROIs that should be merged.-->
             <roi_names></roi_names>
             <!--ROI naming may not be standardized between samples, and a table can be provided instead of roi_names. This is the path to a csv file with samples and roi names. Column names should be sample_id and roi_name. Multiple ROIs for one patient should be in separate rows. ROIs can be combined using the syntax described above.-->
             <roi_list_path></roi_list_path>
