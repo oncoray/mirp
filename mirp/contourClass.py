@@ -34,8 +34,8 @@ class ContourClass:
         contour_slice = np.unique(contour_vox[:, 0])
 
         # Remove contour slices that lie outside the [0, size[0]] range.
-        contour_slice = [current_contour_slice for current_contour_slice in contour_slice if
-                         0 <= current_contour_slice < img_obj.size[0]]
+        # contour_slice = [current_contour_slice for current_contour_slice in contour_slice if
+        #                  0 <= current_contour_slice < img_obj.size[0]]
 
         if len(contour_slice) == 0:
             return None, None
