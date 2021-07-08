@@ -60,7 +60,9 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
                                "position_z": image_position_z,
                                "position_y": image_position_y,
                                "position_x": image_position_x,
-                               "sop_instance_uid": sop_instance_uid}).sort_values(by="position_z")
+                               "sop_instance_uid": sop_instance_uid}).sort_values(by=["position_z",
+                                                                                      "position_y",
+                                                                                      "position_x"])
 
     # Obtain DICOM metadata from the bottom slice. This will be used to fill most of the different details.
     dcm = pydicom.dcmread(os.path.join(image_folder, file_table.file_name.values[0]), stop_before_pixels=True, force=True)
