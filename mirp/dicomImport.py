@@ -142,10 +142,22 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
 
     # Add (Zx, Zy, Zz)
     if len(file_table) > 1:
+
+        # Determine if no slices are missing, which results in jumps in the position of each slice.
+        x_position_values = np.unique(np.around(np.diff(file_table.position_x.values), 3))
+        y_position_values = np.unique(np.around(np.diff(file_table.position_y.values), 3))
+        z_position_values = np.unique(np.around(np.diff(file_table.position_z.values), 3))
+
+        # If there is more than one value, this means that there is an unexpected shift in origins.
+        if len(x_position_values) > 1 or len(y_position_values) > 1 or len(z_position_values) > 1:
+            raise ValueError("Inconsistent distance between slice origins of subsequent slices. Slices cannot be "
+                             "aligned correctly. A likely cause is missing slices.")
+
         z_orientation = np.array([np.median(np.diff(file_table.position_x.values)),
                                   np.median(np.diff(file_table.position_y.values)),
                                   np.median(np.diff(file_table.position_z.values))]) / image_slice_spacing
 
+        # Append orientation.
         image_orientation += z_orientation.tolist()
     else:
         image_orientation += [0.0, 0.0, 1.0]
