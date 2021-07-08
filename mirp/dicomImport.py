@@ -143,15 +143,19 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     # Add (Zx, Zy, Zz)
     if len(file_table) > 1:
 
-        # Determine if no slices are missing, which results in jumps in the position of each slice.
-        x_position_values = np.unique(np.around(np.diff(file_table.position_x.values), 3))
-        y_position_values = np.unique(np.around(np.diff(file_table.position_y.values), 3))
-        z_position_values = np.unique(np.around(np.diff(file_table.position_z.values), 3))
+        # Compute distance between subsequent origins.
+        slice_origin_distance = np.sqrt(np.power(np.diff(file_table.position_x.values), 2.0) +
+                                        np.power(np.diff(file_table.position_y.values), 2.0) +
+                                        np.power(np.diff(file_table.position_z.values), 2.0))
+
+        # Find unique distance values.
+        slice_origin_distance = np.unique(np.around(slice_origin_distance, 3))
 
         # If there is more than one value, this means that there is an unexpected shift in origins.
-        if len(x_position_values) > 1 or len(y_position_values) > 1 or len(z_position_values) > 1:
-            raise ValueError("Inconsistent distance between slice origins of subsequent slices. Slices cannot be "
-                             "aligned correctly. A likely cause is missing slices.")
+        if len(slice_origin_distance) > 1:
+            raise ValueError(f"Inconsistent distance between slice origins of subsequent slices: "
+                             f"{slice_origin_distance}. Slices cannot be aligned correctly. This is likely due to "
+                             f"missing slices.")
 
         z_orientation = np.array([np.median(np.diff(file_table.position_x.values)),
                                   np.median(np.diff(file_table.position_y.values)),
