@@ -121,6 +121,10 @@ class RoiClass:
         # Create an empty roi volume
         roi_mask = np.zeros(img_obj.size, dtype=np.bool)
 
+        # Create empty slice and mask lists.
+        slice_list = []
+        mask_list = []
+
         # Iterate over contours to fill out the mask
         for contour in self.contour:
             # Multiple methods are implemented. All methods return a slice_list (containing slice numbers (z)) and a mask list, which contain boolean masks for respective
@@ -128,15 +132,30 @@ class RoiClass:
 
             # Ray casting method to draw segmentation map based on polygon contour
             if draw_method == "ray_cast":
-                slice_list, mask_list = contour.contour_to_grid_ray_cast(img_obj=img_obj)
+                contour_slice_list, contour_mask_list = contour.contour_to_grid_ray_cast(img_obj=img_obj)
 
-                # Skip if the slice list is None (i.e. contours fall outside the current slices).
-                if slice_list is None:
-                    continue
+                slice_list += contour_slice_list
+                mask_list += contour_mask_list
 
-                for ii in np.arange(len(slice_list)):
-                    slice_id = slice_list[ii]
-                    roi_mask[slice_id, :, :] = np.logical_or(roi_mask[slice_id, :, :], mask_list[ii])
+        # Check for out-of-range slices.
+        if len(slice_list) > 0:
+
+            # Identify if there any both negative or positive values in slice_list.
+            if any([slice_id < 0 for slice_id in slice_list]) and not all([slice_id < 0 for slice_id in slice_list]):
+                mask_list = [mask_list[ii] for ii, unused in enumerate(mask_list) if slice_list[ii] >= 0]
+                slice_list = [slice_id for slice_id in slice_list if slice_id >= 0]
+
+            # Identify any slices that lie outside the negative or positive z-range.
+            mask_list = [mask_list[ii] for ii, unused in enumerate(mask_list) if abs(slice_list[ii]) < img_obj.size[0]]
+            slice_list = [slice_id for slice_id in slice_list if slice_id < img_obj.size[0]]
+
+        # Set mask.
+        if len(slice_list) > 0:
+
+            # Iterate over the elements in the slice list.
+            for ii in np.arange(len(slice_list)):
+                slice_id = slice_list[ii]
+                roi_mask[slice_id, :, :] = np.logical_or(roi_mask[slice_id, :, :], mask_list[ii])
 
         if disconnected_segments == "keep_largest":
             # Check if the created roi mask consists of multiple, separate segments, and keep only the largest.

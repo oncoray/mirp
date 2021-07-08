@@ -60,7 +60,9 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
                                "position_z": image_position_z,
                                "position_y": image_position_y,
                                "position_x": image_position_x,
-                               "sop_instance_uid": sop_instance_uid}).sort_values(by="position_z")
+                               "sop_instance_uid": sop_instance_uid}).sort_values(by=["position_z",
+                                                                                      "position_y",
+                                                                                      "position_x"])
 
     # Obtain DICOM metadata from the bottom slice. This will be used to fill most of the different details.
     dcm = pydicom.dcmread(os.path.join(image_folder, file_table.file_name.values[0]), stop_before_pixels=True, force=True)
@@ -120,7 +122,7 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
             pass
         else:
             # Warn the user if there is a mismatch between slice thickness and the actual slice spacing.
-            if not np.around(image_slice_thickness - image_slice_spacing, decimals=5) == 0.0:
+            if not np.around(image_slice_thickness - image_slice_spacing, decimals=3) == 0.0:
                 warnings.warn(f"Mismatch between slice thickness ({image_slice_thickness}) and actual slice spacing ({image_slice_spacing}). The actual slice spacing will be "
                               f"used.", UserWarning)
 
@@ -140,10 +142,26 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
 
     # Add (Zx, Zy, Zz)
     if len(file_table) > 1:
+
+        # Compute distance between subsequent origins.
+        slice_origin_distance = np.sqrt(np.power(np.diff(file_table.position_x.values), 2.0) +
+                                        np.power(np.diff(file_table.position_y.values), 2.0) +
+                                        np.power(np.diff(file_table.position_z.values), 2.0))
+
+        # Find unique distance values.
+        slice_origin_distance = np.unique(np.around(slice_origin_distance, 3))
+
+        # If there is more than one value, this means that there is an unexpected shift in origins.
+        if len(slice_origin_distance) > 1:
+            raise ValueError(f"Inconsistent distance between slice origins of subsequent slices: "
+                             f"{slice_origin_distance}. Slices cannot be aligned correctly. This is likely due to "
+                             f"missing slices.")
+
         z_orientation = np.array([np.median(np.diff(file_table.position_x.values)),
                                   np.median(np.diff(file_table.position_y.values)),
                                   np.median(np.diff(file_table.position_z.values))]) / image_slice_spacing
 
+        # Append orientation.
         image_orientation += z_orientation.tolist()
     else:
         image_orientation += [0.0, 0.0, 1.0]

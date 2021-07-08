@@ -44,7 +44,6 @@ class SUVscalingObj:
                 self.acquisition_ref_time = convert_dicom_time(datetime_str=ge_acquistion_ref_time)
                 self.radio_admin_ref_time = convert_dicom_time(datetime_str=ge_radio_admin_ref_time)
 
-
         if self.radio_admin_ref_time is not None and self.acquisition_ref_time is not None:
 
             day_diff = abs(self.radio_admin_ref_time - self.acquisition_ref_time).days
@@ -56,7 +55,7 @@ class SUVscalingObj:
                 else:
                     self.radio_admin_ref_time += datetime.timedelta(days=day_diff)
 
-            if self.radio_admin_ref_time > self.acquisition_ref_time:
+            if self.radio_admin_ref_time > self.acquisition_ref_time + datetime.timedelta(hours=6):
                 # Correct for overnight
                 self.radio_admin_ref_time -= datetime.timedelta(days=1)
 
@@ -246,7 +245,13 @@ class SUVscalingObj:
             # Set reference start time (this may coincide with the series time, but series time may be unreliable).
             reference_start_time = self.acquisition_ref_time + datetime.timedelta(seconds=(time_count_average - self.frame_reference_time / 1000.0))
 
-            decay_factor = np.power(2.0, (reference_start_time - self.radio_admin_ref_time).seconds / self.half_life)
+            # Compute decay time.
+            if reference_start_time >= self.radio_admin_ref_time:
+                decay_time = (reference_start_time - self.radio_admin_ref_time).seconds
+            else:
+                decay_time = -(self.radio_admin_ref_time - reference_start_time).seconds
+
+            decay_factor = np.power(2.0, decay_time / self.half_life)
             decayed_dose = self.total_dose / decay_factor
 
         elif self.decay_correction == "ADMIN":
