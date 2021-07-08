@@ -122,7 +122,7 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
             pass
         else:
             # Warn the user if there is a mismatch between slice thickness and the actual slice spacing.
-            if not np.around(image_slice_thickness - image_slice_spacing, decimals=5) == 0.0:
+            if not np.around(image_slice_thickness - image_slice_spacing, decimals=3) == 0.0:
                 warnings.warn(f"Mismatch between slice thickness ({image_slice_thickness}) and actual slice spacing ({image_slice_spacing}). The actual slice spacing will be "
                               f"used.", UserWarning)
 
