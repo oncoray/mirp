@@ -127,8 +127,12 @@
             <boundary_condition></boundary_condition>
             <!-- Spatial filters to apply. Options: gabor, wavelet, laplacian_of_gaussian, laws, mean -->
             <spatial_filters></spatial_filters>
-            <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets. -->
+            <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets, simoncelli or
+            shannon. -->
             <wavelet_fam></wavelet_fam>
+            <!-- Size of non-separable wavelets such as the simoncelli and shannon wavelets. Separable wavelets have
+            known filter sizes. -->
+            <wavelet_filter_size></wavelet_filter_size>
             <!-- Wavelet filter set to be used (for separable wavelets), e.g. LLL. LLH. Default: all. -->
             <wavelet_filter_set></wavelet_filter_set>
             <!-- Create stationary separable wavelets; True (default) or False (decimation will take place) -->

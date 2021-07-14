@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.fft as fft
 
 from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
@@ -22,6 +23,9 @@ class WaveletFilter:
 
         # Set the filter set for separable wavelets.
         self.filter_config = settings.img_transform.wavelet_filter_set
+
+        # Set filter size for non-separable wavelets
+        self.filter_size = settings.img_transform.wavelet_filter_size
 
         if self.filter_config is None:
             self.filter_config = ["all"]
@@ -192,10 +196,12 @@ class WaveletFilter:
         if img_obj.is_missing:
             return img_wav_obj
 
-        if self.wavelet_family == "simoncelli":
-            filter_set = NonSeperableWavelet(by_slice=self.by_slice,
+        if self.wavelet_family in ["simoncelli", "shannon"]:
+            filter_set = NonSeparableWavelet(by_slice=self.by_slice,
                                              mode=self.mode,
-                                             wavelet_family=self.wavelet_family)
+                                             wavelet_family=self.wavelet_family,
+                                             filter_size=self.filter_size)
+
         else:
             raise ValueError(f"{self.wavelet_family} is not a known separable wavelet.")
 
@@ -251,15 +257,153 @@ class WaveletFilter:
                          pre_filter_z=pre_filter_z)
 
 
-class NonSeperableWavelet:
-    def __init__(self, by_slice, mode, wavelet_family):
+class NonSeparableWavelet:
+    def __init__(self, by_slice, mode, wavelet_family, filter_size):
         self.by_slice = by_slice
-        self.mode = mode
+        self.scipy_mode = mode
         self.wavelet_family = wavelet_family
+        self.filter_size = filter_size
+        self.max_frequency = filter_size
 
-    def convolve(self, voxel_grid, decomposition_level=1):
+        # Modes in scipy and numpy are defined differently.
+        if mode == "reflect":
+            numpy_mode = "symmetric"
+        elif mode == "symmetric":
+            numpy_mode = "reflect"
+        else:
+            numpy_mode = mode
 
-        from numpy.fft import fftn, ifftn, fftshift, ifftshift
+        self.numpy_mode = numpy_mode
+
+    def shannon_filter(self, decomposition_level=1):
+        """
+        Set up the shannon filter in the Fourier domain.
+        @param decomposition_level: Decomposition level for the filter.
+        """
+
+        # Get the distance grid.
+        distance_grid, max_frequency = self.get_distance_grid(decomposition_level=decomposition_level)
+
+        # Set up a wavelet filter for the decomposition specifically.
+        wavelet_filter = np.zeros(distance_grid.shape, dtype=np.float)
+
+        # Set the mask for the filter.
+        mask = np.logical_and(distance_grid >= max_frequency / 2.0, distance_grid <= max_frequency)
+
+        # Update the filter.
+        wavelet_filter[mask] += 1.0
+
+        return wavelet_filter
+
+    def simoncelli_filter(self, decomposition_level=1):
+        """
+        Set up the simoncelli filter in the Fourier domain.
+        @param decomposition_level: Decomposition level for the filter.
+        """
+
+        # Get the distance grid.
+        distance_grid, decomposed_max_frequency = self.get_distance_grid(decomposition_level=decomposition_level)
+
+        # Set up a wavelet filter for the decomposition specifically.
+        wavelet_filter = np.zeros(distance_grid.shape, dtype=np.float)
+
+        # Set the mask for the filter.
+        mask = np.logical_and(distance_grid >= decomposed_max_frequency / 4.0,
+                              distance_grid <= decomposed_max_frequency)
+
+        # Update the filter.
+        wavelet_filter[mask] += np.cos(np.pi / 2.0 * np.log2(2.0 * distance_grid[mask] / decomposed_max_frequency))
+
+        return wavelet_filter
+
+    def get_distance_grid(self, decomposition_level=1):
+        """
+        Create the distance grid.
+        @param decomposition_level: Decomposition level for the filter.
+        """
+        # Set up filter shape
+        if self.by_slice:
+            filter_shape = (self.filter_size, self.filter_size)
+        else:
+            filter_shape = (self.filter_size, self.filter_size, self.filter_size)
+
+            # Determine the grid center.
+            grid_center = (np.array(filter_shape, dtype=np.float) - 1.0) / 2.0
+
+            # Determine distance from center
+            distance_grid = list(np.indices(filter_shape, sparse=True))
+            distance_grid = [distance_grid[ii] - center_pos for ii, center_pos in enumerate(grid_center)]
+
+            # Compute the distances in the grid.
+            distance_grid = np.linalg.norm(distance_grid)
+
+            # Set the Nyquist frequency
+            decomposed_max_frequency = self.max_frequency / 2.0 ** decomposition_level
+
+            return distance_grid, decomposed_max_frequency
+
+    def convolve(self, voxel_grid, decomposition_level=1, filter_sizing_method = "extend"):
+
+        if self.by_slice:
+            original_image_size = list(voxel_grid.shape[1:3])
+        else:
+            original_image_size = list(voxel_grid.shape)
+
+        # Get the maximum image size.
+        img_size = max(original_image_size)
+
+        # Make sure that the image is square (2D) or cubic (3D)
+        image_pad_size = [img_size - axis_size for axis_size in original_image_size]
+        filter_pad_size = np.zeros(len(original_image_size)).tolist()
+
+        if img_size < self.filter_size:
+            # The extent of the filter is larger than that of the image.
+            image_pad_size = [axis_pad_size + self.filter_size - img_size for axis_pad_size in image_pad_size]
+
+        elif self.filter_size < img_size and filter_sizing_method == "extend":
+            # The extent of the image is larger that that of the filter. In this case we increase the filter size,
+            # but keep the max_frequency the same.
+            self.filter_size = img_size
+
+        elif self.filter_size < img_size and filter_sizing_method == "spatial":
+            # The extent of the image is larger than that of the filter. In this case we zero-pad the filter in the
+            # spatial domain prior.
+            filter_pad_size = [img_size - self.filter_size - axis_pad_size for axis_pad_size in filter_pad_size]
+
+        # Generate padding parameters for numpy.pad.
+        image_pad_size = [(0, axis_pad_size) for axis_pad_size in image_pad_size]
+        filter_pad_size = [(int(np.floor(axis_pad_size / 2.0)),
+                            axis_pad_size - int(np.floor(axis_pad_size / 2.0))) for axis_pad_size in filter_pad_size]
+        if self.by_slice:
+            image_pad_size = [(0, 0)] + image_pad_size
+
+        # Pad the voxel grid.
+        voxel_grid = np.pad(voxel_grid,
+                            pad_width=image_pad_size,
+                            mode=self.numpy_mode)
+
+        # Compute the Fourier transform of the voxel grid.
+        voxel_grid_f = fft.fftshift(fft.fftn(voxel_grid))
+
+        # Create the kernel.
+        if self.wavelet_family == "simoncelli":
+            wavelet_kernel_f = self.simoncelli_filter(decomposition_level=decomposition_level)
+        elif self.wavelet_family == "shannon":
+            wavelet_kernel_f = self.shannon_filter(decomposition_level=decomposition_level)
+        else:
+            raise ValueError(f"The specified wavelet family is not implemented: {self.wavelet_family}")
+
+        # Update the kernel
+        if filter_sizing_method == "spatial" and self.filter_size < img_size:
+            # For the spatial method, first transform the separable wavelet to the spatial domain, then zero-pad,
+            # and transform back to the Fourier domain.
+            wavelet_kernel = fft.ifftn(fft.ifftshift(wavelet_kernel_f))
+            wavelet_kernel = np.pad(wavelet_kernel,
+                                    pad_width=filter_pad_size,
+                                    mode="constant")
+            wavelet_kernel_f = fft.fftshift(fft.fftn(wavelet_kernel))
+
+
 
         # Specify shape of the fft.
         max_img_dim = np.max(voxel_grid.shape)
