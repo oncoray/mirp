@@ -24,7 +24,7 @@ def pool_voxel_grids(x1, x2, pooling_method):
         raise ValueError(f"Unknown pooling method encountered: {pooling_method}")
 
 
-class FilterSet:
+class SeparableFilterSet:
     def __init__(self,
                  filter_x,
                  filter_y,
@@ -148,9 +148,9 @@ class FilterSet:
 
         if require_pre_filter:
             # Create a pre-filter to derive a table with filter orientations.
-            pre_filter_set = FilterSet(filter_x=self.pr_x,
-                                       filter_y=self.pr_y,
-                                       filter_z=self.pr_z)
+            pre_filter_set = SeparableFilterSet(filter_x=self.pr_x,
+                                                filter_y=self.pr_y,
+                                                filter_z=self.pr_z)
 
             permuted_pre_filters = pre_filter_set.permute_filters(rotational_invariance=rotational_invariance,
                                                                   as_filter_table=True)
@@ -178,28 +178,28 @@ class FilterSet:
 
             if require_pre_filter:
                 if self.z is None:
-                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y),
-                                                  pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
-                                                  pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True))]
+                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                                                           pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
+                                                           pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True))]
 
                 else:
-                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y),
-                                                  filter_z=filter_obj._translate_filter(permuted_filter_set.z),
-                                                  pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
-                                                  pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True),
-                                                  pre_filter_z=filter_obj._translate_filter(permuted_filter_set.pr_z, True))]
+                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                                                           filter_z=filter_obj._translate_filter(permuted_filter_set.z),
+                                                           pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
+                                                           pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True),
+                                                           pre_filter_z=filter_obj._translate_filter(permuted_filter_set.pr_z, True))]
 
             else:
                 if self.z is None:
-                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y))]
+                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y))]
 
                 else:
-                    filter_set_list += [FilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                  filter_y=filter_obj._translate_filter(permuted_filter_set.y),
-                                                  filter_z=filter_obj._translate_filter(permuted_filter_set.z))]
+                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                                                           filter_z=filter_obj._translate_filter(permuted_filter_set.z))]
 
         return filter_set_list
 
@@ -257,7 +257,7 @@ class FilterSet:
                     old_filter_kernel = deepcopy(self.__dict__[attr])
 
                     # Create an array of zeros
-                    new_filter_kernel = np.zeros(len(old_filter_kernel) * 2 - 1, dtype=np.float)
+                    new_filter_kernel = np.zeros(len(old_filter_kernel) * 2 - 1, dtype=float)
 
                     # Place the original filter constants at every second position. This creates a hole (0.0) between
                     # each of the filter constants.
@@ -304,16 +304,18 @@ class FilterSet:
         return voxel_grid
 
 
-class FilterSet2D:
+class FilterSet:
     def __init__(self,
-                 filter_set: np.ndarray):
-        self.filter_set = filter_set
+                 filter_set: np.ndarray,
+                 transformed=False):
 
-    def convolve(self,
-                 voxel_grid: np.ndarray,
-                 mode,
-                 response,
-                 axis=0):
+        self.filter_set = filter_set
+        self.transformed = transformed
+
+    def _pad_image(self,
+                   voxel_grid,
+                   mode,
+                   axis=None):
 
         # Modes in scipy and numpy are defined differently.
         if mode == "reflect":
@@ -342,7 +344,7 @@ class FilterSet2D:
 
                 # Add to elements.
                 pad_width.append((current_pad_size, current_pad_size))
-                original_offset.append(2 * current_pad_size)
+                original_offset.append(current_pad_size)
 
                 # Update axis_id to skip to next element.
                 axis_id += 1
@@ -356,17 +358,37 @@ class FilterSet2D:
                             pad_width=pad_width,
                             mode=mode)
 
-        # Compute the fft of the filter, with output shape of the image.
-        filter_output_shape = [dim_size for current_axis, dim_size in enumerate(voxel_grid.shape) if current_axis != axis]
-        f_filter = fft.fft2(self.filter_set,
-                            filter_output_shape)
+        return voxel_grid, original_shape, original_offset
 
-        # Iterate over slices, compute fft, multiply with filter, and compute ifft.
-        voxel_grid = np.stack([self._convolve(voxel_slice=np.squeeze(current_grid, axis=axis),
-                                              f_filter=f_filter)
-                               for current_grid in np.split(voxel_grid, voxel_grid.shape[axis], axis=axis)],
-                              axis=axis)
+    def _transform_filter(self, filter_shape, transform_method="interpolate"):
 
+        if transform_method not in ["zero_pad", "interpolate"]:
+            raise ValueError(f"The transform_method argument expects \"zero_pad\" or \"interpolate\". Found: {transform_method}")
+
+        if self.transformed and not np.equal(self.filter_set.shape, filter_shape).all() and transform_method == \
+                "zero_pad":
+            # Zero-padding takes place in the spatial domain. We therefore have to inverse transform the filter.
+            self.filter_set = fft.ifftn(self.filter_set)
+
+            # Transform back to the Fourier domain
+            self.filter = fft.fftn(self.filter_set,
+                                   filter_shape)
+
+        elif self.transformed and not np.equal(self.filter_set.shape, filter_shape).all() and transform_method == \
+                "interpolate":
+            # Find zoom factor.
+            zoom_factor = np.divide(filter_shape, self.filter_set.shape)
+
+            # Make sure to zoom in the centric filter view.
+            self.filter = fft.ifftshift(ndi.zoom(fft.fftshift(self.filter_set),
+                                                 zoom=zoom_factor))
+
+        elif not self.transformed:
+            # Transform to the Fourier domain
+            self.filter = fft.fftn(self.filter_set,
+                                   filter_shape)
+
+    def _return_response(self, voxel_grid, response, original_offset, original_shape):
         # Compute response map.
         if response in ["modulus", "abs", "magnitude"]:
             voxel_grid = np.abs(voxel_grid)
@@ -380,6 +402,10 @@ class FilterSet2D:
         elif response in ["imaginary"]:
             voxel_grid = np.imag(voxel_grid)
 
+        else:
+            raise ValueError(f"The response argument should be \"modulus\", \"abs\", \"magnitude\", \"angle\", "
+                             f"\"phase\", \"argument\", \"real\" or \"imaginary\". Found: {response}")
+
         # Crop image to original size.
         voxel_grid = voxel_grid[original_offset[0]:original_offset[0] + original_shape[0],
                                 original_offset[1]:original_offset[1] + original_shape[1],
@@ -387,12 +413,80 @@ class FilterSet2D:
 
         return voxel_grid
 
+
+class FilterSet2D(FilterSet):
+
+    def convolve(self,
+                 voxel_grid: np.ndarray,
+                 mode,
+                 response,
+                 axis=0):
+
+        # Pad the image prior to convolution so that the valid convolution spans the image.
+        voxel_grid, original_shape, original_offset = self._pad_image(voxel_grid, mode=mode, axis=axis)
+
+        # Determine the filter output shape.
+        filter_output_shape = [dim_size for current_axis, dim_size in enumerate(voxel_grid.shape) if
+                               current_axis != axis]
+
+        # Compute the fft of the filter, with output shape of the image.
+        self._transform_filter(filter_shape=filter_output_shape)
+
+        # Iterate over slices, compute fft, multiply with filter, and compute inverse fourier transform.
+        voxel_grid = np.stack([self._convolve(voxel_grid=np.squeeze(current_grid, axis=axis))
+                               for current_grid in np.split(voxel_grid, voxel_grid.shape[axis], axis=axis)],
+                              axis=axis)
+
+        return self._return_response(voxel_grid=voxel_grid,
+                                     response=response,
+                                     original_offset=original_offset,
+                                     original_shape=original_shape)
+
     def _convolve(self,
-                  voxel_slice,
-                  f_filter):
+                  voxel_grid: np.ndarray):
 
         # Compute FFT of the slice.
-        f_voxel = fft.fft2(voxel_slice)
+        f_voxel = fft.fft2(voxel_grid)
 
-        # Multiply with
-        return fft.ifft2(f_voxel * f_filter)
+        if not self.transformed:
+            raise ValueError("Filter should have been transformed to the Fourier domain.")
+
+        # Multiply with the filter and return the inverse fourier transform of the hadamard product.
+        return fft.ifft2(f_voxel * self.filter)
+
+
+class FilterSet3D(FilterSet):
+
+    def convolve(self,
+                 voxel_grid: np.ndarray,
+                 mode,
+                 response):
+
+        # Pad the image prior to convolution so that the valid convolution spans the image.
+        voxel_grid, original_shape, original_offset = self._pad_image(voxel_grid, mode=mode)
+
+        # Determine the filter output shape.
+        filter_output_shape = [dim_size for current_axis, dim_size in enumerate(voxel_grid.shape)]
+
+        # Compute the fft of the filter, with output shape of the image.
+        self._transform_filter(filter_shape=filter_output_shape)
+
+        # Iterate over slices, compute fft, multiply with filter, and compute inverse fourier transform.
+        voxel_grid = self._convolve(voxel_grid)
+
+        return self._return_response(voxel_grid=voxel_grid,
+                                     response=response,
+                                     original_offset=original_offset,
+                                     original_shape=original_shape)
+
+    def _convolve(self,
+                  voxel_grid: np.ndarray):
+
+        # Compute FFT of the slice
+        f_voxel = fft.fftn(voxel_grid)
+
+        if not self.transformed:
+            raise ValueError("Filter should have been transformed to the Fourier domain.")
+
+        # Multiply with the filter and return the inverse fourier transform of the hadamard product.
+        return fft.ifftn(f_voxel * self.filter)

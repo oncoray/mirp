@@ -2,7 +2,7 @@ import numpy as np
 
 from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
-from mirp.imageFilters.utilities import FilterSet, pool_voxel_grids
+from mirp.imageFilters.utilities import SeparableFilterSet, pool_voxel_grids
 
 
 class LawsFilter:
@@ -139,9 +139,9 @@ class LawsFilter:
 
         # Create a filter set.
         if self.by_slice:
-            filter_set = FilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
+            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
         else:
-            filter_set = FilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
+            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
 
         # Apply the filter.
         voxel_grid = filter_set.convolve(voxel_grid=voxel_grid, mode=self.mode)
@@ -190,6 +190,6 @@ class LawsFilter:
                 filter_z = laws_kernel
 
         # Create FilterSet object
-        return FilterSet(filter_x=filter_x,
-                         filter_y=filter_y,
-                         filter_z=filter_z)
+        return SeparableFilterSet(filter_x=filter_x,
+                                  filter_y=filter_y,
+                                  filter_z=filter_z)

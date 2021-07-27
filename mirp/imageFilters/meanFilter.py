@@ -2,7 +2,7 @@ import numpy as np
 
 from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
-from mirp.imageFilters.utilities import FilterSet
+from mirp.imageFilters.utilities import SeparableFilterSet
 
 class MeanFilter:
 
@@ -62,9 +62,9 @@ class MeanFilter:
 
         # Create a filter set.
         if self.by_slice:
-            filter_set = FilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
+            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
         else:
-            filter_set = FilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
+            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
 
         # Apply the filter.
         img_trans_obj.set_voxel_grid(voxel_grid=filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
