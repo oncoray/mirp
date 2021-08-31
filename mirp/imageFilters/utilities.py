@@ -307,10 +307,12 @@ class SeparableFilterSet:
 class FilterSet:
     def __init__(self,
                  filter_set: np.ndarray,
-                 transformed=False):
+                 transformed=False,
+                 pad_image=True):
 
         self.filter_set = filter_set
         self.transformed = transformed
+        self.pad_image = pad_image
 
     def _pad_image(self,
                    voxel_grid,
@@ -330,7 +332,10 @@ class FilterSet:
         original_shape = voxel_grid.shape
 
         # Pad original image with half the kernel size on axes other than axis.
-        pad_size = np.floor(np.array(self.filter_set.shape) / 2.0)
+        if self.pad_image:
+            pad_size = np.floor(np.array(self.filter_set.shape) / 2.0)
+        else:
+            pad_size = np.zeros(len(self.filter_set.shape))
 
         # Determine pad widths.
         pad_width = []
@@ -371,8 +376,8 @@ class FilterSet:
             self.filter_set = fft.ifftn(self.filter_set)
 
             # Transform back to the Fourier domain
-            self.filter = fft.fftn(self.filter_set,
-                                   filter_shape)
+            self.filter_set = fft.fftn(self.filter_set,
+                                       filter_shape)
 
         elif self.transformed and not np.equal(self.filter_set.shape, filter_shape).all() and transform_method == \
                 "interpolate":
@@ -380,13 +385,15 @@ class FilterSet:
             zoom_factor = np.divide(filter_shape, self.filter_set.shape)
 
             # Make sure to zoom in the centric filter view.
-            self.filter = fft.ifftshift(ndi.zoom(fft.fftshift(self.filter_set),
-                                                 zoom=zoom_factor))
+            self.filter_set = fft.ifftshift(ndi.zoom(fft.fftshift(self.filter_set),
+                                                     zoom=zoom_factor))
 
         elif not self.transformed:
             # Transform to the Fourier domain
-            self.filter = fft.fftn(self.filter_set,
-                                   filter_shape)
+            self.filter_set = fft.fftn(self.filter_set,
+                                       filter_shape)
+
+            self.transformed = True
 
     def _return_response(self, voxel_grid, response, original_offset, original_shape):
         # Compute response map.
@@ -452,7 +459,7 @@ class FilterSet2D(FilterSet):
             raise ValueError("Filter should have been transformed to the Fourier domain.")
 
         # Multiply with the filter and return the inverse fourier transform of the hadamard product.
-        return fft.ifft2(f_voxel * self.filter)
+        return fft.ifft2(f_voxel * self.filter_set)
 
 
 class FilterSet3D(FilterSet):
@@ -489,4 +496,4 @@ class FilterSet3D(FilterSet):
             raise ValueError("Filter should have been transformed to the Fourier domain.")
 
         # Multiply with the filter and return the inverse fourier transform of the hadamard product.
-        return fft.ifftn(f_voxel * self.filter)
+        return fft.ifftn(f_voxel * self.filter_set)

@@ -262,7 +262,7 @@ class NonSeparableWavelet:
         self.by_slice = by_slice
         self.wavelet_family = wavelet_family
         self.filter_size = filter_size
-        self.max_frequency = filter_size
+        self.max_frequency = 1.0
 
         # # Modes in scipy and numpy are defined differently.
         # if mode == "reflect":
@@ -275,14 +275,15 @@ class NonSeparableWavelet:
         self.mode = mode
         self.response = response
 
-    def shannon_filter(self, decomposition_level=1):
+    def shannon_filter(self, decomposition_level=1, filter_size=None):
         """
         Set up the shannon filter in the Fourier domain.
         @param decomposition_level: Decomposition level for the filter.
         """
 
         # Get the distance grid.
-        distance_grid, max_frequency = self.get_distance_grid(decomposition_level=decomposition_level)
+        distance_grid, max_frequency = self.get_distance_grid(decomposition_level=decomposition_level,
+                                                              filter_size=filter_size)
 
         # Set up a wavelet filter for the decomposition specifically.
         wavelet_filter = np.zeros(distance_grid.shape, dtype=np.float)
@@ -295,50 +296,61 @@ class NonSeparableWavelet:
 
         return wavelet_filter
 
-    def simoncelli_filter(self, decomposition_level=1):
+    def simoncelli_filter(self, decomposition_level=1, filter_size=None):
         """
         Set up the simoncelli filter in the Fourier domain.
         @param decomposition_level: Decomposition level for the filter.
+        @param filter_size: Size of the filter. By default equal to the size of the image.
         """
 
         # Get the distance grid.
-        distance_grid, decomposed_max_frequency = self.get_distance_grid(decomposition_level=decomposition_level)
+        distance_grid, max_frequency = self.get_distance_grid(decomposition_level=decomposition_level,
+                                                              filter_size=filter_size)
 
         # Set up a wavelet filter for the decomposition specifically.
         wavelet_filter = np.zeros(distance_grid.shape, dtype=np.float)
 
         # Set the mask for the filter.
-        mask = np.logical_and(distance_grid >= decomposed_max_frequency / 4.0,
-                              distance_grid <= decomposed_max_frequency)
+        mask = np.logical_and(distance_grid >= max_frequency / 4.0,
+                              distance_grid <= max_frequency)
 
         # Update the filter.
-        wavelet_filter[mask] += np.cos(np.pi / 2.0 * np.log2(2.0 * distance_grid[mask] / decomposed_max_frequency))
+        wavelet_filter[mask] += np.cos(np.pi / 2.0 * np.log2(2.0 * distance_grid[mask] / max_frequency))
 
         return wavelet_filter
 
-    def get_distance_grid(self, decomposition_level=1):
+    def get_distance_grid(self, decomposition_level=1, filter_size=None):
         """
         Create the distance grid.
         @param decomposition_level: Decomposition level for the filter.
+        @param filter_size: Size of the filter. By default equal to the size of the image.
         """
         # Set up filter shape
-        if self.by_slice:
-            filter_shape = (self.filter_size, self.filter_size)
-        else:
-            filter_shape = (self.filter_size, self.filter_size, self.filter_size)
+        if filter_size is not None:
+            self.filter_size = np.array(filter_size)
+            if self.by_slice:
+                filter_shape = (self.filter_size[1], self.filter_size[2])
+            else:
+                filter_shape = (self.filter_size[0], self.filter_size[1], self.filter_size[2])
+        else :
+            if self.by_slice:
+                filter_shape = (self.filter_size, self.filter_size)
+
+            else:
+                filter_shape = (self.filter_size, self.filter_size, self.filter_size)
 
         # Determine the grid center.
         grid_center = (np.array(filter_shape, dtype=np.float) - 1.0) / 2.0
 
         # Determine distance from center
         distance_grid = list(np.indices(filter_shape, sparse=True))
-        distance_grid = [distance_grid[ii] - center_pos for ii, center_pos in enumerate(grid_center)]
+        distance_grid = [(distance_grid[ii] - center_pos) / center_pos for ii, center_pos in enumerate(grid_center)]
 
         # Compute the distances in the grid.
         distance_grid = np.linalg.norm(distance_grid)
 
         # Set the Nyquist frequency
-        decomposed_max_frequency = self.max_frequency / 2.0 ** decomposition_level
+        decomposed_max_frequency = self.max_frequency / 2.0 ** (decomposition_level - 1.0)
 
         return distance_grid, decomposed_max_frequency
 
@@ -346,52 +358,13 @@ class NonSeparableWavelet:
 
         from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
 
-        # if self.by_slice:
-        #     original_image_size = list(voxel_grid.shape[1:3])
-        # else:
-        #     original_image_size = list(voxel_grid.shape)
-        #
-        # # Get the maximum image size.
-        # img_size = max(original_image_size)
-        #
-        # # Make sure that the image is square (2D) or cubic (3D)
-        # image_pad_size = [img_size - axis_size for axis_size in original_image_size]
-        # filter_pad_size = np.zeros(len(original_image_size), dtype=int).tolist()
-        #
-        # if img_size < self.filter_size:
-        #     # The extent of the filter is larger than that of the image.
-        #     image_pad_size = [axis_pad_size + self.filter_size - img_size for axis_pad_size in image_pad_size]
-        #
-        # elif self.filter_size < img_size and filter_sizing_method == "extend":
-        #     # The extent of the image is larger that that of the filter. In this case we increase the filter size,
-        #     # but keep the max_frequency the same.
-        #     self.filter_size = img_size
-        #
-        # elif self.filter_size < img_size and filter_sizing_method == "spatial":
-        #     # The extent of the image is larger than that of the filter. In this case we zero-pad the filter in the
-        #     # spatial domain prior.
-        #     filter_pad_size = [img_size - self.filter_size - axis_pad_size for axis_pad_size in filter_pad_size]
-        #
-        # # Generate padding parameters for numpy.pad.
-        # image_pad_size = [(0, axis_pad_size) for axis_pad_size in image_pad_size]
-        # filter_pad_size = [(int(np.floor(axis_pad_size / 2.0)),
-        #                     axis_pad_size - int(np.floor(axis_pad_size / 2.0))) for axis_pad_size in filter_pad_size]
-        # if self.by_slice:
-        #     image_pad_size = [(0, 0)] + image_pad_size
-        #
-        # # Pad the voxel grid.
-        # voxel_grid = np.pad(voxel_grid,
-        #                     pad_width=image_pad_size,
-        #                     mode=self.mode)
-        #
-        # # Compute the Fourier transform of the voxel grid.
-        # voxel_grid_f = fft.fftshift(fft.fftn(voxel_grid))
-
         # Create the kernel.
         if self.wavelet_family == "simoncelli":
-            wavelet_kernel_f = self.simoncelli_filter(decomposition_level=decomposition_level)
+            wavelet_kernel_f = self.simoncelli_filter(decomposition_level=decomposition_level,
+                                                      filter_size=voxel_grid.shape)
         elif self.wavelet_family == "shannon":
-            wavelet_kernel_f = self.shannon_filter(decomposition_level=decomposition_level)
+            wavelet_kernel_f = self.shannon_filter(decomposition_level=decomposition_level,
+                                                   filter_size=voxel_grid.shape)
         else:
             raise ValueError(f"The specified wavelet family is not implemented: {self.wavelet_family}")
 
@@ -399,7 +372,8 @@ class NonSeparableWavelet:
             # Create filter set, and assign wavelet filter. Note the ifftshift that is present to go from a centric
             # to quadrant FFT representation.
             filter_set = FilterSet2D(filter_set=fft.ifftshift(wavelet_kernel_f),
-                                     transformed=True)
+                                     transformed=True,
+                                     pad_image=False)
 
             # Create the response map.
             response_map = filter_set.convolve(voxel_grid=voxel_grid,
@@ -410,34 +384,12 @@ class NonSeparableWavelet:
             # Create filter set, and assign wavelet filter. Note the ifftshift that is present to go from a centric
             # to quadrant FFT representation.
             filter_set = FilterSet3D(filter_set=fft.ifftshift(wavelet_kernel_f),
-                                     transformed=True)
+                                     transformed=True,
+                                     pad_image=False)
 
             # Create the response map.
             response_map = filter_set.convolve(voxel_grid=voxel_grid,
                                                mode=self.mode,
                                                response=self.response)
-
-        # # Update the kernel
-        # if filter_sizing_method == "spatial" and self.filter_size < img_size:
-        #     # For the spatial method, first transform the separable wavelet to the spatial domain, then zero-pad,
-        #     # and transform back to the Fourier domain.
-        #     wavelet_kernel = fft.ifftn(fft.ifftshift(wavelet_kernel_f))
-        #     wavelet_kernel = np.pad(wavelet_kernel,
-        #                             pad_width=filter_pad_size,
-        #                             mode="constant")
-        #     wavelet_kernel_f = fft.fftshift(fft.fftn(wavelet_kernel))
-        #
-        # # Take the hadamard product.
-        # response_map_f = np.multiply(voxel_grid_f, wavelet_kernel_f)
-        #
-        # # Perform inverse Fourier transform.
-        # response_map = fft.ifftn(fft.ifftshift(response_map_f)).real
-        #
-        # # Crop back to original size
-        # if self.by_slice:
-        #     response_map = response_map[:, 0:original_image_size[0], 0:original_image_size[1]]
-        #
-        # else:
-        #     response_map = response_map[0:original_image_size[0], 0:original_image_size[1], 0:original_image_size[2]]
 
         return response_map
