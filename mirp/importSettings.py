@@ -124,7 +124,6 @@ class ImageTransformationSettingsClass:
         self.wavelet_decomposition_level = 1
         self.wavelet_rot_invar = True
         self.wavelet_pooling_method = "max"
-        self.wavelet_filter_size = None
         self.log_sigma = None
         self.log_average = False
         self.log_sigma_truncate = 4.0
@@ -375,7 +374,6 @@ def import_configuration_settings(path):
             img_transform_settings.perform_img_transform = str2type(img_transform_branch.find("perform_img_transform"), "bool", False)
             img_transform_settings.spatial_filters       = str2list(img_transform_branch.find("spatial_filters"), "str")
             img_transform_settings.wavelet_fam           = str2type(img_transform_branch.find("wavelet_fam"), "str")
-            img_transform_settings.wavelet_filter_size   = str2type(img_transform_branch.find("wavelet_filter_size"), "int")
             img_transform_settings.wavelet_filter_set    = str2list(img_transform_branch.find("wavelet_filter_set"), "str", "all")
             img_transform_settings.wavelet_stationary    = str2type(img_transform_branch.find("wavelet_stationary"), "bool", True)
             img_transform_settings.wavelet_decomposition_level = str2list(img_transform_branch.find("wavelet_decomposition_level"), "int", 1)

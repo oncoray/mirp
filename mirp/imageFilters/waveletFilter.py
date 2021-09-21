@@ -25,7 +25,7 @@ class WaveletFilter:
         self.filter_config = settings.img_transform.wavelet_filter_set
 
         # Set filter size for non-separable wavelets
-        self.filter_size = settings.img_transform.wavelet_filter_size
+        self.filter_size = None  # Deprecated as external input.
 
         if self.filter_config is None:
             self.filter_config = ["all"]
@@ -279,6 +279,7 @@ class NonSeparableWavelet:
         """
         Set up the shannon filter in the Fourier domain.
         @param decomposition_level: Decomposition level for the filter.
+        @param filter_size: Size of the filter. By default equal to the size of the image.
         """
 
         # Get the distance grid.
