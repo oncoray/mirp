@@ -11,6 +11,7 @@ from mirp.contourClass import ContourClass
 from mirp.imageSUV import SUVscalingObj
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
+from mirp.importSettings import SettingsClass
 from mirp.roiClass import RoiClass
 from mirp.utilities import parse_roi_name
 from pydicom import FileDataset
@@ -204,7 +205,12 @@ def get_all_dicom_headers(image_folder, modality=None, series_uid=None, sop_inst
     return slice_dcm
 
 
-def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = None, series_uid=None, roi=None, frame_of_ref_uid=None):
+def read_dicom_rt_struct(dcm_folder,
+                         image_object: Union[ImageClass, None] = None,
+                         series_uid=None,
+                         roi=None,
+                         frame_of_ref_uid=None,
+                         settings: Union[SettingsClass, None] = None):
 
     # Parse to list
     if roi is not None:
@@ -219,8 +225,11 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
             frame_of_ref_uid = image_object.get_metadata(tag=(0x0020, 0x0052), tag_type="str")
 
     # Find a list of RTSTRUCT files
-    file_list = _find_dicom_image_series(image_folder=dcm_folder, allowed_modalities=["RTSTRUCT"],
-                                         modality="RTSTRUCT", series_uid=series_uid, frame_of_ref_uid=frame_of_ref_uid)
+    file_list = _find_dicom_image_series(image_folder=dcm_folder,
+                                         allowed_modalities=["RTSTRUCT"],
+                                         modality="RTSTRUCT",
+                                         series_uid=series_uid,
+                                         frame_of_ref_uid=frame_of_ref_uid)
 
     # Obtain DICOM metadata from RT structure set.
     dcm_file = os.path.join(dcm_folder, file_list[0])
@@ -256,7 +265,10 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
         return dcm
 
     else:
-        roi_list = [_convert_rtstruct_to_segmentation(dcm=dcm, roi=current_roi, image_object=image_object) for current_roi in roi]
+        roi_list = [_convert_rtstruct_to_segmentation(dcm=dcm,
+                                                      roi=current_roi,
+                                                      image_object=image_object,
+                                                      settings=settings) for current_roi in roi]
         return [roi_obj for roi_obj in roi_list if roi_obj is not None]
 
 
@@ -527,7 +539,10 @@ def _filter_rt_structure_set(dcm, roi_numbers=None, roi_names=None):
     return dcm
 
 
-def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: ImageClass):
+def _convert_rtstruct_to_segmentation(dcm: FileDataset,
+                                      roi: str,
+                                      image_object: ImageClass,
+                                      settings: Union[SettingsClass, None]):
 
     # Deparse roi
     deparsed_roi = parse_roi_name(roi=roi)
@@ -585,7 +600,9 @@ def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: 
         roi_obj = RoiClass(name="+".join(deparsed_roi), contour=contour_data_list, metadata=dcm)
 
         # Convert contour into segmentation object
-        roi_obj.create_mask_from_contours(img_obj=image_object, disconnected_segments="keep_as_is")
+        roi_obj.create_mask_from_contours(img_obj=image_object,
+                                          disconnected_segments="keep_as_is",
+                                          settings=settings)
 
         return roi_obj
 

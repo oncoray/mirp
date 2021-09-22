@@ -271,7 +271,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
-            create_tissue_mask, bias_field_correction, normalise_image
+            create_tissue_mask, bias_field_correction, normalise_image, select_largest_slice
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
         import copy
 
@@ -333,6 +333,10 @@ class ExperimentClass:
                                                roi_names=self.roi_names,
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
+
+            # Select the axial slice with the largest portion of the ROI.
+            if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
+                roi_list = select_largest_slice(roi_list=roi_list)
 
             # Crop slice stack
             if self.settings.vol_adapt.crop:
@@ -508,7 +512,8 @@ class ExperimentClass:
 
         import logging
         from mirp.imageRead import load_image
-        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, saturate_image, normalise_image
+        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
+            saturate_image, normalise_image, select_largest_slice
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
@@ -599,7 +604,11 @@ class ExperimentClass:
                                                roi_names=self.roi_names,
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
-            
+
+            # Select the axial slice with the largest portion of the ROI.
+            if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
+                roi_list = select_largest_slice(roi_list=roi_list)
+
             # Remove metadata
             img_obj.drop_metadata()
             for roi_obj in roi_list:

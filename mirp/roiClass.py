@@ -9,6 +9,7 @@ from pydicom import FileDataset
 # from mirp.contourClass import ContourClass
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
+from mirp.importSettings import SettingsClass
 
 
 def merge_roi_objects(roi_list):
@@ -107,7 +108,11 @@ class RoiClass:
         # Creates a new copy of the roi
         return roi_copy
 
-    def create_mask_from_contours(self, img_obj, draw_method="ray_cast", disconnected_segments="keep_as_is", settings=None):
+    def create_mask_from_contours(self,
+                                  img_obj: ImageClass,
+                                  draw_method="ray_cast",
+                                  disconnected_segments="keep_as_is",
+                                  settings: Union[SettingsClass, None] = None):
         # Creates an image based on provided contours
 
         # Skip if image object is empty
@@ -119,7 +124,7 @@ class RoiClass:
             disconnected_segments = settings.general.divide_disconnected_roi
 
         # Create an empty roi volume
-        roi_mask = np.zeros(img_obj.size, dtype=np.bool)
+        roi_mask = np.zeros(img_obj.size, dtype=bool)
 
         # Create empty slice and mask lists.
         slice_list = []
@@ -173,7 +178,10 @@ class RoiClass:
             roi_mask = roi_label_mask == np.argmax(roi_sizes) + 1
 
         # Store roi as image object
-        self.roi = ImageClass(voxel_grid=roi_mask, origin=img_obj.origin, spacing=img_obj.spacing, orientation=img_obj.orientation)
+        self.roi = ImageClass(voxel_grid=roi_mask,
+                              origin=img_obj.origin,
+                              spacing=img_obj.spacing,
+                              orientation=img_obj.orientation)
 
         # Remove contour information
         self.contour = None
@@ -193,7 +201,7 @@ class RoiClass:
         if self.roi_morphology is not None:
             self.roi_morphology.decimate(by_slice=by_slice)
 
-    def interpolate(self, img_obj, settings):
+    def interpolate(self, img_obj, settings: SettingsClass):
 
         # Skip if image and/or is missing
         if img_obj is None or self.roi is None:
@@ -330,6 +338,35 @@ class RoiClass:
             self.roi_intensity.crop_to_size(center=center, crop_size=crop_size, xy_only=xy_only)
         if self.roi_morphology is not None:
             self.roi_morphology.crop_to_size(center=center, crop_size=crop_size, xy_only=xy_only)
+
+    def select_largest_slice(self):
+        """Crops to the largest slice."""
+
+        # Do not crop
+        if self.is_empty():
+            return
+
+        # Find axial slice that contains the largest part of the ROI..
+        roi_size = np.sum(self.roi.get_voxel_grid(),
+                          axis=(1, 2))
+
+        # Find the index of said slice
+        largest_slice_index = np.argmax(roi_size)
+
+        # Copy only largest slice.
+        roi_mask = np.zeros(self.roi.size, dtype=bool)
+        roi_mask[largest_slice_index, :, :] = self.roi.get_voxel_grid()[largest_slice_index, :, :]
+        self.roi.set_voxel_grid(voxel_grid=roi_mask)
+
+        if self.roi_intensity is not None:
+            roi_mask = np.zeros(self.roi_intensity.size, dtype=bool)
+            roi_mask[largest_slice_index, :, :] = self.roi_intensity.get_voxel_grid()[largest_slice_index, :, :]
+            self.roi_intensity.set_voxel_grid(voxel_grid=roi_mask)
+
+        if self.roi_morphology is not None:
+            roi_mask = np.zeros(self.roi_morphology.size, dtype=bool)
+            roi_mask[largest_slice_index, :, :] = self.roi_morphology.get_voxel_grid()[largest_slice_index, :, :]
+            self.roi_morphology.set_voxel_grid(voxel_grid=roi_mask)
 
     def resegmentise_mask(self, img_obj, by_slice, method, settings):
         # Resegmentation of the roi map based on grey level values
@@ -513,7 +550,7 @@ class RoiClass:
 
         # Original roi object
         if self.roi is not None:
-            n_roi_voxels     = np.int(np.sum(self.roi.get_voxel_grid()))
+            n_roi_voxels = np.int(np.sum(self.roi.get_voxel_grid()))
             if n_roi_voxels == 0:
                 return True
 

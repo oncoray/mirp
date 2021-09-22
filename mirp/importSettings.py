@@ -9,6 +9,7 @@ class GeneralSettingsClass:
 
     def __init__(self):
         self.by_slice = None
+        self.select_slice = None
         self.config_str = ""
         self.divide_disconnected_roi = "combine"
         self.no_approximation = False
@@ -270,7 +271,20 @@ def import_configuration_settings(path):
         general_settings = GeneralSettingsClass()
 
         if general_branch is not None:
-            general_settings.by_slice = str2type(general_branch.find("by_slice"), "bool", False)
+
+            # Parse slice settings.
+            slice_settings = str2type(general_branch.find("by_slice"), "str", "False")
+
+            if slice_settings.lower() in ["true", "t", "1"]:
+                general_settings.by_slice = True
+            elif slice_settings.lower() in ["false", "f", "0"]:
+                general_settings.by_slice = False
+            elif slice_settings.lower() in ["largest"]:
+                general_settings.by_slice = True
+                general_settings.select_slice = "largest"
+            else:
+                raise ValueError(f"The by_slice parameter should be true, false, t, f, 1, 0 or largest. Found: {slice_settings}")
+
             general_settings.config_str = str2type(general_branch.find("config_str"), "str", "")
             general_settings.no_approximation = str2type(general_branch.find("no_approximation"), "bool", False)
 

@@ -70,6 +70,12 @@ def interpolate_roi(roi_list, img_obj, settings):
     return roi_list
 
 
+def select_largest_slice(roi_list):
+
+    # Select the largest slice.
+    return [roi.select_largest_slice() for roi in roi_list]
+
+
 def estimate_image_noise(img_obj, settings, method="chang"):
 
     # TODO Implement as method for imageClass

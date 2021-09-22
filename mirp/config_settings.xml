@@ -3,7 +3,8 @@
         <general>
             <!-- Configuration string that may be added to distinguish different configuration -->
             <config_str></config_str>
-            <!-- Whether calculations should be performed in 2D (True) or 3D (False). Default: False -->
+            <!-- Whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+            largest slice (Largest). Default: False -->
             <by_slice></by_slice>
         </general>
         <img_interpolate>
