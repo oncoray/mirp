@@ -769,7 +769,7 @@ class RoiClass:
         # Create table from test object
         img_dims = img_obj.size
         index_id = np.arange(start=0, stop=np.prod(img_dims))
-        coords = np.unravel_index(indices=index_id, dims=img_dims)
+        coords = np.unravel_index(indices=index_id, shape=img_dims)
         df_img = pd.DataFrame({"index_id": index_id,
                                "g":        np.ravel(img_obj.get_voxel_grid()),
                                "x": coords[2],
