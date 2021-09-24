@@ -487,7 +487,7 @@ def get_minimum_oriented_bounding_box(pos_mat):
         del work_pos, aabb_dims
 
     # Find minimal volume of all rotations and return bounding box dimensions
-    sel_row   = rot_df.loc[rot_df.vol.idxmin, :]
+    sel_row   = rot_df.loc[rot_df.vol.idxmin(), :]
     ombb_dims = np.array([sel_row.aabb_axis_0, sel_row.aabb_axis_1, sel_row.aabb_axis_2])
 
     return ombb_dims
