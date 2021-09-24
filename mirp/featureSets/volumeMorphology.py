@@ -260,13 +260,13 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
 def mesh_voxels(roi_obj):
     """Generate a closed mesh from the morphological mask"""
 
-    from skimage.measure import marching_cubes_lewiner
+    from skimage.measure import marching_cubes
 
     # Get ROI and pad with empty voxels
     morphology_mask = np.pad(roi_obj.roi_morphology.get_voxel_grid(), pad_width=1, mode="constant", constant_values=0.0)
 
     # Use marching cubes to generate a mesh grid for the ROI
-    vertices, faces, norms, values = marching_cubes_lewiner(volume=morphology_mask, level=0.5, spacing=tuple(roi_obj.roi_morphology.spacing))
+    vertices, faces, norms, values = marching_cubes(volume=morphology_mask, level=0.5, spacing=tuple(roi_obj.roi_morphology.spacing))
 
     return vertices, faces, norms
 
