@@ -1,5 +1,7 @@
-library(data.table)
+# Parser for IBSI 1 reference values. Converts csv to assert tests and renames
+# feature tags to internal standard.
 
+library(data.table)
 
 line_parser <- function(ref_value, tol, tag){
 
@@ -74,18 +76,24 @@ line_parser <- function(ref_value, tol, tag){
                 "data[\"", tag, "\"]))"))
 }
 
-file <- file.path(".", "ibsi_1_dig_phantom.csv")
 
-# Read file
-data <- data.table::fread(file)
+file_parser <- function(file){
+  
+  # Read file
+  data <- data.table::fread(file)
+  
+  # Parse lines
+  data <- data[!is.na(`reference value`), list("text"=line_parser(`reference value`, tolerance, tag)), by="tag"]
+  
+  # Drop tag column
+  data[, "tag":=NULL]
+  
+  # Write to file
+  data.table::fwrite(data,
+                     file=stringi::stri_replace_last_fixed(str=file, pattern="csv", replacement="txt"),
+                     quote=FALSE)
+}
 
-# Parse lines
-data <- data[!is.na(`reference value`), list("text"=line_parser(`reference value`, tolerance, tag)), by="tag"]
 
-# Drop tag column
-data[, "tag":=NULL]
-
-# Write to file
-data.table::fwrite(data,
-                   file=stringi::stri_replace_last_fixed(str=file, pattern="csv", replacement="txt"),
-                   quote=FALSE)
+# Digital phantom
+file_parser(file=file.path(".", "ibsi_1_dig_phantom.csv"))
