@@ -561,7 +561,7 @@ def getPerimeter(roi_slice, spacing):
     roi_dims    = np.shape(roi_slice)
 
     # Create data frame
-    vox_indices = np.unravel_index(indices=np.arange(start=0, stop=roi_slice.size), dims=np.shape(roi_slice))
+    vox_indices = np.unravel_index(indices=np.arange(start=0, stop=roi_slice.size), shape=np.shape(roi_slice))
     df_slice = pd.DataFrame({"index_id": np.arange(start=0, stop=roi_slice.size),
                              "border":   np.ravel(roi_b_slice),
                              "y_ind":    vox_indices[0],

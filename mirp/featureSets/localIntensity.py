@@ -101,7 +101,7 @@ def compute_local_mean_intensity_direct(img_obj, roi_obj):
 
     # Generate position matrix
     pos_mat = np.array(
-        np.unravel_index(indices=np.arange(0, np.prod(img_obj.size)), dims=img_obj.size),
+        np.unravel_index(indices=np.arange(0, np.prod(img_obj.size)), shape=img_obj.size),
         dtype=np.float32).transpose()
 
     # Iterate over voxels in the roi
