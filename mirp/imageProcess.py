@@ -285,7 +285,7 @@ def get_supervoxels(img_obj, roi_obj, settings):
     img_voxel_grid *= 1.0 / (g_range[1]-g_range[0])
 
     if img_voxel_grid.dtype not in ["float", "float64"]:
-        img_voxel_grid = img_voxel_grid.astype(np.float)
+        img_voxel_grid = img_voxel_grid.astype(float)
 
     # Create a slic segmentation of the image stack
     img_segments = slic(image=img_voxel_grid, n_segments=n_segments, sigma=sigma, spacing=img_obj.spacing,
@@ -434,7 +434,7 @@ def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False)
     if not (len(roi_ext_z) == 0 or len(roi_ext_y) == 0 or len(roi_ext_x) == 0):
 
         # Express boundary in voxels.
-        boundary = np.ceil(boundary / img_obj.spacing).astype(np.int)
+        boundary = np.ceil(boundary / img_obj.spacing).astype(int)
 
         # Concatenate extents for rois and add boundary to generate map extent
         ind_ext_z = np.array([np.min(roi_ext_z) - boundary[0], np.max(roi_ext_z) + boundary[0]])
@@ -719,8 +719,8 @@ def interpolate_to_new_grid(orig_dim,
         sample_spacing = orig_spacing
 
     # Set sample spacing and orig_spacing to float
-    sample_spacing = sample_spacing.astype(np.float)
-    orig_spacing = orig_spacing.astype(np.float)
+    sample_spacing = sample_spacing.astype(float)
+    orig_spacing = orig_spacing.astype(float)
 
     # If no sample dimensions are provided, assume that the user wants to sample the original grid
     if sample_dim is None:
@@ -807,8 +807,8 @@ def gaussian_preprocess_filter(orig_vox, orig_spacing, sample_spacing=None, para
         sample_spacing = orig_spacing
 
     # Set sample spacing and orig_spacing to float
-    sample_spacing = sample_spacing.astype(np.float)
-    orig_spacing = orig_spacing.astype(np.float)
+    sample_spacing = sample_spacing.astype(float)
+    orig_spacing = orig_spacing.astype(float)
 
     # Calculate the zoom factors
     map_spacing = sample_spacing / orig_spacing

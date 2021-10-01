@@ -252,7 +252,7 @@ class GreyToneDifferenceMatrix:
         # Compose occurrence correspondence table
         df_pij = copy.deepcopy(df_pi)
         df_pij = df_pij.rename(columns={"s": "si"})
-        df_pij = df_pij.iloc[rep(np.arange(start=0, stop=n_g), each=n_g).astype(np.int), :]
+        df_pij = df_pij.iloc[rep(np.arange(start=0, stop=n_g), each=n_g).astype(int), :]
         df_pij["j"] = rep(df_pi.i, each=1, times=n_g)
         df_pij["pj"] = rep(df_pi.pi, each=1, times=n_g)
         df_pij["sj"] = rep(df_pi.s, each=1, times=n_g)

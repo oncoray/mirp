@@ -51,7 +51,7 @@ class ContourClass:
             vertices = contour_vox[contour_vox[:, 0] == curr_slice, :][:, (1, 2)]
             lines = np.vstack(([np.arange(0, vertices.shape[0])], [np.arange(-1, vertices.shape[0] - 1)])).transpose()
 
-            slice_list.append(np.int(curr_slice))
+            slice_list.append(int(curr_slice))
             mask_list.append(poly2grid(verts=vertices,
                                        lines=lines,
                                        spacing=np.array([1.0, 1.0]),

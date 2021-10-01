@@ -265,10 +265,10 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
 
             # Initate process manager
             df_mngr = pd.DataFrame({"job_id": np.arange(len(data_obj_list)),
-                                    "job_processed": np.zeros(shape=len(data_obj_list), dtype=np.bool),
-                                    "job_in_process": np.zeros(shape=len(data_obj_list), dtype=np.bool),
-                                    "assigned_worker": -np.ones(shape=len(data_obj_list), dtype=np.int),
-                                    "error_iteration": np.zeros(shape=len(data_obj_list), dtype=np.int)})
+                                    "job_processed": np.zeros(shape=len(data_obj_list), dtype=bool),
+                                    "job_in_process": np.zeros(shape=len(data_obj_list), dtype=bool),
+                                    "assigned_worker": -np.ones(shape=len(data_obj_list), dtype=int),
+                                    "error_iteration": np.zeros(shape=len(data_obj_list), dtype=int)})
 
             # Initiate worker list
             worker_list = []

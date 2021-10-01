@@ -35,7 +35,7 @@ def get_cm_features(img_obj, roi_obj, settings):
             if ii_spatial.lower() in ["2d", "2.5d"]:
 
                 # Get neighbour directions
-                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=False) * np.int(ii_dist)
+                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=False) * int(ii_dist)
 
                 # Iterate over slices
                 for ii_slice in np.arange(0, n_slices):
@@ -44,17 +44,17 @@ def get_cm_features(img_obj, roi_obj, settings):
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
 
                         # Add glcm matrices to list
-                        glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), direction=nbrs[:, ii_direction], direction_id=ii_direction,
+                        glcm_list += [CooccurrenceMatrix(distance=int(ii_dist), direction=nbrs[:, ii_direction], direction_id=ii_direction,
                                                          spatial_method=ii_spatial.lower(), slice_id=ii_slice)]
             # Perform 3D analysis
             if ii_spatial.lower() == "3d":
 
                 # Get neighbour direction and iterate over neighbours
-                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=True) * np.int(ii_dist)
+                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=True) * int(ii_dist)
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
 
                     # Add glcm matrices to list
-                    glcm_list += [CooccurrenceMatrix(distance=np.int(ii_dist), direction=nbrs[:, ii_direction], direction_id=ii_direction,
+                    glcm_list += [CooccurrenceMatrix(distance=int(ii_dist), direction=nbrs[:, ii_direction], direction_id=ii_direction,
                                                      spatial_method=ii_spatial.lower())]
 
             # Calculate glcm matrices

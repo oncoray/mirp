@@ -28,7 +28,7 @@ def merge_roi_objects(roi_list):
     roi_orientation = roi_list[0].roi.orientation
     roi_size = roi_list[0].roi.size
 
-    roi_mask = np.zeros(roi_size, dtype=np.bool)
+    roi_mask = np.zeros(roi_size, dtype=bool)
 
     # Iterate over rois and perform checks
     for roi in roi_list:
@@ -119,7 +119,7 @@ class RoiClass:
             disconnected_segments = settings.general.divide_disconnected_roi
 
         # Create an empty roi volume
-        roi_mask = np.zeros(img_obj.size, dtype=np.bool)
+        roi_mask = np.zeros(img_obj.size, dtype=bool)
 
         # Create empty slice and mask lists.
         slice_list = []
@@ -448,7 +448,7 @@ class RoiClass:
                     if not(np.any(~vox_not_internal[ii, :, :])): continue
 
                     # Fill holes up to fill_volume in voxel number
-                    vox_filled = remove_small_holes(vox_not_internal[ii, :, :], min_size=np.int(fill_volume), connectivity=2)
+                    vox_filled = remove_small_holes(vox_not_internal[ii, :, :], min_size=int(fill_volume), connectivity=2)
 
                     # Update mask by removing outside voxels from the mask
                     roi_voxel_grid[ii, :, :] = np.squeeze(np.logical_and(vox_filled, ~vox_outside[ii, :, :]))
@@ -456,7 +456,7 @@ class RoiClass:
                 # 3D approach to filling holes
 
                 # Fill holes up to fill_volume in voxel number
-                vox_filled = remove_small_holes(vox_not_internal, min_size=np.int(fill_volume), connectivity=3)
+                vox_filled = remove_small_holes(vox_not_internal, min_size=int(fill_volume), connectivity=3)
 
                 # Update mask by removing outside voxels from the mask
                 roi_voxel_grid = np.logical_and(vox_filled, ~vox_outside)
@@ -472,7 +472,7 @@ class RoiClass:
             vox_disconnected_labels = np.unique(vox_disconnected)
 
             # Set up an empty morphological masks
-            upd_vox_mask = np.full(shape=self.roi_morphology.size, fill_value=False, dtype=np.bool)
+            upd_vox_mask = np.full(shape=self.roi_morphology.size, fill_value=False, dtype=bool)
 
             # Get the minimum volume fraction for inclusion as voxels
             min_vol_fract = settings.roi_resegment.min_vol_fract
@@ -513,19 +513,19 @@ class RoiClass:
 
         # Original roi object
         if self.roi is not None:
-            n_roi_voxels     = np.int(np.sum(self.roi.get_voxel_grid()))
+            n_roi_voxels = int(np.sum(self.roi.get_voxel_grid()))
             if n_roi_voxels == 0:
                 return True
 
         # Roi intensity mask
         if self.roi_intensity is not None:
-            n_roi_int_voxels = np.int(np.sum(self.roi_intensity.get_voxel_grid()))
+            n_roi_int_voxels = int(np.sum(self.roi_intensity.get_voxel_grid()))
             if n_roi_int_voxels == 0:
                 return True
 
         # Roi morphological mask
         if self.roi_morphology is not None:
-            n_roi_morph_voxels = np.int(np.sum(self.roi_morphology.get_voxel_grid()))
+            n_roi_morph_voxels = int(np.sum(self.roi_morphology.get_voxel_grid()))
             if n_roi_morph_voxels == 0:
                 return True
 
@@ -567,9 +567,9 @@ class RoiClass:
 
         # Derive filter extension and distance
         if dist is not None:
-            base_ext: int = np.max([np.floor(dist / np.max(spacing)).astype(np.int), 0])
+            base_ext: int = np.max([np.floor(dist / np.max(spacing)).astype(int), 0])
         else:
-            base_ext: int = np.int(vox_dist)
+            base_ext: int = int(vox_dist)
             dist     = vox_dist * np.max(spacing)
 
         # Check if an actual extension is required.
@@ -598,8 +598,8 @@ class RoiClass:
 
             # Generate geometric filter structure
             geom_struct = np.zeros(shape=(np.max(df_base.z) + 1, np.max(df_base.y) + 1,
-                                          np.max(df_base.x) + 1), dtype=np.bool)
-            geom_struct[df_base.z.astype(np.int), df_base.y.astype(np.int), df_base.x.astype(np.int)] = df_base.in_range
+                                          np.max(df_base.x) + 1), dtype=bool)
+            geom_struct[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.in_range
 
             # Dilate roi mask amd store voxel grid
             self.roi.set_voxel_grid(voxel_grid=ndi.binary_dilation(self.roi.get_voxel_grid(), structure=geom_struct, iterations=1))
@@ -708,9 +708,9 @@ class RoiClass:
 
         # Set number of erosion steps
         if vox_dist is None:
-            erode_steps = np.max([np.round(np.abs(dist) / np.max(spacing)).astype(np.int), 0])
+            erode_steps = np.max([np.round(np.abs(dist) / np.max(spacing)).astype(int), 0])
         else:
-            erode_steps = np.abs(vox_dist.astype(np.int))
+            erode_steps = np.abs(vox_dist.astype(int))
             dist = vox_dist * np.max(spacing)
 
         if erode_steps > 0:
@@ -777,9 +777,9 @@ class RoiClass:
                                "z": coords[0]})
 
         if intensity_mask:
-            df_img["roi_int_mask"] = np.ravel(self.roi_intensity.get_voxel_grid()).astype(np.bool)
+            df_img["roi_int_mask"] = np.ravel(self.roi_intensity.get_voxel_grid()).astype(bool)
         if morphology_mask:
-            df_img["roi_morph_mask"] = np.ravel(self.roi_morphology.get_voxel_grid()).astype(np.bool)
+            df_img["roi_morph_mask"] = np.ravel(self.roi_morphology.get_voxel_grid()).astype(bool)
         if distance_map:
             # Calculate distance by sequential border erosion
             from scipy.ndimage import generate_binary_structure, binary_erosion

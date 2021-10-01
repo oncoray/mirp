@@ -186,7 +186,7 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
     df_his["gamma"] = (df_his.g - g_range_loc[0]) / (g_range_loc[1] - g_range_loc[0])
 
     # Calculate volume fraction
-    df_his["nu"] = 1.0 - (np.cumsum(np.append([0], df_his.n))[0:np.int(n_bins)]) * 1.0 / (n_v * 1.0)
+    df_his["nu"] = 1.0 - (np.cumsum(np.append([0], df_his.n))[0:int(n_bins)]) * 1.0 / (n_v * 1.0)
 
     return df_his, n_bins
 
