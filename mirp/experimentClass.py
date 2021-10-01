@@ -13,9 +13,23 @@ from mirp.utilities import expand_grid
 
 class ExperimentClass:
 
-    def __init__(self, modality, subject, cohort, image_folder, roi_folder, roi_reg_img_folder, image_file_name_pattern,
-                 registration_image_file_name_pattern, roi_names, data_str, write_path,
-                 settings: SettingsClass, provide_diagnostics=False, compute_features=False, extract_images=False, plot_images=False,
+    def __init__(self,
+                 modality,
+                 subject,
+                 cohort,
+                 image_folder,
+                 roi_folder,
+                 roi_reg_img_folder,
+                 image_file_name_pattern,
+                 registration_image_file_name_pattern,
+                 roi_names,
+                 data_str,
+                 write_path,
+                 settings: SettingsClass,
+                 provide_diagnostics=False,
+                 compute_features=False,
+                 extract_images=False,
+                 plot_images=False,
                  keep_images_in_memory=False):
         """
         Attributes for an experiment.
@@ -45,8 +59,9 @@ class ExperimentClass:
 
         # Path for writing data
         self.write_path = write_path
-        if not os.path.isdir(self.write_path):
-            os.makedirs(self.write_path)
+        if self.write_path is not None:
+            if not os.path.isdir(self.write_path):
+                os.makedirs(self.write_path)
 
         # Paths to image and segmentation folders
         self.image_folder = image_folder
@@ -491,11 +506,18 @@ class ExperimentClass:
             # Write to file
             file_name = "_".join([file_name_comp for file_name_comp in [self.subject, self.modality, self.data_str, self.date, self.settings.general.config_str, "features.csv"]
                                   if file_name_comp != ""]).replace(" ", "_")
-            # file_name = self.subject + "_" + self.modality + "_" + self.data_str + "_" + self.date + "_" + self.settings.general.config_str + "_features.csv"
-            df_feat.to_csv(path_or_buf=os.path.join(self.write_path, file_name), sep=";", na_rep="NA", index=False, decimal=".")
 
             # Write successful completion to console or log
             logging.info(self._message_feature_extraction_finished())
+
+            if self.write_path is None:
+                return df_feat
+            else:
+                df_feat.to_csv(path_or_buf=os.path.join(self.write_path, file_name),
+                               sep=";",
+                               na_rep="NA",
+                               index=False,
+                               decimal=".")
 
     def process_deep_learning(self,
                               output_slices=False,
@@ -521,7 +543,8 @@ class ExperimentClass:
             level=logging.INFO, stream=sys.stdout)
 
         # Notifications
-        logging.info("\nInitialising image and mask processing using %s images for %s.", self.modality + "_" + self.data_str + "_", self.subject)
+        logging.info("\nInitialising image and mask processing using %s images for %s.",
+                     "_".join([self.modality, self.data_str, self.subject]))
 
         # Process input parameters.
         crop_as_3d = crop_size is None or len(crop_size) == 3
@@ -875,7 +898,7 @@ class ExperimentClass:
         name_string = []
 
         # Add cohort and subject or just subject
-        if self.cohort != "NA":
+        if self.cohort != "NA" and self.cohort is not None:
             name_string += [self.cohort, self.subject]
         else:
             name_string += [self.subject]
@@ -884,7 +907,7 @@ class ExperimentClass:
         name_string += [self.modality]
 
         # Add data string
-        if self.data_str != "":
+        if self.data_str != "" and self.data_str is not None:
             name_string += [self.data_str]
 
         # Add configuration string
