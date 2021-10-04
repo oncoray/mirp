@@ -109,7 +109,7 @@ class ImageClass:
         self.spacing: np.ndarray = new_spacing
 
         # Recompute the affine matrices
-        m_affine = np.zeros((3, 3), dtype=np.float)
+        m_affine = np.zeros((3, 3), dtype=float)
 
         # z-coordinates
         m_affine[:, 0] = self.spacing[0] * np.array([self.orientation[0], self.orientation[1], self.orientation[2]])
@@ -141,7 +141,7 @@ class ImageClass:
 
         if self.isEncoded_voxel_grid:
             # Decode voxel grid (typically roi)
-            decoded_voxel = np.zeros(np.prod(self.size), dtype=np.bool)
+            decoded_voxel = np.zeros(np.prod(self.size), dtype=bool)
 
             # Check if the voxel grid contains values
             if self.voxel_grid is not None:
@@ -188,7 +188,7 @@ class ImageClass:
     def decode_voxel_grid(self):
         """Performs run length decoding of the voxel grid and converts it to a numpy array"""
         if self.dtype_name == "bool" and self.isEncoded_voxel_grid:
-            decoded_voxel = np.zeros(np.prod(self.size), dtype=np.bool)
+            decoded_voxel = np.zeros(np.prod(self.size), dtype=bool)
 
             # Check if the voxel grid contains values
             if self.voxel_grid is not None:
@@ -415,12 +415,12 @@ class ImageClass:
             intensity_range = [np.nan, np.nan]
 
         if mask is None:
-            mask = np.ones(self.size, dtype=np.bool)
+            mask = np.ones(self.size, dtype=bool)
         else:
-            mask = mask.astype(np.bool)
+            mask = mask.astype(bool)
 
         if np.sum(mask) == 0:
-            mask = np.ones(self.size, dtype=np.bool)
+            mask = np.ones(self.size, dtype=bool)
 
         if saturation_range is None:
             saturation_range = [np.nan, np.nan]
@@ -607,12 +607,12 @@ class ImageClass:
             return
 
         # Determine corresponding voxel indices
-        max_ind = np.ceil(np.array((np.max(ind_ext_z), np.max(ind_ext_y), np.max(ind_ext_x)))).astype(np.int)
-        min_ind = np.floor(np.array((np.min(ind_ext_z), np.min(ind_ext_y), np.min(ind_ext_x)))).astype(np.int)
+        max_ind = np.ceil(np.array((np.max(ind_ext_z), np.max(ind_ext_y), np.max(ind_ext_x)))).astype(int)
+        min_ind = np.floor(np.array((np.min(ind_ext_z), np.min(ind_ext_y), np.min(ind_ext_x)))).astype(int)
 
         # Set bounding indices
-        max_bound_ind = np.minimum(max_ind, self.size).astype(np.int)
-        min_bound_ind = np.maximum(min_ind, np.array([0, 0, 0])).astype(np.int)
+        max_bound_ind = np.minimum(max_ind, self.size).astype(int)
+        min_bound_ind = np.maximum(min_ind, np.array([0, 0, 0])).astype(int)
 
         # Get voxel grid
         voxel_grid = self.get_voxel_grid()
@@ -627,7 +627,7 @@ class ImageClass:
                                     min_bound_ind[1]:max_bound_ind[1] + 1,
                                     min_bound_ind[2]:max_bound_ind[2] + 1]
             min_bound_ind[0] = 0
-            max_bound_ind[0] = self.size[0].astype(np.int)
+            max_bound_ind[0] = self.size[0].astype(int)
         else:
             voxel_grid = voxel_grid[min_bound_ind[0]:max_bound_ind[0] + 1,
                                     min_bound_ind[1]:max_bound_ind[1] + 1,
@@ -650,7 +650,7 @@ class ImageClass:
         crop_size = np.array(copy.deepcopy(crop_size))
 
         # Determine the new grid origin in the original index space. Only the dimensions with a number are updated
-        grid_origin = np.round(center - crop_size / 2.0).astype(np.int)
+        grid_origin = np.round(center - crop_size / 2.0).astype(int)
 
         # Update grid origin and crop_size for the remainder of the calculation
         grid_origin[np.isnan(crop_size)] = 0
@@ -661,15 +661,15 @@ class ImageClass:
         min_ind_orig = grid_origin
 
         # Update coordinates based on boundaries in the original images
-        max_ind_orig = np.minimum(max_ind_orig, self.size).astype(np.int)
-        min_ind_orig = np.maximum(min_ind_orig, [0, 0, 0]).astype(np.int)
+        max_ind_orig = np.minimum(max_ind_orig, self.size).astype(int)
+        min_ind_orig = np.maximum(min_ind_orig, [0, 0, 0]).astype(int)
 
         # Determine coordinates where this box should land, i.e. perform the coordinate transformation to grid index space.
         max_ind_grid = max_ind_orig - grid_origin
         min_ind_grid = min_ind_orig - grid_origin
 
         # Create an empty voxel_grid to copy to
-        cropped_grid = np.full(crop_size.astype(np.int), fill_value=np.nan)
+        cropped_grid = np.full(crop_size.astype(int), fill_value=np.nan)
 
         # Get slice of voxel grid
         voxel_grid = self.get_voxel_grid()[min_ind_orig[0]:max_ind_orig[0],

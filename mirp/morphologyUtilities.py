@@ -528,7 +528,7 @@ def getPerimeter(roi_slice, spacing):
     def voxelIsBorder(df, index):
         # Determine whether selected voxel is a border voxel
 
-        border_vox = np.zeros(np.size(index), dtype=np.bool)
+        border_vox = np.zeros(np.size(index), dtype=bool)
         border_vox[index >= 0] = df.border.values[index[index >= 0]]
 
         return border_vox
@@ -561,7 +561,7 @@ def getPerimeter(roi_slice, spacing):
     roi_dims    = np.shape(roi_slice)
 
     # Create data frame
-    vox_indices = np.unravel_index(indices=np.arange(start=0, stop=roi_slice.size), dims=np.shape(roi_slice))
+    vox_indices = np.unravel_index(indices=np.arange(start=0, stop=roi_slice.size), shape=np.shape(roi_slice))
     df_slice = pd.DataFrame({"index_id": np.arange(start=0, stop=roi_slice.size),
                              "border":   np.ravel(roi_b_slice),
                              "y_ind":    vox_indices[0],
@@ -570,7 +570,7 @@ def getPerimeter(roi_slice, spacing):
                              "x_pos":    vox_indices[1] * spacing[1],
                              "r":        np.zeros(roi_slice.size),
                              "theta":    np.full(roi_slice.size, np.nan),
-                             "visited":  np.zeros(roi_slice.size, dtype=np.bool)})
+                             "visited":  np.zeros(roi_slice.size, dtype=bool)})
     del vox_indices
 
     # Recenter on border centroid
@@ -589,10 +589,10 @@ def getPerimeter(roi_slice, spacing):
     df_nbrs = pd.DataFrame({"index_id": np.arange(start=0, stop=8),
                             "y_ind":    np.array([ 0,  1,  1,  1,  0, -1, -1, -1]),
                             "x_ind":    np.array([ 1,  1,  0, -1, -1, -1,  0,  1]),
-                            "to_ind":   np.zeros(8, dtype=np.int),
-                            "to_phi":   np.zeros(8, dtype=np.float),
-                            "border":   np.zeros(8, dtype=np.bool),
-                            "pref":     np.zeros(8, dtype=np.float)})
+                            "to_ind":   np.zeros(8, dtype=int),
+                            "to_phi":   np.zeros(8, dtype=float),
+                            "border":   np.zeros(8, dtype=bool),
+                            "pref":     np.zeros(8, dtype=float)})
 
     # Set angle phi for the particular neighbour direction and wrap to[-pi,pi)
     df_nbrs["to_phi"] = np.arctan2(df_nbrs.y_ind, df_nbrs.x_ind)
@@ -642,7 +642,7 @@ def getPerimeter(roi_slice, spacing):
         perim_iter += 1
 
     # Remove redundant elements from the perimeter chain
-    perim_chain = perim_chain[~np.isnan(perim_chain)].astype(np.int)
+    perim_chain = perim_chain[~np.isnan(perim_chain)].astype(int)
 
     # Define return data frame
     df_ret = df_slice.iloc[perim_chain,].reset_index(drop=True).drop(["index_id","border","visited"], axis=1)
@@ -779,8 +779,8 @@ def mesh2grid(verts, faces, spacing, origin=None):
         origin = min_pos - 0.25 * spacing
 
     # Determine voxel grid
-    vox_grid_dims = np.ceil((max_pos - origin) / spacing).astype(np.int)
-    vox_grid = np.zeros(vox_grid_dims, dtype=np.int)
+    vox_grid_dims = np.ceil((max_pos - origin) / spacing).astype(int)
+    vox_grid = np.zeros(vox_grid_dims, dtype=int)
 
     # Set ray direction
     ray_dir = np.array((1.0, 0.0, 0.0))
@@ -795,7 +795,7 @@ def mesh2grid(verts, faces, spacing, origin=None):
                                    origin[1] + y_ind * spacing[1],
                                    origin[2] + x_ind * spacing[2]))
 
-            vox_col = np.zeros(np.shape(vox_span), dtype=np.int)
+            vox_col = np.zeros(np.shape(vox_span), dtype=int)
 
             # Set mask to test only likely mesh triangles (in-plane mesh coordinates contain in-plane ray coordinates)
             simplex_mask = np.logical_and(np.abs(np.sum(np.sign(np.vstack((vert_1[:, 1], vert_2[:, 1], vert_3[:, 1])) - ray_origin[1]), axis=0)) < 3,
@@ -820,7 +820,7 @@ def mesh2grid(verts, faces, spacing, origin=None):
             # Voxels in the roi cross an uneven number of meshes from the origin
             vox_grid[:, y_ind, x_ind] += vox_col % 2
 
-    return vox_grid.astype(dtype=np.bool)
+    return vox_grid.astype(dtype=bool)
 
 
 def poly2grid(verts, lines, spacing, origin, shape):
@@ -835,11 +835,11 @@ def poly2grid(verts, lines, spacing, origin, shape):
     vert_2 = vert_2[line_mask] - origin
 
     # Find extent of contours in x
-    x_min_ind = np.int(np.max([np.floor(np.min(verts[:, 1]) / spacing[1]), 0.0]))
-    x_max_ind = np.int(np.min([np.ceil(np.max(verts[:, 1]) / spacing[1]), shape[1] * 1.0]))
+    x_min_ind = int(np.max([np.floor(np.min(verts[:, 1]) / spacing[1]), 0.0]))
+    x_max_ind = int(np.min([np.ceil(np.max(verts[:, 1]) / spacing[1]), shape[1] * 1.0]))
 
     # Set up voxel grid and y-span
-    vox_grid = np.zeros(shape, dtype=np.int)
+    vox_grid = np.zeros(shape, dtype=int)
     vox_span = origin[0] + np.arange(0, shape[0]) * spacing[0]
 
     # Set ray origin and direction (starts at negative y, and travels towards positive y
@@ -851,8 +851,8 @@ def poly2grid(verts, lines, spacing, origin, shape):
         ray_origin[1] = origin[1] + x_ind * spacing[1]
 
         # Scan both forward and backward to resolve points located on the polygon
-        vox_col_frwd = np.zeros(np.shape(vox_span), dtype=np.int)
-        vox_col_bkwd = np.zeros(np.shape(vox_span), dtype=np.int)
+        vox_col_frwd = np.zeros(np.shape(vox_span), dtype=int)
+        vox_col_bkwd = np.zeros(np.shape(vox_span), dtype=int)
 
         # Find lines that are intersected by the ray
         ray_hit = np.sum(np.sign(np.vstack((vert_1[:, 1], vert_2[:, 1])) - ray_origin[1]), axis=0)
@@ -881,4 +881,4 @@ def poly2grid(verts, lines, spacing, origin, shape):
         # Voxels in the roi cross an uneven number of meshes from the origin
         vox_grid[:, x_ind] += np.logical_and(vox_col_frwd % 2, vox_col_bkwd % 2)
 
-    return vox_grid.astype(dtype=np.bool)
+    return vox_grid.astype(dtype=bool)

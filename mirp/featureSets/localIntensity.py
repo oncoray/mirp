@@ -69,9 +69,9 @@ def compute_local_mean_intensity_filter(img_obj, roi_obj):
     df_base.loc[:, ["x", "y", "z"]] -= df_base.loc[0, ["x", "y", "z"]]
 
     # Generate convolution filter
-    conv_filter = np.zeros(shape=(np.max(df_base.z).astype(np.int) + 1, np.max(df_base.y).astype(np.int) + 1,
-                                  np.max(df_base.x).astype(np.int) + 1))
-    conv_filter[df_base.z.astype(np.int), df_base.y.astype(np.int), df_base.x.astype(np.int)] = df_base.weight
+    conv_filter = np.zeros(shape=(np.max(df_base.z).astype(int) + 1, np.max(df_base.y).astype(int) + 1,
+                                  np.max(df_base.x).astype(int) + 1))
+    conv_filter[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.weight
 
     # Filter image using mean filter
     if img_obj.modality == "PT":
@@ -101,7 +101,7 @@ def compute_local_mean_intensity_direct(img_obj, roi_obj):
 
     # Generate position matrix
     pos_mat = np.array(
-        np.unravel_index(indices=np.arange(0, np.prod(img_obj.size)), dims=img_obj.size),
+        np.unravel_index(indices=np.arange(0, np.prod(img_obj.size)), shape=img_obj.size),
         dtype=np.float32).transpose()
 
     # Iterate over voxels in the roi

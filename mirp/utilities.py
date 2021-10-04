@@ -99,7 +99,7 @@ def get_spherical_structure(radius, spacing):
     import numpy as np
 
     # Define extent in index coordinates
-    extent = np.ceil(np.divide(radius, spacing)).astype(np.int)
+    extent = np.ceil(np.divide(radius, spacing)).astype(int)
 
     # Generate coordinate grids. Note that this will generate a grid with 0,0,0 as center voxel.
     grid_z, grid_y, grid_x = np.mgrid[-extent[0]:extent[0]+1, -extent[1]:extent[1]+1, -extent[2]:extent[2]+1]

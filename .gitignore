@@ -2,3 +2,5 @@
 /scripts/
 mirp/__pycache__/
 *.pyc
+test/data/reference_values/.Rhistory
+test/.Rhistory

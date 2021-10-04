@@ -160,12 +160,12 @@ def compute_intensity_histogram_features(df_img, g_range):
     df_feat["ih_max_grad"] = np.max(df_his.grad)
 
     # Maximum histogram gradient grey level
-    df_feat["ih_max_grad_g"] = df_his.g[df_his.grad.idxmax]
+    df_feat["ih_max_grad_g"] = df_his.g[df_his.grad.idxmax()]
 
     # Minimum histogram gradient
     df_feat["ih_min_grad"] = np.min(df_his.grad)
 
     # Minimum histogram gradient grey level
-    df_feat["ih_min_grad_g"] = df_his.g[df_his.grad.idxmin]
+    df_feat["ih_min_grad_g"] = df_his.g[df_his.grad.idxmin()]
 
     return df_feat

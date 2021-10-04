@@ -78,7 +78,7 @@ def randomise_roi_contours(roi_list, img_obj, settings):
 
         # Determine grid indices of the resected grid with respect to the original image grid
         grid_origin = world_to_index(coord=res_img_obj.origin, origin=img_obj.origin, spacing=img_obj.spacing)
-        grid_origin = grid_origin.astype(np.int)
+        grid_origin = grid_origin.astype(int)
 
         # Iteratively create randomised regions of interest
         for ii in np.arange(settings.vol_adapt.roi_random_rep):
@@ -91,7 +91,7 @@ def randomise_roi_contours(roi_list, img_obj, settings):
             incl_segments = overlap_indices[np.less(random_incl, overlap_fract)]
 
             # Replace randomised contour in original roi voxel space
-            roi_vox = np.zeros(shape=roi_list[roi_ind].roi.size, dtype=np.bool)
+            roi_vox = np.zeros(shape=roi_list[roi_ind].roi.size, dtype=bool)
             roi_vox[grid_origin[0]: grid_origin[0] + res_roi_obj.roi.size[0],
                     grid_origin[1]: grid_origin[1] + res_roi_obj.roi.size[1],
                     grid_origin[2]: grid_origin[2] + res_roi_obj.roi.size[2], ] = \

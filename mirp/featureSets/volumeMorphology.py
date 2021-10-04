@@ -260,13 +260,13 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
 def mesh_voxels(roi_obj):
     """Generate a closed mesh from the morphological mask"""
 
-    from skimage.measure import marching_cubes_lewiner
+    from skimage.measure import marching_cubes
 
     # Get ROI and pad with empty voxels
     morphology_mask = np.pad(roi_obj.roi_morphology.get_voxel_grid(), pad_width=1, mode="constant", constant_values=0.0)
 
     # Use marching cubes to generate a mesh grid for the ROI
-    vertices, faces, norms, values = marching_cubes_lewiner(volume=morphology_mask, level=0.5, spacing=tuple(roi_obj.roi_morphology.spacing))
+    vertices, faces, norms, values = marching_cubes(volume=morphology_mask, level=0.5, spacing=tuple(roi_obj.roi_morphology.spacing))
 
     return vertices, faces, norms
 
@@ -487,7 +487,7 @@ def get_minimum_oriented_bounding_box(pos_mat):
         del work_pos, aabb_dims
 
     # Find minimal volume of all rotations and return bounding box dimensions
-    sel_row   = rot_df.loc[rot_df.vol.idxmin, :]
+    sel_row   = rot_df.loc[rot_df.vol.idxmin(), :]
     ombb_dims = np.array([sel_row.aabb_axis_0, sel_row.aabb_axis_1, sel_row.aabb_axis_2])
 
     return ombb_dims
