@@ -3,7 +3,8 @@
         <general>
             <!-- Configuration string that may be added to distinguish different configuration -->
             <config_str></config_str>
-            <!-- Whether calculations should be performed in 2D (True) or 3D (False). Default: False -->
+            <!-- Whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+            largest slice (Largest). Default: False -->
             <by_slice></by_slice>
         </general>
         <img_interpolate>
@@ -125,28 +126,63 @@
             <perform_img_transform></perform_img_transform>
             <!-- Boundary conditions, i.e. how to calculate the filter response for voxels that are less than the filter width removed from the volume edge. -->
             <boundary_condition></boundary_condition>
-            <!-- Spatial filters to apply. Options: wavelet, laplacian_of_gaussian, laws, mean -->
+            <!-- Spatial filters to apply. Options: gabor, wavelet, laplacian_of_gaussian, laws, mean -->
             <spatial_filters></spatial_filters>
-            <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets. -->
+            <!-- Wavelet filter to be used. The name must match a wavelet implemented in pyWavelets, simoncelli or
+            shannon. -->
             <wavelet_fam></wavelet_fam>
+            <!-- Wavelet filter set to be used (for separable wavelets), e.g. LLL. LLH. Default: all. -->
+            <wavelet_filter_set></wavelet_filter_set>
+            <!-- Create stationary separable wavelets; True (default) or False (decimation will take place) -->
+            <wavelet_stationary></wavelet_stationary>
+            <!-- Decomposition level of the response map: 1 (default) or greater integer. -->
+            <wavelet_decomposition_level></wavelet_decomposition_level>
             <!-- Create rotationally invariant wavelet response maps; True or False -->
             <wavelet_rot_invar></wavelet_rot_invar>
-            <!-- Create stationary wavelets; True (default) or False (decimation will take place) -->
-            <wavelet_stationary></wavelet_stationary>
-            <!-- Laplacian of Gaussian sigma (in world space units). This specifies the width of the Gaussian filter by its standard deviation. -->
+            <!-- Pooling method used for rotationally invariant wavelet response maps for separable wavelets; max (default) or mean. -->
+            <wavelet_pooling_method></wavelet_pooling_method>
+            <!-- Laplacian of Gaussian sigma (in mm). This specifies the width of the Gaussian filter by
+            its standard deviation. -->
             <log_sigma></log_sigma>
             <!-- Number of standard deviations to allow before truncating the Gaussian filter -->
             <log_sigma_truncate></log_sigma_truncate>
             <!-- Whether to average over laplacian of gaussian images for different scales; True or False -->
             <log_average></log_average>
-            <!-- Calculate laws texture energy image, or just the response map; True (default) or False -->
-            <laws_calculate_energy></laws_calculate_energy>
-            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
-            <laws_rot_invar></laws_rot_invar>
             <!-- Calculate specific laws kernels; all (default) or specific combinations, e.g. L5S5E5, E5E5E5-->
             <laws_kernel></laws_kernel>
+            <!-- Calculate laws texture energy image, or just the response map; True (default) or False -->
+            <laws_calculate_energy></laws_calculate_energy>
             <!-- Delta for chebyshev distance between center voxel and neighbourhood boundary used to calculate texture energy: integer, default: 7-->
             <laws_delta></laws_delta>
+            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
+            <laws_rot_invar></laws_rot_invar>
+            <!-- Pooling method used for rotationally invariant Laws response maps and energy images; max (default) or mean. -->
+            <laws_pooling_method></laws_pooling_method>
+            <!-- Gabor kernel sigma (in mm). Together with gamma, this specifies the width of the filter. -->
+            <gabor_sigma></gabor_sigma>
+            <!-- Number of standard deviations at which the filter should be truncated. -->
+            <gabor_sigma_truncate></gabor_sigma_truncate>
+            <!-- Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
+            relative to x-axis for 0-angle Gabor kernel. -->
+            <gabor_gamma></gabor_gamma>
+            <!-- Wavelength of the Gaussian kernel (in mm) -->
+            <gabor_lambda></gabor_lambda>
+            <!-- Initial angle of the Gabor filter. Defined in units of pi, e.g. 0.5 equals 0.5 pi internally. -->
+            <gabor_theta_initial></gabor_theta_initial>
+            <!-- Angle step size for in-plane rotational invariance. Defined in units of pi, e.g. 0.5 equals a step
+            of 0.5 pi internally. A value of 0.0 (default) disables stepping. -->
+            <gabor_theta_step></gabor_theta_step>
+            <!-- Type of response map created by Gabor filters. Gabor kernels consist of complex numbers, and the
+            direct response map will be complex as well. The complex-valued response map is converted to a
+            real-valued response map using the specified method; one of magnitude (default), argument, real,
+            imaginary -->
+            <gabor_response></gabor_response>
+             <!-- Create rotationally invariant Gabor response maps by stacking 2D response over orthogonal planes;
+             True (default for 3D) or False. Not possible for 2D analysis (by_slice). -->
+            <gabor_rot_invar></gabor_rot_invar>
+            <!-- Pooling method used for rotationally invariant response maps for gabor kernels; max (default)
+             or mean. -->
+            <gabor_pooling_method></gabor_pooling_method>
             <!-- Filter size for mean filter. -->
             <mean_filter_size></mean_filter_size>
         </img_transform>

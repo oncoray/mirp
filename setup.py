@@ -12,5 +12,5 @@ setup(
     author="Alex Zwanenburg",
     packages=["mirp", "mirp.featureSets", "mirp.imageFilters"],
     install_requires=["numpy", "scipy", "pandas", "scikit-image", "pydicom", "pywavelets", "SimpleITK", "itk"],
-    python_requires=">=3.6.0",
+    python_requires=">=3.7.0",
 )
