@@ -3,7 +3,7 @@
 
 library(data.table)
 
-line_parser <- function(ref_value, tol, tag){
+line_parser <- function(ref_value, tol, tag, postfix=NULL){
 
   suffix <- NULL
   
@@ -70,6 +70,10 @@ line_parser <- function(ref_value, tol, tag){
     
   }
   
+  if(any(stringi::stri_startswith_fixed(str=tag, pattern=c("ih_", "cm_", "rlm_", "szm_", "dzm_", "ngt_", "ngl_")))){
+    tag <- paste0(c(tag, postfix), collapse="")
+  }
+  
   return(paste0("    assert(within_tolerance(",
                 ref_value, ", ",
                 tol, ", ",
@@ -77,13 +81,15 @@ line_parser <- function(ref_value, tol, tag){
 }
 
 
-file_parser <- function(file){
+file_parser <- function(file, postfix=NULL){
+  # Avoid warning due to non-standard evaluation in data.table.
+  `reference value` <- tolerance <- tag <- NULL
   
   # Read file
   data <- data.table::fread(file)
   
   # Parse lines
-  data <- data[!is.na(`reference value`), list("text"=line_parser(`reference value`, tolerance, tag)), by="tag"]
+  data <- data[!is.na(`reference value`), list("text"=line_parser(`reference value`, tolerance, tag, postfix)), by="tag"]
   
   # Drop tag column
   data[, "tag":=NULL]
@@ -97,3 +103,8 @@ file_parser <- function(file){
 
 # Digital phantom
 file_parser(file=file.path(".", "ibsi_1_dig_phantom.csv"))
+file_parser(file=file.path(".", "ibsi_1_chest_config_a.csv"), postfix = "_fbs_w25")
+file_parser(file=file.path(".", "ibsi_1_chest_config_b.csv"), postfix = "_fbn_n32")
+file_parser(file=file.path(".", "ibsi_1_chest_config_c.csv"), postfix = "_fbs_w25")
+file_parser(file=file.path(".", "ibsi_1_chest_config_d.csv"), postfix = "_fbn_n32")
+file_parser(file=file.path(".", "ibsi_1_chest_config_e.csv"), postfix = "_fbn_n32")
