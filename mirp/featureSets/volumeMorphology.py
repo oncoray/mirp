@@ -1,8 +1,14 @@
 import numpy as np
 import pandas as pd
 
+from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from mirp.importSettings import FeatureExtractionSettingsClass
 
-def get_volumetric_morphological_features(img_obj, roi_obj, settings):
+
+def get_volumetric_morphological_features(img_obj: ImageClass,
+                                          roi_obj: RoiClass,
+                                          settings: FeatureExtractionSettingsClass):
     """
     Extract morphological features from the image volume
     :param img_obj: image object
@@ -21,9 +27,12 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
                   "morph_sph_dispr", "morph_sphericity", "morph_asphericity", "morph_com",
                   "morph_diam", "morph_pca_maj_axis", "morph_pca_min_axis", "morph_pca_least_axis",
                   "morph_pca_elongation", "morph_pca_flatness", "morph_vol_dens_aabb", "morph_area_dens_aabb",
-                  "morph_vol_dens_ombb", "morph_area_dens_ombb", "morph_vol_dens_aee", "morph_area_dens_aee",
-                  "morph_vol_dens_mvee", "morph_area_dens_mvee", "morph_vol_dens_conv_hull",
+                  "morph_vol_dens_aee", "morph_area_dens_aee", "morph_vol_dens_conv_hull",
                   "morph_area_dens_conv_hull", "morph_integ_int", "morph_moran_i", "morph_geary_c"]
+
+    if not settings.ibsi_compliant:
+        feat_names += ["morph_vol_dens_ombb", "morph_area_dens_ombb",  "morph_vol_dens_mvee", "morph_area_dens_mvee"]
+
     df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
     df_feat.columns = feat_names
 
@@ -33,7 +42,7 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
 
     # Number of voxels within masks
     n_v_morph = np.sum(roi_obj.roi_morphology.get_voxel_grid())
-    n_v_int   = np.sum(roi_obj.roi_intensity.get_voxel_grid())
+    n_v_int = np.sum(roi_obj.roi_intensity.get_voxel_grid())
 
     # Check if any voxels are within the morphological mask
     if n_v_morph == 0:
@@ -107,33 +116,34 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
 
     # Area density - axis-aligned bounding box
     df_feat["morph_area_dens_aabb"] = area / (2.0 * aabb_dims[0] * aabb_dims[1] +
-                                                    2.0 * aabb_dims[0] * aabb_dims[2] +
-                                                    2.0 * aabb_dims[1] * aabb_dims[2])
+                                              2.0 * aabb_dims[0] * aabb_dims[2] +
+                                              2.0 * aabb_dims[1] * aabb_dims[2])
     del aabb_dims
 
-    # Volume density - oriented minimum bounding box
-    ombb_dims = get_minimum_oriented_bounding_box(pos_mat=hull_verts)
-    df_feat["morph_vol_dens_ombb"] = volume / np.product(ombb_dims)
+    if not settings.ibsi_compliant:
+        # Volume density - oriented minimum bounding box
+        ombb_dims = get_minimum_oriented_bounding_box(pos_mat=hull_verts)
+        df_feat["morph_vol_dens_ombb"] = volume / np.product(ombb_dims)
 
-    # Area density - oriented minimum bounding box
-    df_feat["morph_area_dens_ombb"] = area / (2.0 * ombb_dims[0] * ombb_dims[1] +
-                                                    2.0 * ombb_dims[0] * ombb_dims[2] +
-                                                    2.0 * ombb_dims[1] * ombb_dims[2])
-    del ombb_dims
+        # Area density - oriented minimum bounding box
+        df_feat["morph_area_dens_ombb"] = area / (2.0 * ombb_dims[0] * ombb_dims[1] +
+                                                  2.0 * ombb_dims[0] * ombb_dims[2] +
+                                                  2.0 * ombb_dims[1] * ombb_dims[2])
+        del ombb_dims
 
     ####################################################################################################################
     # Minimum volume enclosing ellipsoid - based features
     ####################################################################################################################
+    if not settings.ibsi_compliant:
+        # Calculate semi_axes of minimum volume enclosing ellipsoid
+        semi_axes = get_minimum_volume_enclosing_ellipsoid(pos_mat=hull_verts, tolerance=10E-4)
 
-    # Calculate semi_axes of minimum volume enclosing ellipsoid
-    semi_axes = get_minimum_volume_enclosing_ellipsoid(pos_mat=hull_verts, tolerance=10E-4)
+        # Volume density - minimum volume enclosing ellipsoid
+        df_feat["morph_vol_dens_mvee"] = 3 * volume / (4 * np.pi * np.prod(semi_axes))
 
-    # Volume density - minimum volume enclosing ellipsoid
-    df_feat["morph_vol_dens_mvee"] = 3 * volume / (4 * np.pi * np.prod(semi_axes))
-
-    # Area density - minimum volume enclosing ellipsoid
-    df_feat["morph_area_dens_mvee"] = area / get_ellipsoid_surface_area(semi_axes, n_degree=20)
-    del semi_axes, hull_verts
+        # Area density - minimum volume enclosing ellipsoid
+        df_feat["morph_area_dens_mvee"] = area / get_ellipsoid_surface_area(semi_axes, n_degree=20)
+        del semi_axes, hull_verts
 
     ####################################################################################################################
     # Principal component analysis - based features
@@ -143,7 +153,7 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
     df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True, morphology_mask=True)
 
     # Define tables based on morphological and intensity masks
-    df_int   = df_img[df_img.roi_int_mask].reset_index()
+    df_int = df_img[df_img.roi_int_mask].reset_index()
     df_morph = df_img[df_img.roi_morph_mask].reset_index()
     del df_img
 
@@ -190,7 +200,7 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
     # Geospatial analysis - based features
     ####################################################################################################################
 
-    if (n_v_int < 1000 and n_v_int > 1) or settings.general.no_approximation:
+    if (1000 > n_v_int > 1) or settings.no_approximation:
         # Calculate geospatial features using a brute force approach
         moran_i, geary_c = geospatial(df_int=df_int, spacing=roi_obj.roi_intensity.spacing)
 
@@ -204,7 +214,7 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
         moran_list, geary_list = [], []
 
         # Initiate iterations
-        iter_nr    = 1
+        iter_nr = 1
         tol_aim = 0.002
         tol_sem = 1.000
 
@@ -244,8 +254,8 @@ def get_volumetric_morphological_features(img_obj, roi_obj, settings):
         # Centre of mass shift
         # Calculate centres of mass for the morphological and intensity masks
         com_morph = np.array([np.mean(df_morph.z), np.mean(df_morph.y), np.mean(df_morph.x)])
-        com_int   = np.array([np.sum(df_int.g * df_int.z), np.sum(df_int.g * df_int.y),
-                              np.sum(df_int.g * df_int.x)]) / np.sum(df_int.g)
+        com_int = np.array([np.sum(df_int.g * df_int.z), np.sum(df_int.g * df_int.y),
+                            np.sum(df_int.g * df_int.x)]) / np.sum(df_int.g)
 
         # Calculate shift
         df_feat["morph_com"] = np.sqrt(np.sum(np.multiply((com_morph - com_int), roi_obj.roi.spacing) ** 2.0))
@@ -320,14 +330,14 @@ def get_ellipsoid_surface_area(semi_axes, n_degree=10):
         # Tri-axial ellipsoid
         # Calculate eccentricities
         ecc_alpha = np.sqrt(1 - (semi_axes[1] ** 2.0) / (semi_axes[2] ** 2.0))
-        ecc_beta  = np.sqrt(1 - (semi_axes[0] ** 2.0) / (semi_axes[2] ** 2.0))
+        ecc_beta = np.sqrt(1 - (semi_axes[0] ** 2.0) / (semi_axes[2] ** 2.0))
 
         # Create a vector to generate coefficients for the Legendre polynomial
         nu = np.arange(start=0, stop=n_degree + 1, step=1) * 1.0
 
         # Define Legendre polynomial coefficients and evaluation point
         leg_coeff = (ecc_alpha * ecc_beta) ** nu / (1.0 - 4.0 * nu ** 2.0)
-        leg_x     = (ecc_alpha ** 2.0 + ecc_beta ** 2.0) / (2.0 * ecc_alpha * ecc_beta)
+        leg_x = (ecc_alpha ** 2.0 + ecc_beta ** 2.0) / (2.0 * ecc_alpha * ecc_beta)
 
         # Calculate approximate area
         area_appr = 4.0 * np.pi * semi_axes[2] * semi_axes[1] * legval(x=leg_x, c=leg_coeff)
@@ -367,16 +377,16 @@ def get_minimum_oriented_bounding_box(pos_mat):
         for jj in np.arange(0, max_rep):
 
             # Select new thetas in vicinity of
-            theta     = np.array([theta_sel-res, theta_sel-0.5*res, theta_sel, theta_sel+0.5*res, theta_sel+res])
+            theta = np.array([theta_sel-res, theta_sel-0.5*res, theta_sel, theta_sel+0.5*res, theta_sel+res])
 
             # Calculate projection areas for current angles theta
-            rot_area  = np.array(list(map(lambda x: get_rotated_axis_aligned_bounding_box_area(theta=x, hull_mat=hull_mat), theta)))
+            rot_area = np.array(list(map(lambda x: get_rotated_axis_aligned_bounding_box_area(theta=x, hull_mat=hull_mat), theta)))
 
             # Find global minimum and corresponding angle theta_sel
             theta_sel = theta[np.argmin(rot_area)]
 
             # Shrink resolution and iterate
-            res = res / 2.0
+            res /= 2.0
 
         return theta_sel
 
@@ -412,10 +422,10 @@ def get_minimum_oriented_bounding_box(pos_mat):
 
         # Calculate initial surfaces
         theta_init = np.arange(start=0.0, stop=90.0+res_init, step=res_init) * np.pi / 180.0
-        rot_area   = np.array(list(map(lambda x: get_rotated_axis_aligned_bounding_box_area(theta=x, hull_mat=hull_mat), theta_init)))
+        rot_area = np.array(list(map(lambda x: get_rotated_axis_aligned_bounding_box_area(theta=x, hull_mat=hull_mat), theta_init)))
 
         # Find local minima
-        df_min     = find_peaks(x=rot_area, direction="neg")
+        df_min = find_peaks(x=rot_area, direction="neg")
 
         # Check if any minimum was generated
         if len(df_min) > 0:
@@ -432,14 +442,14 @@ def get_minimum_oriented_bounding_box(pos_mat):
             for k in np.arange(0, max_iter):
 
                 # Find initial angle corresponding to i-th minimum
-                sel_ind      = df_min.ind.values[k]
-                theta_curr   = theta_init[sel_ind]
+                sel_ind = df_min.ind.values[k]
+                theta_curr = theta_init[sel_ind]
 
                 # Zoom in to improve the approximation of theta
                 theta_min[k] = find_optimal_rotation_angle(hull_mat=hull_mat, theta_sel=theta_curr, res=res_init*np.pi/180.0)
 
             # Calculate surface areas corresponding to theta_min and theta that minimises the surface
-            rot_area  = np.array(list(map(lambda x: get_rotated_axis_aligned_bounding_box_area(theta=x, hull_mat=hull_mat), theta_min)))
+            rot_area = np.array(list(map(lambda x: get_rotated_axis_aligned_bounding_box_area(theta=x, hull_mat=hull_mat), theta_min)))
             theta_sel = theta_min[np.argmin(rot_area)]
 
         else:
@@ -487,7 +497,7 @@ def get_minimum_oriented_bounding_box(pos_mat):
         del work_pos, aabb_dims
 
     # Find minimal volume of all rotations and return bounding box dimensions
-    sel_row   = rot_df.loc[rot_df.vol.idxmin(), :]
+    sel_row = rot_df.loc[rot_df.vol.idxmin(), :]
     ombb_dims = np.array([sel_row.aabb_axis_0, sel_row.aabb_axis_1, sel_row.aabb_axis_2])
 
     return ombb_dims
@@ -543,7 +553,7 @@ def get_minimum_volume_enclosing_ellipsoid(pos_mat, tolerance=10E-4):
 
     # Initialise settings for Khachiyan algorithm
     iter_count = 1
-    err        = 1.0
+    err = 1.0
 
     # Initial u vector
     vec_u = 1.0 * np.ones(shape=npoint) / npoint
@@ -621,7 +631,7 @@ def segmentise_input(x):
     if x[0] == 1:
         ind_1_start = np.insert(ind_1_start, 0, 0)
     if x[-1] == 1:
-        ind_1_end   = np.append(ind_1_end, np.shape(x)[0]-1)
+        ind_1_end = np.append(ind_1_end, np.shape(x)[0]-1)
 
     # Generate segment df for segments with value 1
     if np.shape(ind_1_start)[0] == 0:
@@ -636,20 +646,20 @@ def segmentise_input(x):
     # Find start and end indices for section with value 0
     if np.shape(ind_1_start)[0] == 0:
         ind_0_start = np.array([0])
-        ind_0_end   = np.array([np.shape(x)[0]-1])
+        ind_0_end = np.array([np.shape(x)[0]-1])
     else:
-        ind_0_end   = ind_1_start - 1
-        ind_0_start = ind_1_end   + 1
+        ind_0_end = ind_1_start - 1
+        ind_0_start = ind_1_end + 1
 
         # Check for boundary effect
         if x[0] == 0:
             ind_0_start = np.insert(ind_0_start, 0, 0)
         if x[-1] == 0:
-            ind_0_end   = np.append(ind_0_end, np.shape(x)[0]-1)
+            ind_0_end = np.append(ind_0_end, np.shape(x)[0]-1)
 
         # Check for out-of-range boundary effects
         if ind_0_end[0] < 0:
-            ind_0_end   = np.delete(ind_0_end, 0)
+            ind_0_end = np.delete(ind_0_end, 0)
         if ind_0_start[-1] >= np.shape(x)[0]:
             ind_0_start = np.delete(ind_0_start, -1)
 
@@ -682,7 +692,8 @@ def find_peaks(x, direction="pos"):
     ind_peak = df_segm.loc[df_segm.val == 1, "i"].values
 
     # Check right boundary
-    if x[-1] > x[-2]: ind_peak = np.append(ind_peak, np.shape(x)[0]-1)
+    if x[-1] > x[-2]:
+        ind_peak = np.append(ind_peak, np.shape(x)[0]-1)
 
     # Construct dataframe with index and corresponding value
     if np.shape(ind_peak)[0] == 0:

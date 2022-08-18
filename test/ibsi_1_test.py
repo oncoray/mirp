@@ -38,13 +38,11 @@ def test_ibsi_1_digital_phantom():
     image_interpolation_settings.anti_aliasing = False
 
     feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["none"]
-    feature_computation_parameters.ivh_discr_method = "none"
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
+    feature_computation_parameters.discretisation_method = ["none"]
+    feature_computation_parameters.ivh_discretisation_method = "none"
+    feature_computation_parameters.glcm_distance = [1.0]
+    feature_computation_parameters.glcm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"]
+    feature_computation_parameters.glrlm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"]
     feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d", "3d"]
     feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d", "3d"]
     feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d", "3d"]
@@ -57,7 +55,7 @@ def test_ibsi_1_digital_phantom():
                              img_interpolate_settings=image_interpolation_settings,
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=ResegmentationSettingsClass(),
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
+                             perturbation_settings=ImagePerturbationSettingsClass(),
                              img_transform_settings=ImageTransformationSettingsClass(),
                              feature_extr_settings=feature_computation_parameters)
 
@@ -574,26 +572,24 @@ def test_ibsi_1_chest_config_a():
     """
 
     # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = True
+    general_settings = GeneralSettingsClass(by_slice=True)
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = False
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(by_slice=general_settings.by_slice,
+                                                                   interpolate=False,
+                                                                   anti_aliasing=False)
 
     resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range"]
-    resegmentation_settings.g_thresh = [-500.0, 400.0]
+    resegmentation_settings.resegmentation_method = ["range"]
+    resegmentation_settings.intensity_range = [-500.0, 400.0]
 
     feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_size"]
-    feature_computation_parameters.discr_bin_width = [25]
-    feature_computation_parameters.ivh_discr_method = "none"
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
+    feature_computation_parameters.discretisation_method = ["fixed_bin_size"]
+    feature_computation_parameters.discretisation_bin_width = [25]
+    feature_computation_parameters.ivh_discretisation_method = "none"
+    feature_computation_parameters.glcm_distance = [1.0]
+    feature_computation_parameters.glcm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"]
+    feature_computation_parameters.glrlm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge",
+                                                           "2.5d_volume_merge"]
     feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d"]
     feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d"]
     feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d"]
@@ -606,7 +602,7 @@ def test_ibsi_1_chest_config_a():
                              img_interpolate_settings=image_interpolation_settings,
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
+                             perturbation_settings=ImagePerturbationSettingsClass(),
                              img_transform_settings=ImageTransformationSettingsClass(),
                              feature_extr_settings=feature_computation_parameters)
 
@@ -997,18 +993,18 @@ def test_ibsi_1_chest_config_b():
     image_interpolation_settings.anti_aliasing = False
 
     resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range"]
-    resegmentation_settings.g_thresh = [-500.0, 400.0]
+    resegmentation_settings.resegmentation_method = ["range"]
+    resegmentation_settings.intensity_range = [-500.0, 400.0]
 
     feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_number"]
-    feature_computation_parameters.discr_n_bins = [32]
-    feature_computation_parameters.ivh_discr_method = "none"
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
+    feature_computation_parameters.discretisation_method = ["fixed_bin_number"]
+    feature_computation_parameters.discretisation_n_bins = [32]
+    feature_computation_parameters.ivh_discretisation_method = "none"
+    feature_computation_parameters.glcm_distance = [1.0]
+    feature_computation_parameters.glcm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge",
+                                                          "2.5d_volume_merge"]
+    feature_computation_parameters.glrlm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge",
+                                                           "2.5d_volume_merge"]
     feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d"]
     feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d"]
     feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d"]
@@ -1021,7 +1017,7 @@ def test_ibsi_1_chest_config_b():
                              img_interpolate_settings=image_interpolation_settings,
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
+                             perturbation_settings=ImagePerturbationSettingsClass(),
                              img_transform_settings=ImageTransformationSettingsClass(),
                              feature_extr_settings=feature_computation_parameters)
 
@@ -1412,19 +1408,17 @@ def test_ibsi_1_chest_config_c():
     image_interpolation_settings.anti_aliasing = False
 
     resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range"]
-    resegmentation_settings.g_thresh = [-1000.0, 400.0]
+    resegmentation_settings.resegmentation_method = ["range"]
+    resegmentation_settings.intensity_range = [-1000.0, 400.0]
 
     feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_size"]
-    feature_computation_parameters.discr_bin_width = [25]
-    feature_computation_parameters.ivh_discr_method = "fixed_bin_size"
-    feature_computation_parameters.ivh_discr_bin_width = 2.5
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "vol_merge"]
+    feature_computation_parameters.discretisation_method = ["fixed_bin_size"]
+    feature_computation_parameters.discretisation_bin_width = [25]
+    feature_computation_parameters.ivh_discretisation_method = "fixed_bin_size"
+    feature_computation_parameters.ivh_discretisation_bin_width = 2.5
+    feature_computation_parameters.glcm_distance = [1.0]
+    feature_computation_parameters.glcm_spatial_method = ["3d_average", "3d_volume_merge"]
+    feature_computation_parameters.glrlm_spatial_method = ["3d_average", "3d_volume_merge"]
     feature_computation_parameters.glszm_spatial_method = ["3d"]
     feature_computation_parameters.gldzm_spatial_method = ["3d"]
     feature_computation_parameters.ngtdm_spatial_method = ["3d"]
@@ -1437,7 +1431,7 @@ def test_ibsi_1_chest_config_c():
                              img_interpolate_settings=image_interpolation_settings,
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
+                             perturbation_settings=ImagePerturbationSettingsClass(),
                              img_transform_settings=ImageTransformationSettingsClass(),
                              feature_extr_settings=feature_computation_parameters)
 
@@ -1692,17 +1686,15 @@ def test_ibsi_1_chest_config_d():
     image_interpolation_settings.anti_aliasing = False
 
     resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["outlier"]
+    resegmentation_settings.resegmentation_method = ["outlier"]
     resegmentation_settings.sigma = 3.0
 
     feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_number"]
-    feature_computation_parameters.discr_n_bins = [32]
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "vol_merge"]
+    feature_computation_parameters.discretisation_method = ["fixed_bin_number"]
+    feature_computation_parameters.discretisation_n_bins = [32]
+    feature_computation_parameters.glcm_distance = [1.0]
+    feature_computation_parameters.glcm_spatial_method = ["3d_average", "3d_volume_merge"]
+    feature_computation_parameters.glrlm_spatial_method = ["3d_average", "3d_volume_merge"]
     feature_computation_parameters.glszm_spatial_method = ["3d"]
     feature_computation_parameters.gldzm_spatial_method = ["3d"]
     feature_computation_parameters.ngtdm_spatial_method = ["3d"]
@@ -1715,7 +1707,7 @@ def test_ibsi_1_chest_config_d():
                              img_interpolate_settings=image_interpolation_settings,
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
+                             perturbation_settings=ImagePerturbationSettingsClass(),
                              img_transform_settings=ImageTransformationSettingsClass(),
                              feature_extr_settings=feature_computation_parameters)
 
@@ -1970,20 +1962,18 @@ def test_ibsi_1_chest_config_e():
     image_interpolation_settings.anti_aliasing = False
 
     resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range", "outlier"]
-    resegmentation_settings.g_thresh = [-1000.0, 400.0]
+    resegmentation_settings.resegmentation_method = ["range", "outlier"]
+    resegmentation_settings.intensity_range = [-1000.0, 400.0]
     resegmentation_settings.sigma = 3.0
 
     feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_number"]
-    feature_computation_parameters.discr_n_bins = [32]
-    feature_computation_parameters.ivh_discr_method = "fixed_bin_number"
-    feature_computation_parameters.ivh_discr_n_bins = 1000
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "vol_merge"]
+    feature_computation_parameters.discretisation_method = ["fixed_bin_number"]
+    feature_computation_parameters.discretisation_n_bins = [32]
+    feature_computation_parameters.ivh_discretisation_method = "fixed_bin_number"
+    feature_computation_parameters.ivh_discretisation_n_bins = 1000
+    feature_computation_parameters.glcm_distance = [1.0]
+    feature_computation_parameters.glcm_spatial_method = ["3d_average", "3d_volume_merge"]
+    feature_computation_parameters.glrlm_spatial_method = ["3d_average", "3d_volume_merge"]
     feature_computation_parameters.glszm_spatial_method = ["3d"]
     feature_computation_parameters.gldzm_spatial_method = ["3d"]
     feature_computation_parameters.ngtdm_spatial_method = ["3d"]
@@ -1996,7 +1986,7 @@ def test_ibsi_1_chest_config_e():
                              img_interpolate_settings=image_interpolation_settings,
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
+                             perturbation_settings=ImagePerturbationSettingsClass(),
                              img_transform_settings=ImageTransformationSettingsClass(),
                              feature_extr_settings=feature_computation_parameters)
 

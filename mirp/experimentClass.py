@@ -218,12 +218,14 @@ class ExperimentClass:
             # Copy file
             shutil.copy2(src=row.file_path, dst=new_dir)
 
-    def get_iterable_parameters(self, settings):
+    @staticmethod
+    def get_iterable_parameters(settings: SettingsClass):
         """
         Settings may be iterated, e.g. to extract multi-scale features or for image perturbations.
         There are two types of iterable settings. One type involves changing the image intensities in the object.
         The other type merely involves changing the ROI. The first type requires an outer loop as smaller loops
         are not feasible for parallel processing due to memory requirements.
+
         :param settings: settingsClass object that contains configuration settings
         :return:
         """
@@ -233,32 +235,34 @@ class ExperimentClass:
         #################################################################
 
         # Image rotation
-        rot_angles = settings.vol_adapt.rot_angles
+        rot_angles = settings.perturbation.rotation_angles
 
         # Noise addition
-        noise_reps = settings.vol_adapt.noise_repetitions
+        noise_reps = settings.perturbation.noise_repetitions
         if noise_reps > 0:
             noise_reps = np.arange(0, noise_reps)
         else:
             noise_reps = [0]
 
         # Image translation
-        translate_frac = settings.vol_adapt.translate_frac
+        translate_frac = settings.perturbation.translation_fraction
         if not settings.general.by_slice:
-            translate_frac_z = settings.vol_adapt.translate_frac
+            translate_frac_z = settings.perturbation.translation_fraction
         else:
             translate_frac_z = [0.0]
 
         # Multi-scale features
         vox_spacing = settings.img_interpolate.new_spacing
+        if vox_spacing is None:
+            vox_spacing = [None]
 
         # Generate outer loop permutations
-        iter_settings = expand_grid({"rot_angle":      rot_angles,
+        iter_settings = expand_grid({"rot_angle": rot_angles,
                                      "noise_repetition": noise_reps,
-                                     "translate_x":    translate_frac,
-                                     "translate_y":    translate_frac,
-                                     "translate_z":    translate_frac_z,
-                                     "vox_spacing":    vox_spacing})
+                                     "translate_x": translate_frac,
+                                     "translate_y": translate_frac,
+                                     "translate_z": translate_frac_z,
+                                     "vox_spacing": vox_spacing})
         iter_settings.transpose()
 
         #################################################################
@@ -269,12 +273,12 @@ class ExperimentClass:
         n_outer_iter = len(rot_angles) * len(noise_reps) * len(translate_frac)**2 * len(translate_frac_z) * len(vox_spacing)
 
         # Roi iterations
-        if settings.vol_adapt.randomise_roi:
-            roi_random_rep = settings.vol_adapt.roi_random_rep
+        if settings.perturbation.randomise_roi:
+            roi_random_rep = settings.perturbation.roi_random_rep
         else:
             roi_random_rep = 1
 
-        n_inner_iter = len(settings.vol_adapt.roi_adapt_size) * roi_random_rep
+        n_inner_iter = len(settings.perturbation.roi_adapt_size) * roi_random_rep
 
         return iter_settings, n_outer_iter, n_inner_iter
 
@@ -286,7 +290,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
-            create_tissue_mask, bias_field_correction, normalise_image
+            create_tissue_mask, bias_field_correction, normalise_image, select_largest_slice
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
         import copy
 
@@ -349,9 +353,13 @@ class ExperimentClass:
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
 
+            # Select the axial slice with the largest portion of the ROI.
+            if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
+                roi_list = select_largest_slice(roi_list=roi_list)
+
             # Crop slice stack
-            if self.settings.vol_adapt.crop:
-                img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=self.settings.vol_adapt.crop_distance)
+            if self.settings.perturbation.crop_around_roi:
+                img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=self.settings.perturbation.crop_distance)
 
             # Extract diagnostic features from initial image and rois
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
@@ -364,11 +372,11 @@ class ExperimentClass:
             curr_setting = copy.deepcopy(self.settings)
 
             # Update settings object with iterable settings
-            curr_setting.vol_adapt.rot_angles = [iter_set.rot_angle[ii]]
-            curr_setting.img_interpolate.new_spacing = [iter_set.vox_spacing[ii]]
-            curr_setting.vol_adapt.translate_x = [iter_set.translate_x[ii]]
-            curr_setting.vol_adapt.translate_y = [iter_set.translate_y[ii]]
-            curr_setting.vol_adapt.translate_z = [iter_set.translate_z[ii]]
+            curr_setting.perturbation.rotation_angles = iter_set.rot_angle[ii]
+            curr_setting.img_interpolate.new_spacing = iter_set.vox_spacing[ii]
+            curr_setting.perturbation.translate_x = iter_set.translate_x[ii]
+            curr_setting.perturbation.translate_y = iter_set.translate_y[ii]
+            curr_setting.perturbation.translate_z = iter_set.translate_z[ii]
 
             ########################################################################################################
             # Bias field correction and normalisation
@@ -397,10 +405,10 @@ class ExperimentClass:
             est_noise_level = -1.0
 
             # Determine image noise levels
-            if curr_setting.vol_adapt.add_noise and curr_setting.vol_adapt.noise_level is None and est_noise_level == -1.0:
+            if curr_setting.perturbation.add_noise and curr_setting.perturbation.noise_level is None and est_noise_level == -1.0:
                 est_noise_level = estimate_image_noise(img_obj=img_obj, settings=curr_setting, method="chang")
-            elif curr_setting.vol_adapt.add_noise:
-                est_noise_level = curr_setting.vol_adapt.noise_level
+            elif curr_setting.perturbation.add_noise:
+                est_noise_level = curr_setting.perturbation.noise_level
 
             ########################################################################################################
             # Base image-based operations - basic operations on base image (rotation, cropping, noise addition)
@@ -412,11 +420,11 @@ class ExperimentClass:
             img_obj, roi_list = rotate_image(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
 
             # Crop image to a box extending at most 15 cm around the combined ROI
-            if curr_setting.vol_adapt.crop:
+            if curr_setting.perturbation.crop_around_roi:
                 img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=150.0, z_only=False)
 
             # Add random noise to an image
-            if curr_setting.vol_adapt.add_noise:
+            if curr_setting.perturbation.add_noise:
                 img_obj.add_noise(noise_level=est_noise_level, noise_iter=ii)
 
             ########################################################################################################
@@ -467,7 +475,7 @@ class ExperimentClass:
             # Image transformations
             ########################################################################################################
 
-            if self.settings.img_transform.perform_img_transform:
+            if self.settings.img_transform.spatial_filters is not None:
                 # Get image features from transformed images (may be empty if no features are computed)
                 iter_feat_list += transform_images(img_obj=img_obj,
                                                    roi_list=roi_list,
@@ -530,7 +538,8 @@ class ExperimentClass:
 
         import logging
         from mirp.imageRead import load_image
-        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, saturate_image, normalise_image
+        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
+            saturate_image, normalise_image, select_largest_slice
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
@@ -543,8 +552,7 @@ class ExperimentClass:
             level=logging.INFO, stream=sys.stdout)
 
         # Notifications
-        logging.info("\nInitialising image and mask processing using %s images for %s.",
-                     "_".join([self.modality, self.data_str, self.subject]))
+        logging.info(f"\nInitialising image and mask processing for {'_'.join([self.modality, self.data_str, self.subject])}.")
 
         # Process input parameters.
         crop_as_3d = crop_size is None or len(crop_size) == 3
@@ -623,11 +631,15 @@ class ExperimentClass:
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
 
+            # Select the axial slice with the largest portion of the ROI.
+            if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
+                roi_list = select_largest_slice(roi_list=roi_list)
+
             # Remove metadata
             img_obj.drop_metadata()
             for roi_obj in roi_list:
                 roi_obj.drop_metadata()
-
+            
             ########################################################################################################
             # Update settings and initialise
             ########################################################################################################
@@ -636,11 +648,11 @@ class ExperimentClass:
             curr_setting = copy.deepcopy(self.settings)
 
             # Update settings object with iterable settings
-            curr_setting.vol_adapt.rot_angles = [iter_set.rot_angle[ii]]
-            curr_setting.img_interpolate.new_spacing = [iter_set.vox_spacing[ii]]
-            curr_setting.vol_adapt.translate_x = [iter_set.translate_x[ii]]
-            curr_setting.vol_adapt.translate_y = [iter_set.translate_y[ii]]
-            curr_setting.vol_adapt.translate_z = [iter_set.translate_z[ii]]
+            curr_setting.perturbation.rotation_angles = iter_set.rot_angle[ii]
+            curr_setting.img_interpolate.new_spacing = iter_set.vox_spacing[ii]
+            curr_setting.perturbation.translate_x = iter_set.translate_x[ii]
+            curr_setting.perturbation.translate_y = iter_set.translate_y[ii]
+            curr_setting.perturbation.translate_z = iter_set.translate_z[ii]
 
             ########################################################################################################
             # Determine image noise levels (optional)
@@ -650,10 +662,10 @@ class ExperimentClass:
             est_noise_level = -1.0
 
             # Determine image noise levels
-            if curr_setting.vol_adapt.add_noise and curr_setting.vol_adapt.noise_level is None and est_noise_level == -1.0:
+            if curr_setting.perturbation.add_noise and curr_setting.perturbation.noise_level is None and est_noise_level == -1.0:
                 est_noise_level = estimate_image_noise(img_obj=img_obj, settings=curr_setting, method="chang")
-            elif curr_setting.vol_adapt.add_noise:
-                est_noise_level = curr_setting.vol_adapt.noise_level
+            elif curr_setting.perturbation.add_noise:
+                est_noise_level = curr_setting.perturbation.noise_level
 
             ########################################################################################################
             # Base image-based operations - basic operations on base image (rotation, cropping, noise addition)
@@ -665,7 +677,7 @@ class ExperimentClass:
             img_obj, roi_list = rotate_image(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
 
             # Add random noise to an image
-            if curr_setting.vol_adapt.add_noise:
+            if curr_setting.perturbation.add_noise:
                 img_obj.add_noise(noise_level=est_noise_level, noise_iter=ii)
 
             ########################################################################################################
@@ -788,7 +800,7 @@ class ExperimentClass:
         # Return list of processed images and masks
         return processed_image_list
 
-    def collect_features(self, img_obj, roi_list, feat_list, settings):
+    def collect_features(self, img_obj, roi_list, feat_list, settings: SettingsClass):
         """
         Combine separate feature tables into one single table.
         :param img_obj:
@@ -816,12 +828,12 @@ class ExperimentClass:
                                     "img_data_config": self.data_str,
                                     "img_data_noise_level": img_obj.noise,
                                     "img_data_noise_iter": img_obj.noise_iter,
-                                    "img_data_rotation_angle": settings.vol_adapt.rot_angles[0],
+                                    "img_data_rotation_angle": settings.perturbation.rotation_angles[0],
                                     "img_data_roi_randomise_iter": [roi_obj.svx_randomisation_id for roi_obj in roi_list],
                                     "img_data_roi_adapt_size": [roi_obj.adapt_size for roi_obj in roi_list],
-                                    "img_data_translate_x": settings.vol_adapt.translate_x[0],
-                                    "img_data_translate_y": settings.vol_adapt.translate_y[0],
-                                    "img_data_translate_z": settings.vol_adapt.translate_z[0],
+                                    "img_data_translate_x": settings.perturbation.translate_x,
+                                    "img_data_translate_y": settings.perturbation.translate_y,
+                                    "img_data_translate_z": settings.perturbation.translate_z,
                                     "img_data_voxel_size": voxel_size,
                                     "img_data_roi": [roi_obj.name for roi_obj in roi_list]},
                                    index=np.arange(len(roi_list)))

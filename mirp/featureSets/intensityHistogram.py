@@ -48,8 +48,11 @@ def compute_intensity_histogram_features(df_img, g_range):
 
     # Constant definitions
     n_v = len(df_img) * 1.0  # Number of voxels
-    if np.isnan(g_range[0]): g_range_loc[0] = np.min(df_img.g) * 1.0
-    if np.isnan(g_range[1]): g_range_loc[1] = np.max(df_img.g) * 1.0
+    if np.isnan(g_range[0]):
+        g_range_loc[0] = np.min(df_img.g) * 1.0
+    if np.isnan(g_range[1]):
+        g_range_loc[1] = np.max(df_img.g) * 1.0
+
     n_g = g_range_loc[1] - g_range_loc[0] + 1.0  # Number of grey levels
 
     # Define histogram

@@ -6,9 +6,11 @@ import numpy as np
 import pandas as pd
 import pydicom
 
+from typing import Union
 from mirp.dicomImport import read_dicom_image_series, read_dicom_rt_struct, read_roi_names, get_all_dicom_headers
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_sitk_dicom_meta_tag
+from mirp.importSettings import SettingsClass
 from mirp.itkImport import read_itk_image, read_itk_segmentations
 # Monkey patch for dicom files with implicit VR tags that also export meta file tags (0x0002 0x----) as meta data.
 # This seems to have happened for some RayStation exports
@@ -30,8 +32,15 @@ def find_regions_of_interest(roi_folder, subject):
     return roi_table
 
 
-def find_imaging_parameters(image_folder, modality, subject, plot_images, write_folder,
-                            roi_folder=None, registration_image_folder=None, settings=None, roi_names=None):
+def find_imaging_parameters(image_folder,
+                            modality,
+                            subject,
+                            plot_images,
+                            write_folder,
+                            roi_folder=None,
+                            registration_image_folder=None,
+                            settings: Union[None, SettingsClass] = None,
+                            roi_names=None):
     """
     :param image_folder: path; path to folder containing image data.
     :param modality: string; identifies modality of the image in the image folder.
@@ -79,7 +88,7 @@ def find_imaging_parameters(image_folder, modality, subject, plot_images, write_
     if settings is None:
         g_range = None
     else:
-        g_range = settings.roi_resegment.g_thresh
+        g_range = settings.roi_resegment.intensity_range
 
     # Plot images
     if isinstance(plot_images, str):
@@ -100,7 +109,7 @@ def find_imaging_parameters(image_folder, modality, subject, plot_images, write_
         if plot_images:
             plot_image(img_obj=img_obj, roi_list=roi_list, slice_id="roi_center", file_path=write_folder,
                        file_name=subject + "_" + modality,
-                       g_range=settings.roi_resegment.g_thresh)
+                       g_range=settings.roi_resegment.intensity_range)
 
     else:
         raise TypeError("plot_image is expected to be a string or boolean.")

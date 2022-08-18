@@ -11,6 +11,7 @@ from mirp.contourClass import ContourClass
 from mirp.imageSUV import SUVscalingObj
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
+from mirp.importSettings import SettingsClass
 from mirp.roiClass import RoiClass
 from mirp.utilities import parse_roi_name
 from pydicom import FileDataset
@@ -110,12 +111,32 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     image_pixel_spacing = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x0030), tag_type="mult_float")
     image_slice_thickness = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0018, 0x0050), tag_type="float", default=None)
 
+    # Placeholder slice-positions. We only use this if slices are missing.
+    slice_positions = None
+
     if len(file_table) > 1:
         # Compute the distance between the origins of the slices. This is the slice spacing.
-        image_slice_spacing = np.median(np.sqrt(np.sum(np.array([np.power(np.diff(file_table.position_z.values), 2.0),
-                                                                 np.power(np.diff(file_table.position_y.values), 2.0),
-                                                                 np.power(np.diff(file_table.position_x.values), 2.0)]),
-                                                       axis=0)))
+        image_slice_spacing = np.sqrt(np.power(np.diff(file_table.position_x.values), 2.0) +
+                                      np.power(np.diff(file_table.position_y.values), 2.0) +
+                                      np.power(np.diff(file_table.position_z.values), 2.0))
+
+        # Find the smallest slice spacing.
+        min_slice_spacing = np.min(image_slice_spacing)
+
+        # Find how much other slices differ.
+        image_slice_spacing_multiplier = image_slice_spacing / min_slice_spacing
+
+        if np.any(image_slice_spacing_multiplier > 1.2):
+            warnings.warn("Inconsistent distance between slice origins of subsequent slices: {slice_origin_distance}. "
+                          "Slices cannot be aligned correctly. This is likely due to missing slices. "
+                          "MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis.",
+                          UserWarning)
+
+            # Update slice positions.
+            slice_positions = np.cumsum(np.insert(np.around(image_slice_spacing, 5), 0, 0.0))
+
+        # Set image slice spacing.
+        image_slice_spacing = np.around(np.mean(image_slice_spacing[image_slice_spacing_multiplier <= 1.2]), 5)
 
         if image_slice_thickness is None:
             # TODO: Update slice thickness tag in dcm
@@ -142,24 +163,10 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
 
     # Add (Zx, Zy, Zz)
     if len(file_table) > 1:
-
-        # Compute distance between subsequent origins.
-        slice_origin_distance = np.sqrt(np.power(np.diff(file_table.position_x.values), 2.0) +
-                                        np.power(np.diff(file_table.position_y.values), 2.0) +
-                                        np.power(np.diff(file_table.position_z.values), 2.0))
-
-        # Find unique distance values.
-        slice_origin_distance = np.unique(np.around(slice_origin_distance, 3))
-
-        # If there is more than one value, this means that there is an unexpected shift in origins.
-        if len(slice_origin_distance) > 1:
-            raise ValueError(f"Inconsistent distance between slice origins of subsequent slices: "
-                             f"{slice_origin_distance}. Slices cannot be aligned correctly. This is likely due to "
-                             f"missing slices.")
-
-        z_orientation = np.array([np.median(np.diff(file_table.position_x.values)),
-                                  np.median(np.diff(file_table.position_y.values)),
-                                  np.median(np.diff(file_table.position_z.values))]) / image_slice_spacing
+        # Determine z-orientation
+        z_orientation = np.array([np.around(np.min(np.diff(file_table.position_x.values)), 5),
+                                  np.around(np.min(np.diff(file_table.position_y.values)), 5),
+                                  np.around(np.min(np.diff(file_table.position_z.values)), 5)]) / image_slice_spacing
 
         # Append orientation.
         image_orientation += z_orientation.tolist()
@@ -178,7 +185,8 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
                          spat_transform="base",
                          no_image=False,
                          metadata=slice_dcm_list[0],
-                         slice_table=file_table)
+                         slice_table=file_table,
+                         slice_position=slice_positions)
 
     return img_obj
 
@@ -204,7 +212,12 @@ def get_all_dicom_headers(image_folder, modality=None, series_uid=None, sop_inst
     return slice_dcm
 
 
-def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = None, series_uid=None, roi=None, frame_of_ref_uid=None):
+def read_dicom_rt_struct(dcm_folder,
+                         image_object: Union[ImageClass, None] = None,
+                         series_uid=None,
+                         roi=None,
+                         frame_of_ref_uid=None,
+                         settings: Union[SettingsClass, None] = None):
 
     # Parse to list
     if roi is not None:
@@ -219,8 +232,11 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
             frame_of_ref_uid = image_object.get_metadata(tag=(0x0020, 0x0052), tag_type="str")
 
     # Find a list of RTSTRUCT files
-    file_list = _find_dicom_image_series(image_folder=dcm_folder, allowed_modalities=["RTSTRUCT"],
-                                         modality="RTSTRUCT", series_uid=series_uid, frame_of_ref_uid=frame_of_ref_uid)
+    file_list = _find_dicom_image_series(image_folder=dcm_folder,
+                                         allowed_modalities=["RTSTRUCT"],
+                                         modality="RTSTRUCT",
+                                         series_uid=series_uid,
+                                         frame_of_ref_uid=frame_of_ref_uid)
 
     # Obtain DICOM metadata from RT structure set.
     dcm_file = os.path.join(dcm_folder, file_list[0])
@@ -256,7 +272,10 @@ def read_dicom_rt_struct(dcm_folder, image_object: Union[ImageClass, None] = Non
         return dcm
 
     else:
-        roi_list = [_convert_rtstruct_to_segmentation(dcm=dcm, roi=current_roi, image_object=image_object) for current_roi in roi]
+        roi_list = [_convert_rtstruct_to_segmentation(dcm=dcm,
+                                                      roi=current_roi,
+                                                      image_object=image_object,
+                                                      settings=settings) for current_roi in roi]
         return [roi_obj for roi_obj in roi_list if roi_obj is not None]
 
 
@@ -527,7 +546,10 @@ def _filter_rt_structure_set(dcm, roi_numbers=None, roi_names=None):
     return dcm
 
 
-def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: ImageClass):
+def _convert_rtstruct_to_segmentation(dcm: FileDataset,
+                                      roi: str,
+                                      image_object: ImageClass,
+                                      settings: Union[SettingsClass, None]):
 
     # Deparse roi
     deparsed_roi = parse_roi_name(roi=roi)
@@ -585,7 +607,9 @@ def _convert_rtstruct_to_segmentation(dcm: FileDataset, roi: str, image_object: 
         roi_obj = RoiClass(name="+".join(deparsed_roi), contour=contour_data_list, metadata=dcm)
 
         # Convert contour into segmentation object
-        roi_obj.create_mask_from_contours(img_obj=image_object, disconnected_segments="keep_as_is")
+        roi_obj.create_mask_from_contours(img_obj=image_object,
+                                          disconnected_segments="keep_as_is",
+                                          settings=settings)
 
         return roi_obj
 

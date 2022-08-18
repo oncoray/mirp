@@ -1,22 +1,20 @@
 import numpy as np
 import copy
 
-from typing import List, Union
+from typing import Union, List
 from mirp.imageProcess import calculate_features
 from mirp.imageClass import ImageClass
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
 from mirp.importSettings import SettingsClass
 from mirp.roiClass import RoiClass
-from mirp.imageFilters.utilities import pool_voxel_grids
 
 
-class LaplacianOfGaussianFilter:
+class GaussianFilter:
 
     def __init__(self, settings: SettingsClass, name: str):
-        self.sigma: Union[float, List[float]] = settings.img_transform.log_sigma
-        self.sigma_cutoff = settings.img_transform.log_sigma_truncate
-        self.pooling_method = settings.img_transform.log_pooling_method
-        self.mode = settings.img_transform.log_boundary_condition
+        self.sigma = settings.img_transform.gaussian_sigma
+        self.sigma_cutoff = settings.img_transform.gaussian_sigma_truncate
+        self.mode = settings.img_transform.gaussian_boundary_condition
 
         # Riesz transformation settings.
         self.riesz_order: Union[None, List[int], List[List[int]]] = None
@@ -32,14 +30,10 @@ class LaplacianOfGaussianFilter:
         # In-slice (2D) or 3D filtering
         self.by_slice = settings.img_transform.by_slice
 
-    def _generate_object(self, allow_pooling: bool = False):
+    def _generate_object(self):
         # Generator for transformation objects.
         sigma = copy.deepcopy(self.sigma)
         if not isinstance(sigma, list):
-            sigma = [sigma]
-
-        # Nest sigma.
-        if not self.pooling_method == "none" and allow_pooling:
             sigma = [sigma]
 
         riesz_order = copy.deepcopy(self.riesz_order)
@@ -54,9 +48,9 @@ class LaplacianOfGaussianFilter:
 
         # Iterate over options to yield filter objects with specific settings. A copy of the parent object is made to
         # avoid updating by reference.
-        for current_riesz_order in riesz_order:
-            for current_riesz_sigma in riesz_sigma:
-                for current_sigma in sigma:
+        for current_sigma in sigma:
+            for current_riesz_order in riesz_order:
+                for current_riesz_sigma in riesz_sigma:
                     filter_object = copy.deepcopy(self)
                     filter_object.sigma = current_sigma
                     filter_object.riesz_order = current_riesz_order
@@ -64,19 +58,18 @@ class LaplacianOfGaussianFilter:
 
                     yield filter_object
 
-    def apply_transformation(self,
-                             img_obj: ImageClass,
+    def apply_transformation(self, img_obj: ImageClass,
                              roi_list: List[RoiClass],
                              settings: SettingsClass,
                              compute_features: bool = False,
                              extract_images: bool = False,
-                             file_path: str = None):
+                             file_path: Union[None, str] = None):
         """Run feature extraction for transformed data"""
 
         feature_list = []
 
         # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object(allow_pooling=True):
+        for filter_object in self._generate_object():
 
             # Create a response map.
             response_map = filter_object.transform(img_obj=img_obj)
@@ -100,54 +93,32 @@ class LaplacianOfGaussianFilter:
         """
         Transform image by calculating the laplacian of the gaussian second derivatives
         :param img_obj: image object
-        :sigma_cut_off: number of standard deviations for cut-off of the gaussian filter
+
+        :return:
         """
 
         # Copy base image
-        response_map = img_obj.copy(drop_image=True)
+        respone_map = img_obj.copy(drop_image=True)
 
-        # Prepare the string for the spatial transformation.
-        spatial_transform_string = ["log"]
+        # Set spatial transformation string for transformed object
+        respone_map.set_spatial_transform("gauss_s" + str(self.sigma))
 
-        if self.pooling_method == "none":
-            spatial_transform_string += ["s", str(self.sigma)]
-
-        else:
-            spatial_transform_string += [self.pooling_method]
-
-        # Set spatial transformation name.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
+        # Skip transform in case the input image is missing
         if img_obj.is_missing:
-            return response_map
+            return respone_map
 
-        # Set response voxel grid.
-        response_voxel_grid = None
+        # Calculate sigma for current image
+        vox_sigma = np.divide(np.full(shape=3, fill_value=self.sigma), img_obj.spacing)
 
-        # Initialise iterator ii to avoid IDE warnings.
-        ii = 0
-        for ii, pooled_filter_object in enumerate(self._generate_object(allow_pooling=False)):
+        # Apply filters
+        respone_map.set_voxel_grid(voxel_grid=self.transform_grid(voxel_grid=img_obj.get_voxel_grid(),
+                                                                  sigma=vox_sigma))
 
-            # Generate transformed voxel grid.
-            pooled_voxel_grid = pooled_filter_object.transform_grid(voxel_grid=img_obj.get_voxel_grid(),
-                                                                    sigma=pooled_filter_object.sigma)
+        return respone_map
 
-            # Pool voxel grids.
-            response_voxel_grid = pool_voxel_grids(x1=response_voxel_grid,
-                                                   x2=pooled_voxel_grid,
-                                                   pooling_method=self.pooling_method)
-
-        if self.pooling_method == "mean":
-            # Perform final pooling step for mean pooling.
-            response_voxel_grid = np.divide(response_voxel_grid, ii+1)
-
-        # Set voxel grid.
-        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
-
-        return response_map
-
-    def transform_grid(self, voxel_grid: np.array, sigma: float):
-
+    def transform_grid(self,
+                       voxel_grid: np.array,
+                       sigma: np.array):
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
         filter_size.astype(np.int)
@@ -181,8 +152,7 @@ class LaplacianOfGaussianFilter:
         sigma = np.max(sigma)
 
         # Compute the scale factor
-        scale_factor = - 1.0 / sigma ** 2.0 * np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) * (d - norm_2 /
-                                                                                                      sigma ** 2.0)
+        scale_factor = np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d)
 
         # Compute the exponent which determines filter width.
         width_factor = - norm_2 / (2.0 * sigma ** 2.0)
@@ -192,27 +162,27 @@ class LaplacianOfGaussianFilter:
 
         if self.by_slice:
             # Set filter weights and create a filter.
-            log_filter = FilterSet2D(filter_weights,
-                                     riesz_order=self.riesz_order,
-                                     riesz_steered=self.riesz_steered,
-                                     riesz_sigma=self.riesz_sigma)
+            gauss_filter = FilterSet2D(filter_weights,
+                                       riesz_order=self.riesz_order,
+                                       riesz_steered=self.riesz_steered,
+                                       riesz_sigma=self.riesz_sigma)
 
             # Convolve laplacian of gaussian filter with the image.
-            response_map = log_filter.convolve(voxel_grid=voxel_grid,
-                                               mode=self.mode,
-                                               response="real")
+            response_map = gauss_filter.convolve(voxel_grid=voxel_grid,
+                                                 mode=self.mode,
+                                                 response="real")
 
         else:
             # Set filter weights and create a filter.
-            log_filter = FilterSet3D(filter_weights,
-                                     riesz_order=self.riesz_order,
-                                     riesz_steered=self.riesz_steered,
-                                     riesz_sigma=self.riesz_sigma)
+            gauss_filter = FilterSet3D(filter_weights,
+                                       riesz_order=self.riesz_order,
+                                       riesz_steered=self.riesz_steered,
+                                       riesz_sigma=self.riesz_sigma)
 
             # Convolve laplacian of gaussian filter with the image.
-            response_map = log_filter.convolve(voxel_grid=voxel_grid,
-                                               mode=self.mode,
-                                               response="real")
+            response_map = gauss_filter.convolve(voxel_grid=voxel_grid,
+                                                 mode=self.mode,
+                                                 response="real")
 
         # Compute the convolution
         return response_map

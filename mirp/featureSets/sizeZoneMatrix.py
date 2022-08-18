@@ -4,9 +4,14 @@ import numpy as np
 import pandas as pd
 
 from mirp.featureSets.utilities import is_list_all_none
+from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from mirp.importSettings import FeatureExtractionSettingsClass
 
 
-def get_szm_features(img_obj, roi_obj, settings):
+def get_szm_features(img_obj: ImageClass,
+                     roi_obj: RoiClass,
+                     settings: FeatureExtractionSettingsClass):
     """Extract size zone matrix-based features from the intensity roi"""
 
     # Generate an empty feature list
@@ -20,7 +25,7 @@ def get_szm_features(img_obj, roi_obj, settings):
         n_slices = img_obj.size[0]
 
     # Iterate over spatial arrangements
-    for ii_spatial in settings.feature_extr.glszm_spatial_method:
+    for ii_spatial in settings.glszm_spatial_method:
 
         # Initiate list of size zone matrix objects
         szm_list = []
@@ -32,23 +37,28 @@ def get_szm_features(img_obj, roi_obj, settings):
             for ii_slice in np.arange(0, n_slices):
 
                 # Perform analysis per slice
-                szm_list += [SizeZoneMatrix(spatial_method=ii_spatial.lower(), slice_id=ii_slice)]
+                szm_list += [SizeZoneMatrix(spatial_method=ii_spatial.lower(),
+                                            slice_id=ii_slice)]
 
         # Perform 3D analysis
         if ii_spatial.lower() == "3d":
             # Perform analysis on the entire volume
-            szm_list += [SizeZoneMatrix(spatial_method=ii_spatial.lower(), slice_id=None)]
+            szm_list += [SizeZoneMatrix(spatial_method=ii_spatial.lower(),
+                                        slice_id=None)]
 
         # Calculate size zone matrices
         for szm in szm_list:
-            szm.calculate_matrix(img_obj=img_obj, roi_obj=roi_obj)
+            szm.calculate_matrix(img_obj=img_obj,
+                                 roi_obj=roi_obj)
 
         # Merge matrices according to the given method
-        upd_list = combine_matrices(szm_list=szm_list, spatial_method=ii_spatial.lower())
+        upd_list = combine_matrices(szm_list=szm_list,
+                                    spatial_method=ii_spatial.lower())
 
         # Calculate features
         feat_run_list = []
-        for szm in upd_list: feat_run_list += [szm.compute_features()]
+        for szm in upd_list:
+            feat_run_list += [szm.compute_features()]
 
         # Average feature values
         feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
@@ -67,19 +77,24 @@ def combine_matrices(szm_list, spatial_method):
 
     if spatial_method == "2d":
         # Average features over slices: maintain original size zone matrices
-        for szm in szm_list: use_list += [szm.copy()]
+        for szm in szm_list:
+            use_list += [szm.copy()]
 
     elif spatial_method in ["2.5d", "3d"]:
         # Merge all szms into a single representation
 
         # Select all matrices within the slice
         sel_matrix_list = []
-        for szm_id in np.arange(len(szm_list)): sel_matrix_list += [szm_list[szm_id].matrix]
+        for szm_id in np.arange(len(szm_list)):
+            sel_matrix_list += [szm_list[szm_id].matrix]
 
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [SizeZoneMatrix(spatial_method=spatial_method, slice_id=None, matrix=None, n_v=0.0)]
+            use_list += [SizeZoneMatrix(spatial_method=spatial_method,
+                                        slice_id=None,
+                                        matrix=None,
+                                        n_v=0.0)]
         else:
             # Merge size zone matrices
             merge_szm = pd.concat(sel_matrix_list, axis=0)
@@ -87,10 +102,14 @@ def combine_matrices(szm_list, spatial_method):
 
             # Update the number of voxels
             merge_n_v = 0.0
-            for szm_id in np.arange(len(szm_list)): merge_n_v += szm_list[szm_id].n_v
+            for szm_id in np.arange(len(szm_list)):
+                merge_n_v += szm_list[szm_id].n_v
 
             # Create new size zone matrix
-            use_list += [SizeZoneMatrix(spatial_method=spatial_method, slice_id=None, matrix=merge_szm, n_v=merge_n_v)]
+            use_list += [SizeZoneMatrix(spatial_method=spatial_method,
+                                        slice_id=None,
+                                        matrix=merge_szm,
+                                        n_v=merge_n_v)]
 
     else:
         use_list = None

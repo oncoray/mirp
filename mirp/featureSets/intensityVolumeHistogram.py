@@ -1,8 +1,14 @@
 import numpy as np
 import pandas as pd
 
+from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from mirp.importSettings import FeatureExtractionSettingsClass
 
-def get_intensity_volume_histogram_features(img_obj, roi_obj, settings):
+
+def get_intensity_volume_histogram_features(img_obj: ImageClass,
+                                            roi_obj: RoiClass,
+                                            settings: FeatureExtractionSettingsClass):
     """
     Extract intensity-volume histogram features for the given ROI
     :param img_obj: image object
@@ -12,15 +18,21 @@ def get_intensity_volume_histogram_features(img_obj, roi_obj, settings):
     """
 
     # Create intensity-volume histogram
-    df_ivh, n_bins = get_intensity_volume_histogram(img_obj=img_obj, roi_obj=roi_obj, settings=settings)
+    df_ivh, n_bins = get_intensity_volume_histogram(img_obj=img_obj,
+                                                    roi_obj=roi_obj,
+                                                    settings=settings)
 
     # Extract intensity volume histogram features from the intensity volume histogram
-    df_feat = compute_intensity_volume_histogram_features(df_ivh=df_ivh, n_bins=n_bins)
+    df_feat = compute_intensity_volume_histogram_features(df_ivh=df_ivh,
+                                                          n_bins=n_bins,
+                                                          settings=settings)
 
     return df_feat
 
 
-def get_intensity_volume_histogram(img_obj, roi_obj, settings):
+def get_intensity_volume_histogram(img_obj: ImageClass,
+                                   roi_obj: RoiClass,
+                                   settings: FeatureExtractionSettingsClass):
     """
     Determines the intensity-volume histogram (IVH) for the given ROI
     :param img_obj: image object
@@ -32,7 +44,8 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
     import copy
 
     # Convert image volume to table
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj,
+                                         intensity_mask=True)
 
     # Skip further processing if df_img is None due to missing input image and/or ROI
     if df_img is None:
@@ -49,12 +62,14 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
     n_v = len(df_his)
 
     # Get the range of grey levels
-    if roi_obj.g_range is None: g_range_loc = np.array([np.nan, np.nan])
-    else:                       g_range_loc = copy.deepcopy(roi_obj.g_range)
+    if roi_obj.g_range is None:
+        g_range_loc = np.array([np.nan, np.nan])
+    else:
+        g_range_loc = copy.deepcopy(roi_obj.g_range)
 
     # Get the discretisation method
     if img_obj.spat_transform == "base":
-        ivh_discr_method = settings.feature_extr.ivh_discr_method
+        ivh_discr_method = settings.ivh_discretisation_method
     else:
         ivh_discr_method = "fixed_bin_number"
 
@@ -71,8 +86,10 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
         # Calculation without transformation
 
         # Update grey level range when the range is not (completely) provided
-        if np.isnan(g_range_loc[0]): g_range_loc[0] = np.min(df_his.g) * 1.0
-        if np.isnan(g_range_loc[1]): g_range_loc[1] = np.max(df_his.g) * 1.0
+        if np.isnan(g_range_loc[0]):
+            g_range_loc[0] = np.min(df_his.g) * 1.0
+        if np.isnan(g_range_loc[1]):
+            g_range_loc[1] = np.max(df_his.g) * 1.0
 
         # Set number of bins. The number of bins is equal to the number of grey levels present
         n_bins = g_range_loc[1] - g_range_loc[0] + 1.0
@@ -94,11 +111,13 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
         # Fixed bin size/width calculations
 
         # Update grey level range when the range is not (completely) provided
-        if np.isnan(g_range_loc[0]): g_range_loc[0] = np.min(df_his.g) * 1.0
-        if np.isnan(g_range_loc[1]): g_range_loc[1] = np.max(df_his.g) * 1.0
+        if np.isnan(g_range_loc[0]):
+            g_range_loc[0] = np.min(df_his.g) * 1.0
+        if np.isnan(g_range_loc[1]):
+            g_range_loc[1] = np.max(df_his.g) * 1.0
 
         # Set bin width and get the number of bins required
-        bin_width = settings.feature_extr.ivh_discr_bin_width
+        bin_width = settings.ivh_discretisation_bin_width
 
         # Set missing bin width based on the modality
         if bin_width is None:
@@ -108,10 +127,10 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
                 bin_width = 0.1
 
         # Get the number of bins
-        n_bins    = np.ceil((g_range_loc[1] - g_range_loc[0]) / bin_width) + 1.0
+        n_bins = np.ceil((g_range_loc[1] - g_range_loc[0]) / bin_width) + 1.0
 
         # Bin voxels
-        df_his.g  = np.floor((df_his.g - g_range_loc[0]) / (bin_width * 1.0)) + 1.0
+        df_his.g = np.floor((df_his.g - g_range_loc[0]) / (bin_width * 1.0)) + 1.0
 
         # Set voxels with grey level lower than 0.0 to 1.0. This may occur with non-roi voxels and voxels with the minimum intensity
         df_his.loc[df_his["g"] <= 0.0, "g"] = 1.0
@@ -144,7 +163,7 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
         g_range_loc[1] = np.max(df_his.g) * 1.0
 
         # Set bin size and number of bins
-        n_bins   = settings.feature_extr.ivh_discr_n_bins
+        n_bins = settings.ivh_discretisation_n_bins
 
         # Set missing number of bins
         if n_bins is None:
@@ -191,7 +210,7 @@ def get_intensity_volume_histogram(img_obj, roi_obj, settings):
     return df_his, n_bins
 
 
-def compute_intensity_volume_histogram_features(df_ivh, n_bins):
+def compute_intensity_volume_histogram_features(df_ivh, n_bins, settings):
     """
     Definitions of intensity-volume histogram features
     :param df_ivh: intensity volume histogram as created using the get_intensity_volume_histogram function
@@ -202,7 +221,11 @@ def compute_intensity_volume_histogram_features(df_ivh, n_bins):
     # Create feature table
     feat_names = ["ivh_v10", "ivh_v25", "ivh_v50", "ivh_v75", "ivh_v90",
                   "ivh_i10", "ivh_i25", "ivh_i50", "ivh_i75", "ivh_i90",
-                  "ivh_diff_v10_v90", "ivh_diff_v25_v75", "ivh_diff_i10_i90", "ivh_diff_i25_i75", "ivh_auc"]
+                  "ivh_diff_v10_v90", "ivh_diff_v25_v75", "ivh_diff_i10_i90", "ivh_diff_i25_i75"]
+
+    if not settings.ibsi_compliant:
+        feat_names += ["ivh_auc"]
+
     df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
     df_feat.columns = feat_names
 
@@ -231,27 +254,32 @@ def compute_intensity_volume_histogram_features(df_ivh, n_bins):
 
     # Intensity at 10% volume
     i10 = df_ivh.loc[df_ivh.nu <= 0.10, :].g.min()
-    if np.isnan(i10): i10 = n_bins + 1.0
+    if np.isnan(i10):
+        i10 = n_bins + 1.0
     df_feat["ivh_i10"] = i10
 
     # Intensity at 25% volume
     i25 = df_ivh.loc[df_ivh.nu <= 0.25, :].g.min()
-    if np.isnan(i25): i25 = n_bins + 1.0
+    if np.isnan(i25):
+        i25 = n_bins + 1.0
     df_feat["ivh_i25"] = i25
 
     # Intensity at 50% volume
     i50 = df_ivh.loc[df_ivh.nu <= 0.50, :].g.min()
-    if np.isnan(i50): i50 = n_bins + 1.0
+    if np.isnan(i50):
+        i50 = n_bins + 1.0
     df_feat["ivh_i50"] = i50
 
     # Intensity at 75% volume
     i75 = df_ivh.loc[df_ivh.nu <= 0.75, :].g.min()
-    if np.isnan(i75): i75 = n_bins + 1.0
+    if np.isnan(i75):
+        i75 = n_bins + 1.0
     df_feat["ivh_i75"] = i75
 
     # Intensity at 90% volume
     i90 = df_ivh.loc[df_ivh.nu <= 0.90, :].g.min()
-    if np.isnan(i90): i90 = n_bins + 1.0
+    if np.isnan(i90):
+        i90 = n_bins + 1.0
     df_feat["ivh_i90"] = i90
 
     # Difference in volume fraction between 10% and 90% intensity
@@ -266,7 +294,8 @@ def compute_intensity_volume_histogram_features(df_ivh, n_bins):
     # Difference in intensity between 25% and 75% volume
     df_feat["ivh_diff_i25_i75"] = i25 - i75
 
-    # Area under IVH curve
-    df_feat["ivh_auc"] = np.trapz(y=df_ivh.nu, x=df_ivh.gamma)
+    if not settings.ibsi_compliant:
+        # Area under IVH curve
+        df_feat["ivh_auc"] = np.trapz(y=df_ivh.nu, x=df_ivh.gamma)
 
     return df_feat

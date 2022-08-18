@@ -1,8 +1,10 @@
 import logging
 from copy import deepcopy
 
-from mirp.importSettings import SettingsClass
+from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
 from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from typing import Union, List
 
 import numpy as np
 import pandas as pd
@@ -33,7 +35,9 @@ def normalise_image(img_obj, norm_method, intensity_range=None, saturation_range
     return img_obj
 
 
-def resegmentise(img_obj, roi_list, settings):
+def resegmentise(img_obj: ImageClass,
+                 roi_list: List[RoiClass],
+                 settings: SettingsClass):
     # Resegmentises segmentation map based on selected method
 
     if roi_list is not None:
@@ -44,10 +48,14 @@ def resegmentise(img_obj, roi_list, settings):
             roi_list[ii].generate_masks()
 
             # Skip if no resegmentation method is used
-            if settings.roi_resegment.method is None: continue
+            if "none" in settings.roi_resegment.resegmentation_method:
+                continue
 
-            # Re-segment image
-            roi_list[ii].resegmentise_mask(img_obj=img_obj, by_slice=settings.general.by_slice, method=settings.roi_resegment.method, settings=settings)
+            # Resegment image
+            roi_list[ii].resegmentise_mask(img_obj=img_obj,
+                                           by_slice=settings.general.by_slice,
+                                           method=settings.roi_resegment.resegmentation_method,
+                                           settings=settings)
 
             # Set the roi as the union of the intensity and morphological maps
             roi_list[ii].update_roi()
@@ -66,6 +74,15 @@ def interpolate_roi(roi_list, img_obj, settings):
     # Interpolates roi to a new spacing
     for ii in np.arange(0, len(roi_list)):
         roi_list[ii].interpolate(img_obj=img_obj, settings=settings)
+
+    return roi_list
+
+
+def select_largest_slice(roi_list):
+
+    # Select the largest slice.
+    for ii in np.arange(0, len(roi_list)):
+        roi_list[ii].select_largest_slice()
 
     return roi_list
 
@@ -245,7 +262,9 @@ def estimate_image_noise(img_obj, settings, method="chang"):
     return est_noise
 
 
-def get_supervoxels(img_obj, roi_obj, settings):
+def get_supervoxels(img_obj: ImageClass,
+                    roi_obj: RoiClass,
+                    settings: SettingsClass):
     """Extracts supervoxels from an image"""
 
     from skimage.segmentation import slic
@@ -259,11 +278,11 @@ def get_supervoxels(img_obj, roi_obj, settings):
     img_voxel_grid = copy.deepcopy(img_obj.get_voxel_grid())
 
     # Get grey level thresholds
-    g_range = settings.roi_resegment.g_thresh
+    g_range = settings.roi_resegment.intensity_range
     if g_range[0] == np.nan:
-        np.min(img_obj[roi_obj.roi.get_voxel_grid()])
+        np.min(img_obj.get_voxel_grid()[roi_obj.roi.get_voxel_grid()])
     if g_range[1] == np.nan:
-        np.max(img_obj[roi_obj.roi.get_voxel_grid()])
+        np.max(img_obj.get_voxel_grid()[roi_obj.roi.get_voxel_grid()])
 
     # Add 10% range outside of the grey level range
     exp_range = 0.1 * (g_range[1] - g_range[0])
@@ -314,7 +333,7 @@ def get_supervoxel_overlap(roi_obj, img_segments, mask=None):
         overlap_segment_labels, overlap_size = np.unique(np.multiply(img_segments, roi_obj.roi.get_voxel_grid()), return_counts=True)
 
     # Find super voxels with non-zero overlap with the roi
-    overlap_size           = overlap_size[overlap_segment_labels > 0]
+    overlap_size = overlap_size[overlap_segment_labels > 0]
     overlap_segment_labels = overlap_segment_labels[overlap_segment_labels > 0]
 
     # Check the actual size of the segments overlapping with the current contour
@@ -326,7 +345,12 @@ def get_supervoxel_overlap(roi_obj, img_segments, mask=None):
     return overlap_segment_labels, overlap_frac, overlap_size
 
 
-def transform_images(img_obj, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+def transform_images(img_obj: ImageClass,
+                     roi_list: List[RoiClass],
+                     settings: SettingsClass,
+                     compute_features=False,
+                     extract_images=False,
+                     file_path=None):
     """
     Performs image transformations and calculates features.
     :param img_obj: image object
@@ -342,7 +366,7 @@ def transform_images(img_obj, roi_list, settings, compute_features=False, extrac
     feat_list = []
 
     # Check if image transformation is required
-    if not settings.img_transform.perform_img_transform:
+    if settings.img_transform.spatial_filters is None:
         return feat_list
 
     # Get spatial filters to apply
@@ -351,40 +375,88 @@ def transform_images(img_obj, roi_list, settings, compute_features=False, extrac
     # Iterate over spatial filters
     for curr_filter in spatial_filter:
 
-        if curr_filter == "wavelet":
-            # Wavelet filters
-            from mirp.imageFilters.waveletFilter import WaveletFilter
+        if settings.img_transform.has_separable_wavelet_filter(x=curr_filter):
+            # Separable wavelet filters
+            from mirp.imageFilters.separableWaveletFilter import SeparableWaveletFilter
 
-            filter_obj = WaveletFilter(settings=settings)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj, roi_list=roi_list, settings=settings,
-                                                         compute_features=compute_features, extract_images=extract_images,
+            filter_obj = SeparableWaveletFilter(settings=settings, name=curr_filter)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
                                                          file_path=file_path)
 
-        elif curr_filter == "laplacian_of_gaussian":
+        elif settings.img_transform.has_nonseparable_wavelet_filter(x=curr_filter):
+            # Non-separable wavelet filters
+            from mirp.imageFilters.nonseparableWaveletFilter import NonseparableWaveletFilter
+
+            filter_object = NonseparableWaveletFilter(settings=settings, name=curr_filter)
+            feat_list += filter_object.apply_transformation(img_obj=img_obj,
+                                                            roi_list=roi_list,
+                                                            settings=settings,
+                                                            compute_features=compute_features,
+                                                            extract_images=extract_images,
+                                                            file_path=file_path)
+
+        elif settings.img_transform.has_gaussian_filter(x=curr_filter):
+            # Gaussian filters
+            from mirp.imageFilters.gaussian import GaussianFilter
+
+            filter_obj = GaussianFilter(settings=settings, name=curr_filter)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
+                                                         file_path=file_path)
+
+        elif settings.img_transform.has_laplacian_of_gaussian_filter(x=curr_filter):
             # Laplacian of Gaussian filters
             from mirp.imageFilters.laplacianOfGaussian import LaplacianOfGaussianFilter
 
-            filter_obj = LaplacianOfGaussianFilter(settings=settings)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj, roi_list=roi_list, settings=settings,
-                                                         compute_features=compute_features, extract_images=extract_images,
+            filter_obj = LaplacianOfGaussianFilter(settings=settings, name=curr_filter)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
                                                          file_path=file_path)
 
-        elif curr_filter == "laws":
+        elif settings.img_transform.has_laws_filter(x=curr_filter):
             # Laws' kernels
             from mirp.imageFilters.lawsFilter import LawsFilter
 
-            filter_obj = LawsFilter(settings=settings)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj, roi_list=roi_list, settings=settings,
-                                                         compute_features=compute_features, extract_images=extract_images,
+            filter_obj = LawsFilter(settings=settings, name=curr_filter)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
                                                          file_path=file_path)
 
-        elif curr_filter == "mean":
+        elif settings.img_transform.has_gabor_filter(x=curr_filter):
+            # Gabor kernels
+            from mirp.imageFilters.gaborFilter import GaborFilter
+
+            filter_obj = GaborFilter(settings=settings, name=curr_filter)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
+                                                         file_path=file_path)
+
+        elif settings.img_transform.has_mean_filter(x=curr_filter):
             # Mean / uniform filter
             from mirp.imageFilters.meanFilter import MeanFilter
 
-            filter_obj = MeanFilter(settings=settings)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj, roi_list=roi_list, settings=settings,
-                                                         compute_features=compute_features, extract_images=extract_images,
+            filter_obj = MeanFilter(settings=settings, name=curr_filter)
+            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
+                                                         roi_list=roi_list,
+                                                         settings=settings,
+                                                         compute_features=compute_features,
+                                                         extract_images=extract_images,
                                                          file_path=file_path)
 
         else:
@@ -572,7 +644,11 @@ def crop_image_to_size(img_obj, crop_size, roi_list=None, roi_obj=None):
         return img_crop, roi_crop_list
 
 
-def discretise_image_intensities(img_obj, roi_obj, discr_method="none", bin_width=None, bin_number=None):
+def discretise_image_intensities(img_obj: ImageClass,
+                                 roi_obj: RoiClass,
+                                 discr_method: str = "none",
+                                 bin_width: Union[None, int] = None,
+                                 bin_number: Union[None, int] = None):
 
     # Check if the roi intensity mask has been generated
     if roi_obj.roi_intensity is None:
@@ -696,11 +772,9 @@ def interpolate_to_new_grid(orig_dim,
     """
     Resamples input grid and returns the output grid.
     :param orig_dim: dimensions of the input grid
-    :param orig_origin: origin (in world coordinates) of the input grid
     :param orig_spacing: spacing (in world measures) of the input grid
     :param orig_vox: input grid
     :param sample_dim: desired output size (determined within the function if None)
-    :param sample_origin: desired output origin (in world coordinates; determined within the function if None)
     :param sample_spacing: desired sample spacing (in world measures; should be provided if sample_dim or sample_origin is None)
     :param translation: a translation vector that is used to shift the interpolation grid (in voxel measures)
     :param order: interpolation spline order (0=nnb, 1=linear, 2=order 2 spline, 3=cubic splice, max 5).
@@ -828,13 +902,13 @@ def gaussian_preprocess_filter(orig_vox, orig_spacing, sample_spacing=None, para
     return new_vox
 
 
-def divide_tumour_regions(roi_list, settings):
+def divide_tumour_regions(roi_list: List[RoiClass], settings: SettingsClass):
 
     # Create new list for storing roi boundaries and bulk
     new_roi_list = []
 
     # Get the boundary size.
-    boundary_size_list = settings.vol_adapt.roi_boundary_size
+    boundary_size_list = settings.perturbation.roi_boundary_size
 
     # Skip processing when no objects are requested
     if boundary_size_list == [0.0]:
@@ -861,12 +935,14 @@ def divide_tumour_regions(roi_list, settings):
             boundary_roi_obj.adapt_size = boundary_size
 
             # Remove boundary from the roi to generate the bulk
-            bulk_roi_obj.erode(by_slice=settings.general.by_slice, dist=-boundary_size,
-                               eroded_vol_fract=settings.vol_adapt.bulk_min_vol_fract)
+            bulk_roi_obj.erode(by_slice=settings.general.by_slice,
+                               dist=-boundary_size,
+                               eroded_vol_fract=settings.perturbation.max_bulk_volume_erosion)
 
             # Get roi boundary if roi exists
             if roi_obj.roi is not None:
-                boundary_roi_obj.roi.set_voxel_grid(voxel_grid=np.logical_xor(roi_obj.roi.get_voxel_grid(), bulk_roi_obj.roi.get_voxel_grid()))
+                boundary_roi_obj.roi.set_voxel_grid(voxel_grid=np.logical_xor(roi_obj.roi.get_voxel_grid(),
+                                                                              bulk_roi_obj.roi.get_voxel_grid()))
 
             # Check whether the bulk and boundary roi object are empty or not
             if not bulk_roi_obj.is_empty() and not boundary_roi_obj.is_empty():
@@ -1017,7 +1093,10 @@ def divide_tumour_regions(roi_list, settings):
 #     return new_roi_list
 
 
-def calculate_features(img_obj, roi_list, settings, append_str=""):
+def calculate_features(img_obj: ImageClass,
+                       roi_list: List[RoiClass],
+                       settings: Union[SettingsClass, FeatureExtractionSettingsClass],
+                       append_str: Union[None, str] = ""):
     """
     Calculate image features from the provided data
     :param img_obj:
@@ -1034,7 +1113,11 @@ def calculate_features(img_obj, roi_list, settings, append_str=""):
 
     feat_list = []
 
-    for roi_ind in np.arange(0, len(roi_list)):
+    # Update settings.
+    if isinstance(settings, SettingsClass):
+        settings = settings.feature_extr
+
+    for roi_obj in roi_list:
 
         roi_feat_list = []
 
@@ -1042,15 +1125,18 @@ def calculate_features(img_obj, roi_list, settings, append_str=""):
         # Local mapping features
         ################################################################################################################
 
-        if np.any([np.in1d(["li", "loc.int", "loc_int", "local_int", "local_intensity", "all"], settings.feature_extr.families)]):
+        if settings.has_local_intensity_family():
             # Cut roi and image with 10 mm boundary
-            img_cut, roi_cut = crop_image(img_obj=img_obj, roi_obj=roi_list[roi_ind], boundary=10.0)
+            img_cut, roi_cut = crop_image(img_obj=img_obj,
+                                          roi_obj=roi_obj,
+                                          boundary=10.0)
 
             # Decode roi voxel grid
             roi_cut.decode_voxel_grid()
 
             # Calculate local intensities
-            roi_feat_list += [get_local_intensity_features(img_obj=img_cut, roi_obj=roi_cut)]
+            roi_feat_list += [get_local_intensity_features(img_obj=img_cut,
+                                                           roi_obj=roi_cut)]
 
             # Clean up
             del img_cut, roi_cut
@@ -1060,46 +1146,57 @@ def calculate_features(img_obj, roi_list, settings, append_str=""):
         ################################################################################################################
 
         # Cut roi and image to image
-        img_cut, roi_cut = crop_image(img_obj=img_obj, roi_obj=roi_list[roi_ind], boundary=0.0)
+        img_cut, roi_cut = crop_image(img_obj=img_obj,
+                                      roi_obj=roi_obj,
+                                      boundary=0.0)
 
         # Decode roi voxel grid
         roi_cut.decode_voxel_grid()
 
         # Extract statistical features
-        if np.any([np.in1d(["st", "stat", "stats", "statistics", "statistical", "all"], settings.feature_extr.families)]):
-            roi_feat_list += [get_intensity_statistics_features(img_obj=img_cut, roi_obj=roi_cut)]
+        if settings.has_stats_family():
+            roi_feat_list += [get_intensity_statistics_features(img_obj=img_cut,
+                                                                roi_obj=roi_cut)]
 
         # Calculate intensity volume histogram features
-        if np.any([np.in1d(["ivh", "int_vol_hist", "intensity_volume_histogram", "all"], settings.feature_extr.families)]):
-            roi_feat_list += [get_intensity_volume_histogram_features(img_obj=img_cut, roi_obj=roi_cut, settings=settings)]
+        if settings.has_ivh_family():
+            roi_feat_list += [get_intensity_volume_histogram_features(img_obj=img_cut,
+                                                                      roi_obj=roi_cut,
+                                                                      settings=settings)]
 
         # Calculate morphological features
-        if np.any([np.in1d(["mrp", "morph", "morphology", "morphological", "all"], settings.feature_extr.families)]):
-            roi_feat_list += [get_volumetric_morphological_features(img_obj=img_cut, roi_obj=roi_cut, settings=settings)]
+        if settings.has_morphology_family():
+            roi_feat_list += [get_volumetric_morphological_features(img_obj=img_cut,
+                                                                    roi_obj=roi_cut,
+                                                                    settings=settings)]
 
         ################################################################################################################
         # ROI features with discretisation
         ################################################################################################################
 
-        for discr_method in settings.feature_extr.discr_method:
+        for discretisation_method in settings.discretisation_method:
 
-            # Skip discretisation when we are working from a transformed image without fixed_bin_number discretisation
-            if not img_obj.spat_transform == "base" and discr_method not in ["fixed_bin_number"]:
-                continue
-
-            if discr_method in ["fixed_bin_size"]:
-                for bin_width in settings.feature_extr.discr_bin_width:
-                    roi_feat_list += [compute_discretised_features(img_obj=img_cut, roi_obj=roi_cut, settings=settings,
-                                                                   discr_method=discr_method, bin_width=bin_width,
+            if discretisation_method in ["fixed_bin_size"]:
+                for bin_width in settings.discretisation_bin_width:
+                    roi_feat_list += [compute_discretised_features(img_obj=img_cut,
+                                                                   roi_obj=roi_cut,
+                                                                   settings=settings,
+                                                                   discretisation_method=discretisation_method,
+                                                                   bin_width=bin_width,
                                                                    bin_number=None)]
-            if discr_method in ["fixed_bin_number"]:
-                for bin_number in settings.feature_extr.discr_n_bins:
-                    roi_feat_list += [compute_discretised_features(img_obj=img_cut, roi_obj=roi_cut, settings=settings,
-                                                                   discr_method=discr_method, bin_width=None,
+            if discretisation_method in ["fixed_bin_number"]:
+                for bin_number in settings.discretisation_n_bins:
+                    roi_feat_list += [compute_discretised_features(img_obj=img_cut,
+                                                                   roi_obj=roi_cut,
+                                                                   settings=settings,
+                                                                   discretisation_method=discretisation_method,
+                                                                   bin_width=None,
                                                                    bin_number=bin_number)]
-            if discr_method in ["none"]:
-                roi_feat_list += [compute_discretised_features(img_obj=img_cut, roi_obj=roi_cut, settings=settings,
-                                                               discr_method=discr_method, bin_width=None,
+            if discretisation_method in ["none"]:
+                roi_feat_list += [compute_discretised_features(img_obj=img_cut, roi_obj=roi_cut,
+                                                               settings=settings,
+                                                               discretisation_method=discretisation_method,
+                                                               bin_width=None,
                                                                bin_number=None)]
 
         ################################################################################################################
@@ -1127,7 +1224,12 @@ def calculate_features(img_obj, roi_list, settings, append_str=""):
         return None
 
 
-def compute_discretised_features(img_obj, roi_obj, settings, discr_method="none", bin_width=None, bin_number=None):
+def compute_discretised_features(img_obj: ImageClass,
+                                 roi_obj: RoiClass,
+                                 settings: FeatureExtractionSettingsClass,
+                                 discretisation_method: str = "none",
+                                 bin_width: Union[None, int] = None,
+                                 bin_number: Union[None, int] = None):
     """Function to process and calculate discretised image features"""
 
     from mirp.featureSets.intensityHistogram import get_intensity_histogram_features
@@ -1139,8 +1241,11 @@ def compute_discretised_features(img_obj, roi_obj, settings, discr_method="none"
     from mirp.featureSets.neighbouringGreyLevelDifferenceMatrix import get_ngldm_features
 
     # Apply image discretisation
-    img_discr, roi_discr = discretise_image_intensities(img_obj=img_obj, roi_obj=roi_obj, discr_method=discr_method,
-                                                        bin_width=bin_width, bin_number=bin_number)
+    img_discr, roi_discr = discretise_image_intensities(img_obj=img_obj,
+                                                        roi_obj=roi_obj,
+                                                        discr_method=discretisation_method,
+                                                        bin_width=bin_width,
+                                                        bin_number=bin_number)
 
     # Decode roi object
     roi_discr.decode_voxel_grid()
@@ -1149,32 +1254,45 @@ def compute_discretised_features(img_obj, roi_obj, settings, discr_method="none"
     feat_list = []
 
     # Intensity histogram
-    if np.any([np.in1d(["ih", "int_hist", "int_histogram", "intensity_histogram", "all"], settings.feature_extr.families)]):
-        feat_list += [get_intensity_histogram_features(img_obj=img_discr, roi_obj=roi_discr)]
+    if settings.has_ih_family():
+        feat_list += [get_intensity_histogram_features(img_obj=img_discr,
+                                                       roi_obj=roi_discr)]
 
     # Grey level cooccurrence matrix
-    if np.any([np.in1d(["cm", "glcm", "grey_level_cooccurrence_matrix", "cooccurrence_matrix", "all"], settings.feature_extr.families)]):
-        feat_list += [get_cm_features(img_obj=img_discr, roi_obj=roi_discr, settings=settings)]
+    if settings.has_glcm_family():
+        feat_list += [get_cm_features(img_obj=img_discr,
+                                      roi_obj=roi_discr,
+                                      settings=settings)]
 
     # Grey level run length matrix
-    if np.any([np.in1d(["rlm", "glrlm", "grey_level_run_length_matrix", "run_length_matrix", "all"], settings.feature_extr.families)]):
-        feat_list += [get_rlm_features(img_obj=img_discr, roi_obj=roi_discr, settings=settings)]
+    if settings.has_glrlm_family():
+        feat_list += [get_rlm_features(img_obj=img_discr,
+                                       roi_obj=roi_discr,
+                                       settings=settings)]
 
     # Grey level size zone matrix
-    if np.any([np.in1d(["szm", "glszm", "grey_level_size_zone_matrix", "size_zone_matrix", "all"], settings.feature_extr.families)]):
-        feat_list += [get_szm_features(img_obj=img_discr, roi_obj=roi_discr, settings=settings)]
+    if settings.has_glszm_family():
+        feat_list += [get_szm_features(img_obj=img_discr,
+                                       roi_obj=roi_discr,
+                                       settings=settings)]
 
     # Grey level distance zone matrix
-    if np.any([np.in1d(["dzm", "gldzm", "grey_level_distance_zone_matrix", "distance_zone_matrix", "all"], settings.feature_extr.families)]):
-        feat_list += [get_dzm_features(img_obj=img_discr, roi_obj=roi_discr, settings=settings)]
+    if settings.has_gldzm_family():
+        feat_list += [get_dzm_features(img_obj=img_discr,
+                                       roi_obj=roi_discr,
+                                       settings=settings)]
 
     # Neighbourhood grey tone difference matrix
-    if np.any([np.in1d(["tdm", "ngtdm", "neighbourhood_grey_tone_difference_matrix", "grey_tone_difference_matrix", "all"], settings.feature_extr.families)]):
-        feat_list += [get_ngtdm_features(img_obj=img_discr, roi_obj=roi_discr, settings=settings)]
+    if settings.has_ngtdm_family():
+        feat_list += [get_ngtdm_features(img_obj=img_discr,
+                                         roi_obj=roi_discr,
+                                         settings=settings)]
 
     # Neighbouring grey level dependence matrix
-    if np.any([np.in1d(["ldm", "ngldm", "neighbouring_grey_level_dependence_matrix", "grey_level_dependence_matrix", "all"], settings.feature_extr.families)]):
-        feat_list += [get_ngldm_features(img_obj=img_discr, roi_obj=roi_discr, settings=settings)]
+    if settings.has_ngldm_family():
+        feat_list += [get_ngldm_features(img_obj=img_discr,
+                                         roi_obj=roi_discr,
+                                         settings=settings)]
 
     # Check if any features were added to the feature list; otherwise return to main function
     if len(feat_list) == 0:
@@ -1187,12 +1305,16 @@ def compute_discretised_features(img_obj, roi_obj, settings, discr_method="none"
     parse_str = ""
 
     # Add discretisation method to string
-    if discr_method == "fixed_bin_size": parse_str += "_fbs"
-    if discr_method == "fixed_bin_number": parse_str += "_fbn"
+    if discretisation_method == "fixed_bin_size":
+        parse_str += "_fbs"
+    if discretisation_method == "fixed_bin_number":
+        parse_str += "_fbn"
 
     # Add bin witdth/ bin number to string
-    if bin_width is not None: parse_str += "_w" + str(bin_width)
-    if bin_number is not None: parse_str += "_n" + str(int(bin_number))
+    if bin_width is not None:
+        parse_str += "_w" + str(bin_width)
+    if bin_number is not None:
+        parse_str += "_n" + str(int(bin_number))
 
     df_feat.columns += parse_str
 
