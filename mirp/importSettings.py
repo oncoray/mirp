@@ -482,7 +482,7 @@ class ImagePostProcessingClass:
                 raise TypeError("The tissue_mask_range parameter can only contain floating point or np.nan values.")
 
             if tissue_mask_type == "relative_range":
-                if not all([(ii >= 0.0 and ii <= 0.0) or np.isnan(ii) for ii in tissue_mask_range]):
+                if not all([(0.0 <= ii <= 1.0) or np.isnan(ii) for ii in tissue_mask_range]):
                     raise ValueError("The tissue_mask_range parameter should consist of two values between 0.0 and "
                                      "1.0.")
 
@@ -665,7 +665,7 @@ class ImagePerturbationSettingsClass:
             raise TypeError(f"Not all values for roi_split_boundary_size are floating point values.")
 
         # Check that the translation fractions lie between 0.0 and 1.0.
-        if not all(ii > 0.0 for ii in roi_split_boundary_size):
+        if not all(ii >= 0.0 for ii in roi_split_boundary_size):
             raise ValueError("Not all values for roi_split_boundary_size are positive.")
 
         # Set roi_boundary_size.
