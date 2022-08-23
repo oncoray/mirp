@@ -6,12 +6,13 @@ import multiprocessing as mp
 import os
 import time
 from inspect import stack, getmodule
+from typing import Union, List
 
 import numpy as np
 import pandas as pd
 
 from mirp.importSettings import import_configuration_settings, import_data_settings
-
+from mirp.experimentClass import ExperimentClass
 
 def get_roi_names(data_config=None, settings_config=None, to_file=True):
     """ Allows automatic extraction of roi names """
@@ -258,11 +259,13 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
         if "__main__" in module_names:
 
             # Parse data
-            settings_list = import_configuration_settings(path=settings_config)
-            data_obj_list = import_data_settings(path=data_config, config_settings=settings_list,
-                                                 keep_images_in_memory=keep_images_in_memory,
-                                                 compute_features=compute_features, extract_images=extract_images,
-                                                 plot_images=plot_images)
+            settings_list = import_configuration_settings(compute_features=compute_features,
+                                                          path=settings_config)
+            data_obj_list: List[ExperimentClass] = import_data_settings(path=data_config,
+                                                                        config_settings=settings_list,
+                                                                        keep_images_in_memory=keep_images_in_memory,
+                                                                        compute_features=compute_features, extract_images=extract_images,
+                                                                        plot_images=plot_images)
 
             # Initiate process manager
             df_mngr = pd.DataFrame({"job_id": np.arange(len(data_obj_list)),
@@ -280,8 +283,8 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
                     break
 
                 # Add job to worker
-                process_name = data_obj_list[ii].subject + "_" + data_obj_list[ii].modality + "_" + \
-                               data_obj_list[ii].data_str + "_" + data_obj_list[ii].settings.general.config_str
+                process_name = "_".join([data_obj_list[ii].subject] + data_obj_list[ii].data_str +
+                                        [data_obj_list[ii].settings.general.config_str])
                 worker_list.append(mp.Process(target=parallel_process, args=(data_obj_list[ii],), name=process_name))
                 worker_list[ii].daemon = True
                 df_mngr.loc[ii, "assigned_worker"] = ii
@@ -372,9 +375,9 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
 
                     # Add job to worker
                     sel_job_id = available_jobs.values[jj]
-                    process_name = data_obj_list[sel_job_id].subject + "_" + data_obj_list[sel_job_id].modality + "_" + \
-                                   data_obj_list[sel_job_id].data_str + "_" + data_obj_list[
-                                       sel_job_id].settings.general.config_str
+                    process_name = "_".join([data_obj_list[sel_job_id].subject] + data_obj_list[sel_job_id].data_str
+                                            + [data_obj_list[sel_job_id].settings.general.config_str])
+
                     worker_list[free_workers[jj]] = mp.Process(target=parallel_process,
                                                                args=(data_obj_list[sel_job_id],), name=process_name)
                     worker_list[free_workers[jj]].daemon = True
@@ -384,18 +387,20 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
             logging.info("Feature calculation has been completed.")
 
             if len(error_skip_list) > 0:
-                names = [data_obj_list[ii].modality + "_" + data_obj_list[ii].data_str + " of " + data_obj_list[
-                    ii].subject + " (" +
+                names = ["_".join(data_obj_list[ii].data_str) + " of " + data_obj_list[ii].subject + " (" +
                          data_obj_list[ii].cohort + ")" for ii in error_skip_list]
                 logging.info("No features could be calculated for %s due to errors.",
                              ", ".join(sample_name for sample_name in names))
 
     else:
         # Parse data
-        settings_list = import_configuration_settings(path=settings_config)
-        data_obj_list = import_data_settings(path=data_config, config_settings=settings_list,
+        settings_list = import_configuration_settings(compute_features=compute_features,
+                                                      path=settings_config)
+        data_obj_list = import_data_settings(path=data_config,
+                                             config_settings=settings_list,
                                              keep_images_in_memory=keep_images_in_memory,
-                                             compute_features=compute_features, extract_images=extract_images)
+                                             compute_features=compute_features,
+                                             extract_images=extract_images)
 
         for data_obj in data_obj_list:
             data_obj.process()
