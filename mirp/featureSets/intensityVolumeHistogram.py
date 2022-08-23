@@ -102,8 +102,8 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_his = df_his.append(
-                pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)}), ignore_index=True)
+            df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                               ignore_index=True)
 
         del levels, miss_level, n_miss
 
@@ -143,8 +143,8 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_his = df_his.append(
-                pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)}), ignore_index=True)
+            df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                               ignore_index=True)
 
         del levels, miss_level, n_miss
 
@@ -187,8 +187,8 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_his = df_his.append(
-                pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)}), ignore_index=True)
+            df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                               ignore_index=True)
 
         del levels, miss_level, n_miss
 

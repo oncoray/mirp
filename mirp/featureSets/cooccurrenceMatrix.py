@@ -314,7 +314,8 @@ class CooccurrenceMatrix:
 
         # Append grey level transitions in opposite direction
         df_cm_inv = pd.DataFrame({"g": df_cm.to_g, "to_g": df_cm.g, "n": df_cm.n})
-        df_cm = df_cm.append(df_cm_inv, ignore_index=True)
+        df_cm = pd.concat([df_cm, df_cm_inv],
+                          ignore_index=True)
 
         # Sum occurrences of grey level transitions
         df_cm = df_cm.groupby(by=["g", "to_g"]).sum().reset_index()
@@ -514,7 +515,7 @@ class CooccurrenceMatrix:
             elif self.spatial_method == "2d_slice_merge":
                 parse_str += ["2d_s_mrg"]
             elif self.spatial_method == "2.5d_direction_merge":
-                parse_str += ["2.5_d_mrg"]
+                parse_str += ["2.5d_d_mrg"]
             elif self.spatial_method == "2.5d_volume_merge":
                 parse_str += ["2.5d_v_mrg"]
             elif self.spatial_method == "3d_average":

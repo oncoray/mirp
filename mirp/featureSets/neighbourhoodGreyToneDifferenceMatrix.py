@@ -268,9 +268,10 @@ class GreyToneDifferenceMatrix:
         miss_level = levels[np.logical_not(np.in1d(levels, df_pi.i))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_pi = df_pi.append(
-                pd.DataFrame({"i": miss_level, "s": np.zeros(n_miss), "n": np.zeros(n_miss), "pi": np.zeros(n_miss)}),
-                ignore_index=True)
+            df_pi = pd.concat([df_pi, pd.DataFrame({"i": miss_level, "s": np.zeros(n_miss), "n": np.zeros(n_miss),
+                                                    "pi": np.zeros(n_miss)})],
+                              ignore_index=True)
+
         del levels, miss_level, n_miss
 
         # Compose occurrence correspondence table

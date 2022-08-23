@@ -36,7 +36,7 @@ def get_rlm_features(img_obj: ImageClass,
         rlm_list = []
 
         # Perform 2D analysis
-        if ii_spatial.lower() in ["2d", "2.5d"]:
+        if ii_spatial.lower() in ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"]:
 
             # Iterate over slices
             for ii_slice in np.arange(0, n_slices):
@@ -52,7 +52,7 @@ def get_rlm_features(img_obj: ImageClass,
                                                  slice_id=ii_slice)]
 
         # Perform 3D analysis
-        elif ii_spatial.lower() == "3d":
+        elif ii_spatial.lower() in ["3d_average", "3d_volume_merge"]:
 
             # Get neighbour direction and iterate over neighbours
             nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=True)
@@ -446,7 +446,7 @@ class RunLengthMatrix:
             elif self.spatial_method == "2d_slice_merge":
                 parse_str += ["2d_s_mrg"]
             elif self.spatial_method == "2.5d_direction_merge":
-                parse_str += ["2.5_d_mrg"]
+                parse_str += ["2.5d_d_mrg"]
             elif self.spatial_method == "2.5d_volume_merge":
                 parse_str += ["2.5d_v_mrg"]
             elif self.spatial_method == "3d_average":
