@@ -1,7 +1,7 @@
 import os
 import warnings
 from copy import deepcopy
-from typing import Union
+from typing import Union, List
 
 import pydicom
 import pandas as pd
@@ -199,8 +199,10 @@ def get_all_dicom_headers(image_folder, modality=None, series_uid=None, sop_inst
             sop_instance_uid = [sop_instance_uid]
 
     # Obtain a list with image files
-    file_list = _find_dicom_image_series(image_folder=image_folder, allowed_modalities=["CT", "PT", "MR"],
-                                             modality=modality, series_uid=series_uid)
+    file_list = _find_dicom_image_series(image_folder=image_folder,
+                                         allowed_modalities=["CT", "PT", "MR"],
+                                         modality=modality,
+                                         series_uid=series_uid)
 
     # Obtain dicom metadata for each file
     slice_dcm = [pydicom.dcmread(os.path.join(image_folder, file_name), stop_before_pixels=True, force=True) for file_name in file_list]
@@ -255,7 +257,7 @@ def read_dicom_rt_struct(dcm_folder,
     deparsed_roi = [deparsed_roi_name for combined_roi_name in deparsed_roi for deparsed_roi_name in combined_roi_name]
 
     # Check if all are included in roi_names
-    missing_roi = np.setdiff1d(ar1=np.array(deparsed_roi), ar2=np.array(roi_names)).tolist()
+    missing_roi: List[str] = np.setdiff1d(ar1=np.array(deparsed_roi), ar2=np.array(roi_names)).tolist()
     if len(missing_roi) == len(deparsed_roi):
         warnings.warn(f"None of the ROIs could be found in the RT structure set ({dcm_file}).")
         return []
