@@ -2677,6 +2677,36 @@ def import_data_settings(path,
         # Identify subject folders
         folder_list = find_sub_directories(project_path)
 
+        # Check if there are multiple data branches with the same modality, because then we need to update the subject.
+        image_data_identifier_list = []
+        for data_branch in branch.findall("data"):
+            # Collect modality, image_folder and image_file_name_pattern
+            image_data_identifier_list += [pd.DataFrame.from_dict(dict({
+                "modality": [str2type(data_branch.find("modality"), "str")],
+                "folder": [str2type(data_branch.find("image_folder"), "path")],
+                "image_file_name_pattern": [str2type(data_branch.find("image_filename_pattern"), "str")]
+            }))]
+
+        # Concatenate to single data frame.
+        image_data_identifier_list = pd.concat(image_data_identifier_list,
+                                               ignore_index=True)
+
+        # Populate image data identifiers aside from subject/
+        n_unique_sets = image_data_identifier_list.shape[0]
+        if image_data_identifier_list.drop_duplicates(subset=["modality"], inplace=False).shape[0] == n_unique_sets:
+            image_data_identifiers = ["modality"]
+
+        elif image_data_identifier_list.drop_duplicates(subset=["modality", "folder"], inplace=False).shape[0] == \
+                n_unique_sets:
+            image_data_identifiers = ["modality", "folder"]
+
+        elif image_data_identifier_list.drop_duplicates(subset=["modality", "image_file_name_pattern"],
+                                                        inplace=False).shape[0] == n_unique_sets:
+            image_data_identifiers = ["modality", "file_name"]
+
+        else:
+            image_data_identifiers = ["modality", "folder", "file_name"]
+
         # Iterate over data branches
         for data_branch in branch.findall("data"):
 
@@ -2691,7 +2721,6 @@ def import_data_settings(path,
             roi_names = str2list(data_branch.find("roi_names"), "str")
             roi_list_path: str = str2type(data_branch.find("roi_list_path"), "str")
             divide_disconnected_roi = str2type(data_branch.find("divide_disconnected_roi"), "str", "combine")
-            data_string = str2type(data_branch.find("data_str"), "str")
             extraction_config = str2list(data_branch.find("extraction_config"), "str")
 
             # Check if extraction config has been set -- this allows setting configurations for mixed modalities
@@ -2805,6 +2834,23 @@ def import_data_settings(path,
                     # Set divide_disconnected_roi setting
                     if curr_config_setting is not None:
                         curr_config_setting.general.divide_disconnected_roi = divide_disconnected_roi
+
+                    # Identify data string.
+                    data_string = []
+                    for data_identifier in image_data_identifiers:
+                        if data_identifier == "modality":
+                            data_string += [image_modality]
+
+                        elif data_identifier == "folder":
+                            if image_folder is not None:
+                                image_folder_str = image_folder.replace("/", "_").replace("\\", "_")
+                                data_string += [image_folder_str]
+
+                        elif data_identifier == "file_name":
+                            if image_file_name_pattern is not None:
+                                data_string += [image_file_name_pattern]
+                        else:
+                            raise ValueError(f"Encountered an unexpected data_identifier: {data_identifier}")
 
                     data_obj = ExperimentClass(modality=image_modality,
                                                subject=curr_subj,

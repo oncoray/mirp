@@ -76,7 +76,7 @@ class ExperimentClass:
         self.roi_names = roi_names
 
         # Identifier strings
-        self.data_str = "" if data_str is None else data_str
+        self.data_str: List[str] = [] if data_str is None else data_str
 
         # Date at analysis start
         self.date = datetime.date.today().isoformat()
@@ -512,8 +512,7 @@ class ExperimentClass:
             df_feat = pd.concat(feat_list, axis=0)
 
             # Write to file
-            file_name = "_".join([file_name_comp for file_name_comp in [self.subject, self.modality, self.data_str, self.date, self.settings.general.config_str, "features.csv"]
-                                  if file_name_comp != ""]).replace(" ", "_")
+            file_name = self._create_base_file_name() + "_features.csv"
 
             # Write successful completion to console or log
             logging.info(self._message_feature_extraction_finished())
@@ -825,7 +824,7 @@ class ExperimentClass:
                                     "id_cohort": self.cohort,
                                     "img_data_settings_id": settings.general.config_str,
                                     "img_data_modality": self.modality,
-                                    "img_data_config": self.data_str,
+                                    "img_data_config": "_".join(self.data_str),
                                     "img_data_noise_level": img_obj.noise,
                                     "img_data_noise_iter": img_obj.noise_iter,
                                     "img_data_rotation_angle": settings.perturbation.rotation_angles[0],
@@ -919,8 +918,8 @@ class ExperimentClass:
         name_string += [self.modality]
 
         # Add data string
-        if self.data_str != "" and self.data_str is not None:
-            name_string += [self.data_str]
+        if self.data_str is not None:
+            name_string += self.data_str
 
         # Add configuration string
         if self.settings.general.config_str != "":
@@ -931,8 +930,7 @@ class ExperimentClass:
 
     def _message_computation_initialisation(self):
 
-        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
-        image_descriptor = "_".join(image_descriptor).strip("_")
+        image_descriptor = "_".join(self.data_str).strip("_")
 
         message_str = ["Initialising"]
         if self.compute_features and self.extract_images:
@@ -952,8 +950,7 @@ class ExperimentClass:
         return " ".join(message_str)
 
     def _message_warning_no_features_extracted(self):
-        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
-        image_descriptor = "_".join(image_descriptor).strip("_")
+        image_descriptor = "_".join(self.data_str).strip("_")
 
         message_str = [f"No features were extracted from {image_descriptor} images"]
 
@@ -965,9 +962,7 @@ class ExperimentClass:
         return " ".join(message_str)
 
     def _message_feature_extraction_finished(self):
-
-        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
-        image_descriptor = "_".join(image_descriptor).strip("_")
+        image_descriptor = "_".join(self.data_str).strip("_")
 
         message_str = [f"Features were successfully extracted from {image_descriptor} images"]
 
@@ -977,3 +972,20 @@ class ExperimentClass:
         message_str += [f"for {self.subject}."]
 
         return " ".join(message_str)
+
+    def _create_base_file_name(self):
+
+        basename = []
+        if self.subject is not None and self.subject != "":
+            basename += [self.subject]
+
+        if self.data_str is not None and self.data_str != "":
+            basename += self.data_str
+
+        if self.date is not None and self.date != "":
+            basename += [self.date]
+
+        if self.settings.general.config_str is not None and self.settings.general.config_str != "":
+            basename += [self.settings.general.config_str]
+
+        return "_".join(basename).replace(" ", "_")
