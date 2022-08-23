@@ -7,7 +7,7 @@ import pandas as pd
 import sys
 
 from warnings import warn
-from typing import List
+from typing import List, Optional
 from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
 
@@ -17,15 +17,15 @@ class ExperimentClass:
     def __init__(self,
                  modality: str,
                  subject: str,
-                 cohort: str,
-                 image_folder: str,
-                 roi_folder: str,
-                 roi_reg_img_folder: str,
-                 image_file_name_pattern: str,
-                 registration_image_file_name_pattern: str,
-                 roi_names: List[str],
-                 data_str: List[str],
-                 write_path: str,
+                 cohort: Optional[str],
+                 image_folder: Optional[str],
+                 roi_folder: Optional[str],
+                 roi_reg_img_folder: Optional[str],
+                 image_file_name_pattern: Optional[str],
+                 registration_image_file_name_pattern: Optional[str],
+                 roi_names: Optional[List[str]],
+                 data_str: Optional[List[str]],
+                 write_path: Optional[str],
                  settings: SettingsClass,
                  provide_diagnostics: bool = False,
                  compute_features: bool = False,
@@ -824,7 +824,7 @@ class ExperimentClass:
                                     "img_data_config": "_".join(self.data_str),
                                     "img_data_noise_level": img_obj.noise,
                                     "img_data_noise_iter": img_obj.noise_iter,
-                                    "img_data_rotation_angle": settings.perturbation.rotation_angles[0],
+                                    "img_data_rotation_angle": settings.perturbation.rotation_angles,
                                     "img_data_roi_randomise_iter": [roi_obj.svx_randomisation_id for roi_obj in roi_list],
                                     "img_data_roi_adapt_size": [roi_obj.adapt_size for roi_obj in roi_list],
                                     "img_data_translate_x": settings.perturbation.translate_x,
