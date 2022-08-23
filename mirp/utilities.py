@@ -24,7 +24,7 @@ def extract_roi_names(roi_list):
     return [roi.name for roi in roi_list]
 
 
-def parse_roi_name(roi):
+def parse_roi_name(roi: str):
 
     # Determine if the input roi is surrounded by curly brackets
     if roi.startswith("{") and roi.endswith("}"):
@@ -45,7 +45,7 @@ def parse_roi_name(roi):
         indiv_roi = [curr_roi.strip() for curr_roi in indiv_roi]
 
     else:
-        indiv_roi = [roi]
+        indiv_roi = [roi.strip()]
 
     return indiv_roi
 
