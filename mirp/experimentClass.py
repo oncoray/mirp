@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 
 from warnings import warn
+from typing import List
 from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
 
@@ -14,23 +15,23 @@ from mirp.utilities import expand_grid
 class ExperimentClass:
 
     def __init__(self,
-                 modality,
-                 subject,
-                 cohort,
-                 image_folder,
-                 roi_folder,
-                 roi_reg_img_folder,
-                 image_file_name_pattern,
-                 registration_image_file_name_pattern,
-                 roi_names,
-                 data_str,
-                 write_path,
+                 modality: str,
+                 subject: str,
+                 cohort: str,
+                 image_folder: str,
+                 roi_folder: str,
+                 roi_reg_img_folder: str,
+                 image_file_name_pattern: str,
+                 registration_image_file_name_pattern: str,
+                 roi_names: List[str],
+                 data_str: List[str],
+                 write_path: str,
                  settings: SettingsClass,
-                 provide_diagnostics=False,
-                 compute_features=False,
-                 extract_images=False,
-                 plot_images=False,
-                 keep_images_in_memory=False):
+                 provide_diagnostics: bool = False,
+                 compute_features: bool = False,
+                 extract_images: bool = False,
+                 plot_images: bool = False,
+                 keep_images_in_memory: bool = False):
         """
         Attributes for an experiment.
         :param modality: modality of the requested image
@@ -73,7 +74,7 @@ class ExperimentClass:
         self.registration_image_file_name_pattern = registration_image_file_name_pattern  # Image against which segmentation was registered.
 
         # Segmentation names
-        self.roi_names = roi_names
+        self.roi_names: List[str] = roi_names
 
         # Identifier strings
         self.data_str: List[str] = [] if data_str is None else data_str
@@ -86,11 +87,11 @@ class ExperimentClass:
         self.iter_settings = None
 
         # Process parameters
-        self.provide_diagnostics = provide_diagnostics  # Flag for writing diagnostics features
-        self.compute_features = compute_features
-        self.extract_images = extract_images
-        self.plot_images = plot_images
-        self.keep_images_in_memory = keep_images_in_memory
+        self.provide_diagnostics: bool = provide_diagnostics  # Flag for writing diagnostics features
+        self.compute_features: bool = compute_features
+        self.extract_images: bool = extract_images
+        self.plot_images: bool = plot_images
+        self.keep_images_in_memory: bool = keep_images_in_memory
 
     def get_roi_list(self):
         """ Extracts the available region of interest from the roi folder. This function allows identification of
@@ -192,7 +193,7 @@ class ExperimentClass:
                                 dtype=object)
 
         # Keep only non-NA assignments
-        df_assign = df_assign.loc[df_assign.assigned_folder.notna(), ]
+        df_assign: pd.DataFrame = df_assign.loc[df_assign.assigned_folder.notna(), ]
 
         # Pad uids with leading 0s in case they were dropped in the csv.
         df_assign.study_instance_uid = np.array([val_str.rjust(6, "0") for val_str in df_assign.study_instance_uid.values])
@@ -453,10 +454,6 @@ class ExperimentClass:
             # Resegmentise ROI based on intensities in the base images
             roi_list = resegmentise(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
-
-            # Compose ROI of heterogeneous supervoxels
-            # roi_list = imageProcess.selectHeterogeneousSuperVoxels(img_obj=img_obj, roi_list=roi_list, settings=curr_setting,
-            #                                                        file_str=os.path.join(self.write_path, self.subject + "_" + self.modality + "_" + self.data_str + "_" + self.date))
 
             ########################################################################################################
             # Base image computations and exports
