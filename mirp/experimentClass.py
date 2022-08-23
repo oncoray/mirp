@@ -145,7 +145,7 @@ class ExperimentClass:
 
         image_in_dir = []
 
-        logging.info("Starting extraction of image metadata for %s.", self.subject)
+        logging.info(f"Starting extraction of image metadata for {self.subject}.")
 
         # Find directories with images, based on file extensions
         for curr_dirr in sub_dirs:
