@@ -30,25 +30,31 @@ def test_ibsi_1_digital_phantom():
     """
 
     # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = False
+    general_settings = GeneralSettingsClass(by_slice=False)
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = False
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=False,
+        interpolate=False,
+        anti_aliasing=False
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discretisation_method = ["none"]
-    feature_computation_parameters.ivh_discretisation_method = "none"
-    feature_computation_parameters.glcm_distance = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=False,
+        no_approximation=True,
+        base_discretisation_method="none",
+        ivh_discretisation_method="none",
+        glcm_distance=[1.0],
+        glcm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
+                             "3d_average", "3d_volume_merge"],
+        glrlm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
+                              "3d_average", "3d_volume_merge"],
+        glszm_spatial_method=["2d", "2.5d", "3d"],
+        gldzm_spatial_method=["2d", "2.5d", "3d"],
+        ngtdm_spatial_method=["2d", "2.5d", "3d"],
+        ngldm_distance=[1.0],
+        ngldm_spatial_method=["2d", "2.5d", "3d"],
+        ngldm_difference_level=[0.0]
+    )
 
     settings = SettingsClass(general_settings=general_settings,
                              post_process_settings=ImagePostProcessingClass(),
@@ -56,28 +62,28 @@ def test_ibsi_1_digital_phantom():
                              roi_interpolate_settings=RoiInterpolationSettingsClass(),
                              roi_resegment_settings=ResegmentationSettingsClass(),
                              perturbation_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
+                             img_transform_settings=ImageTransformationSettingsClass(by_slice=False,
+                                                                                     response_map_feature_settings=None),
                              feature_extr_settings=feature_computation_parameters)
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti",
-                                                                "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti",
-                                                              "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["mask"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["mask"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False)
 
     data = main_experiment.process()
 
