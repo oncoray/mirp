@@ -76,9 +76,14 @@ def compute_local_mean_intensity_filter(img_obj, roi_obj):
     # Filter image using mean filter
     if img_obj.modality == "PT":
         # Use 0.0 constant for PET data
-        img_avg = ndi.filters.convolve(img_obj.get_voxel_grid(), weights=conv_filter, mode="constant", cval=0.0)
+        img_avg = ndi.convolve(img_obj.get_voxel_grid(),
+                               weights=conv_filter,
+                               mode="constant",
+                               cval=0.0)
     else:
-        img_avg = ndi.filters.convolve(img_obj.get_voxel_grid(), weights=conv_filter, mode="nearest")
+        img_avg = ndi.convolve(img_obj.get_voxel_grid(),
+                               weights=conv_filter,
+                               mode="nearest")
 
     # Construct data frame for comparison
     df_local = pd.DataFrame({"g":      np.ravel(img_obj.get_voxel_grid()),
