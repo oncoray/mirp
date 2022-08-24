@@ -1581,7 +1581,7 @@ class ImageTransformationSettingsClass:
         self.gaussian_boundary_condition: Union[None, str] = gaussian_kernel_boundary_condition
 
         # Check laplacian-of-gaussian filter settings
-        if self.has_laws_filter():
+        if self.has_laplacian_of_gaussian_filter():
             # Check sigma.
             laplacian_of_gaussian_sigma = self.check_sigma(laplacian_of_gaussian_sigma,
                                                            "laplacian_of_gaussian_sigma")
