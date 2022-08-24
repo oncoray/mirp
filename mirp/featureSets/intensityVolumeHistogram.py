@@ -74,7 +74,7 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         ivh_discr_method = "fixed_bin_number"
 
     # Set missing discretisation methods based on modality
-    if ivh_discr_method is None:
+    if ivh_discr_method == "none":
         if img_obj.modality == "CT":
             ivh_discr_method = "none"
         elif img_obj.modality == "PT":
