@@ -2365,6 +2365,11 @@ def import_configuration_settings(compute_features: bool,
         img_interp_branch = branch.find("img_interpolate")
 
         if img_interp_branch is not None:
+
+            if img_interp_branch.find("new_non_iso_spacing") is not None:
+                raise DeprecationWarning(
+                    "The new_non_iso_spacing tag has been deprecated. Use the new_spacing tag instead.")
+
             img_interp_settings = ImageInterpolationSettingsClass(
                 by_slice=general_settings.by_slice,
                 interpolate=str2type(img_interp_branch.find("interpolate"), "bool", False),
