@@ -154,9 +154,9 @@ class LawsFilter:
 
         # Set up the filter kernel.
         if self.energy_normalise:
-            filter_kernel = np.ones(filter_size, dtype=np.float) / filter_size
+            filter_kernel = np.ones(filter_size, dtype=float) / filter_size
         else:
-            filter_kernel = np.ones(filter_size, dtype=np.float)
+            filter_kernel = np.ones(filter_size, dtype=float)
 
         # Create a filter set.
         if self.by_slice:

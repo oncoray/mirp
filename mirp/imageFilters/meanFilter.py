@@ -88,7 +88,7 @@ class MeanFilter:
             return response_map
 
         # Set up the filter kernel.
-        filter_kernel = np.ones(self.filter_size, dtype=np.float) / self.filter_size
+        filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size
 
         # Create a filter set.
         if self.by_slice:

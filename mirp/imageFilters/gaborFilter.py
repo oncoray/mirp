@@ -250,7 +250,7 @@ class GaborFilter:
             y_size = int(1 + 2 * np.floor(y_size / 2.0))
 
         # Create grid coordinates with [0, 0] in the center.
-        y, x = np.mgrid[:y_size, :x_size].astype(np.float)
+        y, x = np.mgrid[:y_size, :x_size].astype(float)
         y -= (y_size - 1.0) / 2.0
         x -= (x_size - 1.0) / 2.0
 

@@ -141,7 +141,7 @@ class NonseparableWaveletFilter:
         distance_grid, max_frequency = self.get_distance_grid(filter_size=filter_size)
 
         # Set up a wavelet filter for the decomposition specifically.
-        wavelet_filter = np.zeros(distance_grid.shape, dtype=np.float)
+        wavelet_filter = np.zeros(distance_grid.shape, dtype=float)
 
         # Set the mask for the filter.
         mask = np.logical_and(distance_grid >= max_frequency / 2.0, distance_grid <= max_frequency)
@@ -161,7 +161,7 @@ class NonseparableWaveletFilter:
         distance_grid, max_frequency = self.get_distance_grid(filter_size=filter_size)
 
         # Set up a wavelet filter for the decomposition specifically.
-        wavelet_filter = np.zeros(distance_grid.shape, dtype=np.float)
+        wavelet_filter = np.zeros(distance_grid.shape, dtype=float)
 
         # Set the mask for the filter.
         mask = np.logical_and(distance_grid >= max_frequency / 4.0,
@@ -192,7 +192,7 @@ class NonseparableWaveletFilter:
                 filter_shape = (filter_size, filter_size, filter_size)
 
         # Determine the grid center.
-        grid_center = (np.array(filter_shape, dtype=np.float) - 1.0) / 2.0
+        grid_center = (np.array(filter_shape, dtype=float) - 1.0) / 2.0
 
         # Determine distance from center
         distance_grid = list(np.indices(filter_shape, sparse=True))

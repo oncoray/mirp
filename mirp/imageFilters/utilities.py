@@ -330,7 +330,7 @@ class FilterSet:
     def _get_coordinate_grid(self, axis=None):
 
         # Determine the grid center.
-        grid_center = (np.array(self.filter_set.shape, dtype=np.float) - 1.0) / 2.0
+        grid_center = (np.array(self.filter_set.shape, dtype=float) - 1.0) / 2.0
 
         # Determine distance from center
         coordinate_grid = list(np.indices(self.filter_set.shape, sparse=True))
