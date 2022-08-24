@@ -15,6 +15,3 @@ MIRP was developed by:
 * Alex Zwanenburg
 * Stefan Leger
 * Sebastian Starke
-
-# New in version 1.1
-The `extract_images_for_deep_learning` and underlying functions have been reworked. The `deep_learning` section of the settings configuration xml file have been deprecated in favour of function arguments.
