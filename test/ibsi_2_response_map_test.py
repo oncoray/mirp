@@ -264,3 +264,253 @@ def test_ibsi_2_log_filter():
                                phantom="checkerboard",
                                image_transformation_settings=image_transformation_settings_2c,
                                filter_kernel="log")
+
+
+def test_ibsi_2_laws_filter():
+    """
+    Configuration 3: Response maps for the Laws filter.
+    """
+
+    # Set configuration identifiers.
+    filter_kernel = "laws"
+
+    # Test 3A1
+    image_transformation_settings_3a1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="E5L5S5",
+        laws_compute_energy=False,
+        laws_rotation_invariance=False,
+        laws_boundary_condition="constant"
+    )
+
+    # Test 3A2
+    image_transformation_settings_3a2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="E5L5S5",
+        laws_compute_energy=False,
+        laws_rotation_invariance=True,
+        laws_pooling_method="max",
+        laws_boundary_condition="constant"
+    )
+
+    # Test 3A3
+    image_transformation_settings_3a3 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="E5L5S5",
+        laws_compute_energy=True,
+        laws_rotation_invariance=True,
+        laws_delta=7,
+        laws_pooling_method="max",
+        laws_boundary_condition="constant"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_3a1, image_transformation_settings_3a2,
+                     image_transformation_settings_3a3]
+
+    # Set configuration identifiers.
+    configuration_ids = ["3A1", "3A2", "3A3"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="impulse",
+                                   image_transformation_settings=image_transformation_settings)
+
+    # Test 3B1
+    image_transformation_settings_3b1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="E3W5R5",
+        laws_compute_energy=False,
+        laws_rotation_invariance=False,
+        laws_boundary_condition="reflect"
+    )
+
+    # Test 3B2
+    image_transformation_settings_3b2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="E3W5R5",
+        laws_compute_energy=False,
+        laws_rotation_invariance=True,
+        laws_pooling_method="max",
+        laws_boundary_condition="reflect"
+    )
+
+    # Test 3B3
+    image_transformation_settings_3b3 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="E3W5R5",
+        laws_compute_energy=True,
+        laws_rotation_invariance=True,
+        laws_delta=7,
+        laws_pooling_method="max",
+        laws_boundary_condition="reflect"
+    )
+
+    # Test 3C1
+    image_transformation_settings_3c1 = ImageTransformationSettingsClass(
+        by_slice=True,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="L5S5",
+        laws_compute_energy=False,
+        laws_rotation_invariance=False,
+        laws_boundary_condition="reflect"
+    )
+
+    # Test 3C2
+    image_transformation_settings_3c2 = ImageTransformationSettingsClass(
+        by_slice=True,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="L5S5",
+        laws_compute_energy=False,
+        laws_rotation_invariance=True,
+        laws_pooling_method="max",
+        laws_boundary_condition="reflect"
+    )
+
+    # Test 3C3
+    image_transformation_settings_3c3 = ImageTransformationSettingsClass(
+        by_slice=True,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        laws_kernel="L5S5",
+        laws_compute_energy=True,
+        laws_rotation_invariance=True,
+        laws_delta=7,
+        laws_pooling_method="max",
+        laws_boundary_condition="reflect"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_3b1, image_transformation_settings_3b2,
+                     image_transformation_settings_3b3, image_transformation_settings_3c1,
+                     image_transformation_settings_3c2, image_transformation_settings_3c3]
+
+    # Set configuration identifiers.
+    configuration_ids = ["3B1", "3B2", "3B3", "3C1", "3C2", "3C3"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="checkerboard",
+                                   image_transformation_settings=image_transformation_settings)
+
+
+def test_ibsi_2_gabor_filter():
+    """
+    Configuration 4: Response maps for the Gabor filter.
+    """
+
+    # Set configuration identifiers.
+    filter_kernel = "gabor"
+
+    # Test 4A1
+    image_transformation_settings_4a1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        gabor_sigma=10.0,
+        gabor_gamma=0.5,
+        gabor_lambda=4.0,
+        gabor_theta=60.0,
+        gabor_response="modulus",
+        gabor_rotation_invariance=False,
+        gabor_boundary_condition="constant"
+    )
+
+    # Test 4A2
+    image_transformation_settings_4a2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        gabor_sigma=10.0,
+        gabor_gamma=0.5,
+        gabor_lambda=4.0,
+        gabor_theta=0.0,
+        gabor_theta_step=45.0,
+        gabor_response="modulus",
+        gabor_rotation_invariance=True,
+        gabor_pooling_method="mean",
+        gabor_boundary_condition="constant"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_4a1, image_transformation_settings_4a2]
+
+    # Set configuration identifiers.
+    configuration_ids = ["4A1", "4A2"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="impulse",
+                                   image_transformation_settings=image_transformation_settings)
+
+    # Test 4B1
+    image_transformation_settings_4b1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        gabor_sigma=20.0,
+        gabor_gamma=2.5,
+        gabor_lambda=8.0,
+        gabor_theta=225.0,
+        gabor_response="modulus",
+        gabor_rotation_invariance=False,
+        gabor_boundary_condition="reflect"
+    )
+
+    # Test 4B2
+    image_transformation_settings_4b2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        gabor_sigma=20.0,
+        gabor_gamma=2.5,
+        gabor_lambda=8.0,
+        gabor_theta=0.0,
+        gabor_theta_step=22.5,
+        gabor_response="modulus",
+        gabor_rotation_invariance=True,
+        gabor_pooling_method="mean",
+        gabor_boundary_condition="reflect"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_4b1, image_transformation_settings_4b2]
+
+    # Set configuration identifiers.
+    configuration_ids = ["4B1", "4B2"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="sphere",
+                                   image_transformation_settings=image_transformation_settings)
