@@ -1929,7 +1929,7 @@ class ImageTransformationSettingsClass:
                              f"{', '.join([kernel for ii, kernel in x if not valid_kernel[ii]])}")
 
         # Return lowercase values.
-        return [xx.lower for xx in x]
+        return [xx.lower() for xx in x]
 
     @staticmethod
     def check_nonseparable_wavelet_families(x, var_name):
@@ -1946,7 +1946,7 @@ class ImageTransformationSettingsClass:
                              f"{', '.join([kernel for ii, kernel in x if not valid_kernel[ii]])}")
 
         # Return lowercase values.
-        return [xx.lower for xx in x]
+        return [xx.lower() for xx in x]
 
     @staticmethod
     def check_decomposition_level(x, var_name):
@@ -1998,7 +1998,7 @@ class ImageTransformationSettingsClass:
                              f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
 
         # Return lowercase values.
-        return [xx.lower for xx in x]
+        return [xx.lower() for xx in x]
 
     def check_laws_kernels(self, x: Union[str, List[str]], var_name):
         from itertools import product
