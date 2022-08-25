@@ -514,3 +514,50 @@ def test_ibsi_2_gabor_filter():
         _test_filter_configuration(configuration_id=configuration_ids[ii],
                                    phantom="sphere",
                                    image_transformation_settings=image_transformation_settings)
+
+
+def test_ibsi_2_daubechies_filter():
+    """
+    Configuration 5: Response maps for the Daubechies 2 separable wavelet filter.
+    """
+
+    # Set configuration identifiers.
+    filter_kernel = "separable_wavelet"
+
+    # Test 5A1
+    image_transformation_settings_5a1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        separable_wavelet_families="db2",
+        separable_wavelet_set="LHL",
+        separable_wavelet_rotation_invariance=False,
+        separable_wavelet_boundary_condition="constant"
+    )
+
+    # Test 5A2
+    image_transformation_settings_5a2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        separable_wavelet_families="db2",
+        separable_wavelet_set="LHL",
+        separable_wavelet_rotation_invariance=True,
+        separable_wavelet_pooling_method="mean",
+        separable_wavelet_boundary_condition="constant"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_5a1, image_transformation_settings_5a2]
+
+    # Set configuration identifiers.
+    configuration_ids = ["5B1", "5B2"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="sphere",
+                                   image_transformation_settings=image_transformation_settings,
+                                   filter_kernel="wavelet_db2")
