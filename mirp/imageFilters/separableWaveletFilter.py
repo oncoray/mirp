@@ -151,18 +151,6 @@ class SeparableWaveletFilter:
             # Remove pooled_voxel_grid to explicitly release memory when collecting garbage.
             del pooled_voxel_grid
 
-            # Convolve and compute response map.
-            pooled_voxel_grid = filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
-                                                    mode=self.mode)
-
-            # Pool grids.
-            response_voxel_grid = pool_voxel_grids(x1=response_voxel_grid,
-                                                   x2=pooled_voxel_grid,
-                                                   pooling_method=self.pooling_method)
-
-            # Remove pooled_voxel_grid to explicitly release memory when collecting garbage.
-            del pooled_voxel_grid
-
         if self.pooling_method == "mean":
             # Perform final pooling step for mean pooling.
             response_voxel_grid = np.divide(response_voxel_grid, len(filter_set_list))
