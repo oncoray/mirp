@@ -119,7 +119,9 @@ class SeparableWaveletFilter:
 
         # Get filter list.
         filter_set_list: List[SeparableFilterSet] = self.get_filter_set().permute_filters(
-            rotational_invariance=self.rotational_invariance)
+            rotational_invariance=self.rotational_invariance,
+            require_pre_filter=True
+        )
 
         for ii, filter_set in enumerate(filter_set_list):
 
