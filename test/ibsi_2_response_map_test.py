@@ -553,11 +553,164 @@ def test_ibsi_2_daubechies_filter():
     settings_list = [image_transformation_settings_5a1, image_transformation_settings_5a2]
 
     # Set configuration identifiers.
-    configuration_ids = ["5B1", "5B2"]
+    configuration_ids = ["5A1", "5A2"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="impulse",
+                                   image_transformation_settings=image_transformation_settings,
+                                   filter_kernel="wavelet_db2")
+
+
+def test_ibsi_2_coifflet_filter():
+    """
+    Configuration 6: Response maps for the Coifflet 1 separable wavelet filter.
+    """
+
+    # Set configuration identifiers.
+    filter_kernel = "separable_wavelet"
+
+    # Test 6A1
+    image_transformation_settings_6a1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        separable_wavelet_families="coif1",
+        separable_wavelet_set="HHL",
+        separable_wavelet_rotation_invariance=False,
+        separable_wavelet_boundary_condition="wrap"
+    )
+
+    # Test 6A2
+    image_transformation_settings_6a2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        separable_wavelet_families="coif1",
+        separable_wavelet_set="HHL",
+        separable_wavelet_rotation_invariance=True,
+        separable_wavelet_pooling_method="mean",
+        separable_wavelet_boundary_condition="wrap"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_6a1, image_transformation_settings_6a2]
+
+    # Set configuration identifiers.
+    configuration_ids = ["6A1", "6A2"]
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
         _test_filter_configuration(configuration_id=configuration_ids[ii],
                                    phantom="sphere",
                                    image_transformation_settings=image_transformation_settings,
-                                   filter_kernel="wavelet_db2")
+                                   filter_kernel="wavelet_coif1")
+
+
+def test_ibsi_2_haar_filter():
+    """
+    Configuration 7: Response maps for the Haar separable wavelet filter.
+    """
+
+    # Set configuration identifiers.
+    filter_kernel = "separable_wavelet"
+
+    # Test 7A1
+    image_transformation_settings_7a1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        separable_wavelet_families="haar",
+        separable_wavelet_set="LLL",
+        separable_wavelet_rotation_invariance=True,
+        separable_wavelet_pooling_method="mean",
+        separable_wavelet_decomposition_level=2,
+        separable_wavelet_boundary_condition="reflect"
+    )
+
+    # Test 7A2
+    image_transformation_settings_7a2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        separable_wavelet_families="haar",
+        separable_wavelet_set="HHH",
+        separable_wavelet_rotation_invariance=True,
+        separable_wavelet_pooling_method="mean",
+        separable_wavelet_decomposition_level=2,
+        separable_wavelet_boundary_condition="reflect"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_7a1, image_transformation_settings_7a2]
+
+    # Set configuration identifiers.
+    configuration_ids = ["7A1", "7A2"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="checkerboard",
+                                   image_transformation_settings=image_transformation_settings,
+                                   filter_kernel="wavelet_haar")
+
+
+def test_ibsi_2_simoncelli_filter():
+    """
+    Configuration 8: Response maps for the non-separable Simoncelli wavelet filter.
+    """
+
+    # Set configuration identifiers.
+    filter_kernel = "nonseparable_wavelet"
+
+    # Test 8A1
+    image_transformation_settings_8a1 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        nonseparable_wavelet_families="simoncelli",
+        nonseparable_wavelet_decomposition_level=1,
+        nonseparable_wavelet_boundary_condition="wrap"
+    )
+
+    # Test 8A2
+    image_transformation_settings_8a2 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        nonseparable_wavelet_families="simoncelli",
+        nonseparable_wavelet_decomposition_level=2,
+        nonseparable_wavelet_boundary_condition="wrap"
+    )
+
+    # Test 8A3
+    image_transformation_settings_8a3 = ImageTransformationSettingsClass(
+        by_slice=False,
+        response_map_feature_settings=None,
+        response_map_feature_families="none",
+        filter_kernels=filter_kernel,
+        nonseparable_wavelet_families="simoncelli",
+        nonseparable_wavelet_decomposition_level=3,
+        nonseparable_wavelet_boundary_condition="wrap"
+    )
+
+    # Add to settings.
+    settings_list = [image_transformation_settings_8a1, image_transformation_settings_8a2,
+                     image_transformation_settings_8a3]
+
+    # Set configuration identifiers.
+    configuration_ids = ["8A1", "8A2", "8A3"]
+
+    # Iterate over configurations.
+    for ii, image_transformation_settings in enumerate(settings_list):
+        _test_filter_configuration(configuration_id=configuration_ids[ii],
+                                   phantom="checkerboard",
+                                   image_transformation_settings=image_transformation_settings,
+                                   filter_kernel="wavelet_simoncelli")
