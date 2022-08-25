@@ -1705,7 +1705,7 @@ class ImageTransformationSettingsClass:
                                 f" degrees. Found: one or more values that were not numeric.")
 
             if gabor_theta_step is not None:
-                gabor_theta = [gabor_theta[0] + ii * gabor_theta_step for ii in np.arange(0.0, 360.0, gabor_theta_step)]
+                gabor_theta = [gabor_theta[0] + ii for ii in np.arange(0.0, 360.0, gabor_theta_step)]
 
             # Check filter response.
             gabor_response = self.check_response(gabor_response,
