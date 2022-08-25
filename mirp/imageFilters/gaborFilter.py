@@ -35,7 +35,7 @@ class GaborFilter:
         self.rotation_invariance = settings.img_transform.gabor_rotation_invariance
 
         # Which pooling method is used.
-        self.pooling_method = settings.img_transform.gabor_pooling_method and self.rotation_invariance
+        self.pooling_method = settings.img_transform.gabor_pooling_method
 
         # Boundary conditions.
         self.mode = settings.img_transform.gabor_boundary_condition
