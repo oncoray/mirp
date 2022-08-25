@@ -2027,7 +2027,7 @@ class ImageTransformationSettingsClass:
                              f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
 
         # Return lowercase values.
-        return [xx.lower for xx in x]
+        return [xx.lower() for xx in x]
 
     def check_riesz_filter_order(self, x, var_name):
         from itertools import product
