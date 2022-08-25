@@ -130,8 +130,7 @@ class LaplacianOfGaussianFilter:
 
             # Generate transformed voxel grid.
             pooled_voxel_grid = pooled_filter_object.transform_grid(voxel_grid=img_obj.get_voxel_grid(),
-                                                                    spacing=img_obj.spacing,
-                                                                    sigma=pooled_filter_object.sigma)
+                                                                    spacing=img_obj.spacing)
 
             # Pool voxel grids.
             response_voxel_grid = pool_voxel_grids(x1=response_voxel_grid,
@@ -149,11 +148,10 @@ class LaplacianOfGaussianFilter:
 
     def transform_grid(self,
                        voxel_grid: np.ndarray,
-                       spacing: np.ndarray,
-                       sigma: float):
+                       spacing: np.ndarray):
 
         # Update sigma to voxel units.
-        sigma = np.divide(np.full(shape=3, fill_value=sigma), spacing)
+        sigma = np.divide(np.full(shape=3, fill_value=self.sigma), spacing)
 
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
