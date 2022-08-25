@@ -1283,7 +1283,6 @@ class ImageTransformationSettingsClass:
                  laws_boundary_condition: Union[None, str] = None,
                  gabor_sigma: Union[None, float, List[float]] = None,
                  gabor_lambda: Union[None, float, List[float]] = None,
-                 gabor_kernel_truncate: float = 10.0,
                  gabor_gamma: Union[None, float, List[float]] = 1.0,
                  gabor_theta: Union[None, float, List[float]] = 0.0,
                  gabor_theta_step: Union[None, float] = None,
@@ -1425,7 +1424,6 @@ class ImageTransformationSettingsClass:
         value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
         :param gabor_sigma: Width of the Gaussian envelope in physical dimensions (e.g. mm). No default.
         :param gabor_lambda: Wavelength of the oscillator. No default.
-        :param gabor_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 10.0
         :param gabor_gamma: Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
             relative to x-axis for 0-angle Gabor kernel. Default: 1.0
         :param gabor_theta: Initial angle of the Gabor filter in degrees. Default: 0.0
@@ -1669,10 +1667,6 @@ class ImageTransformationSettingsClass:
             # Check sigma.
             gabor_sigma = self.check_sigma(gabor_sigma, "gabor_sigma")
 
-            # Check kernel truncation width.
-            gabor_kernel_truncate = self.check_truncation(gabor_kernel_truncate,
-                                                          "gabor_kernel_truncate")
-
             # Check gamma. Gamma behaves like sigma.
             gabor_gamma = self.check_sigma(gabor_gamma,
                                            "gabor_gamma")
@@ -1731,7 +1725,6 @@ class ImageTransformationSettingsClass:
 
         else:
             gabor_sigma = None
-            gabor_kernel_truncate = None
             gabor_gamma = None
             gabor_lambda = None
             gabor_theta = None
@@ -1742,7 +1735,6 @@ class ImageTransformationSettingsClass:
             gabor_boundary_condition = None
 
         self.gabor_sigma: Union[None, List[float]] = gabor_sigma
-        self.gabor_sigma_truncate: Union[None, float] = gabor_kernel_truncate
         self.gabor_gamma: Union[None, List[float]] = gabor_gamma
         self.gabor_lambda: Union[None, List[float]] = gabor_lambda
         self.gabor_theta: Union[None, List[float], List[int]] = gabor_theta

@@ -16,9 +16,6 @@ class GaborFilter:
         # Sigma parameter that determines filter width.
         self.sigma: Union[None, float, List[float]] = settings.img_transform.gabor_sigma
 
-        # Cut-off for filter size.
-        self.sigma_cutoff = settings.img_transform.gabor_sigma_truncate
-
         # Eccentricity parameter
         self.gamma: Union[None, float, List[float]] = settings.img_transform.gabor_gamma
 
@@ -173,7 +170,7 @@ class GaborFilter:
                                     "l", str(self.lambda_parameter)]
 
         if not self.pool_theta:
-            spatial_transform_string += ["t", self.theta]
+            spatial_transform_string += ["t", str(self.theta)]
 
         spatial_transform_string += ["2D" if self.by_slice else "3D"]
 
@@ -225,29 +222,13 @@ class GaborFilter:
         # Convert theta to radians.
         theta = np.deg2rad(self.theta)
 
-        # Determine size for x (alpha) and y (beta), prior to rotation.
-        if self.sigma_cutoff is not None:
-            alpha = self.sigma_cutoff * sigma
-            beta = self.sigma_cutoff * sigma * self.gamma
+        # Get size of the voxelgrid as filter size.
+        x_size = y_size = max([current_shape for ii, current_shape in enumerate(voxel_grid.shape)
+                              if not ii == self.stack_axis])
 
-            # Determine filter size.
-            x_size = max(np.abs(alpha * np.cos(theta) + beta * np.sin(theta)),
-                         np.abs(-alpha * np.cos(theta) + beta * np.sin(theta)),
-                         1)
-            y_size = max(np.abs(alpha * np.sin(theta) - beta * np.cos(theta)),
-                         np.abs(-alpha * np.sin(theta) - beta * np.cos(theta)),
-                         1)
-
-            x_size = int(1 + 2 * np.floor(x_size + 0.5))
-            y_size = int(1 + 2 * np.floor(y_size + 0.5))
-
-        else:
-            x_size = voxel_grid.shape[2]
-            y_size = voxel_grid.shape[1]
-
-            # Ensure that size is uneven.
-            x_size = int(1 + 2 * np.floor(x_size / 2.0))
-            y_size = int(1 + 2 * np.floor(y_size / 2.0))
+        # Ensure that size is uneven.
+        x_size = int(1 + 2 * np.floor(x_size / 2.0))
+        y_size = int(1 + 2 * np.floor(y_size / 2.0))
 
         # Create grid coordinates with [0, 0] in the center.
         y, x = np.mgrid[:y_size, :x_size].astype(float)
