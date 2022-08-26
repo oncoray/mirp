@@ -116,7 +116,7 @@ def combine_matrices(glcm_list, spatial_method):
 
         # Iterate over unique slice_ids
         for ii_slice in np.unique(slice_id):
-            slice_glcm_id = np.squeeze(np.where(slice_id == ii_slice))
+            slice_glcm_id = [ii for ii, current_slice_id in enumerate(slice_id) if current_slice_id == ii_slice]
 
             # Select all matrices within the slice
             sel_matrix_list = []
@@ -161,7 +161,7 @@ def combine_matrices(glcm_list, spatial_method):
 
         # Iterate over unique directions
         for ii_dir in np.unique(dir_id):
-            dir_glcm_id = np.squeeze(np.where(dir_id == ii_dir))
+            dir_glcm_id = [ii for ii, current_dir_id in enumerate(dir_id) if current_dir_id == ii_dir]
 
             # Select all matrices with the same direction
             sel_matrix_list = []
