@@ -7,6 +7,7 @@ from mirp.featureSets.utilities import is_list_all_none
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from mirp.importSettings import FeatureExtractionSettingsClass
+from mirp.utilities import real_ndim
 
 
 def get_dzm_features(img_obj: ImageClass,
@@ -173,12 +174,15 @@ class DistanceZoneMatrix:
 
         elif self.spatial_method in ["2d", "2.5d"]:
             connectivity = 2
-            img_vol = np.squeeze(img_obj.get_voxel_grid()[self.slice, :, :])
-            roi_vol = np.squeeze(roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :])
+            img_vol = img_obj.get_voxel_grid()[self.slice, :, :]
+            roi_vol = roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :]
             df_dzm = copy.deepcopy(df_img[df_img.z == self.slice])
 
         else:
             raise ValueError("The spatial method for grey level distance zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
+
+        # Check dimensionality and update connectivity if necessary.
+        connectivity = min([connectivity, real_ndim(img_vol)])
 
         # Set voxels outside of roi to 0.0
         img_vol[~roi_vol] = 0.0

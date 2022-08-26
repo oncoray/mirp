@@ -7,6 +7,7 @@ from mirp.featureSets.utilities import is_list_all_none
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from mirp.importSettings import FeatureExtractionSettingsClass
+from mirp.utilities import real_ndim
 
 
 def get_szm_features(img_obj: ImageClass,
@@ -159,18 +160,21 @@ class SizeZoneMatrix:
             roi_vol = copy.deepcopy(roi_obj.roi_intensity.get_voxel_grid())
         elif self.spatial_method in ["2d", "2.5d"]:
             connectivity = 2
-            img_vol = np.squeeze(img_obj.get_voxel_grid()[self.slice, :, :])
-            roi_vol = np.squeeze(roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :])
+            img_vol = img_obj.get_voxel_grid()[self.slice, :, :]
+            roi_vol = roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :]
         else:
             raise ValueError("The spatial method for grey level size zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
 
-        # Set voxels outside of roi to 0.0
+        # Check dimensionality and update connectivity if necessary.
+        connectivity = min([connectivity, real_ndim(img_vol)])
+
+        # Set voxels outside roi to 0.0
         img_vol[~roi_vol] = 0.0
 
         # Count the number of voxels within the roi
         self.n_v = np.sum(roi_vol)
 
-        # Label all connected voxels with the same
+        # Label all connected voxels with the same label.
         img_label = label(img_vol, background=0, connectivity=connectivity)
 
         # Generate data frame
