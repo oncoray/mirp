@@ -1467,11 +1467,10 @@ class ImageTransformationSettingsClass:
             # Check validity of the filter kernel names.
             valid_kernels: List[bool] = [ii in [
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
-                "riesz_steered_nonseparable_wavelet", "gaussian",
-                "riesz_gaussian", "riesz_steered_gaussian", "laplacian_of_gaussian", "log",
-                "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian", "riesz_log",
-                "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean"] for ii in
-                                         filter_kernels]
+                "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
+                "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean"
+            ] for ii in filter_kernels]
 
             if not all(valid_kernels):
                 raise ValueError(f"One or more kernels are not implemented, or were spelled incorrectly: "
