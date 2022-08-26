@@ -44,7 +44,7 @@ def test_orientation():
     assert np.array_equal(image_object.spacing, np.array([0.5, 1.0, 1.5]))
 
 
-def _setup_experiment(image, roi):
+def _setup_experiment(image, roi, **kwargs):
     by_slice = False
 
     # Configure settings.
@@ -88,7 +88,7 @@ def _setup_experiment(image, roi):
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
         roi_interpolate_settings=RoiInterpolationSettingsClass(),
-        roi_resegment_settings=ResegmentationSettingsClass(),
+        roi_resegment_settings=ResegmentationSettingsClass(**kwargs),
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
         feature_extr_settings=feature_computation_parameters
@@ -150,3 +150,17 @@ def test_edge_cases_basic_pipeline():
             else:
                 data = experiment.process()
                 assert isinstance(data, pd.DataFrame)
+
+    # Test ROI that becomes empty after re-segmentation
+    for image in images:
+        # Resegmentation
+        experiment = _setup_experiment(
+            image=image,
+            roi="full_mask",
+            resegmentation_method="range",
+            resegmentation_intensity_range=[100.0, 200.0]
+        )
+
+        # Setup experiment.
+        data = experiment.process()
+        assert isinstance(data, pd.DataFrame)
