@@ -801,6 +801,7 @@ class RoiClass:
             df_img["roi_int_mask"] = np.ravel(self.roi_intensity.get_voxel_grid()).astype(bool)
         if morphology_mask:
             df_img["roi_morph_mask"] = np.ravel(self.roi_morphology.get_voxel_grid()).astype(bool)
+
         if distance_map:
             # Calculate distance by sequential border erosion
             from scipy.ndimage import generate_binary_structure, binary_erosion
@@ -816,7 +817,7 @@ class RoiClass:
                 # Iterate over slices
                 for ii in np.arange(0, img_dims[0]):
                     # Calculate distance by sequential border erosion
-                    roi_eroded = np.squeeze(morph_voxel_grid[ii, :, :])
+                    roi_eroded = morph_voxel_grid[ii, :, :]
 
                     # Iterate distance from border
                     while np.sum(roi_eroded) > 0:
