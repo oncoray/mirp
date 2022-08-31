@@ -1,4 +1,5 @@
 import copy
+import warnings
 import xml.etree.ElementTree
 import xml.etree.ElementTree as ElemTree
 
@@ -2358,8 +2359,8 @@ def import_configuration_settings(compute_features: bool,
         if img_interp_branch is not None:
 
             if img_interp_branch.find("new_non_iso_spacing") is not None:
-                raise DeprecationWarning(
-                    "The new_non_iso_spacing tag has been deprecated. Use the new_spacing tag instead.")
+                warnings.warn(f"The new_non_iso_spacing tag has been deprecated. Use the new_spacing tag instead.",
+                              DeprecationWarning)
 
             img_interp_settings = ImageInterpolationSettingsClass(
                 by_slice=general_settings.by_slice,
@@ -2445,16 +2446,20 @@ def import_configuration_settings(compute_features: bool,
 
         if feature_extr_branch is not None:
             if feature_extr_branch.find("glcm_merge_method") is not None:
-                raise DeprecationWarning(
+                warnings.warn(
                     "The glcm_merge_method tag has been deprecated. Use the glcm_spatial_method tag instead. This takes"
                     " the following values: `2d_average`, `2d_slice_merge`, '2.5d_direction_merge', '2.5d_volume_merge',"
-                    " '3d_average', and `3d_volume_merge`")
+                    " '3d_average', and `3d_volume_merge`",
+                    DeprecationWarning
+                )
 
             if feature_extr_branch.find("glrlm_merge_method") is not None:
-                raise DeprecationWarning(
+                warnings.warn(
                     "The glrlm_merge_method tag has been deprecated. Use the glrlm_spatial_method tag instead. This "
                     "takes the following values: `2d_average`, `2d_slice_merge`, '2.5d_direction_merge', "
-                    "'2.5d_volume_merge', '3d_average', and `3d_volume_merge`")
+                    "'2.5d_volume_merge', '3d_average', and `3d_volume_merge`",
+                    DeprecationWarning
+                )
 
             feature_extr_settings = FeatureExtractionSettingsClass(
                 by_slice=general_settings.by_slice,
@@ -2498,14 +2503,18 @@ def import_configuration_settings(compute_features: bool,
 
         if img_transform_branch is not None:
             if img_transform_branch.find("log_average") is not None:
-                raise DeprecationWarning(
+                warnings.warn(
                     "The log_average tag has been deprecated. Use the laplacian_of_gaussian_pooling_method tag "
-                    "instead with the value `mean` to emulate log_average=True.")
+                    "instead with the value `mean` to emulate log_average=True.",
+                    DeprecationWarning
+                )
 
             if img_transform_branch.find("riesz_steered") is not None:
-                raise DeprecationWarning(
+                warnings.warn(
                     "The riesz_steered tag has been deprecated. Steerable Riesz filter are now identified by the name "
-                    "of the filter kernel (filter_kernels parameter).")
+                    "of the filter kernel (filter_kernels parameter).",
+                    DeprecationWarning
+                )
 
             img_transform_settings = ImageTransformationSettingsClass(
                 by_slice=general_settings.by_slice,
@@ -2598,9 +2607,12 @@ def import_configuration_settings(compute_features: bool,
         deep_learning_branch = branch.find("deep_learning")
 
         if deep_learning_branch is not None:
-            raise DeprecationWarning("deep_learning parameter branch has been deprecated. Parameters for image  "
-                                     "processing for deep learning can now be set directly using the  "
-                                     "extract_images_for_deep_learning function.")
+            warnings.warn(
+                "deep_learning parameter branch has been deprecated. Parameters for image  "
+                "processing for deep learning can now be set directly using the  "
+                "extract_images_for_deep_learning function.",
+                DeprecationWarning
+            )
 
         # Parse to settings
         settings_list += [SettingsClass(general_settings=general_settings,
@@ -2892,7 +2904,10 @@ def read_node(tree: xml.etree.ElementTree.Element,
 
         for current_node in deprecated_node:
             if tree.find(current_node) is not None:
-                raise DeprecationWarning(f"The {current_node} has been deprecated. Use {', '.join(node)} instead.")
+                warnings.warn(
+                    f"The {current_node} has been deprecated. Use {', '.join(node)} instead.",
+                    DeprecationWarning
+                )
 
         # Append deprecated nodes to node.
         node += deprecated_node
