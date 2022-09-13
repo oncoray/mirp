@@ -1117,6 +1117,10 @@ def calculate_features(img_obj: ImageClass,
     if isinstance(settings, SettingsClass):
         settings = settings.feature_extr
 
+    # Skip if no feature families are specified.
+    if not settings.has_any_feature_family():
+        return None
+
     for roi_obj in roi_list:
 
         roi_feat_list = []

@@ -929,6 +929,9 @@ class FeatureExtractionSettingsClass:
         # Set families.
         self.families: List[str] = base_feature_families
 
+        if not self.has_any_feature_family():
+            self.families = ["none"]
+
         if self.has_discretised_family():
             # Check if discretisation_method is None.
             if base_discretisation_method is None:
@@ -1142,6 +1145,9 @@ class FeatureExtractionSettingsClass:
         self.ngldm_dist: Union[None, List[float]] = ngldm_distance
         self.ngldm_diff_lvl: Union[None, List[float]] = ngldm_difference_level
         self.ngldm_spatial_method: Union[None, List[str]] = ngldm_spatial_method
+
+    def has_any_feature_family(self):
+        return not any(family == "none" for family in self.families)
 
     def has_discretised_family(self):
         return self.has_ih_family() or self.has_glcm_family() or self.has_glrlm_family() or self.has_glszm_family() \
