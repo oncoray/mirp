@@ -21,7 +21,8 @@
 - Several issues related to one-voxel ROI were resolved.
 - Computing no features or features that do not require discretisation do no longer prompt providing for a 
   discretisation method.
-- Computing no features from, e.g., the base image no longer generate errors. 
+- Computing no features from, e.g., the base image no longer generate errors.
+- Fixed an issue where rotated masks were not returned correctly.
 - A number of other fixes were made to improve stability.
 
 # Version 1.1

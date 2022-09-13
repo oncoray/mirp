@@ -29,13 +29,14 @@ def rotate_image(img_obj: ImageClass,
         # Set rotation angle.
         rot_angle = rot_angle[0]
 
-    # Avoid rotation if the angle is a multiple of 360 minutes.
+    # Avoid rotation if the angle is a multiple of 360 degrees.
     if rot_angle % 360.0 == 0.0:
         return img_obj, roi_list
 
     if roi_list is not None:
         # Rotate roi objects.
-        roi_list = [roi_object.rotate(angle=rot_angle, img_obj=img_obj) for roi_object in roi_list]
+        roi_list = [roi_object.copy() for roi_object in roi_list]
+        [roi_object.rotate(angle=rot_angle, img_obj=img_obj) for roi_object in roi_list]
 
     # Rotate image object
     img_obj.rotate(angle=rot_angle)
