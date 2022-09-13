@@ -1174,30 +1174,31 @@ def calculate_features(img_obj: ImageClass,
         # ROI features with discretisation
         ################################################################################################################
 
-        for discretisation_method in settings.discretisation_method:
+        if settings.has_discretised_family():
+            for discretisation_method in settings.discretisation_method:
 
-            if discretisation_method in ["fixed_bin_size"]:
-                for bin_width in settings.discretisation_bin_width:
-                    roi_feat_list += [compute_discretised_features(img_obj=img_cut,
-                                                                   roi_obj=roi_cut,
-                                                                   settings=settings,
-                                                                   discretisation_method=discretisation_method,
-                                                                   bin_width=bin_width,
-                                                                   bin_number=None)]
-            if discretisation_method in ["fixed_bin_number"]:
-                for bin_number in settings.discretisation_n_bins:
-                    roi_feat_list += [compute_discretised_features(img_obj=img_cut,
-                                                                   roi_obj=roi_cut,
+                if discretisation_method in ["fixed_bin_size"]:
+                    for bin_width in settings.discretisation_bin_width:
+                        roi_feat_list += [compute_discretised_features(img_obj=img_cut,
+                                                                       roi_obj=roi_cut,
+                                                                       settings=settings,
+                                                                       discretisation_method=discretisation_method,
+                                                                       bin_width=bin_width,
+                                                                       bin_number=None)]
+                if discretisation_method in ["fixed_bin_number"]:
+                    for bin_number in settings.discretisation_n_bins:
+                        roi_feat_list += [compute_discretised_features(img_obj=img_cut,
+                                                                       roi_obj=roi_cut,
+                                                                       settings=settings,
+                                                                       discretisation_method=discretisation_method,
+                                                                       bin_width=None,
+                                                                       bin_number=bin_number)]
+                if discretisation_method in ["none"]:
+                    roi_feat_list += [compute_discretised_features(img_obj=img_cut, roi_obj=roi_cut,
                                                                    settings=settings,
                                                                    discretisation_method=discretisation_method,
                                                                    bin_width=None,
-                                                                   bin_number=bin_number)]
-            if discretisation_method in ["none"]:
-                roi_feat_list += [compute_discretised_features(img_obj=img_cut, roi_obj=roi_cut,
-                                                               settings=settings,
-                                                               discretisation_method=discretisation_method,
-                                                               bin_width=None,
-                                                               bin_number=None)]
+                                                                   bin_number=None)]
 
         ################################################################################################################
         # Concatenate and parse feature tables for the ROI

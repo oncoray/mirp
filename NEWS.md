@@ -19,6 +19,8 @@
 ## Fixes
 - White-space is properly stripped from the names of regions of interest.
 - Several issues related to one-voxel ROI were resolved.
+- Computing no features or features that do not require discretisation do no longer prompt providing for a 
+  discretisation method.
 - A number of other fixes were made to improve stability.
 
 # Version 1.1
