@@ -3,4 +3,5 @@
 mirp/__pycache__/
 *.pyc
 test/data/reference_values/.Rhistory
+test/data/temp
 test/.Rhistory
