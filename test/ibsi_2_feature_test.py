@@ -8,7 +8,7 @@ from mirp.importSettings import SettingsClass, GeneralSettingsClass, ImagePostPr
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-PERTURB_IMAGES = True
+PERTURB_IMAGES = False
 WRITE_TEMP_FILES = True
 
 
