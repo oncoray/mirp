@@ -48,8 +48,11 @@ def compute_intensity_histogram_features(df_img, g_range):
 
     # Constant definitions
     n_v = len(df_img) * 1.0  # Number of voxels
-    if np.isnan(g_range[0]): g_range_loc[0] = np.min(df_img.g) * 1.0
-    if np.isnan(g_range[1]): g_range_loc[1] = np.max(df_img.g) * 1.0
+    if np.isnan(g_range[0]):
+        g_range_loc[0] = np.min(df_img.g) * 1.0
+    if np.isnan(g_range[1]):
+        g_range_loc[1] = np.max(df_img.g) * 1.0
+
     n_g = g_range_loc[1] - g_range_loc[0] + 1.0  # Number of grey levels
 
     # Define histogram
@@ -60,9 +63,9 @@ def compute_intensity_histogram_features(df_img, g_range):
     miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
     n_miss = len(miss_level)
     if n_miss > 0:
-        df_his = df_his.append(
-            pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)}),
-            ignore_index=True)
+        df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                           ignore_index=True)
+
     del levels, miss_level, n_miss
 
     # Update histogram by sorting grey levels and adding bin probabilities

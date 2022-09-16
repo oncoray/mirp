@@ -4,29 +4,39 @@ import numpy as np
 
 from mirp.imageProcess import crop_image, get_supervoxels, get_supervoxel_overlap
 from mirp.utilities import extract_roi_names
+from mirp.importSettings import SettingsClass
+from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from typing import Union, List
 
 
-def rotate_image(img_obj, settings=None, rot_angle=None, roi_list=None):
+def rotate_image(img_obj: ImageClass,
+                 settings: Union[None, SettingsClass] = None,
+                 rot_angle: Union[None, float, List[float]] = None,
+                 roi_list: Union[None, List[RoiClass]] = None):
     """ Rotation of image and rois """
 
     if settings is not None:
-        rot_angle = settings.vol_adapt.rot_angles
+        rot_angle = settings.perturbation.rotation_angles
     elif rot_angle is None:
         logging.error("No rotation angles were provided. A single rotation angle is expected.")
 
-    if len(rot_angle) > 1:
-        logging.warning("Multiple rotation angles were provided. Only the first is selected.")
+    if isinstance(rot_angle, list):
+        # Check rotation angle.
+        if len(rot_angle) > 1:
+            logging.warning("Multiple rotation angles were provided. Only the first is selected.")
 
-    if type(rot_angle) is list:
+        # Set rotation angle.
         rot_angle = rot_angle[0]
 
-    if rot_angle in [0.0, 360.0]:
+    # Avoid rotation if the angle is a multiple of 360 degrees.
+    if rot_angle % 360.0 == 0.0:
         return img_obj, roi_list
 
-    # Rotate rois
     if roi_list is not None:
-        for ii in np.arange(0, len(roi_list)):
-            roi_list[ii].rotate(angle=rot_angle, img_obj=img_obj)
+        # Rotate roi objects.
+        roi_list = [roi_object.copy() for roi_object in roi_list]
+        [roi_object.rotate(angle=rot_angle, img_obj=img_obj) for roi_object in roi_list]
 
     # Rotate image object
     img_obj.rotate(angle=rot_angle)
@@ -34,11 +44,11 @@ def rotate_image(img_obj, settings=None, rot_angle=None, roi_list=None):
     return img_obj, roi_list
 
 
-def randomise_roi_contours(roi_list, img_obj, settings):
+def randomise_roi_contours(roi_list, img_obj, settings: SettingsClass):
     """Use SLIC to randomise the roi based on supervoxels"""
 
     # Check whether randomisation should take place
-    if not settings.vol_adapt.randomise_roi:
+    if not settings.perturbation.randomise_roi:
         return roi_list
 
     from mirp.utilities import world_to_index
@@ -54,7 +64,7 @@ def randomise_roi_contours(roi_list, img_obj, settings):
 
         # Check if the roi is empty. If so, add the number of required empty rois
         if res_roi_obj.is_empty():
-            for ii in np.arange(settings.vol_adapt.roi_random_rep):
+            for ii in np.arange(settings.perturbation.roi_random_rep):
                 repl_roi = roi_list[roi_ind].copy()
                 repl_roi.name += "_svx_" + str(ii)  # Adapt roi name
                 repl_roi.svx_randomisation_id = ii + 1  # Update randomisation id
@@ -81,7 +91,7 @@ def randomise_roi_contours(roi_list, img_obj, settings):
         grid_origin = grid_origin.astype(int)
 
         # Iteratively create randomised regions of interest
-        for ii in np.arange(settings.vol_adapt.roi_random_rep):
+        for ii in np.arange(settings.perturbation.roi_random_rep):
 
             # Draw random numbers between 0.0 and 1.0
             random_incl = np.random.random(size=len(overlap_fract))
@@ -110,7 +120,7 @@ def randomise_roi_contours(roi_list, img_obj, settings):
     return new_roi_list
 
 
-def adapt_roi_size(roi_list, settings):
+def adapt_roi_size(roi_list, settings: SettingsClass):
     """ Adapt roi size by growing or shrinking the roi """
 
     # Adapt roi size by shrinking or increasing the roi
@@ -118,8 +128,8 @@ def adapt_roi_size(roi_list, settings):
 
     # Get the adaptation size and type. Rois with adapt_size > 0.0 are dilated. Rois with adapt_size < 0.0 are eroded.
     # The type determines whether the roi is grown/shrunk with by certain distance ("distance") or to a certain volume fraction ("fraction")
-    adapt_size_list = settings.vol_adapt.roi_adapt_size
-    adapt_type      = settings.vol_adapt.roi_adapt_type
+    adapt_size_list = settings.perturbation.roi_adapt_size
+    adapt_type      = settings.perturbation.roi_adapt_type
 
     # Iterate over roi objects in the roi list and adaptation sizes
     for roi_obj in roi_list:
@@ -137,7 +147,7 @@ def adapt_roi_size(roi_list, settings):
 
             elif adapt_size < 0.0 and adapt_type == "distance":
                 new_roi_obj = roi_obj.copy()
-                new_roi_obj.erode(by_slice=settings.general.by_slice, dist=adapt_size, eroded_vol_fract=settings.vol_adapt.eroded_vol_fract)
+                new_roi_obj.erode(by_slice=settings.general.by_slice, dist=adapt_size, eroded_vol_fract=settings.perturbation.max_volume_erosion)
 
                 # Update name and adaptation size
                 new_roi_obj.name += "_shrink" + str(np.abs(adapt_size))

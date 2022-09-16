@@ -1,6 +1,6 @@
 package:
   name: "mirp"
-  version: "1.0.2"
+  version: "1.2.0"
 
 source:
   path: ../
@@ -19,6 +19,7 @@ requirements:
     - scikit-image >=0.15.0
     - SimpleITK >=1.2.0
     - itk>=5.1.0
+    - matplotlib >= 3.0.0
 
   run:
     - python
@@ -30,6 +31,7 @@ requirements:
     - scikit-image >=0.15.0
     - SimpleITK >=1.2.0
     - itk>=5.1.0
+    - matplotlib >= 3.0.0
 
 about:
   home: https://github.com/oncoray/mirp

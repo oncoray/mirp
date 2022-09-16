@@ -1,62 +1,107 @@
+import copy
 import numpy as np
 
+from typing import List, Union
 from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
+from mirp.imageFilters.utilities import SeparableFilterSet
+from mirp.importSettings import SettingsClass
+from mirp.roiClass import RoiClass
 
 
 class MeanFilter:
 
-    def __init__(self, settings):
+    def __init__(self, settings: SettingsClass, name: str):
+        # Set the filter size
         self.filter_size = settings.img_transform.mean_filter_size
-        self.mode = settings.img_transform.boundary_condition
+
+        # Set the filter mode
+        self.mode = settings.img_transform.mean_filter_boundary_condition
 
         # In-slice (2D) or 3D filtering
-        self.by_slice = settings.general.by_slice
+        self.by_slice = settings.img_transform.by_slice
 
-    def apply_transformation(self, img_obj: ImageClass, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+    def _generate_object(self):
+        # Generator for transformation objects.
+        filter_size = copy.deepcopy(self.filter_size)
+        if not isinstance(filter_size, list):
+            filter_size = [filter_size]
+
+        # Iterate over options to yield filter objects with specific settings. A copy of the parent object is made to
+        # avoid updating by reference.
+        for current_filter_size in filter_size:
+            filter_object = copy.deepcopy(self)
+            filter_object.filter_size = current_filter_size
+
+            yield filter_object
+
+    def apply_transformation(self,
+                             img_obj: ImageClass,
+                             roi_list: List[RoiClass],
+                             settings: SettingsClass,
+                             compute_features: bool = False,
+                             extract_images: bool = False,
+                             file_path: Union[None, str] = None):
         """Run feature extraction for transformed data"""
 
-        feat_list = []
+        feature_list = []
 
-        # Generate transformed image
-        img_trans_obj = self.transform(img_obj=img_obj)
+        # Iterate over generated filter objects with unique settings.
+        for filter_object in self._generate_object():
 
-        # Export image
-        if extract_images:
-            img_trans_obj.export(file_path=file_path)
+            # Create a response map.
+            response_map = filter_object.transform(img_obj=img_obj)
 
-        # Compute features
-        if compute_features:
-            feat_list += [calculate_features(img_obj=img_trans_obj, roi_list=roi_list, settings=settings,
-                                             append_str=img_trans_obj.spat_transform + "_")]
+            # Export the image.
+            if extract_images:
+                response_map.export(file_path=file_path)
 
-        # Clean up
-        del img_trans_obj
+            # Compute features.
+            if compute_features:
+                feature_list += [calculate_features(img_obj=response_map,
+                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
+                                                    settings=settings.img_transform.feature_settings,
+                                                    append_str=response_map.spat_transform + "_")]
 
-        return feat_list
+            del response_map
 
-    def transform(self, img_obj):
+        return feature_list
+
+    def transform(self, img_obj: ImageClass):
         """
         Transform image by calculating the mean
         :param img_obj: image object
         :return:
         """
-
-        import scipy.ndimage as ndi
-
         # Copy base image
-        img_trans_obj = img_obj.copy(drop_image=True)
+        response_map = img_obj.copy(drop_image=True)
 
-        # Set spatial transformation string for transformed object
-        img_trans_obj.set_spatial_transform("mean")
+        # Prepare the string for the spatial transformation.
+        spatial_transform_string = ["mean"]
+        spatial_transform_string += ["d", str(self.filter_size)]
+
+        # Set the name of the transformation.
+        response_map.set_spatial_transform("_".join(spatial_transform_string))
 
         # Skip transform in case the input image is missing
         if img_obj.is_missing:
-            return img_trans_obj
+            return response_map
 
-        # If sigma equals 0.0, perform only a laplacian transformation
-        img_trans_obj.set_voxel_grid(voxel_grid=ndi.uniform_filter(input=img_obj.get_voxel_grid(),
-                                                                   size=self.filter_size,
-                                                                   mode=self.mode))
+        # Set up the filter kernel.
+        filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size
 
-        return img_trans_obj
+        # Create a filter set.
+        if self.by_slice:
+            filter_set = SeparableFilterSet(filter_x=filter_kernel,
+                                            filter_y=filter_kernel)
+        else:
+            filter_set = SeparableFilterSet(filter_x=filter_kernel,
+                                            filter_y=filter_kernel,
+                                            filter_z=filter_kernel)
+
+        # Apply the filter.
+        response_map.set_voxel_grid(voxel_grid=filter_set.convolve(
+            voxel_grid=img_obj.get_voxel_grid(),
+            mode=self.mode))
+
+        return response_map

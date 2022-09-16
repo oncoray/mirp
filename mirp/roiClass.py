@@ -1,70 +1,13 @@
 import copy
 import logging
-from typing import Union
 
 import numpy as np
 import pandas as pd
 from pydicom import FileDataset
-
-# from mirp.contourClass import ContourClass
+from typing import Union, List
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
-
-
-def merge_roi_objects(roi_list):
-    """
-    Combine multiple roi objects into one
-    :param roi_list:
-    :return:
-    """
-
-    # If there are no rois to combine, return the only roi object
-    if len(roi_list) == 1:
-        return roi_list[0]
-
-    # Read basic information concerning the roi mask
-    roi_origin = roi_list[0].roi.origin
-    roi_spacing = roi_list[0].roi.spacing
-    roi_orientation = roi_list[0].roi.orientation
-    roi_size = roi_list[0].roi.size
-
-    roi_mask = np.zeros(roi_size, dtype=bool)
-
-    # Iterate over rois and perform checks
-    for roi in roi_list:
-
-        # Ensure that voxel masks have been created
-        if roi.contour is not None:
-            raise ValueError("ROI needs to exist as a mask prior to merging.")
-
-        # Ensure that the origin is the same
-        if not np.all(np.equal(roi_origin, roi.roi.origin)):
-            raise ValueError("Merged ROIs have mismatching origins.")
-
-        # Ensure that spacing is the same
-        if not np.all(np.equal(roi_spacing, roi.roi.spacing)):
-            raise ValueError("Merged ROIs have mismatching voxel spacing.")
-
-        # Ensure that orientation is the same
-        if not np.all(np.equal(roi_orientation, roi.roi.orientation)):
-            raise ValueError("Merged ROIs have mismatching orientations.")
-
-        # Ensure that size is the same
-        if not np.all(np.equal(roi_size, roi.roi.size)):
-            raise ValueError("Merged ROIs do not have the same size.")
-
-        roi_mask = np.logical_or(roi_mask, roi.roi.get_voxel_grid())
-
-    # Create a roi mask object
-    roi_mask_obj = ImageClass(voxel_grid=roi_mask, origin=roi_origin, spacing=roi_spacing, orientation=roi_orientation)
-
-    # Set name of the roi
-    combined_roi_name = "+".join([roi.name for roi in roi_list])
-
-    # Create a merged roi object
-    combined_roi = RoiClass(name=combined_roi_name, contour=None, roi_mask=roi_mask_obj)
-
-    return combined_roi
+from mirp.importSettings import SettingsClass
 
 
 class RoiClass:
@@ -107,8 +50,25 @@ class RoiClass:
         # Creates a new copy of the roi
         return roi_copy
 
-    def create_mask_from_contours(self, img_obj, draw_method="ray_cast", disconnected_segments="keep_as_is", settings=None):
+    def create_mask_from_contours(self,
+                                  img_obj: ImageClass,
+                                  draw_method="ray_cast",
+                                  disconnected_segments="keep_as_is",
+                                  settings: Union[SettingsClass, None] = None):
         # Creates an image based on provided contours
+
+        def _match_slice_position(slice_position, known_position, image_spacing_z):
+            # Match slice position of mask with any known slice position.
+            img_slice_position = slice_position * image_spacing_z
+            position_difference = np.around(np.abs(img_slice_position - known_position), 3)
+
+            # Check if there is any matching position.
+            if np.any(position_difference == 0.0):
+                int_slice_position = int(np.argwhere(position_difference == 0.0))
+            else:
+                int_slice_position = None
+
+            return int_slice_position
 
         # Skip if image object is empty
         if img_obj.is_missing:
@@ -136,6 +96,24 @@ class RoiClass:
 
                 slice_list += contour_slice_list
                 mask_list += contour_mask_list
+
+        # Update slice assignments in case the slice positions are not consistent.
+        if len(slice_list) > 0:
+
+            if img_obj.slice_position is not None:
+                # Identify the slice position corresponding to the stored slice positions.
+                slice_list = [_match_slice_position(slice_position=slice_position,
+                                                    known_position=img_obj.slice_position,
+                                                    image_spacing_z=img_obj.spacing[0]) for slice_position in slice_list]
+
+                # Retain mask and slice indices for slices that were matched.
+                mask_list = [mask_list[ii] for ii, slice_position in enumerate(slice_list) if slice_position is not
+                             None]
+                slice_list = [slice_position for slice_position in slice_list if slice_position is not None]
+
+            else:
+                # Set slice list as integer position to correspond with slices in the voxelgrid.
+                slice_list = [int(slice_position) for slice_position in slice_list]
 
         # Check for out-of-range slices.
         if len(slice_list) > 0:
@@ -173,7 +151,11 @@ class RoiClass:
             roi_mask = roi_label_mask == np.argmax(roi_sizes) + 1
 
         # Store roi as image object
-        self.roi = ImageClass(voxel_grid=roi_mask, origin=img_obj.origin, spacing=img_obj.spacing, orientation=img_obj.orientation)
+        self.roi = ImageClass(voxel_grid=roi_mask,
+                              origin=img_obj.origin,
+                              spacing=img_obj.spacing,
+                              orientation=img_obj.orientation,
+                              slice_position=img_obj.slice_position)
 
         # Remove contour information
         self.contour = None
@@ -193,17 +175,23 @@ class RoiClass:
         if self.roi_morphology is not None:
             self.roi_morphology.decimate(by_slice=by_slice)
 
-    def interpolate(self, img_obj, settings):
+    def interpolate(self, img_obj, settings: SettingsClass):
 
         # Skip if image and/or is missing
         if img_obj is None or self.roi is None:
             return
 
+        # Extend mask across missing slices.
+        if self.roi.slice_position is not None:
+            self.roi.interpolate_missing_slices()
+
+        # Perform anti-aliasing if required.
         if settings.img_interpolate.anti_aliasing:
             from mirp.imageProcess import gaussian_preprocess_filter
             self.roi.set_voxel_grid(voxel_grid=gaussian_preprocess_filter(orig_vox=self.roi.get_voxel_grid(), orig_spacing=self.roi.spacing,
                                                                           sample_spacing=img_obj.spacing,
-                                                                          param_beta=settings.img_interpolate.smoothing_beta, mode="nearest",
+                                                                          param_beta=settings.img_interpolate.smoothing_beta,
+                                                                          mode="nearest",
                                                                           by_slice=settings.general.by_slice))
 
         # Register with image
@@ -331,11 +319,41 @@ class RoiClass:
         if self.roi_morphology is not None:
             self.roi_morphology.crop_to_size(center=center, crop_size=crop_size, xy_only=xy_only)
 
-    def resegmentise_mask(self, img_obj, by_slice, method, settings):
-        # Resegmentation of the roi map based on grey level values
+    def select_largest_slice(self):
+        """Crops to the largest slice."""
 
-        from skimage.measure import label
-        from skimage.morphology import remove_small_holes
+        # Do not crop
+        if self.is_empty():
+            return
+
+        # Find axial slice that contains the largest part of the ROI..
+        roi_size = np.sum(self.roi.get_voxel_grid(),
+                          axis=(1, 2))
+
+        # Find the index of said slice
+        largest_slice_index = np.argmax(roi_size)
+
+        # Copy only largest slice.
+        roi_mask = np.zeros(self.roi.size, dtype=bool)
+        roi_mask[largest_slice_index, :, :] = self.roi.get_voxel_grid()[largest_slice_index, :, :]
+        self.roi.set_voxel_grid(voxel_grid=roi_mask)
+
+        if self.roi_intensity is not None:
+            roi_mask = np.zeros(self.roi_intensity.size, dtype=bool)
+            roi_mask[largest_slice_index, :, :] = self.roi_intensity.get_voxel_grid()[largest_slice_index, :, :]
+            self.roi_intensity.set_voxel_grid(voxel_grid=roi_mask)
+
+        if self.roi_morphology is not None:
+            roi_mask = np.zeros(self.roi_morphology.size, dtype=bool)
+            roi_mask[largest_slice_index, :, :] = self.roi_morphology.get_voxel_grid()[largest_slice_index, :, :]
+            self.roi_morphology.set_voxel_grid(voxel_grid=roi_mask)
+
+    def resegmentise_mask(self,
+                          img_obj: ImageClass,
+                          by_slice: bool,
+                          method: List[str],
+                          settings: SettingsClass):
+        # Resegmentation of the roi map based on grey level values
 
         # Skip if required voxel grids are missing
         if img_obj.is_missing or self.roi_intensity is None or self.roi_morphology is None:
@@ -352,7 +370,7 @@ class RoiClass:
             # Filter out voxels with intensity outside prescribed range
 
             # Local constant
-            g_thresh = settings.roi_resegment.g_thresh  # Threshold values
+            g_thresh = settings.roi_resegment.intensity_range  # Threshold values
 
             # Upper threshold
             if not np.isnan(g_thresh[1]):
@@ -378,7 +396,7 @@ class RoiClass:
 
                 # Calculate mean and standard deviation of intensities in roi
                 mean_int = np.mean(img_voxel_grid[roi_voxel_grid])
-                sd_int   = np.std(img_voxel_grid[roi_voxel_grid])
+                sd_int = np.std(img_voxel_grid[roi_voxel_grid])
 
                 if not np.isnan(updated_range[0]):
                     updated_range[0] = np.max([updated_range[0], mean_int - sigma * sd_int])
@@ -406,107 +424,110 @@ class RoiClass:
         ################################################################################################################
         # Resegmentation that affects only morphological maps
         ################################################################################################################
-        if bool(set(method).intersection("close_volume")):
-            # Close internal volumes
-
-            from scipy.ndimage import generate_binary_structure, binary_erosion
-
-            # Read minimal volume required
-            max_fill_volume = settings.roi_resegment.max_fill_volume
-
-            # Get voxel grid of the roi morphological mask
-            roi_voxel_grid = self.roi_morphology.get_voxel_grid()
-
-            # Determine fill volume (in voxels); if max_fill_volume is less than 0.0, fill all holes
-            if max_fill_volume < 0.0: fill_volume = np.prod(np.array(self.roi_morphology.size)) + 1.0
-            else:                     fill_volume = np.floor(max_fill_volume / np.prod(self.roi_morphology.spacing)) + 1.0
-
-            # If the maximum fill volume is smaller than the minimal size of a hole
-            if fill_volume < 1.0: return None
-
-            # Label all non-roi voxels and get label corresponding to voxels outside of the roi
-            non_roi_label = label(np.pad(roi_voxel_grid, 1, mode="constant", constant_values=0),
-                                  background=1, connectivity=3)
-            outside_label = non_roi_label[0, 0, 0]
-
-            # Crop non-roi labels and determine non-roi voxels outside of the mask
-            non_roi_label = non_roi_label[1:-1, 1:-1, 1:-1]
-            vox_outside = non_roi_label == outside_label
-
-            # Determine mask of voxels which are not internal holes
-            vox_not_internal = np.logical_or(roi_voxel_grid, vox_outside)
-
-            # Check if there are any holes, otherwise continue
-            if not np.any(~vox_not_internal): return None
-
-            if by_slice:
-                # 2D approach to filling holes
-
-                for ii in np.arange(0, self.roi_morphology.size[0]):
-                    # Skip operations on slides that do not contain voxels in the mask or no holes in the slice
-                    if not np.any(roi_voxel_grid[ii, :, :]): continue
-                    if not(np.any(~vox_not_internal[ii, :, :])): continue
-
-                    # Fill holes up to fill_volume in voxel number
-                    vox_filled = remove_small_holes(vox_not_internal[ii, :, :], min_size=int(fill_volume), connectivity=2)
-
-                    # Update mask by removing outside voxels from the mask
-                    roi_voxel_grid[ii, :, :] = np.squeeze(np.logical_and(vox_filled, ~vox_outside[ii, :, :]))
-            else:
-                # 3D approach to filling holes
-
-                # Fill holes up to fill_volume in voxel number
-                vox_filled = remove_small_holes(vox_not_internal, min_size=int(fill_volume), connectivity=3)
-
-                # Update mask by removing outside voxels from the mask
-                roi_voxel_grid = np.logical_and(vox_filled, ~vox_outside)
-
-            # Update voxel grid
-            self.roi_morphology.set_voxel_grid(voxel_grid=roi_voxel_grid)
-
-        if bool(set(method).intersection("remove_disconnected")):
-            # Remove disconnected voxels
-
-            # Discover prior disconnected volumes from the roi voxel grid
-            vox_disconnected = label(self.roi.get_voxel_grid(), background=0, connectivity=3)
-            vox_disconnected_labels = np.unique(vox_disconnected)
-
-            # Set up an empty morphological masks
-            upd_vox_mask = np.full(shape=self.roi_morphology.size, fill_value=False, dtype=bool)
-
-            # Get the minimum volume fraction for inclusion as voxels
-            min_vol_fract = settings.roi_resegment.min_vol_fract
-
-            # Iterate over disconnected labels
-            for curr_volume_label in vox_disconnected_labels:
-
-                # Skip background
-                if vox_disconnected_labels == 0: continue
-
-                # Mask only current volume, skip if empty
-                curr_mask = np.logical_and(self.roi_morphology.get_voxel_grid(), vox_disconnected == curr_volume_label)
-                if not np.any(curr_mask): continue
-
-                # Find fully disconnected voxels groups and count them
-                vox_mask = label(curr_mask, background=0, connectivity=3)
-                vox_mask_labels, vox_label_count = np.unique(vox_mask, return_counts=True)
-
-                # Filter out the background counts
-                valid_label_id = np.nonzero(vox_mask_labels)
-                vox_mask_labels = vox_mask_labels[valid_label_id]
-                vox_label_count = vox_label_count[valid_label_id]
-
-                # Normalise to maximum
-                vox_label_count = vox_label_count / np.max(vox_label_count)
-
-                # Select labels fulfilling the minimal size
-                vox_mask_labels = vox_mask_labels[vox_label_count >= min_vol_fract]
-
-                for vox_mask_label_id in vox_mask_labels:
-                    upd_vox_mask += vox_mask == vox_mask_label_id
-
-                # Update morphological voxel grid
-                self.roi_morphology.set_voxel_grid(voxel_grid=upd_vox_mask > 0)
+        # from skimage.measure import label
+        # from skimage.morphology import remove_small_holes
+        #
+        # if bool(set(method).intersection("close_volume")):
+        #     # Close internal volumes
+        #
+        #     from scipy.ndimage import generate_binary_structure, binary_erosion
+        #
+        #     # Read minimal volume required
+        #     max_fill_volume = settings.roi_resegment.max_fill_volume
+        #
+        #     # Get voxel grid of the roi morphological mask
+        #     roi_voxel_grid = self.roi_morphology.get_voxel_grid()
+        #
+        #     # Determine fill volume (in voxels); if max_fill_volume is less than 0.0, fill all holes
+        #     if max_fill_volume < 0.0: fill_volume = np.prod(np.array(self.roi_morphology.size)) + 1.0
+        #     else:                     fill_volume = np.floor(max_fill_volume / np.prod(self.roi_morphology.spacing)) + 1.0
+        #
+        #     # If the maximum fill volume is smaller than the minimal size of a hole
+        #     if fill_volume < 1.0: return None
+        #
+        #     # Label all non-roi voxels and get label corresponding to voxels outside of the roi
+        #     non_roi_label = label(np.pad(roi_voxel_grid, 1, mode="constant", constant_values=0),
+        #                           background=1, connectivity=3)
+        #     outside_label = non_roi_label[0, 0, 0]
+        #
+        #     # Crop non-roi labels and determine non-roi voxels outside of the mask
+        #     non_roi_label = non_roi_label[1:-1, 1:-1, 1:-1]
+        #     vox_outside = non_roi_label == outside_label
+        #
+        #     # Determine mask of voxels which are not internal holes
+        #     vox_not_internal = np.logical_or(roi_voxel_grid, vox_outside)
+        #
+        #     # Check if there are any holes, otherwise continue
+        #     if not np.any(~vox_not_internal): return None
+        #
+        #     if by_slice:
+        #         # 2D approach to filling holes
+        #
+        #         for ii in np.arange(0, self.roi_morphology.size[0]):
+        #             # Skip operations on slides that do not contain voxels in the mask or no holes in the slice
+        #             if not np.any(roi_voxel_grid[ii, :, :]): continue
+        #             if not(np.any(~vox_not_internal[ii, :, :])): continue
+        #
+        #             # Fill holes up to fill_volume in voxel number
+        #             vox_filled = remove_small_holes(vox_not_internal[ii, :, :], min_size=int(fill_volume), connectivity=2)
+        #
+        #             # Update mask by removing outside voxels from the mask
+        #             roi_voxel_grid[ii, :, :] = np.squeeze(np.logical_and(vox_filled, ~vox_outside[ii, :, :]))
+        #     else:
+        #         # 3D approach to filling holes
+        #
+        #         # Fill holes up to fill_volume in voxel number
+        #         vox_filled = remove_small_holes(vox_not_internal, min_size=int(fill_volume), connectivity=3)
+        #
+        #         # Update mask by removing outside voxels from the mask
+        #         roi_voxel_grid = np.logical_and(vox_filled, ~vox_outside)
+        #
+        #     # Update voxel grid
+        #     self.roi_morphology.set_voxel_grid(voxel_grid=roi_voxel_grid)
+        #
+        # if bool(set(method).intersection("remove_disconnected")):
+        #     # Remove disconnected voxels
+        #
+        #     # Discover prior disconnected volumes from the roi voxel grid
+        #     vox_disconnected = label(self.roi.get_voxel_grid(), background=0, connectivity=3)
+        #     vox_disconnected_labels = np.unique(vox_disconnected)
+        #
+        #     # Set up an empty morphological masks
+        #     upd_vox_mask = np.full(shape=self.roi_morphology.size, fill_value=False, dtype=bool)
+        #
+        #     # Get the minimum volume fraction for inclusion as voxels
+        #     min_vol_fract = settings.roi_resegment.min_vol_fract
+        #
+        #     # Iterate over disconnected labels
+        #     for curr_volume_label in vox_disconnected_labels:
+        #
+        #         # Skip background
+        #         if vox_disconnected_labels == 0: continue
+        #
+        #         # Mask only current volume, skip if empty
+        #         curr_mask = np.logical_and(self.roi_morphology.get_voxel_grid(), vox_disconnected == curr_volume_label)
+        #         if not np.any(curr_mask): continue
+        #
+        #         # Find fully disconnected voxels groups and count them
+        #         vox_mask = label(curr_mask, background=0, connectivity=3)
+        #         vox_mask_labels, vox_label_count = np.unique(vox_mask, return_counts=True)
+        #
+        #         # Filter out the background counts
+        #         valid_label_id = np.nonzero(vox_mask_labels)
+        #         vox_mask_labels = vox_mask_labels[valid_label_id]
+        #         vox_label_count = vox_label_count[valid_label_id]
+        #
+        #         # Normalise to maximum
+        #         vox_label_count = vox_label_count / np.max(vox_label_count)
+        #
+        #         # Select labels fulfilling the minimal size
+        #         vox_mask_labels = vox_mask_labels[vox_label_count >= min_vol_fract]
+        #
+        #         for vox_mask_label_id in vox_mask_labels:
+        #             upd_vox_mask += vox_mask == vox_mask_label_id
+        #
+        #         # Update morphological voxel grid
+        #         self.roi_morphology.set_voxel_grid(voxel_grid=upd_vox_mask > 0)
 
     def is_empty(self):
         """Checks whether the roi or one of its masks is empty"""
@@ -780,6 +801,7 @@ class RoiClass:
             df_img["roi_int_mask"] = np.ravel(self.roi_intensity.get_voxel_grid()).astype(bool)
         if morphology_mask:
             df_img["roi_morph_mask"] = np.ravel(self.roi_morphology.get_voxel_grid()).astype(bool)
+
         if distance_map:
             # Calculate distance by sequential border erosion
             from scipy.ndimage import generate_binary_structure, binary_erosion
@@ -795,7 +817,7 @@ class RoiClass:
                 # Iterate over slices
                 for ii in np.arange(0, img_dims[0]):
                     # Calculate distance by sequential border erosion
-                    roi_eroded = np.squeeze(morph_voxel_grid[ii, :, :])
+                    roi_eroded = morph_voxel_grid[ii, :, :]
 
                     # Iterate distance from border
                     while np.sum(roi_eroded) > 0:
@@ -1116,3 +1138,59 @@ class RoiClass:
         else:
             # Assign a new name
             self.name = new
+
+
+def merge_roi_objects(roi_list: List[RoiClass]):
+    """
+    Combine multiple roi objects into one
+    :param roi_list:
+    :return:
+    """
+
+    # If there are no rois to combine, return the only roi object
+    if len(roi_list) == 1:
+        return roi_list[0]
+
+    # Read basic information concerning the roi mask
+    roi_origin = roi_list[0].roi.origin
+    roi_spacing = roi_list[0].roi.spacing
+    roi_orientation = roi_list[0].roi.orientation
+    roi_size = roi_list[0].roi.size
+
+    roi_mask = np.zeros(roi_size, dtype=bool)
+
+    # Iterate over rois and perform checks
+    for roi in roi_list:
+
+        # Ensure that voxel masks have been created
+        if roi.contour is not None:
+            raise ValueError("ROI needs to exist as a mask prior to merging.")
+
+        # Ensure that the origin is the same
+        if not np.all(np.equal(roi_origin, roi.roi.origin)):
+            raise ValueError("Merged ROIs have mismatching origins.")
+
+        # Ensure that spacing is the same
+        if not np.all(np.equal(roi_spacing, roi.roi.spacing)):
+            raise ValueError("Merged ROIs have mismatching voxel spacing.")
+
+        # Ensure that orientation is the same
+        if not np.all(np.equal(roi_orientation, roi.roi.orientation)):
+            raise ValueError("Merged ROIs have mismatching orientations.")
+
+        # Ensure that size is the same
+        if not np.all(np.equal(roi_size, roi.roi.size)):
+            raise ValueError("Merged ROIs do not have the same size.")
+
+        roi_mask = np.logical_or(roi_mask, roi.roi.get_voxel_grid())
+
+    # Create a roi mask object
+    roi_mask_obj = ImageClass(voxel_grid=roi_mask, origin=roi_origin, spacing=roi_spacing, orientation=roi_orientation)
+
+    # Set name of the roi
+    combined_roi_name = "+".join([roi.name for roi in roi_list])
+
+    # Create a merged roi object
+    combined_roi = RoiClass(name=combined_roi_name, contour=None, roi_mask=roi_mask_obj)
+
+    return combined_roi
