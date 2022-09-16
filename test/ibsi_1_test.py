@@ -30,56 +30,68 @@ def test_ibsi_1_digital_phantom():
     """
 
     # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = False
+    general_settings = GeneralSettingsClass(
+        by_slice=False
+    )
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = False
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        interpolate=False,
+        anti_aliasing=False
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["none"]
-    feature_computation_parameters.ivh_discr_method = "none"
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["2d", "2.5d", "3d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=True,
+        base_discretisation_method="none",
+        ivh_discretisation_method="none",
+        glcm_distance=[1.0],
+        glcm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
+                             "3d_average", "3d_volume_merge"],
+        glrlm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
+                              "3d_average", "3d_volume_merge"],
+        glszm_spatial_method=["2d", "2.5d", "3d"],
+        gldzm_spatial_method=["2d", "2.5d", "3d"],
+        ngtdm_spatial_method=["2d", "2.5d", "3d"],
+        ngldm_distance=[1.0],
+        ngldm_spatial_method=["2d", "2.5d", "3d"],
+        ngldm_difference_level=[0.0]
+    )
 
-    settings = SettingsClass(general_settings=general_settings,
-                             post_process_settings=ImagePostProcessingClass(),
-                             img_interpolate_settings=image_interpolation_settings,
-                             roi_interpolate_settings=RoiInterpolationSettingsClass(),
-                             roi_resegment_settings=ResegmentationSettingsClass(),
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
-                             feature_extr_settings=feature_computation_parameters)
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti",
-                                                                "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti",
-                                                              "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["mask"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_resegment_settings=ResegmentationSettingsClass(),
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["mask"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False)
 
     data = main_experiment.process()
 
@@ -574,61 +586,73 @@ def test_ibsi_1_chest_config_a():
     """
 
     # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = True
+    general_settings = GeneralSettingsClass(
+        by_slice=True
+    )
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = False
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        interpolate=False,
+        anti_aliasing=False
+    )
 
-    resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range"]
-    resegmentation_settings.g_thresh = [-500.0, 400.0]
+    resegmentation_settings = ResegmentationSettingsClass(
+        resegmentation_method=["range"],
+        resegmentation_intensity_range=[-500.0, 400.0]
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_size"]
-    feature_computation_parameters.discr_bin_width = [25]
-    feature_computation_parameters.ivh_discr_method = "none"
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=False,
+        base_discretisation_method="fixed_bin_size",
+        base_discretisation_bin_width=25.0,
+        ivh_discretisation_method="none",
+        glcm_distance=1.0,
+        glcm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"],
+        glrlm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"],
+        glszm_spatial_method=["2d", "2.5d"],
+        gldzm_spatial_method=["2d", "2.5d"],
+        ngtdm_spatial_method=["2d", "2.5d"],
+        ngldm_distance=1.0,
+        ngldm_spatial_method=["2d", "2.5d"],
+        ngldm_difference_level=0.0
+    )
 
-    settings = SettingsClass(general_settings=general_settings,
-                             post_process_settings=ImagePostProcessingClass(),
-                             img_interpolate_settings=image_interpolation_settings,
-                             roi_interpolate_settings=RoiInterpolationSettingsClass(),
-                             roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
-                             feature_extr_settings=feature_computation_parameters)
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                                "dicom", "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                              "dicom", "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["GTV-1"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_resegment_settings=resegmentation_settings,
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["GTV-1"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False
+    )
 
     data = main_experiment.process()
 
@@ -677,307 +701,307 @@ def test_ibsi_1_chest_config_a():
     assert(within_tolerance(0.636, 0.008, data["stat_qcod"]))
     assert(within_tolerance(1.65e+09, 2e+07, data["stat_energy"]))
     assert(within_tolerance(120, 2, data["stat_rms"]))
-    assert(within_tolerance(21.1, 0.1, data["ih_mean_fbs_w25"]))
-    assert(within_tolerance(22.8, 0.6, data["ih_var_fbs_w25"]))
-    assert(within_tolerance(-2.46, 0.05, data["ih_skew_fbs_w25"]))
-    assert(within_tolerance(5.9, 0.24, data["ih_kurt_fbs_w25"]))
-    assert(within_tolerance(22, 0, data["ih_median_fbs_w25"]))
-    assert(within_tolerance(1, 0, data["ih_min_fbs_w25"]))
-    assert(within_tolerance(15, 0.4, data["ih_p10_fbs_w25"]))
-    assert(within_tolerance(24, 0, data["ih_p90_fbs_w25"]))
-    assert(within_tolerance(36, 0.4, data["ih_max_fbs_w25"]))
-    assert(within_tolerance(23, 0, data["ih_mode_fbs_w25"]))
-    assert(within_tolerance(2, 0, data["ih_iqr_fbs_w25"]))
-    assert(within_tolerance(35, 0.4, data["ih_range_fbs_w25"]))
-    assert(within_tolerance(2.94, 0.06, data["ih_mad_fbs_w25"]))
-    assert(within_tolerance(1.18, 0.04, data["ih_rmad_fbs_w25"]))
-    assert(within_tolerance(2.58, 0.05, data["ih_medad_fbs_w25"]))
-    assert(within_tolerance(0.227, 0.004, data["ih_cov_fbs_w25"]))
-    assert(within_tolerance(0.0455, 0, data["ih_qcod_fbs_w25"]))
-    assert(within_tolerance(3.36, 0.03, data["ih_entropy_fbs_w25"]))
-    assert(within_tolerance(0.15, 0.002, data["ih_uniformity_fbs_w25"]))
-    assert(within_tolerance(11000, 100, data["ih_max_grad_fbs_w25"]))
-    assert(within_tolerance(21, 0, data["ih_max_grad_g_fbs_w25"]))
-    assert(within_tolerance(-10100, 100, data["ih_min_grad_fbs_w25"]))
-    assert(within_tolerance(24, 0, data["ih_min_grad_g_fbs_w25"]))
+    assert(within_tolerance(21.1, 0.1, data["ih_mean_fbs_w25.0"]))
+    assert(within_tolerance(22.8, 0.6, data["ih_var_fbs_w25.0"]))
+    assert(within_tolerance(-2.46, 0.05, data["ih_skew_fbs_w25.0"]))
+    assert(within_tolerance(5.9, 0.24, data["ih_kurt_fbs_w25.0"]))
+    assert(within_tolerance(22, 0, data["ih_median_fbs_w25.0"]))
+    assert(within_tolerance(1, 0, data["ih_min_fbs_w25.0"]))
+    assert(within_tolerance(15, 0.4, data["ih_p10_fbs_w25.0"]))
+    assert(within_tolerance(24, 0, data["ih_p90_fbs_w25.0"]))
+    assert(within_tolerance(36, 0.4, data["ih_max_fbs_w25.0"]))
+    assert(within_tolerance(23, 0, data["ih_mode_fbs_w25.0"]))
+    assert(within_tolerance(2, 0, data["ih_iqr_fbs_w25.0"]))
+    assert(within_tolerance(35, 0.4, data["ih_range_fbs_w25.0"]))
+    assert(within_tolerance(2.94, 0.06, data["ih_mad_fbs_w25.0"]))
+    assert(within_tolerance(1.18, 0.04, data["ih_rmad_fbs_w25.0"]))
+    assert(within_tolerance(2.58, 0.05, data["ih_medad_fbs_w25.0"]))
+    assert(within_tolerance(0.227, 0.004, data["ih_cov_fbs_w25.0"]))
+    assert(within_tolerance(0.0455, 0, data["ih_qcod_fbs_w25.0"]))
+    assert(within_tolerance(3.36, 0.03, data["ih_entropy_fbs_w25.0"]))
+    assert(within_tolerance(0.15, 0.002, data["ih_uniformity_fbs_w25.0"]))
+    assert(within_tolerance(11000, 100, data["ih_max_grad_fbs_w25.0"]))
+    assert(within_tolerance(21, 0, data["ih_max_grad_g_fbs_w25.0"]))
+    assert(within_tolerance(-10100, 100, data["ih_min_grad_fbs_w25.0"]))
+    assert(within_tolerance(24, 0, data["ih_min_grad_g_fbs_w25.0"]))
     assert(within_tolerance(0.978, 0.001, data["ivh_v10"]))
     assert(within_tolerance(6.98e-05, 1.03e-05, data["ivh_v90"]))
     assert(within_tolerance(96, 0, data["ivh_i10"]))
     assert(within_tolerance(-128, 8, data["ivh_i90"]))
     assert(within_tolerance(0.978, 0.001, data["ivh_diff_v10_v90"]))
     assert(within_tolerance(224, 8, data["ivh_diff_i10_i90"]))
-    assert(within_tolerance(0.109, 0.001, data["cm_joint_max_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(20.6, 0.1, data["cm_joint_avg_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(27, 0.4, data["cm_joint_var_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(5.82, 0.04, data["cm_joint_entr_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(1.58, 0.03, data["cm_diff_avg_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(4.94, 0.19, data["cm_diff_var_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(2.27, 0.03, data["cm_diff_entr_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(41.3, 0.1, data["cm_sum_avg_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(100, 1, data["cm_sum_var_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(4.19, 0.03, data["cm_sum_entr_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.045, 8e-04, data["cm_energy_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(7.85, 0.26, data["cm_contrast_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(1.58, 0.03, data["cm_dissimilarity_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.581, 0.003, data["cm_inv_diff_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.961, 0.001, data["cm_inv_diff_norm_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.544, 0.003, data["cm_inv_diff_mom_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.441, 0.001, data["cm_inv_var_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.778, 0.002, data["cm_corr_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(455, 2, data["cm_auto_corr_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(100, 1, data["cm_clust_tend_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(-1040, 20, data["cm_clust_shade_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(52700, 500, data["cm_clust_prom_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(-0.236, 0.001, data["cm_info_corr1_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.863, 0.003, data["cm_info_corr2_d1_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.109, 0.001, data["cm_joint_max_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(20.6, 0.1, data["cm_joint_avg_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(27, 0.4, data["cm_joint_var_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(5.9, 0.04, data["cm_joint_entr_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(1.57, 0.03, data["cm_diff_avg_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(4.96, 0.19, data["cm_diff_var_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(2.28, 0.03, data["cm_diff_entr_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(41.3, 0.1, data["cm_sum_avg_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(100, 1, data["cm_sum_var_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(4.21, 0.03, data["cm_sum_entr_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0446, 8e-04, data["cm_energy_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(7.82, 0.26, data["cm_contrast_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(1.57, 0.03, data["cm_dissimilarity_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.581, 0.003, data["cm_inv_diff_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.961, 0.001, data["cm_inv_diff_norm_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.544, 0.003, data["cm_inv_diff_mom_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.441, 0.001, data["cm_inv_var_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.78, 0.002, data["cm_corr_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(455, 2, data["cm_auto_corr_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(100, 1, data["cm_clust_tend_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(-1050, 20, data["cm_clust_shade_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(52800, 500, data["cm_clust_prom_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(-0.214, 0.001, data["cm_info_corr1_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.851, 0.002, data["cm_info_corr2_d1_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0943, 8e-04, data["cm_joint_max_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(21.3, 0.1, data["cm_joint_avg_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(18.6, 0.5, data["cm_joint_var_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(5.78, 0.04, data["cm_joint_entr_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(1.35, 0.03, data["cm_diff_avg_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(4.12, 0.2, data["cm_diff_var_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(2.16, 0.03, data["cm_diff_entr_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(42.7, 0.1, data["cm_sum_avg_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(68.5, 1.3, data["cm_sum_var_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(4.17, 0.03, data["cm_sum_entr_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0429, 7e-04, data["cm_energy_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(5.96, 0.27, data["cm_contrast_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(1.35, 0.03, data["cm_dissimilarity_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.605, 0.003, data["cm_inv_diff_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.573, 0.003, data["cm_inv_diff_mom_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.996, 0.001, data["cm_inv_diff_mom_norm_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.461, 0.002, data["cm_inv_var_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.839, 0.003, data["cm_corr_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(471, 2, data["cm_auto_corr_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(68.5, 1.3, data["cm_clust_tend_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(-1490, 30, data["cm_clust_shade_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(47600, 700, data["cm_clust_prom_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(-0.231, 0.001, data["cm_info_corr1_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.879, 0.001, data["cm_info_corr2_d1_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0943, 8e-04, data["cm_joint_max_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(21.3, 0.1, data["cm_joint_avg_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(18.6, 0.5, data["cm_joint_var_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(5.79, 0.04, data["cm_joint_entr_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1.35, 0.03, data["cm_diff_avg_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(4.14, 0.2, data["cm_diff_var_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(2.16, 0.03, data["cm_diff_entr_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(42.7, 0.1, data["cm_sum_avg_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(68.5, 1.3, data["cm_sum_var_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(4.18, 0.03, data["cm_sum_entr_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0427, 7e-04, data["cm_energy_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(5.95, 0.27, data["cm_contrast_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1.35, 0.03, data["cm_dissimilarity_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.605, 0.003, data["cm_inv_diff_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.573, 0.003, data["cm_inv_diff_mom_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.996, 0.001, data["cm_inv_diff_mom_norm_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.461, 0.002, data["cm_inv_var_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.84, 0.003, data["cm_corr_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(471, 2, data["cm_auto_corr_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(68.5, 1.3, data["cm_clust_tend_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(-1490, 30, data["cm_clust_shade_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(47700, 700, data["cm_clust_prom_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(-0.228, 0.001, data["cm_info_corr1_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.88, 0.001, data["cm_info_corr2_d1_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.785, 0.003, data["rlm_sre_2d_avg_fbs_w25"]))
-    assert(within_tolerance(2.91, 0.03, data["rlm_lre_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.0264, 3e-04, data["rlm_lgre_2d_avg_fbs_w25"]))
-    assert(within_tolerance(428, 3, data["rlm_hgre_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.0243, 3e-04, data["rlm_srlge_2d_avg_fbs_w25"]))
-    assert(within_tolerance(320, 1, data["rlm_srhge_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.0386, 3e-04, data["rlm_lrlge_2d_avg_fbs_w25"]))
-    assert(within_tolerance(1410, 20, data["rlm_lrhge_2d_avg_fbs_w25"]))
-    assert(within_tolerance(432, 1, data["rlm_glnu_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.128, 0.003, data["rlm_glnu_norm_2d_avg_fbs_w25"]))
-    assert(within_tolerance(1650, 10, data["rlm_rlnu_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.579, 0.003, data["rlm_rlnu_norm_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.704, 0.003, data["rlm_r_perc_2d_avg_fbs_w25"]))
-    assert(within_tolerance(33.7, 0.6, data["rlm_gl_var_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.828, 0.008, data["rlm_rl_var_2d_avg_fbs_w25"]))
-    assert(within_tolerance(4.73, 0.02, data["rlm_rl_entr_2d_avg_fbs_w25"]))
-    assert(within_tolerance(0.786, 0.003, data["rlm_sre_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(2.89, 0.03, data["rlm_lre_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0264, 3e-04, data["rlm_lgre_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(428, 3, data["rlm_hgre_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0243, 3e-04, data["rlm_srlge_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(320, 1, data["rlm_srhge_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0385, 3e-04, data["rlm_lrlge_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(1400, 20, data["rlm_lrhge_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(1730, 10, data["rlm_glnu_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.128, 0.003, data["rlm_glnu_norm_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(6600, 30, data["rlm_rlnu_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.579, 0.003, data["rlm_rlnu_norm_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.704, 0.003, data["rlm_r_perc_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(33.7, 0.6, data["rlm_gl_var_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.826, 0.008, data["rlm_rl_var_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(4.76, 0.02, data["rlm_rl_entr_2d_s_mrg_fbs_w25"]))
-    assert(within_tolerance(0.768, 0.003, data["rlm_sre_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(3.09, 0.03, data["rlm_lre_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0148, 4e-04, data["rlm_lgre_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(449, 3, data["rlm_hgre_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0135, 4e-04, data["rlm_srlge_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(332, 1, data["rlm_srhge_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0229, 4e-04, data["rlm_lrlge_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(1500, 20, data["rlm_lrhge_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(9850, 10, data["rlm_glnu_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.126, 0.003, data["rlm_glnu_norm_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(42700, 200, data["rlm_rlnu_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.548, 0.003, data["rlm_rlnu_norm_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.68, 0.003, data["rlm_r_perc_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(29.1, 0.6, data["rlm_gl_var_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.916, 0.011, data["rlm_rl_var_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(4.87, 0.01, data["rlm_rl_entr_2.5d_d_mrg_fbs_w25"]))
-    assert(within_tolerance(0.769, 0.003, data["rlm_sre_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(3.08, 0.03, data["rlm_lre_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0147, 4e-04, data["rlm_lgre_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(449, 3, data["rlm_hgre_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0135, 4e-04, data["rlm_srlge_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(333, 1, data["rlm_srhge_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0228, 4e-04, data["rlm_lrlge_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1500, 20, data["rlm_lrhge_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(39400, 100, data["rlm_glnu_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.126, 0.003, data["rlm_glnu_norm_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(171000, 1000, data["rlm_rlnu_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.548, 0.003, data["rlm_rlnu_norm_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.68, 0.003, data["rlm_r_perc_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(29.1, 0.6, data["rlm_gl_var_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.914, 0.011, data["rlm_rl_var_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(4.87, 0.01, data["rlm_rl_entr_2.5d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.688, 0.003, data["szm_sze_2d_fbs_w25"]))
-    assert(within_tolerance(625, 9, data["szm_lze_2d_fbs_w25"]))
-    assert(within_tolerance(0.0368, 5e-04, data["szm_lgze_2d_fbs_w25"]))
-    assert(within_tolerance(363, 3, data["szm_hgze_2d_fbs_w25"]))
-    assert(within_tolerance(0.0298, 5e-04, data["szm_szlge_2d_fbs_w25"]))
-    assert(within_tolerance(226, 1, data["szm_szhge_2d_fbs_w25"]))
-    assert(within_tolerance(1.35, 0.03, data["szm_lzlge_2d_fbs_w25"]))
-    assert(within_tolerance(316000, 5000, data["szm_lzhge_2d_fbs_w25"]))
-    assert(within_tolerance(82.2, 0.1, data["szm_glnu_2d_fbs_w25"]))
-    assert(within_tolerance(0.0728, 0.0014, data["szm_glnu_norm_2d_fbs_w25"]))
-    assert(within_tolerance(479, 4, data["szm_zsnu_2d_fbs_w25"]))
-    assert(within_tolerance(0.44, 0.004, data["szm_zsnu_norm_2d_fbs_w25"]))
-    assert(within_tolerance(0.3, 0.003, data["szm_z_perc_2d_fbs_w25"]))
-    assert(within_tolerance(42.7, 0.7, data["szm_gl_var_2d_fbs_w25"]))
-    assert(within_tolerance(609, 9, data["szm_zs_var_2d_fbs_w25"]))
-    assert(within_tolerance(5.92, 0.02, data["szm_zs_entr_2d_fbs_w25"]))
-    assert(within_tolerance(0.68, 0.003, data["szm_sze_2.5d_fbs_w25"]))
-    assert(within_tolerance(675, 8, data["szm_lze_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0291, 5e-04, data["szm_lgze_2.5d_fbs_w25"]))
-    assert(within_tolerance(370, 3, data["szm_hgze_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0237, 5e-04, data["szm_szlge_2.5d_fbs_w25"]))
-    assert(within_tolerance(229, 1, data["szm_szhge_2.5d_fbs_w25"]))
-    assert(within_tolerance(1.44, 0.02, data["szm_lzlge_2.5d_fbs_w25"]))
-    assert(within_tolerance(338000, 5000, data["szm_lzhge_2.5d_fbs_w25"]))
-    assert(within_tolerance(1800, 10, data["szm_glnu_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0622, 7e-04, data["szm_glnu_norm_2.5d_fbs_w25"]))
-    assert(within_tolerance(12400, 100, data["szm_zsnu_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.427, 0.004, data["szm_zsnu_norm_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.253, 0.004, data["szm_z_perc_2.5d_fbs_w25"]))
-    assert(within_tolerance(47.9, 0.4, data["szm_gl_var_2.5d_fbs_w25"]))
-    assert(within_tolerance(660, 8, data["szm_zs_var_2.5d_fbs_w25"]))
-    assert(within_tolerance(6.39, 0.01, data["szm_zs_entr_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.192, 0.006, data["dzm_sde_2d_fbs_w25"]))
-    assert(within_tolerance(161, 1, data["dzm_lde_2d_fbs_w25"]))
-    assert(within_tolerance(0.0368, 5e-04, data["dzm_lgze_2d_fbs_w25"]))
-    assert(within_tolerance(363, 3, data["dzm_hgze_2d_fbs_w25"]))
-    assert(within_tolerance(0.00913, 0.00023, data["dzm_sdlge_2d_fbs_w25"]))
-    assert(within_tolerance(60.1, 3.3, data["dzm_sdhge_2d_fbs_w25"]))
-    assert(within_tolerance(2.96, 0.02, data["dzm_ldlge_2d_fbs_w25"]))
-    assert(within_tolerance(70100, 100, data["dzm_ldhge_2d_fbs_w25"]))
-    assert(within_tolerance(82.2, 0.1, data["dzm_glnu_2d_fbs_w25"]))
-    assert(within_tolerance(0.0728, 0.0014, data["dzm_glnu_norm_2d_fbs_w25"]))
-    assert(within_tolerance(64, 0.4, data["dzm_zdnu_2d_fbs_w25"]))
-    assert(within_tolerance(0.0716, 0.0022, data["dzm_zdnu_norm_2d_fbs_w25"]))
-    assert(within_tolerance(0.3, 0.003, data["dzm_z_perc_2d_fbs_w25"]))
-    assert(within_tolerance(42.7, 0.7, data["dzm_gl_var_2d_fbs_w25"]))
-    assert(within_tolerance(69.4, 0.1, data["dzm_zd_var_2d_fbs_w25"]))
-    assert(within_tolerance(8, 0.04, data["dzm_zd_entr_2d_fbs_w25"]))
-    assert(within_tolerance(0.168, 0.005, data["dzm_sde_2.5d_fbs_w25"]))
-    assert(within_tolerance(178, 1, data["dzm_lde_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0291, 5e-04, data["dzm_lgze_2.5d_fbs_w25"]))
-    assert(within_tolerance(370, 3, data["dzm_hgze_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.00788, 0.00022, data["dzm_sdlge_2.5d_fbs_w25"]))
-    assert(within_tolerance(49.5, 2.8, data["dzm_sdhge_2.5d_fbs_w25"]))
-    assert(within_tolerance(2.31, 0.01, data["dzm_ldlge_2.5d_fbs_w25"]))
-    assert(within_tolerance(79500, 100, data["dzm_ldhge_2.5d_fbs_w25"]))
-    assert(within_tolerance(1800, 10, data["dzm_glnu_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0622, 7e-04, data["dzm_glnu_norm_2.5d_fbs_w25"]))
-    assert(within_tolerance(1570, 10, data["dzm_zdnu_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0543, 0.0014, data["dzm_zdnu_norm_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.253, 0.004, data["dzm_z_perc_2.5d_fbs_w25"]))
-    assert(within_tolerance(47.9, 0.4, data["dzm_gl_var_2.5d_fbs_w25"]))
-    assert(within_tolerance(78.9, 0.1, data["dzm_zd_var_2.5d_fbs_w25"]))
-    assert(within_tolerance(8.87, 0.03, data["dzm_zd_entr_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.00629, 0.00046, data["ngt_coarseness_2d_fbs_w25"]))
-    assert(within_tolerance(0.107, 0.002, data["ngt_contrast_2d_fbs_w25"]))
-    assert(within_tolerance(0.489, 0.001, data["ngt_busyness_2d_fbs_w25"]))
-    assert(within_tolerance(438, 9, data["ngt_complexity_2d_fbs_w25"]))
-    assert(within_tolerance(3.33, 0.08, data["ngt_strength_2d_fbs_w25"]))
-    assert(within_tolerance(9.06e-05, 3.3e-06, data["ngt_coarseness_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0345, 9e-04, data["ngt_contrast_2.5d_fbs_w25"]))
-    assert(within_tolerance(8.84, 0.01, data["ngt_busyness_2.5d_fbs_w25"]))
-    assert(within_tolerance(580, 19, data["ngt_complexity_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0904, 0.0027, data["ngt_strength_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.281, 0.003, data["ngl_lde_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(14.8, 0.1, data["ngl_hde_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.0233, 3e-04, data["ngl_lgce_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(446, 2, data["ngl_hgce_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.0137, 2e-04, data["ngl_ldlge_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(94.2, 0.4, data["ngl_ldhge_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.116, 0.001, data["ngl_hdlge_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(7540, 60, data["ngl_hdhge_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(757, 1, data["ngl_glnu_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.151, 0.003, data["ngl_glnu_norm_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(709, 2, data["ngl_dcnu_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.175, 0.001, data["ngl_dcnu_norm_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(1, 0, data["ngl_dc_perc_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(31.1, 0.5, data["ngl_gl_var_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(3.12, 0.02, data["ngl_dc_var_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(5.76, 0.02, data["ngl_dc_entr_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.0268, 4e-04, data["ngl_dc_energy_d1_a0.0_2d_fbs_w25"]))
-    assert(within_tolerance(0.243, 0.004, data["ngl_lde_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(16.1, 0.2, data["ngl_hde_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0115, 3e-04, data["ngl_lgce_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(466, 2, data["ngl_hgce_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.00664, 2e-04, data["ngl_ldlge_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(91.9, 0.5, data["ngl_ldhge_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0674, 4e-04, data["ngl_hdlge_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(8100, 60, data["ngl_hdhge_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(17200, 100, data["ngl_glnu_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.15, 0.002, data["ngl_glnu_norm_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(17500, 100, data["ngl_dcnu_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.153, 0.001, data["ngl_dcnu_norm_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(1, 0, data["ngl_dc_perc_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(22.8, 0.6, data["ngl_gl_var_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(3.37, 0.01, data["ngl_dc_var_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(5.93, 0.02, data["ngl_dc_entr_d1_a0.0_2.5d_fbs_w25"]))
-    assert(within_tolerance(0.0245, 3e-04, data["ngl_dc_energy_d1_a0.0_2.5d_fbs_w25"]))
+    assert(within_tolerance(0.109, 0.001, data["cm_joint_max_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(20.6, 0.1, data["cm_joint_avg_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(27, 0.4, data["cm_joint_var_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(5.82, 0.04, data["cm_joint_entr_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1.58, 0.03, data["cm_diff_avg_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(4.94, 0.19, data["cm_diff_var_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(2.27, 0.03, data["cm_diff_entr_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(41.3, 0.1, data["cm_sum_avg_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(100, 1, data["cm_sum_var_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(4.19, 0.03, data["cm_sum_entr_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.045, 8e-04, data["cm_energy_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(7.85, 0.26, data["cm_contrast_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1.58, 0.03, data["cm_dissimilarity_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.581, 0.003, data["cm_inv_diff_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.961, 0.001, data["cm_inv_diff_norm_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.544, 0.003, data["cm_inv_diff_mom_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.441, 0.001, data["cm_inv_var_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.778, 0.002, data["cm_corr_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(455, 2, data["cm_auto_corr_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(100, 1, data["cm_clust_tend_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(-1040, 20, data["cm_clust_shade_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(52700, 500, data["cm_clust_prom_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(-0.236, 0.001, data["cm_info_corr1_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.863, 0.003, data["cm_info_corr2_d1_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.109, 0.001, data["cm_joint_max_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(20.6, 0.1, data["cm_joint_avg_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(27, 0.4, data["cm_joint_var_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5.9, 0.04, data["cm_joint_entr_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.57, 0.03, data["cm_diff_avg_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.96, 0.19, data["cm_diff_var_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.28, 0.03, data["cm_diff_entr_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(41.3, 0.1, data["cm_sum_avg_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(100, 1, data["cm_sum_var_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.21, 0.03, data["cm_sum_entr_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0446, 8e-04, data["cm_energy_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(7.82, 0.26, data["cm_contrast_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.57, 0.03, data["cm_dissimilarity_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.581, 0.003, data["cm_inv_diff_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.961, 0.001, data["cm_inv_diff_norm_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.544, 0.003, data["cm_inv_diff_mom_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.441, 0.001, data["cm_inv_var_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.78, 0.002, data["cm_corr_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(455, 2, data["cm_auto_corr_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(100, 1, data["cm_clust_tend_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-1050, 20, data["cm_clust_shade_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(52800, 500, data["cm_clust_prom_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-0.214, 0.001, data["cm_info_corr1_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.851, 0.002, data["cm_info_corr2_d1_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0943, 8e-04, data["cm_joint_max_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(21.3, 0.1, data["cm_joint_avg_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(18.6, 0.5, data["cm_joint_var_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5.78, 0.04, data["cm_joint_entr_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.35, 0.03, data["cm_diff_avg_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.12, 0.2, data["cm_diff_var_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.16, 0.03, data["cm_diff_entr_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(42.7, 0.1, data["cm_sum_avg_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(68.5, 1.3, data["cm_sum_var_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.17, 0.03, data["cm_sum_entr_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0429, 7e-04, data["cm_energy_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5.96, 0.27, data["cm_contrast_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.35, 0.03, data["cm_dissimilarity_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.605, 0.003, data["cm_inv_diff_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.573, 0.003, data["cm_inv_diff_mom_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.996, 0.001, data["cm_inv_diff_mom_norm_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.461, 0.002, data["cm_inv_var_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.839, 0.003, data["cm_corr_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(471, 2, data["cm_auto_corr_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(68.5, 1.3, data["cm_clust_tend_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-1490, 30, data["cm_clust_shade_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(47600, 700, data["cm_clust_prom_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-0.231, 0.001, data["cm_info_corr1_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.879, 0.001, data["cm_info_corr2_d1_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0943, 8e-04, data["cm_joint_max_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(21.3, 0.1, data["cm_joint_avg_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(18.6, 0.5, data["cm_joint_var_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5.79, 0.04, data["cm_joint_entr_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.35, 0.03, data["cm_diff_avg_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.14, 0.2, data["cm_diff_var_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.16, 0.03, data["cm_diff_entr_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(42.7, 0.1, data["cm_sum_avg_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(68.5, 1.3, data["cm_sum_var_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.18, 0.03, data["cm_sum_entr_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0427, 7e-04, data["cm_energy_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5.95, 0.27, data["cm_contrast_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.35, 0.03, data["cm_dissimilarity_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.605, 0.003, data["cm_inv_diff_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.573, 0.003, data["cm_inv_diff_mom_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.996, 0.001, data["cm_inv_diff_mom_norm_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.461, 0.002, data["cm_inv_var_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.84, 0.003, data["cm_corr_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(471, 2, data["cm_auto_corr_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(68.5, 1.3, data["cm_clust_tend_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-1490, 30, data["cm_clust_shade_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(47700, 700, data["cm_clust_prom_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-0.228, 0.001, data["cm_info_corr1_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.88, 0.001, data["cm_info_corr2_d1_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.785, 0.003, data["rlm_sre_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(2.91, 0.03, data["rlm_lre_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.0264, 3e-04, data["rlm_lgre_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(428, 3, data["rlm_hgre_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.0243, 3e-04, data["rlm_srlge_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(320, 1, data["rlm_srhge_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.0386, 3e-04, data["rlm_lrlge_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1410, 20, data["rlm_lrhge_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(432, 1, data["rlm_glnu_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.128, 0.003, data["rlm_glnu_norm_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1650, 10, data["rlm_rlnu_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.579, 0.003, data["rlm_rlnu_norm_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.704, 0.003, data["rlm_r_perc_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(33.7, 0.6, data["rlm_gl_var_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.828, 0.008, data["rlm_rl_var_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(4.73, 0.02, data["rlm_rl_entr_2d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.786, 0.003, data["rlm_sre_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.89, 0.03, data["rlm_lre_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0264, 3e-04, data["rlm_lgre_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(428, 3, data["rlm_hgre_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0243, 3e-04, data["rlm_srlge_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(320, 1, data["rlm_srhge_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0385, 3e-04, data["rlm_lrlge_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1400, 20, data["rlm_lrhge_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1730, 10, data["rlm_glnu_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.128, 0.003, data["rlm_glnu_norm_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(6600, 30, data["rlm_rlnu_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.579, 0.003, data["rlm_rlnu_norm_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.704, 0.003, data["rlm_r_perc_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(33.7, 0.6, data["rlm_gl_var_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.826, 0.008, data["rlm_rl_var_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.76, 0.02, data["rlm_rl_entr_2d_s_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.768, 0.003, data["rlm_sre_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(3.09, 0.03, data["rlm_lre_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0148, 4e-04, data["rlm_lgre_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(449, 3, data["rlm_hgre_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0135, 4e-04, data["rlm_srlge_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(332, 1, data["rlm_srhge_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0229, 4e-04, data["rlm_lrlge_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1500, 20, data["rlm_lrhge_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(9850, 10, data["rlm_glnu_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.126, 0.003, data["rlm_glnu_norm_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(42700, 200, data["rlm_rlnu_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.548, 0.003, data["rlm_rlnu_norm_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.68, 0.003, data["rlm_r_perc_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(29.1, 0.6, data["rlm_gl_var_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.916, 0.011, data["rlm_rl_var_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.87, 0.01, data["rlm_rl_entr_2.5d_d_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.769, 0.003, data["rlm_sre_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(3.08, 0.03, data["rlm_lre_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0147, 4e-04, data["rlm_lgre_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(449, 3, data["rlm_hgre_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0135, 4e-04, data["rlm_srlge_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(333, 1, data["rlm_srhge_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0228, 4e-04, data["rlm_lrlge_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1500, 20, data["rlm_lrhge_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(39400, 100, data["rlm_glnu_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.126, 0.003, data["rlm_glnu_norm_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(171000, 1000, data["rlm_rlnu_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.548, 0.003, data["rlm_rlnu_norm_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.68, 0.003, data["rlm_r_perc_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(29.1, 0.6, data["rlm_gl_var_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.914, 0.011, data["rlm_rl_var_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.87, 0.01, data["rlm_rl_entr_2.5d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.688, 0.003, data["szm_sze_2d_fbs_w25.0"]))
+    assert(within_tolerance(625, 9, data["szm_lze_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0368, 5e-04, data["szm_lgze_2d_fbs_w25.0"]))
+    assert(within_tolerance(363, 3, data["szm_hgze_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0298, 5e-04, data["szm_szlge_2d_fbs_w25.0"]))
+    assert(within_tolerance(226, 1, data["szm_szhge_2d_fbs_w25.0"]))
+    assert(within_tolerance(1.35, 0.03, data["szm_lzlge_2d_fbs_w25.0"]))
+    assert(within_tolerance(316000, 5000, data["szm_lzhge_2d_fbs_w25.0"]))
+    assert(within_tolerance(82.2, 0.1, data["szm_glnu_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0728, 0.0014, data["szm_glnu_norm_2d_fbs_w25.0"]))
+    assert(within_tolerance(479, 4, data["szm_zsnu_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.44, 0.004, data["szm_zsnu_norm_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.3, 0.003, data["szm_z_perc_2d_fbs_w25.0"]))
+    assert(within_tolerance(42.7, 0.7, data["szm_gl_var_2d_fbs_w25.0"]))
+    assert(within_tolerance(609, 9, data["szm_zs_var_2d_fbs_w25.0"]))
+    assert(within_tolerance(5.92, 0.02, data["szm_zs_entr_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.68, 0.003, data["szm_sze_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(675, 8, data["szm_lze_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0291, 5e-04, data["szm_lgze_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(370, 3, data["szm_hgze_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0237, 5e-04, data["szm_szlge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(229, 1, data["szm_szhge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(1.44, 0.02, data["szm_lzlge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(338000, 5000, data["szm_lzhge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(1800, 10, data["szm_glnu_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0622, 7e-04, data["szm_glnu_norm_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(12400, 100, data["szm_zsnu_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.427, 0.004, data["szm_zsnu_norm_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.253, 0.004, data["szm_z_perc_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(47.9, 0.4, data["szm_gl_var_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(660, 8, data["szm_zs_var_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(6.39, 0.01, data["szm_zs_entr_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.192, 0.006, data["dzm_sde_2d_fbs_w25.0"]))
+    assert(within_tolerance(161, 1, data["dzm_lde_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0368, 5e-04, data["dzm_lgze_2d_fbs_w25.0"]))
+    assert(within_tolerance(363, 3, data["dzm_hgze_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.00913, 0.00023, data["dzm_sdlge_2d_fbs_w25.0"]))
+    assert(within_tolerance(60.1, 3.3, data["dzm_sdhge_2d_fbs_w25.0"]))
+    assert(within_tolerance(2.96, 0.02, data["dzm_ldlge_2d_fbs_w25.0"]))
+    assert(within_tolerance(70100, 100, data["dzm_ldhge_2d_fbs_w25.0"]))
+    assert(within_tolerance(82.2, 0.1, data["dzm_glnu_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0728, 0.0014, data["dzm_glnu_norm_2d_fbs_w25.0"]))
+    assert(within_tolerance(64, 0.4, data["dzm_zdnu_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0716, 0.0022, data["dzm_zdnu_norm_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.3, 0.003, data["dzm_z_perc_2d_fbs_w25.0"]))
+    assert(within_tolerance(42.7, 0.7, data["dzm_gl_var_2d_fbs_w25.0"]))
+    assert(within_tolerance(69.4, 0.1, data["dzm_zd_var_2d_fbs_w25.0"]))
+    assert(within_tolerance(8, 0.04, data["dzm_zd_entr_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.168, 0.005, data["dzm_sde_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(178, 1, data["dzm_lde_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0291, 5e-04, data["dzm_lgze_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(370, 3, data["dzm_hgze_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.00788, 0.00022, data["dzm_sdlge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(49.5, 2.8, data["dzm_sdhge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(2.31, 0.01, data["dzm_ldlge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(79500, 100, data["dzm_ldhge_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(1800, 10, data["dzm_glnu_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0622, 7e-04, data["dzm_glnu_norm_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(1570, 10, data["dzm_zdnu_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0543, 0.0014, data["dzm_zdnu_norm_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.253, 0.004, data["dzm_z_perc_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(47.9, 0.4, data["dzm_gl_var_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(78.9, 0.1, data["dzm_zd_var_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(8.87, 0.03, data["dzm_zd_entr_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.00629, 0.00046, data["ngt_coarseness_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.107, 0.002, data["ngt_contrast_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.489, 0.001, data["ngt_busyness_2d_fbs_w25.0"]))
+    assert(within_tolerance(438, 9, data["ngt_complexity_2d_fbs_w25.0"]))
+    assert(within_tolerance(3.33, 0.08, data["ngt_strength_2d_fbs_w25.0"]))
+    assert(within_tolerance(9.06e-05, 3.3e-06, data["ngt_coarseness_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0345, 9e-04, data["ngt_contrast_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(8.84, 0.01, data["ngt_busyness_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(580, 19, data["ngt_complexity_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0904, 0.0027, data["ngt_strength_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.281, 0.003, data["ngl_lde_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(14.8, 0.1, data["ngl_hde_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0233, 3e-04, data["ngl_lgce_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(446, 2, data["ngl_hgce_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0137, 2e-04, data["ngl_ldlge_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(94.2, 0.4, data["ngl_ldhge_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.116, 0.001, data["ngl_hdlge_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(7540, 60, data["ngl_hdhge_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(757, 1, data["ngl_glnu_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.151, 0.003, data["ngl_glnu_norm_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(709, 2, data["ngl_dcnu_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.175, 0.001, data["ngl_dcnu_norm_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(1, 0, data["ngl_dc_perc_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(31.1, 0.5, data["ngl_gl_var_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(3.12, 0.02, data["ngl_dc_var_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(5.76, 0.02, data["ngl_dc_entr_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.0268, 4e-04, data["ngl_dc_energy_d1_a0.0_2d_fbs_w25.0"]))
+    assert(within_tolerance(0.243, 0.004, data["ngl_lde_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(16.1, 0.2, data["ngl_hde_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0115, 3e-04, data["ngl_lgce_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(466, 2, data["ngl_hgce_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.00664, 2e-04, data["ngl_ldlge_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(91.9, 0.5, data["ngl_ldhge_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0674, 4e-04, data["ngl_hdlge_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(8100, 60, data["ngl_hdhge_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(17200, 100, data["ngl_glnu_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.15, 0.002, data["ngl_glnu_norm_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(17500, 100, data["ngl_dcnu_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.153, 0.001, data["ngl_dcnu_norm_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(1, 0, data["ngl_dc_perc_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(22.8, 0.6, data["ngl_gl_var_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(3.37, 0.01, data["ngl_dc_var_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(5.93, 0.02, data["ngl_dc_entr_d1_a0.0_2.5d_fbs_w25.0"]))
+    assert(within_tolerance(0.0245, 3e-04, data["ngl_dc_energy_d1_a0.0_2.5d_fbs_w25.0"]))
 
 
 def test_ibsi_1_chest_config_b():
@@ -987,63 +1011,75 @@ def test_ibsi_1_chest_config_b():
     """
 
     # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = True
+    general_settings = GeneralSettingsClass(
+        by_slice=True
+    )
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = True
-    image_interpolation_settings.spline_order = 1
-    image_interpolation_settings.new_spacing = [2.0]
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        interpolate=True,
+        spline_order=1,
+        new_spacing=2.0,
+        anti_aliasing=False
+    )
 
-    resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range"]
-    resegmentation_settings.g_thresh = [-500.0, 400.0]
+    resegmentation_settings = ResegmentationSettingsClass(
+        resegmentation_method="range",
+        resegmentation_intensity_range=[-500.0, 400.0]
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_number"]
-    feature_computation_parameters.discr_n_bins = [32]
-    feature_computation_parameters.ivh_discr_method = "none"
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "slice_merge", "dir_merge", "vol_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.gldzm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["2d", "2.5d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32,
+        ivh_discretisation_method="none",
+        glcm_distance=1.0,
+        glcm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"],
+        glrlm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"],
+        glszm_spatial_method=["2d", "2.5d"],
+        gldzm_spatial_method=["2d", "2.5d"],
+        ngtdm_spatial_method=["2d", "2.5d"],
+        ngldm_distance=1.0,
+        ngldm_spatial_method=["2d", "2.5d"],
+        ngldm_difference_level=0.0
+    )
 
-    settings = SettingsClass(general_settings=general_settings,
-                             post_process_settings=ImagePostProcessingClass(),
-                             img_interpolate_settings=image_interpolation_settings,
-                             roi_interpolate_settings=RoiInterpolationSettingsClass(),
-                             roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
-                             feature_extr_settings=feature_computation_parameters)
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                                "dicom", "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                              "dicom", "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["GTV-1"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_resegment_settings=resegmentation_settings,
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["GTV-1"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False
+    )
 
     data = main_experiment.process()
 
@@ -1402,64 +1438,76 @@ def test_ibsi_1_chest_config_c():
     """
 
     # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = False
+    general_settings = GeneralSettingsClass(
+        by_slice=False
+    )
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = True
-    image_interpolation_settings.spline_order = 1
-    image_interpolation_settings.new_spacing = [2.0]
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        interpolate=True,
+        spline_order=1,
+        new_spacing=2.0,
+        anti_aliasing=False
+    )
 
-    resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range"]
-    resegmentation_settings.g_thresh = [-1000.0, 400.0]
+    resegmentation_settings = ResegmentationSettingsClass(
+        resegmentation_method="range",
+        resegmentation_intensity_range=[-1000.0, 400.0]
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_size"]
-    feature_computation_parameters.discr_bin_width = [25]
-    feature_computation_parameters.ivh_discr_method = "fixed_bin_size"
-    feature_computation_parameters.ivh_discr_bin_width = 2.5
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["3d"]
-    feature_computation_parameters.gldzm_spatial_method = ["3d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["3d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["3d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=False,
+        base_discretisation_method="fixed_bin_size",
+        base_discretisation_bin_width=25.0,
+        ivh_discretisation_method="fixed_bin_size",
+        ivh_discretisation_bin_width=2.5,
+        glcm_distance=1.0,
+        glcm_spatial_method=["3d_average", "3d_volume_merge"],
+        glrlm_spatial_method=["3d_average", "3d_volume_merge"],
+        glszm_spatial_method="3d",
+        gldzm_spatial_method="3d",
+        ngtdm_spatial_method="3d",
+        ngldm_distance=1.0,
+        ngldm_spatial_method="3d",
+        ngldm_difference_level=0.0
+    )
 
-    settings = SettingsClass(general_settings=general_settings,
-                             post_process_settings=ImagePostProcessingClass(),
-                             img_interpolate_settings=image_interpolation_settings,
-                             roi_interpolate_settings=RoiInterpolationSettingsClass(),
-                             roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
-                             feature_extr_settings=feature_computation_parameters)
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                                "dicom", "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                              "dicom", "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["GTV-1"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_resegment_settings=resegmentation_settings,
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["GTV-1"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False
+    )
 
     data = main_experiment.process()
 
@@ -1508,171 +1556,171 @@ def test_ibsi_1_chest_config_c():
     assert(within_tolerance(1.03, 0.4, data["stat_qcod"]))
     assert(within_tolerance(2.44e+09, 1.2e+08, data["stat_energy"]))
     assert(within_tolerance(230, 4, data["stat_rms"]))
-    assert(within_tolerance(38.6, 0.2, data["ih_mean_fbs_w25"]))
-    assert(within_tolerance(81.1, 2.1, data["ih_var_fbs_w25"]))
-    assert(within_tolerance(-2.14, 0.05, data["ih_skew_fbs_w25"]))
-    assert(within_tolerance(3.52, 0.23, data["ih_kurt_fbs_w25"]))
-    assert(within_tolerance(42, 0, data["ih_median_fbs_w25"]))
-    assert(within_tolerance(3, 0.16, data["ih_min_fbs_w25"]))
-    assert(within_tolerance(24, 0.7, data["ih_p10_fbs_w25"]))
-    assert(within_tolerance(44, 0, data["ih_p90_fbs_w25"]))
-    assert(within_tolerance(56, 0.5, data["ih_max_fbs_w25"]))
-    assert(within_tolerance(43, 0.1, data["ih_mode_fbs_w25"]))
-    assert(within_tolerance(3, 0.21, data["ih_iqr_fbs_w25"]))
-    assert(within_tolerance(53, 0.6, data["ih_range_fbs_w25"]))
-    assert(within_tolerance(6.32, 0.15, data["ih_mad_fbs_w25"]))
-    assert(within_tolerance(2.59, 0.14, data["ih_rmad_fbs_w25"]))
-    assert(within_tolerance(4.75, 0.12, data["ih_medad_fbs_w25"]))
-    assert(within_tolerance(0.234, 0.005, data["ih_cov_fbs_w25"]))
-    assert(within_tolerance(0.0361, 0.0027, data["ih_qcod_fbs_w25"]))
-    assert(within_tolerance(3.73, 0.04, data["ih_entropy_fbs_w25"]))
-    assert(within_tolerance(0.14, 0.003, data["ih_uniformity_fbs_w25"]))
-    assert(within_tolerance(4750, 30, data["ih_max_grad_fbs_w25"]))
-    assert(within_tolerance(41, 0, data["ih_max_grad_g_fbs_w25"]))
-    assert(within_tolerance(-4680, 50, data["ih_min_grad_fbs_w25"]))
-    assert(within_tolerance(44, 0, data["ih_min_grad_g_fbs_w25"]))
+    assert(within_tolerance(38.6, 0.2, data["ih_mean_fbs_w25.0"]))
+    assert(within_tolerance(81.1, 2.1, data["ih_var_fbs_w25.0"]))
+    assert(within_tolerance(-2.14, 0.05, data["ih_skew_fbs_w25.0"]))
+    assert(within_tolerance(3.52, 0.23, data["ih_kurt_fbs_w25.0"]))
+    assert(within_tolerance(42, 0, data["ih_median_fbs_w25.0"]))
+    assert(within_tolerance(3, 0.16, data["ih_min_fbs_w25.0"]))
+    assert(within_tolerance(24, 0.7, data["ih_p10_fbs_w25.0"]))
+    assert(within_tolerance(44, 0, data["ih_p90_fbs_w25.0"]))
+    assert(within_tolerance(56, 0.5, data["ih_max_fbs_w25.0"]))
+    assert(within_tolerance(43, 0.1, data["ih_mode_fbs_w25.0"]))
+    assert(within_tolerance(3, 0.21, data["ih_iqr_fbs_w25.0"]))
+    assert(within_tolerance(53, 0.6, data["ih_range_fbs_w25.0"]))
+    assert(within_tolerance(6.32, 0.15, data["ih_mad_fbs_w25.0"]))
+    assert(within_tolerance(2.59, 0.14, data["ih_rmad_fbs_w25.0"]))
+    assert(within_tolerance(4.75, 0.12, data["ih_medad_fbs_w25.0"]))
+    assert(within_tolerance(0.234, 0.005, data["ih_cov_fbs_w25.0"]))
+    assert(within_tolerance(0.0361, 0.0027, data["ih_qcod_fbs_w25.0"]))
+    assert(within_tolerance(3.73, 0.04, data["ih_entropy_fbs_w25.0"]))
+    assert(within_tolerance(0.14, 0.003, data["ih_uniformity_fbs_w25.0"]))
+    assert(within_tolerance(4750, 30, data["ih_max_grad_fbs_w25.0"]))
+    assert(within_tolerance(41, 0, data["ih_max_grad_g_fbs_w25.0"]))
+    assert(within_tolerance(-4680, 50, data["ih_min_grad_fbs_w25.0"]))
+    assert(within_tolerance(44, 0, data["ih_min_grad_g_fbs_w25.0"]))
     assert(within_tolerance(0.998, 0.001, data["ivh_v10"]))
     assert(within_tolerance(0.000152, 2e-05, data["ivh_v90"]))
     assert(within_tolerance(88.8, 0.2, data["ivh_i10"]))
     assert(within_tolerance(-421, 14, data["ivh_i90"]))
     assert(within_tolerance(0.997, 0.001, data["ivh_diff_v10_v90"]))
     assert(within_tolerance(510, 14, data["ivh_diff_i10_i90"]))
-    assert(within_tolerance(0.111, 0.002, data["cm_joint_max_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(39, 0.2, data["cm_joint_avg_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(73.7, 2, data["cm_joint_var_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(6.39, 0.06, data["cm_joint_entr_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(2.17, 0.05, data["cm_diff_avg_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(14.4, 0.5, data["cm_diff_var_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(2.64, 0.03, data["cm_diff_entr_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(78, 0.3, data["cm_sum_avg_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(276, 8, data["cm_sum_var_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(4.56, 0.04, data["cm_sum_entr_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.045, 0.001, data["cm_energy_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(19.2, 0.7, data["cm_contrast_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(2.17, 0.05, data["cm_dissimilarity_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.582, 0.004, data["cm_inv_diff_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.547, 0.004, data["cm_inv_diff_mom_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.39, 0.003, data["cm_inv_var_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.869, 0.001, data["cm_corr_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(1580, 10, data["cm_auto_corr_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(276, 8, data["cm_clust_tend_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(-10600, 300, data["cm_clust_shade_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(569000, 11000, data["cm_clust_prom_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(-0.236, 0.001, data["cm_info_corr1_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.9, 0.001, data["cm_info_corr2_d1_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.111, 0.002, data["cm_joint_max_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(39, 0.2, data["cm_joint_avg_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(73.8, 2, data["cm_joint_var_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(6.42, 0.06, data["cm_joint_entr_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(2.16, 0.05, data["cm_diff_avg_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(14.4, 0.5, data["cm_diff_var_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(2.64, 0.03, data["cm_diff_entr_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(78, 0.3, data["cm_sum_avg_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(276, 8, data["cm_sum_var_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(4.56, 0.04, data["cm_sum_entr_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.0447, 0.001, data["cm_energy_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(19.1, 0.7, data["cm_contrast_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(2.16, 0.05, data["cm_dissimilarity_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.583, 0.004, data["cm_inv_diff_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.548, 0.004, data["cm_inv_diff_mom_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.39, 0.003, data["cm_inv_var_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.871, 0.001, data["cm_corr_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1580, 10, data["cm_auto_corr_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(276, 8, data["cm_clust_tend_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(-10600, 300, data["cm_clust_shade_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(570000, 11000, data["cm_clust_prom_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(-0.228, 0.001, data["cm_info_corr1_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.899, 0.001, data["cm_info_corr2_d1_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.786, 0.003, data["rlm_sre_3d_avg_fbs_w25"]))
-    assert(within_tolerance(3.31, 0.04, data["rlm_lre_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.00155, 5e-05, data["rlm_lgre_3d_avg_fbs_w25"]))
-    assert(within_tolerance(1470, 10, data["rlm_hgre_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.00136, 5e-05, data["rlm_srlge_3d_avg_fbs_w25"]))
-    assert(within_tolerance(1100, 10, data["rlm_srhge_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.00317, 4e-05, data["rlm_lrlge_3d_avg_fbs_w25"]))
-    assert(within_tolerance(5590, 80, data["rlm_lrhge_3d_avg_fbs_w25"]))
-    assert(within_tolerance(3180, 10, data["rlm_glnu_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.102, 0.003, data["rlm_glnu_norm_3d_avg_fbs_w25"]))
-    assert(within_tolerance(18000, 500, data["rlm_rlnu_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.574, 0.004, data["rlm_rlnu_norm_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.679, 0.003, data["rlm_r_perc_3d_avg_fbs_w25"]))
-    assert(within_tolerance(101, 3, data["rlm_gl_var_3d_avg_fbs_w25"]))
-    assert(within_tolerance(1.12, 0.02, data["rlm_rl_var_3d_avg_fbs_w25"]))
-    assert(within_tolerance(5.35, 0.03, data["rlm_rl_entr_3d_avg_fbs_w25"]))
-    assert(within_tolerance(0.787, 0.003, data["rlm_sre_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(3.28, 0.04, data["rlm_lre_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.00155, 5e-05, data["rlm_lgre_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1470, 10, data["rlm_hgre_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.00136, 5e-05, data["rlm_srlge_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1100, 10, data["rlm_srhge_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.00314, 4e-05, data["rlm_lrlge_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(5530, 80, data["rlm_lrhge_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(41300, 100, data["rlm_glnu_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.102, 0.003, data["rlm_glnu_norm_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(234000, 6000, data["rlm_rlnu_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.575, 0.004, data["rlm_rlnu_norm_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.679, 0.003, data["rlm_r_perc_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(101, 3, data["rlm_gl_var_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(1.11, 0.02, data["rlm_rl_var_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(5.35, 0.03, data["rlm_rl_entr_3d_v_mrg_fbs_w25"]))
-    assert(within_tolerance(0.695, 0.001, data["szm_sze_3d_fbs_w25"]))
-    assert(within_tolerance(38900, 900, data["szm_lze_3d_fbs_w25"]))
-    assert(within_tolerance(0.00235, 6e-05, data["szm_lgze_3d_fbs_w25"]))
-    assert(within_tolerance(971, 7, data["szm_hgze_3d_fbs_w25"]))
-    assert(within_tolerance(0.0016, 4e-05, data["szm_szlge_3d_fbs_w25"]))
-    assert(within_tolerance(657, 4, data["szm_szhge_3d_fbs_w25"]))
-    assert(within_tolerance(21.6, 0.5, data["szm_lzlge_3d_fbs_w25"]))
-    assert(within_tolerance(70700000, 1500000, data["szm_lzhge_3d_fbs_w25"]))
-    assert(within_tolerance(195, 6, data["szm_glnu_3d_fbs_w25"]))
-    assert(within_tolerance(0.0286, 3e-04, data["szm_glnu_norm_3d_fbs_w25"]))
-    assert(within_tolerance(3040, 100, data["szm_zsnu_3d_fbs_w25"]))
-    assert(within_tolerance(0.447, 0.001, data["szm_zsnu_norm_3d_fbs_w25"]))
-    assert(within_tolerance(0.148, 0.003, data["szm_z_perc_3d_fbs_w25"]))
-    assert(within_tolerance(106, 1, data["szm_gl_var_3d_fbs_w25"]))
-    assert(within_tolerance(38900, 900, data["szm_zs_var_3d_fbs_w25"]))
-    assert(within_tolerance(7, 0.01, data["szm_zs_entr_3d_fbs_w25"]))
-    assert(within_tolerance(0.531, 0.006, data["dzm_sde_3d_fbs_w25"]))
-    assert(within_tolerance(11, 0.3, data["dzm_lde_3d_fbs_w25"]))
-    assert(within_tolerance(0.00235, 6e-05, data["dzm_lgze_3d_fbs_w25"]))
-    assert(within_tolerance(971, 7, data["dzm_hgze_3d_fbs_w25"]))
-    assert(within_tolerance(0.00149, 4e-05, data["dzm_sdlge_3d_fbs_w25"]))
-    assert(within_tolerance(476, 11, data["dzm_sdhge_3d_fbs_w25"]))
-    assert(within_tolerance(0.0154, 5e-04, data["dzm_ldlge_3d_fbs_w25"]))
-    assert(within_tolerance(13400, 200, data["dzm_ldhge_3d_fbs_w25"]))
-    assert(within_tolerance(195, 6, data["dzm_glnu_3d_fbs_w25"]))
-    assert(within_tolerance(0.0286, 3e-04, data["dzm_glnu_norm_3d_fbs_w25"]))
-    assert(within_tolerance(1870, 40, data["dzm_zdnu_3d_fbs_w25"]))
-    assert(within_tolerance(0.274, 0.005, data["dzm_zdnu_norm_3d_fbs_w25"]))
-    assert(within_tolerance(0.148, 0.003, data["dzm_z_perc_3d_fbs_w25"]))
-    assert(within_tolerance(106, 1, data["dzm_gl_var_3d_fbs_w25"]))
-    assert(within_tolerance(4.6, 0.06, data["dzm_zd_var_3d_fbs_w25"]))
-    assert(within_tolerance(7.56, 0.03, data["dzm_zd_entr_3d_fbs_w25"]))
-    assert(within_tolerance(0.000216, 4e-06, data["ngt_coarseness_3d_fbs_w25"]))
-    assert(within_tolerance(0.0873, 0.0019, data["ngt_contrast_3d_fbs_w25"]))
-    assert(within_tolerance(1.39, 0.01, data["ngt_busyness_3d_fbs_w25"]))
-    assert(within_tolerance(1810, 60, data["ngt_complexity_3d_fbs_w25"]))
-    assert(within_tolerance(0.651, 0.015, data["ngt_strength_3d_fbs_w25"]))
-    assert(within_tolerance(0.137, 0.003, data["ngl_lde_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(126, 2, data["ngl_hde_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(0.0013, 4e-05, data["ngl_lgce_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(1570, 10, data["ngl_hgce_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(0.000306, 1.2e-05, data["ngl_ldlge_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(141, 2, data["ngl_ldhge_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(0.0828, 3e-04, data["ngl_hdlge_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(227000, 3000, data["ngl_hdhge_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(6420, 10, data["ngl_glnu_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(0.14, 0.003, data["ngl_glnu_norm_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(2450, 60, data["ngl_dcnu_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(0.0532, 5e-04, data["ngl_dcnu_norm_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(1, 0, data["ngl_dc_perc_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(81.1, 2.1, data["ngl_gl_var_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(39.2, 0.1, data["ngl_dc_var_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(7.54, 0.03, data["ngl_dc_entr_d1_a0.0_3d_fbs_w25"]))
-    assert(within_tolerance(0.00789, 0.00011, data["ngl_dc_energy_d1_a0.0_3d_fbs_w25"]))
+    assert(within_tolerance(0.111, 0.002, data["cm_joint_max_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(39, 0.2, data["cm_joint_avg_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(73.7, 2, data["cm_joint_var_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(6.39, 0.06, data["cm_joint_entr_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(2.17, 0.05, data["cm_diff_avg_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(14.4, 0.5, data["cm_diff_var_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(2.64, 0.03, data["cm_diff_entr_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(78, 0.3, data["cm_sum_avg_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(276, 8, data["cm_sum_var_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(4.56, 0.04, data["cm_sum_entr_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.045, 0.001, data["cm_energy_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(19.2, 0.7, data["cm_contrast_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(2.17, 0.05, data["cm_dissimilarity_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.582, 0.004, data["cm_inv_diff_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.547, 0.004, data["cm_inv_diff_mom_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.39, 0.003, data["cm_inv_var_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.869, 0.001, data["cm_corr_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1580, 10, data["cm_auto_corr_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(276, 8, data["cm_clust_tend_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(-10600, 300, data["cm_clust_shade_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(569000, 11000, data["cm_clust_prom_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(-0.236, 0.001, data["cm_info_corr1_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.9, 0.001, data["cm_info_corr2_d1_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.111, 0.002, data["cm_joint_max_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(39, 0.2, data["cm_joint_avg_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(73.8, 2, data["cm_joint_var_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(6.42, 0.06, data["cm_joint_entr_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.16, 0.05, data["cm_diff_avg_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(14.4, 0.5, data["cm_diff_var_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.64, 0.03, data["cm_diff_entr_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(78, 0.3, data["cm_sum_avg_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(276, 8, data["cm_sum_var_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(4.56, 0.04, data["cm_sum_entr_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.0447, 0.001, data["cm_energy_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(19.1, 0.7, data["cm_contrast_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(2.16, 0.05, data["cm_dissimilarity_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.583, 0.004, data["cm_inv_diff_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.966, 0.001, data["cm_inv_diff_norm_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.548, 0.004, data["cm_inv_diff_mom_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.994, 0.001, data["cm_inv_diff_mom_norm_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.39, 0.003, data["cm_inv_var_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.871, 0.001, data["cm_corr_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1580, 10, data["cm_auto_corr_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(276, 8, data["cm_clust_tend_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-10600, 300, data["cm_clust_shade_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(570000, 11000, data["cm_clust_prom_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(-0.228, 0.001, data["cm_info_corr1_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.899, 0.001, data["cm_info_corr2_d1_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.786, 0.003, data["rlm_sre_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(3.31, 0.04, data["rlm_lre_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.00155, 5e-05, data["rlm_lgre_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1470, 10, data["rlm_hgre_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.00136, 5e-05, data["rlm_srlge_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1100, 10, data["rlm_srhge_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.00317, 4e-05, data["rlm_lrlge_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(5590, 80, data["rlm_lrhge_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(3180, 10, data["rlm_glnu_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.102, 0.003, data["rlm_glnu_norm_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(18000, 500, data["rlm_rlnu_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.574, 0.004, data["rlm_rlnu_norm_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.679, 0.003, data["rlm_r_perc_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(101, 3, data["rlm_gl_var_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(1.12, 0.02, data["rlm_rl_var_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(5.35, 0.03, data["rlm_rl_entr_3d_avg_fbs_w25.0"]))
+    assert(within_tolerance(0.787, 0.003, data["rlm_sre_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(3.28, 0.04, data["rlm_lre_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.00155, 5e-05, data["rlm_lgre_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1470, 10, data["rlm_hgre_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.00136, 5e-05, data["rlm_srlge_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1100, 10, data["rlm_srhge_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.00314, 4e-05, data["rlm_lrlge_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5530, 80, data["rlm_lrhge_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(41300, 100, data["rlm_glnu_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.102, 0.003, data["rlm_glnu_norm_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(234000, 6000, data["rlm_rlnu_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.575, 0.004, data["rlm_rlnu_norm_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.679, 0.003, data["rlm_r_perc_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(101, 3, data["rlm_gl_var_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(1.11, 0.02, data["rlm_rl_var_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(5.35, 0.03, data["rlm_rl_entr_3d_v_mrg_fbs_w25.0"]))
+    assert(within_tolerance(0.695, 0.001, data["szm_sze_3d_fbs_w25.0"]))
+    assert(within_tolerance(38900, 900, data["szm_lze_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.00235, 6e-05, data["szm_lgze_3d_fbs_w25.0"]))
+    assert(within_tolerance(971, 7, data["szm_hgze_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0016, 4e-05, data["szm_szlge_3d_fbs_w25.0"]))
+    assert(within_tolerance(657, 4, data["szm_szhge_3d_fbs_w25.0"]))
+    assert(within_tolerance(21.6, 0.5, data["szm_lzlge_3d_fbs_w25.0"]))
+    assert(within_tolerance(70700000, 1500000, data["szm_lzhge_3d_fbs_w25.0"]))
+    assert(within_tolerance(195, 6, data["szm_glnu_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0286, 3e-04, data["szm_glnu_norm_3d_fbs_w25.0"]))
+    assert(within_tolerance(3040, 100, data["szm_zsnu_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.447, 0.001, data["szm_zsnu_norm_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.148, 0.003, data["szm_z_perc_3d_fbs_w25.0"]))
+    assert(within_tolerance(106, 1, data["szm_gl_var_3d_fbs_w25.0"]))
+    assert(within_tolerance(38900, 900, data["szm_zs_var_3d_fbs_w25.0"]))
+    assert(within_tolerance(7, 0.01, data["szm_zs_entr_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.531, 0.006, data["dzm_sde_3d_fbs_w25.0"]))
+    assert(within_tolerance(11, 0.3, data["dzm_lde_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.00235, 6e-05, data["dzm_lgze_3d_fbs_w25.0"]))
+    assert(within_tolerance(971, 7, data["dzm_hgze_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.00149, 4e-05, data["dzm_sdlge_3d_fbs_w25.0"]))
+    assert(within_tolerance(476, 11, data["dzm_sdhge_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0154, 5e-04, data["dzm_ldlge_3d_fbs_w25.0"]))
+    assert(within_tolerance(13400, 200, data["dzm_ldhge_3d_fbs_w25.0"]))
+    assert(within_tolerance(195, 6, data["dzm_glnu_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0286, 3e-04, data["dzm_glnu_norm_3d_fbs_w25.0"]))
+    assert(within_tolerance(1870, 40, data["dzm_zdnu_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.274, 0.005, data["dzm_zdnu_norm_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.148, 0.003, data["dzm_z_perc_3d_fbs_w25.0"]))
+    assert(within_tolerance(106, 1, data["dzm_gl_var_3d_fbs_w25.0"]))
+    assert(within_tolerance(4.6, 0.06, data["dzm_zd_var_3d_fbs_w25.0"]))
+    assert(within_tolerance(7.56, 0.03, data["dzm_zd_entr_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.000216, 4e-06, data["ngt_coarseness_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0873, 0.0019, data["ngt_contrast_3d_fbs_w25.0"]))
+    assert(within_tolerance(1.39, 0.01, data["ngt_busyness_3d_fbs_w25.0"]))
+    assert(within_tolerance(1810, 60, data["ngt_complexity_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.651, 0.015, data["ngt_strength_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.137, 0.003, data["ngl_lde_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(126, 2, data["ngl_hde_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0013, 4e-05, data["ngl_lgce_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(1570, 10, data["ngl_hgce_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.000306, 1.2e-05, data["ngl_ldlge_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(141, 2, data["ngl_ldhge_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0828, 3e-04, data["ngl_hdlge_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(227000, 3000, data["ngl_hdhge_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(6420, 10, data["ngl_glnu_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.14, 0.003, data["ngl_glnu_norm_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(2450, 60, data["ngl_dcnu_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.0532, 5e-04, data["ngl_dcnu_norm_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(1, 0, data["ngl_dc_perc_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(81.1, 2.1, data["ngl_gl_var_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(39.2, 0.1, data["ngl_dc_var_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(7.54, 0.03, data["ngl_dc_entr_d1_a0.0_3d_fbs_w25.0"]))
+    assert(within_tolerance(0.00789, 0.00011, data["ngl_dc_energy_d1_a0.0_3d_fbs_w25.0"]))
 
 
 def test_ibsi_1_chest_config_d():
@@ -1681,63 +1729,74 @@ def test_ibsi_1_chest_config_d():
     configuration scheme D.
     """
 
-    # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = False
+    general_settings = GeneralSettingsClass(
+        by_slice=False
+    )
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = True
-    image_interpolation_settings.spline_order = 1
-    image_interpolation_settings.new_spacing = [2.0]
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        interpolate=True,
+        spline_order=1,
+        new_spacing=2.0,
+        anti_aliasing=False
+    )
 
-    resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["outlier"]
-    resegmentation_settings.sigma = 3.0
+    resegmentation_settings = ResegmentationSettingsClass(
+        resegmentation_method="outlier",
+        resegmentation_sigma=3.0
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_number"]
-    feature_computation_parameters.discr_n_bins = [32]
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["3d"]
-    feature_computation_parameters.gldzm_spatial_method = ["3d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["3d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["3d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32,
+        glcm_distance=1.0,
+        glcm_spatial_method=["3d_average", "3d_volume_merge"],
+        glrlm_spatial_method=["3d_average", "3d_volume_merge"],
+        glszm_spatial_method="3d",
+        gldzm_spatial_method="3d",
+        ngtdm_spatial_method="3d",
+        ngldm_distance=1.0,
+        ngldm_spatial_method="3d",
+        ngldm_difference_level=0.0
+    )
 
-    settings = SettingsClass(general_settings=general_settings,
-                             post_process_settings=ImagePostProcessingClass(),
-                             img_interpolate_settings=image_interpolation_settings,
-                             roi_interpolate_settings=RoiInterpolationSettingsClass(),
-                             roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
-                             feature_extr_settings=feature_computation_parameters)
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                                "dicom", "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                              "dicom", "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["GTV-1"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_resegment_settings=resegmentation_settings,
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["GTV-1"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False
+    )
 
     data = main_experiment.process()
 
@@ -1959,66 +2018,77 @@ def test_ibsi_1_chest_config_e():
     configuration scheme E.
     """
 
-    # Configure settings used for the digital phantom.
-    general_settings = GeneralSettingsClass()
-    general_settings.by_slice = False
+    general_settings = GeneralSettingsClass(
+        by_slice=False
+    )
 
-    image_interpolation_settings = ImageInterpolationSettingsClass()
-    image_interpolation_settings.interpolate = True
-    image_interpolation_settings.spline_order = 3
-    image_interpolation_settings.new_spacing = [2.0]
-    image_interpolation_settings.anti_aliasing = False
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        interpolate=True,
+        spline_order=3,
+        new_spacing=2.0,
+        anti_aliasing=False
+    )
 
-    resegmentation_settings = ResegmentationSettingsClass()
-    resegmentation_settings.method = ["range", "outlier"]
-    resegmentation_settings.g_thresh = [-1000.0, 400.0]
-    resegmentation_settings.sigma = 3.0
+    resegmentation_settings = ResegmentationSettingsClass(
+        resegmentation_method=["range", "outlier"],
+        resegmentation_intensity_range=[-1000.0, 400.0],
+        resegmentation_sigma=3.0
+    )
 
-    feature_computation_parameters = FeatureExtractionSettingsClass()
-    feature_computation_parameters.discr_method = ["fixed_bin_number"]
-    feature_computation_parameters.discr_n_bins = [32]
-    feature_computation_parameters.ivh_discr_method = "fixed_bin_number"
-    feature_computation_parameters.ivh_discr_n_bins = 1000
-    feature_computation_parameters.glcm_dist = [1.0]
-    feature_computation_parameters.glcm_spatial_method = ["3d"]
-    feature_computation_parameters.glcm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glrlm_spatial_method = ["3d"]
-    feature_computation_parameters.glrlm_merge_method = ["average", "vol_merge"]
-    feature_computation_parameters.glszm_spatial_method = ["3d"]
-    feature_computation_parameters.gldzm_spatial_method = ["3d"]
-    feature_computation_parameters.ngtdm_spatial_method = ["3d"]
-    feature_computation_parameters.ngldm_dist = [1.0]
-    feature_computation_parameters.ngldm_spatial_method = ["3d"]
-    feature_computation_parameters.ngldm_diff_lvl = [0.0]
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32,
+        ivh_discretisation_method="fixed_bin_number",
+        ivh_discretisation_n_bins=1000,
+        glcm_distance=1.0,
+        glcm_spatial_method=["3d_average", "3d_volume_merge"],
+        glrlm_spatial_method=["3d_average", "3d_volume_merge"],
+        glszm_spatial_method="3d",
+        gldzm_spatial_method="3d",
+        ngtdm_spatial_method="3d",
+        ngldm_distance=1.0,
+        ngldm_spatial_method="3d",
+        ngldm_difference_level=0.0
+    )
 
-    settings = SettingsClass(general_settings=general_settings,
-                             post_process_settings=ImagePostProcessingClass(),
-                             img_interpolate_settings=image_interpolation_settings,
-                             roi_interpolate_settings=RoiInterpolationSettingsClass(),
-                             roi_resegment_settings=resegmentation_settings,
-                             vol_adapt_settings=ImagePerturbationSettingsClass(),
-                             img_transform_settings=ImageTransformationSettingsClass(),
-                             feature_extr_settings=feature_computation_parameters)
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
 
-    main_experiment = ExperimentClass(modality="CT",
-                                      subject="phantom",
-                                      cohort=None,
-                                      write_path=None,
-                                      image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                                "dicom", "image"),
-                                      roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom",
-                                                              "dicom", "mask"),
-                                      roi_reg_img_folder=None,
-                                      image_file_name_pattern=None,
-                                      registration_image_file_name_pattern=None,
-                                      roi_names=["GTV-1"],
-                                      data_str=None,
-                                      provide_diagnostics=True,
-                                      settings=settings,
-                                      compute_features=True,
-                                      extract_images=False,
-                                      plot_images=False,
-                                      keep_images_in_memory=False)
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_resegment_settings=resegmentation_settings,
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    main_experiment = ExperimentClass(
+        modality="CT",
+        subject="phantom",
+        cohort=None,
+        write_path=None,
+        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_reg_img_folder=None,
+        image_file_name_pattern=None,
+        registration_image_file_name_pattern=None,
+        roi_names=["GTV-1"],
+        data_str=None,
+        provide_diagnostics=True,
+        settings=settings,
+        compute_features=True,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False
+    )
 
     data = main_experiment.process()
 

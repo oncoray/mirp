@@ -4,9 +4,14 @@ import numpy as np
 import pandas as pd
 
 from mirp.featureSets.utilities import is_list_all_none, get_neighbour_directions, coord2Index, get_intensity_value
+from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from mirp.importSettings import FeatureExtractionSettingsClass
 
 
-def get_ngldm_features(img_obj, roi_obj, settings):
+def get_ngldm_features(img_obj: ImageClass,
+                       roi_obj: RoiClass,
+                       settings: FeatureExtractionSettingsClass):
     """Extract neighbouring grey level difference matrix-based features from the intensity roi"""
 
     # Get a table of the roi intensity mask
@@ -25,42 +30,47 @@ def get_ngldm_features(img_obj, roi_obj, settings):
     feat_list = []
 
     # Iterate over spatial arrangements
-    for ii_spatial in settings.feature_extr.ngldm_spatial_method:
+    for ii_spatial in settings.ngldm_spatial_method:
 
         # Iterate over difference levels
-        for ii_diff_lvl in settings.feature_extr.ngldm_diff_lvl:
+        for ii_diff_lvl in settings.ngldm_diff_lvl:
 
             # Iterate over distances
-            for ii_dist in settings.feature_extr.ngldm_dist:
+            for ii_dist in settings.ngldm_dist:
 
                 # Initiate list of ngldm objects
                 ngldm_list = []
 
-                # Perform 2D analysis
                 if ii_spatial.lower() in ["2d", "2.5d"]:
-
+                    # Perform 2D analysis
                     # Iterate over slices
                     for ii_slice in np.arange(0, n_slices):
 
                         # Add ngldm matrices to list
-                        ngldm_list += [GreyLevelDependenceMatrix(distance=int(ii_dist), diff_lvl=ii_diff_lvl,
-                                                                 spatial_method=ii_spatial.lower(), slice_id=ii_slice)]
+                        ngldm_list += [GreyLevelDependenceMatrix(distance=int(ii_dist),
+                                                                 diff_lvl=ii_diff_lvl,
+                                                                 spatial_method=ii_spatial.lower(),
+                                                                 slice_id=ii_slice)]
 
-                # Perform 3D analysis
                 elif ii_spatial.lower() == "3d":
-
+                    # Perform 3D analysis
                     # Add ngldm matrices to list
-                    ngldm_list += [GreyLevelDependenceMatrix(distance=int(ii_dist), diff_lvl=ii_diff_lvl,
-                                                             spatial_method=ii_spatial.lower(), slice_id=None)]
+                    ngldm_list += [GreyLevelDependenceMatrix(distance=int(ii_dist),
+                                                             diff_lvl=ii_diff_lvl,
+                                                             spatial_method=ii_spatial.lower(),
+                                                             slice_id=None)]
+
                 else:
                     raise ValueError("Spatial methods for NGLDM should be \"2d\", \"2.5d\" or \"3d\".")
 
                 # Calculate ngldm matrices
                 for ngldm in ngldm_list:
-                    ngldm.calculate_matrix(df_img=df_img, img_dims=img_dims)
+                    ngldm.calculate_matrix(df_img=df_img,
+                                           img_dims=img_dims)
 
                 # Merge matrices according to the given method
-                upd_list = combine_matrices(ngldm_list=ngldm_list, spatial_method=ii_spatial.lower())
+                upd_list = combine_matrices(ngldm_list=ngldm_list,
+                                            spatial_method=ii_spatial.lower())
 
                 # Calculate features
                 feat_run_list = []
@@ -87,20 +97,27 @@ def combine_matrices(ngldm_list, spatial_method):
 
         # Make copy of ngldm_list
         use_list = []
-        for ngldm in ngldm_list: use_list += [ngldm.copy()]
+        for ngldm in ngldm_list:
+            use_list += [ngldm.copy()]
 
     elif spatial_method in ["2.5d", "3d"]:
         # Merge all ngldms into a single representation
 
         # Select all matrices within the slice
         sel_matrix_list = []
-        for ngldm_id in np.arange(len(ngldm_list)): sel_matrix_list += [ngldm_list[ngldm_id].matrix]
+        for ngldm_id in np.arange(len(ngldm_list)):
+            sel_matrix_list += [ngldm_list[ngldm_id].matrix]
 
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [GreyLevelDependenceMatrix(distance=ngldm_list[0].distance, diff_lvl=ngldm_list[0].diff_lvl,
-                                                   spatial_method=spatial_method, slice_id=None, matrix=None, n_v=0.0)]
+            use_list += [GreyLevelDependenceMatrix(distance=ngldm_list[0].distance,
+                                                   diff_lvl=ngldm_list[0].diff_lvl,
+                                                   spatial_method=spatial_method,
+                                                   slice_id=None,
+                                                   matrix=None,
+                                                   n_v=0.0)]
+
         else:
             # Merge neighbouring grey level difference matrices
             merge_ngldm = pd.concat(sel_matrix_list, axis=0)
@@ -108,11 +125,17 @@ def combine_matrices(ngldm_list, spatial_method):
 
             # Update the number of voxels
             merge_n_v = 0.0
-            for ngldm_id in np.arange(len(ngldm_list)): merge_n_v += ngldm_list[ngldm_id].n_v
+            for ngldm_id in np.arange(len(ngldm_list)):
+                merge_n_v += ngldm_list[ngldm_id].n_v
 
             # Create new neighbouring grey level difference matrix
-            use_list += [GreyLevelDependenceMatrix(distance=ngldm_list[0].distance, diff_lvl=ngldm_list[0].diff_lvl,
-                                                   spatial_method=spatial_method, slice_id=None, matrix=merge_ngldm, n_v=merge_n_v)]
+            use_list += [GreyLevelDependenceMatrix(distance=ngldm_list[0].distance,
+                                                   diff_lvl=ngldm_list[0].diff_lvl,
+                                                   spatial_method=spatial_method,
+                                                   slice_id=None,
+                                                   matrix=merge_ngldm,
+                                                   n_v=merge_n_v)]
+
     else:
         use_list = None
 
@@ -188,9 +211,9 @@ class GreyLevelDependenceMatrix:
         for k in range(0, np.shape(nbrs)[1]):
             # Determine potential transitions from valid voxels
             df_ngldm["to_index"] = coord2Index(x=df_ngldm.x.values + nbrs[2, k],
-                                                    y=df_ngldm.y.values + nbrs[1, k],
-                                                    z=df_ngldm.z.values + nbrs[0, k],
-                                                    dims=img_dims)
+                                               y=df_ngldm.y.values + nbrs[1, k],
+                                               z=df_ngldm.z.values + nbrs[0, k],
+                                               dims=img_dims)
 
             # Get grey level value from transitions
             df_ngldm["to_g"] = get_intensity_value(x=df_ngldm.g.values, index=df_ngldm.to_index.values)

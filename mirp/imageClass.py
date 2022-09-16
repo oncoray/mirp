@@ -10,12 +10,23 @@ from pydicom import FileDataset, Sequence, Dataset
 
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag, create_new_uid
 from mirp.utilities import get_version
+from mirp.importSettings import SettingsClass
+
 
 class ImageClass:
     # Class for image volumes
 
-    def __init__(self, voxel_grid, origin, spacing, orientation, modality=None, spat_transform="base", no_image=False,
-                 metadata=None, slice_table=None):
+    def __init__(self,
+                 voxel_grid,
+                 origin,
+                 spacing,
+                 orientation,
+                 modality=None,
+                 spat_transform="base",
+                 no_image=False,
+                 metadata=None,
+                 slice_table=None,
+                 slice_position=None):
 
         # Set details regarding voxel orientation and such
         self.origin = np.array(origin)
@@ -85,6 +96,9 @@ class ImageClass:
         # Normalisation flags.
         self.is_normalised = False
 
+        # Set slice position in case slices are not evenly spaced.
+        self.slice_position = slice_position
+
     def copy(self, drop_image=False):
         # Creates a new copy of the image object
         img_copy = copy.deepcopy(self)
@@ -95,13 +109,31 @@ class ImageClass:
         return img_copy
 
     def show(self, img_slice):
-        import pylab
+        import matplotlib as plt
 
         if self.is_missing:
             return
 
-        pylab.imshow(self.get_voxel_grid()[img_slice, :, :], cmap=pylab.cm.bone)
-        pylab.show()
+        # Set the colour map
+        img_colour_map = "gist_gray"
+        if self.modality == "PT":
+            img_colour_map = "gist_yarg"
+
+        # Create initial figure to draw on.
+        fig, ax = plt.subplots(1)
+
+        # Set figure space in axis
+        fig.subplots_adjust(left=0, right=1, bottom=0, top=1)
+
+        # Invisible axis
+        ax.axis('off')
+
+        # Plot image.
+        plt.imshow(self.get_voxel_grid()[img_slice, :, :],
+                   cmap=plt.get_cmap(img_colour_map),
+                   extent=[0, 1.0, 0, 1.0],
+                   alpha=1.0,
+                   interpolation="none")
 
     def set_spacing(self, new_spacing):
 
@@ -234,7 +266,7 @@ class ImageClass:
         # Update voxel grid. This also updates the size attribute.
         self.set_voxel_grid(voxel_grid=img_voxel_grid)
 
-    def interpolate(self, by_slice, settings):
+    def interpolate(self, by_slice, settings: SettingsClass):
         """Performs interpolation of the image volume"""
         from mirp.imageProcess import interpolate_to_new_grid, gaussian_preprocess_filter
 
@@ -242,30 +274,41 @@ class ImageClass:
         if self.is_missing:
             return
 
+        # Check whether slice positions are explicitly set.
+        if self.slice_position is not None:
+            self.interpolate_missing_slices()
+
         # Local interpolation constants
-        if None not in settings.img_interpolate.new_spacing:
-            iso_spacing = settings.img_interpolate.new_spacing[0]
-            new_spacing = np.array([iso_spacing, iso_spacing, iso_spacing])  # Desired spacing in mm
-        elif type(settings.img_interpolate.new_non_iso_spacing) in [list, tuple]:
-            if None not in settings.img_interpolate.new_non_iso_spacing:
-                non_iso_spacing = settings.img_interpolate.new_non_iso_spacing
-                new_spacing = np.array(non_iso_spacing)
-            else:
-                new_spacing = self.spacing
-        else:
+        if settings.img_interpolate.new_spacing is None:
+            # Use original spacing.
             new_spacing = self.spacing
 
-        # Read additional details
-        order            = settings.img_interpolate.spline_order   # Order of multidimensional spline filter (0=nearest neighbours, 1=linear, 3=cubic)
-        interpolate_flag = settings.img_interpolate.interpolate    # Whether to interpolate or not
+        else:
+            # Use provided spacing.
+            new_spacing = settings.img_interpolate.new_spacing
 
-        # Set spacing for interpolation across slices to the original spacing in case interpolation is only conducted within the slice
-        if by_slice:    new_spacing[0] = self.spacing[0]
+            # For in-slice resampling, set the first element (z-direction) to the slice spacing.
+            if by_slice:
+                new_spacing[0] = self.spacing[0]
+
+            # Convert to numpy array.
+            new_spacing = np.array(new_spacing)
+
+        # Read order of multidimensional spline filter (0=nearest neighbours, 1=linear, 3=cubic)
+        order = settings.img_interpolate.spline_order
+
+        # Read interpolation flag.
+        interpolate_flag = settings.img_interpolate.interpolate
+
+        # Set spacing for interpolation across slices to the original spacing in case interpolation is only conducted
+        # within the slice.
+        if by_slice:
+            new_spacing[0] = self.spacing[0]
 
         # Image translation
-        translate_z = settings.vol_adapt.translate_z[0]
-        translate_y = settings.vol_adapt.translate_y[0]
-        translate_x = settings.vol_adapt.translate_x[0]
+        translate_z = settings.perturbation.translate_z
+        translate_y = settings.perturbation.translate_y
+        translate_x = settings.perturbation.translate_x
 
         # Convert to [0.0, 1.0] range
         translate_x = translate_x - np.floor(translate_x)
@@ -303,7 +346,7 @@ class ImageClass:
                                     align_to_center=True)
 
         # Update origin before spacing, because computing the origin requires the original affine matrix.
-        self.origin = self.origin + np.dot(self.m_affine, np.transpose(grid_origin))
+        self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
 
         # Update spacing and affine matrix.
         self.set_spacing(sample_spacing)
@@ -327,6 +370,44 @@ class ImageClass:
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=upd_voxel_grid)
+
+    def interpolate_missing_slices(self):
+
+        from scipy.interpolate import Akima1DInterpolator
+
+        # Get voxel grid
+        voxel_grid = self.get_voxel_grid()
+
+        # Find the desired slice positions.
+        new_slice_positions = np.arange(0.0, self.slice_position[-1] + self.spacing[0], self.spacing[0])
+
+        # Remove out-of-bound slices.
+        new_slice_positions = new_slice_positions[new_slice_positions <= self.slice_position[-1]]
+
+        # Create a voxel grid that is subsequently updated.
+        updated_voxel_grid = np.zeros((len(new_slice_positions),
+                                       self.size[1],
+                                       self.size[2]))
+
+        # Since we are interpolating slices, we can use stacked 1D interpolation.
+        for ii in range(self.size[2]):
+            for jj in range(self.size[1]):
+
+                values = voxel_grid[:, jj, ii]
+                points = np.array(self.slice_position)
+
+                # Instantiate interpolator. We use the Akima interpolator as we want to maintain values of known points.
+                interpolator = Akima1DInterpolator(x=points,
+                                                   y=values)
+
+                # Interpolate at new positions.
+                updated_voxel_grid[:, jj, ii] = interpolator(new_slice_positions)
+
+        # Reset slice positions.
+        self.slice_position = None
+
+        # Add updated voxelgrid.
+        self.set_voxel_grid(voxel_grid=updated_voxel_grid)
 
     def add_noise(self, noise_level, noise_iter):
         """ Adds Gaussian noise to the image volume
@@ -508,7 +589,7 @@ class ImageClass:
             if not max_int == min_int:
                 voxel_grid = (voxel_grid - min_int) / (max_int - min_int)
             else:
-                voxel_grid = voxel_grid - min_int
+                voxel_grid -= min_int
 
             # Update the voxel grid
             self.set_voxel_grid(voxel_grid=voxel_grid)
@@ -526,7 +607,8 @@ class ImageClass:
             sd_int = np.std(voxel_grid[mask])
 
             # Protect against invariance.
-            if sd_int == 0.0: sd_int = 1.0
+            if sd_int == 0.0:
+                sd_int = 1.0
 
             # Normalise
             voxel_grid = (voxel_grid - mean_int) / sd_int
@@ -597,10 +679,13 @@ class ImageClass:
     #     # Update voxel grid
     #     self.set_voxel_grid(voxel_grid=upd_voxel_grid)
 
-    def crop(self, ind_ext_z=None, ind_ext_y=None, ind_ext_x=None,
-             xy_only=False, z_only=False):
+    def crop(self,
+             ind_ext_z=None,
+             ind_ext_y=None,
+             ind_ext_x=None,
+             xy_only=False,
+             z_only=False):
         """"Crop image to the provided map extent."""
-        from mirp.utilities import world_to_index
 
         # Skip for missing images
         if self.is_missing:
@@ -634,7 +719,7 @@ class ImageClass:
                                     min_bound_ind[2]:max_bound_ind[2] + 1]
 
         # Update origin and z-slice position
-        self.origin = self.origin + np.dot(self.m_affine, np.transpose(min_bound_ind))
+        self.origin += np.dot(self.m_affine, np.transpose(min_bound_ind))
 
         # Update voxel grid
         self.set_voxel_grid(voxel_grid=voxel_grid)
@@ -686,7 +771,7 @@ class ImageClass:
         cropped_grid = cropped_grid.astype(voxel_grid.dtype)
 
         # Update origin
-        self.origin = self.origin + np.dot(self.m_affine, np.transpose(grid_origin))
+        self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_grid)
@@ -700,7 +785,7 @@ class ImageClass:
             self.spat_transform = transform_method
             self.as_parametric_map = True
 
-    def compute_diagnostic_features(self, append_str: str=""):
+    def compute_diagnostic_features(self, append_str: str = ""):
         """Creates diagnostic features for the image stack"""
 
         # Set feature names
@@ -796,9 +881,12 @@ class ImageClass:
 
         # Get image data type and set a valid data type that can be read by simple itk
         vox_dtype = self.dtype_name
-        if vox_dtype in ["float16", "float64", "float80", "float96", "float128"]: cast_type = np.float32
-        elif vox_dtype in ["bool"]: cast_type = np.uint8
-        else: cast_type = self.get_voxel_grid().dtype
+        if vox_dtype in ["float16", "float64", "float80", "float96", "float128"]:
+            cast_type = np.float32
+        elif vox_dtype in ["bool"]:
+            cast_type = np.uint8
+        else:
+            cast_type = self.get_voxel_grid().dtype
 
         # Convert image voxels
         sitk_img = sitk.GetImageFromArray(self.get_voxel_grid().astype(cast_type), isVector=False)
@@ -815,7 +903,8 @@ class ImageClass:
 
         # Check if path exists
         file_path = os.path.normpath(file_path)
-        if not os.path.exists(file_path): os.makedirs(file_path)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
 
         # Add file and file name
         file_path = os.path.join(file_path, file_name)
@@ -1118,7 +1207,6 @@ class ImageClass:
             self.set_metadata(tag=(0x0028, 0x0106), value=np.min(pixel_grid), force_vr="SS")
             self.set_metadata(tag=(0x0028, 0x0107), value=np.max(pixel_grid), force_vr="SS")
 
-
     def _set_pixel_data_float(self, bit_depth):
 
         if not self.as_parametric_map:
@@ -1162,7 +1250,7 @@ class ImageClass:
             rescale_intercept = (value_min * dcm_max - value_max * dcm_min) / dcm_range
 
             # Inverse rescaling prior to dicom storage
-            pixel_grid = pixel_grid * (dcm_range) - value_min * dcm_max + value_max * dcm_min
+            pixel_grid = pixel_grid * dcm_range - value_min * dcm_max + value_max * dcm_min
             pixel_grid *= 1.0 / value_range
 
             # Round pixel values for safety
@@ -1284,5 +1372,7 @@ class ImageClass:
         # Dimension Index sequence. We point to the instance number.
         dim_index_seq_elem = Dataset()
         set_pydicom_meta_tag(dim_index_seq_elem, tag=(0x0020, 0x9165), value=(0x0020, 0x0013))  # Dimension index pointer
-        set_pydicom_meta_tag(dim_index_seq_elem, tag=(0x0020, 0x9164), value=self.get_metadata(tag=(0x00200052), tag_type="str"))  # Dimension organisation UID
+        set_pydicom_meta_tag(dim_index_seq_elem,
+                             tag=(0x0020, 0x9164),
+                             value=self.get_metadata(tag=(0x0020, 0x0052), tag_type="str"))
         self.set_metadata(tag=(0x0020, 0x9222), value=Sequence([dim_index_seq_elem]))

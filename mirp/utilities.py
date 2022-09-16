@@ -3,6 +3,7 @@ from collections import Counter
 from itertools import product
 
 import pandas as pd
+import numpy as np
 
 
 def index_to_world(index, origin, spacing):
@@ -24,7 +25,7 @@ def extract_roi_names(roi_list):
     return [roi.name for roi in roi_list]
 
 
-def parse_roi_name(roi):
+def parse_roi_name(roi: str):
 
     # Determine if the input roi is surrounded by curly brackets
     if roi.startswith("{") and roi.endswith("}"):
@@ -45,7 +46,7 @@ def parse_roi_name(roi):
         indiv_roi = [curr_roi.strip() for curr_roi in indiv_roi]
 
     else:
-        indiv_roi = [roi]
+        indiv_roi = [roi.strip()]
 
     return indiv_roi
 
@@ -123,3 +124,21 @@ def makedirs_check(path):
 
     if not os.path.isdir(path):
         os.makedirs(path)
+
+
+def real_ndim(x: np.ndarray):
+    """
+    Determine dimensionality of an array based on its shape. This is unlike the ndim method, which shows the number
+    of dimensions based on the length of shape.
+
+    :param x: A numpy array.
+    :return: The number of dimensions.
+    """
+    # Compute the number of dimensions by getting the number of dimensions that have length 0 or 1.
+    number_dims = x.ndim - sum([current_dim <= 1 for current_dim in x.shape])
+
+    # If all dimensions are 1, dimensionality is technically 0, but 1 in practice.
+    if number_dims < 1:
+        number_dims = 1
+
+    return number_dims

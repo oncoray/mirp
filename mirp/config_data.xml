@@ -36,8 +36,6 @@
             <roi_list_path></roi_list_path>
             <!--Determines what should happen with disconnected ROIs within the same structure. Can be combine (default) which keeps the ROI as is, or keep_largest which maintains only the largest of the disconnected volumes.-->
             <divide_disconnected_roi></divide_disconnected_roi>
-            <!--String that is prepended to data. Can be left empty.-->
-            <data_str></data_str>
             <!--Name of settings configuration to be used for the current data. If not provided, all configurations are used.-->
             <extraction_config></extraction_config>
         </data>

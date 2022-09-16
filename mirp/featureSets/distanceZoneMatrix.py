@@ -1,10 +1,18 @@
 import numpy as np
 import pandas as pd
-from mirp.featureSets.utilities import is_list_all_none
+
 import copy
 
+from mirp.featureSets.utilities import is_list_all_none
+from mirp.imageClass import ImageClass
+from mirp.roiClass import RoiClass
+from mirp.importSettings import FeatureExtractionSettingsClass
+from mirp.utilities import real_ndim
 
-def get_dzm_features(img_obj, roi_obj, settings):
+
+def get_dzm_features(img_obj: ImageClass,
+                     roi_obj: RoiClass,
+                     settings: FeatureExtractionSettingsClass):
     """Extract size zone matrix-based features from the intensity roi"""
 
     # Generate an empty feature list
@@ -18,7 +26,7 @@ def get_dzm_features(img_obj, roi_obj, settings):
         n_slices = img_obj.size[0]
 
     # Iterate over spatial arrangements
-    for ii_spatial in settings.feature_extr.gldzm_spatial_method:
+    for ii_spatial in settings.gldzm_spatial_method:
 
         # Initiate list of distance zone matrix objects
         dzm_list = []
@@ -27,31 +35,41 @@ def get_dzm_features(img_obj, roi_obj, settings):
         if ii_spatial.lower() in ["2d", "2.5d"]:
 
             # Convert image to table
-            df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True, distance_map=True, by_slice=True)
+            df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj,
+                                                 intensity_mask=True,
+                                                 distance_map=True,
+                                                 by_slice=True)
 
             # Iterate over slices
             for ii_slice in np.arange(0, n_slices):
 
                 # Perform analysis per slice
-                dzm_list += [DistanceZoneMatrix(spatial_method=ii_spatial.lower(), slice_id=ii_slice)]
+                dzm_list += [DistanceZoneMatrix(spatial_method=ii_spatial.lower(),
+                                                slice_id=ii_slice)]
 
         # Perform 3D analysis
         elif ii_spatial.lower() == "3d":
 
             # Convert image to table
-            df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True, distance_map=True)
+            df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj,
+                                                 intensity_mask=True,
+                                                 distance_map=True)
 
             # Perform analysis on the entire volume
-            dzm_list += [DistanceZoneMatrix(spatial_method=ii_spatial.lower(), slice_id=None)]
+            dzm_list += [DistanceZoneMatrix(spatial_method=ii_spatial.lower(),
+                                            slice_id=None)]
         else:
             raise ValueError("Spatial methods for DZM should be \"2d\", \"2.5d\" or \"3d\".")
 
         # Calculate size zone matrices
         for dzm in dzm_list:
-            dzm.calculate_matrix(img_obj=img_obj, roi_obj=roi_obj, df_img=df_img)
+            dzm.calculate_matrix(img_obj=img_obj,
+                                 roi_obj=roi_obj,
+                                 df_img=df_img)
 
         # Merge matrices according to the given method
-        upd_list = combine_matrices(dzm_list=dzm_list, spatial_method=ii_spatial.lower())
+        upd_list = combine_matrices(dzm_list=dzm_list,
+                                    spatial_method=ii_spatial.lower())
 
         # Calculate features
         feat_run_list = []
@@ -77,14 +95,16 @@ def combine_matrices(dzm_list, spatial_method):
         # Average features over slice, maintain original distance zone matrices
 
         # Make copy of dzm_list
-        for dzm in dzm_list: use_list += [dzm.copy()]
+        for dzm in dzm_list:
+            use_list += [dzm.copy()]
 
     elif spatial_method in ["2.5d", "3d"]:
         # Merge all distance zone matrices into a single representation
 
         # Select all matrices within the slice
         sel_matrix_list = []
-        for dzm_id in np.arange(len(dzm_list)): sel_matrix_list += [dzm_list[dzm_id].matrix]
+        for dzm_id in np.arange(len(dzm_list)):
+            sel_matrix_list += [dzm_list[dzm_id].matrix]
 
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
@@ -97,7 +117,8 @@ def combine_matrices(dzm_list, spatial_method):
 
             # Update the number of voxels
             merge_n_v = 0.0
-            for dzm_id in np.arange(len(dzm_list)): merge_n_v += dzm_list[dzm_id].n_v
+            for dzm_id in np.arange(len(dzm_list)):
+                merge_n_v += dzm_list[dzm_id].n_v
 
             # Create new distance zone matrix
             use_list += [DistanceZoneMatrix(spatial_method=spatial_method, slice_id=None, matrix=merge_dzm,
@@ -149,14 +170,19 @@ class DistanceZoneMatrix:
             connectivity = 3
             img_vol = copy.deepcopy(img_obj.get_voxel_grid())
             roi_vol = copy.deepcopy(roi_obj.roi_intensity.get_voxel_grid())
-            df_dzm  = copy.deepcopy(df_img)
+            df_dzm = copy.deepcopy(df_img)
+
         elif self.spatial_method in ["2d", "2.5d"]:
             connectivity = 2
-            img_vol = np.squeeze(img_obj.get_voxel_grid()[self.slice, :, :])
-            roi_vol = np.squeeze(roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :])
+            img_vol = img_obj.get_voxel_grid()[self.slice, :, :]
+            roi_vol = roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :]
             df_dzm = copy.deepcopy(df_img[df_img.z == self.slice])
+
         else:
             raise ValueError("The spatial method for grey level distance zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
+
+        # Check dimensionality and update connectivity if necessary.
+        connectivity = min([connectivity, real_ndim(img_vol)])
 
         # Set voxels outside of roi to 0.0
         img_vol[~roi_vol] = 0.0

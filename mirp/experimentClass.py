@@ -7,6 +7,7 @@ import pandas as pd
 import sys
 
 from warnings import warn
+from typing import List, Optional
 from mirp.importSettings import SettingsClass
 from mirp.utilities import expand_grid
 
@@ -14,23 +15,23 @@ from mirp.utilities import expand_grid
 class ExperimentClass:
 
     def __init__(self,
-                 modality,
-                 subject,
-                 cohort,
-                 image_folder,
-                 roi_folder,
-                 roi_reg_img_folder,
-                 image_file_name_pattern,
-                 registration_image_file_name_pattern,
-                 roi_names,
-                 data_str,
-                 write_path,
+                 modality: str,
+                 subject: str,
+                 cohort: Optional[str],
+                 image_folder: Optional[str],
+                 roi_folder: Optional[str],
+                 roi_reg_img_folder: Optional[str],
+                 image_file_name_pattern: Optional[str],
+                 registration_image_file_name_pattern: Optional[str],
+                 roi_names: Optional[List[str]],
+                 data_str: Optional[List[str]],
+                 write_path: Optional[str],
                  settings: SettingsClass,
-                 provide_diagnostics=False,
-                 compute_features=False,
-                 extract_images=False,
-                 plot_images=False,
-                 keep_images_in_memory=False):
+                 provide_diagnostics: bool = False,
+                 compute_features: bool = False,
+                 extract_images: bool = False,
+                 plot_images: bool = False,
+                 keep_images_in_memory: bool = False):
         """
         Attributes for an experiment.
         :param modality: modality of the requested image
@@ -73,10 +74,10 @@ class ExperimentClass:
         self.registration_image_file_name_pattern = registration_image_file_name_pattern  # Image against which segmentation was registered.
 
         # Segmentation names
-        self.roi_names = roi_names
+        self.roi_names: List[str] = roi_names
 
         # Identifier strings
-        self.data_str = "" if data_str is None else data_str
+        self.data_str: List[str] = [] if data_str is None else data_str
 
         # Date at analysis start
         self.date = datetime.date.today().isoformat()
@@ -86,11 +87,11 @@ class ExperimentClass:
         self.iter_settings = None
 
         # Process parameters
-        self.provide_diagnostics = provide_diagnostics  # Flag for writing diagnostics features
-        self.compute_features = compute_features
-        self.extract_images = extract_images
-        self.plot_images = plot_images
-        self.keep_images_in_memory = keep_images_in_memory
+        self.provide_diagnostics: bool = provide_diagnostics  # Flag for writing diagnostics features
+        self.compute_features: bool = compute_features
+        self.extract_images: bool = extract_images
+        self.plot_images: bool = plot_images
+        self.keep_images_in_memory: bool = keep_images_in_memory
 
     def get_roi_list(self):
         """ Extracts the available region of interest from the roi folder. This function allows identification of
@@ -144,7 +145,7 @@ class ExperimentClass:
 
         image_in_dir = []
 
-        logging.info("Starting extraction of image metadata for %s.", self.subject)
+        logging.info(f"Starting extraction of image metadata for {self.subject}.")
 
         # Find directories with images, based on file extensions
         for curr_dirr in sub_dirs:
@@ -192,7 +193,7 @@ class ExperimentClass:
                                 dtype=object)
 
         # Keep only non-NA assignments
-        df_assign = df_assign.loc[df_assign.assigned_folder.notna(), ]
+        df_assign: pd.DataFrame = df_assign.loc[df_assign.assigned_folder.notna(), ]
 
         # Pad uids with leading 0s in case they were dropped in the csv.
         df_assign.study_instance_uid = np.array([val_str.rjust(6, "0") for val_str in df_assign.study_instance_uid.values])
@@ -218,12 +219,14 @@ class ExperimentClass:
             # Copy file
             shutil.copy2(src=row.file_path, dst=new_dir)
 
-    def get_iterable_parameters(self, settings):
+    @staticmethod
+    def get_iterable_parameters(settings: SettingsClass):
         """
         Settings may be iterated, e.g. to extract multi-scale features or for image perturbations.
         There are two types of iterable settings. One type involves changing the image intensities in the object.
         The other type merely involves changing the ROI. The first type requires an outer loop as smaller loops
         are not feasible for parallel processing due to memory requirements.
+
         :param settings: settingsClass object that contains configuration settings
         :return:
         """
@@ -233,32 +236,34 @@ class ExperimentClass:
         #################################################################
 
         # Image rotation
-        rot_angles = settings.vol_adapt.rot_angles
+        rot_angles = settings.perturbation.rotation_angles
 
         # Noise addition
-        noise_reps = settings.vol_adapt.noise_repetitions
+        noise_reps = settings.perturbation.noise_repetitions
         if noise_reps > 0:
             noise_reps = np.arange(0, noise_reps)
         else:
             noise_reps = [0]
 
         # Image translation
-        translate_frac = settings.vol_adapt.translate_frac
+        translate_frac = settings.perturbation.translation_fraction
         if not settings.general.by_slice:
-            translate_frac_z = settings.vol_adapt.translate_frac
+            translate_frac_z = settings.perturbation.translation_fraction
         else:
             translate_frac_z = [0.0]
 
         # Multi-scale features
         vox_spacing = settings.img_interpolate.new_spacing
+        if vox_spacing is None:
+            vox_spacing = [None]
 
         # Generate outer loop permutations
-        iter_settings = expand_grid({"rot_angle":      rot_angles,
+        iter_settings = expand_grid({"rot_angle": rot_angles,
                                      "noise_repetition": noise_reps,
-                                     "translate_x":    translate_frac,
-                                     "translate_y":    translate_frac,
-                                     "translate_z":    translate_frac_z,
-                                     "vox_spacing":    vox_spacing})
+                                     "translate_x": translate_frac,
+                                     "translate_y": translate_frac,
+                                     "translate_z": translate_frac_z,
+                                     "vox_spacing": vox_spacing})
         iter_settings.transpose()
 
         #################################################################
@@ -269,12 +274,12 @@ class ExperimentClass:
         n_outer_iter = len(rot_angles) * len(noise_reps) * len(translate_frac)**2 * len(translate_frac_z) * len(vox_spacing)
 
         # Roi iterations
-        if settings.vol_adapt.randomise_roi:
-            roi_random_rep = settings.vol_adapt.roi_random_rep
+        if settings.perturbation.randomise_roi:
+            roi_random_rep = settings.perturbation.roi_random_rep
         else:
             roi_random_rep = 1
 
-        n_inner_iter = len(settings.vol_adapt.roi_adapt_size) * roi_random_rep
+        n_inner_iter = len(settings.perturbation.roi_adapt_size) * roi_random_rep
 
         return iter_settings, n_outer_iter, n_inner_iter
 
@@ -286,7 +291,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
-            create_tissue_mask, bias_field_correction, normalise_image
+            create_tissue_mask, bias_field_correction, normalise_image, select_largest_slice
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
         import copy
 
@@ -349,9 +354,13 @@ class ExperimentClass:
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
 
+            # Select the axial slice with the largest portion of the ROI.
+            if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
+                roi_list = select_largest_slice(roi_list=roi_list)
+
             # Crop slice stack
-            if self.settings.vol_adapt.crop:
-                img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=self.settings.vol_adapt.crop_distance)
+            if self.settings.perturbation.crop_around_roi:
+                img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=self.settings.perturbation.crop_distance)
 
             # Extract diagnostic features from initial image and rois
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
@@ -364,11 +373,11 @@ class ExperimentClass:
             curr_setting = copy.deepcopy(self.settings)
 
             # Update settings object with iterable settings
-            curr_setting.vol_adapt.rot_angles = [iter_set.rot_angle[ii]]
-            curr_setting.img_interpolate.new_spacing = [iter_set.vox_spacing[ii]]
-            curr_setting.vol_adapt.translate_x = [iter_set.translate_x[ii]]
-            curr_setting.vol_adapt.translate_y = [iter_set.translate_y[ii]]
-            curr_setting.vol_adapt.translate_z = [iter_set.translate_z[ii]]
+            curr_setting.perturbation.rotation_angles = iter_set.rot_angle[ii]
+            curr_setting.img_interpolate.new_spacing = iter_set.vox_spacing[ii]
+            curr_setting.perturbation.translate_x = iter_set.translate_x[ii]
+            curr_setting.perturbation.translate_y = iter_set.translate_y[ii]
+            curr_setting.perturbation.translate_z = iter_set.translate_z[ii]
 
             ########################################################################################################
             # Bias field correction and normalisation
@@ -397,10 +406,10 @@ class ExperimentClass:
             est_noise_level = -1.0
 
             # Determine image noise levels
-            if curr_setting.vol_adapt.add_noise and curr_setting.vol_adapt.noise_level is None and est_noise_level == -1.0:
+            if curr_setting.perturbation.add_noise and curr_setting.perturbation.noise_level is None and est_noise_level == -1.0:
                 est_noise_level = estimate_image_noise(img_obj=img_obj, settings=curr_setting, method="chang")
-            elif curr_setting.vol_adapt.add_noise:
-                est_noise_level = curr_setting.vol_adapt.noise_level
+            elif curr_setting.perturbation.add_noise:
+                est_noise_level = curr_setting.perturbation.noise_level
 
             ########################################################################################################
             # Base image-based operations - basic operations on base image (rotation, cropping, noise addition)
@@ -412,11 +421,11 @@ class ExperimentClass:
             img_obj, roi_list = rotate_image(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
 
             # Crop image to a box extending at most 15 cm around the combined ROI
-            if curr_setting.vol_adapt.crop:
+            if curr_setting.perturbation.crop_around_roi:
                 img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=150.0, z_only=False)
 
             # Add random noise to an image
-            if curr_setting.vol_adapt.add_noise:
+            if curr_setting.perturbation.add_noise:
                 img_obj.add_noise(noise_level=est_noise_level, noise_iter=ii)
 
             ########################################################################################################
@@ -446,10 +455,6 @@ class ExperimentClass:
             roi_list = resegmentise(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
-            # Compose ROI of heterogeneous supervoxels
-            # roi_list = imageProcess.selectHeterogeneousSuperVoxels(img_obj=img_obj, roi_list=roi_list, settings=curr_setting,
-            #                                                        file_str=os.path.join(self.write_path, self.subject + "_" + self.modality + "_" + self.data_str + "_" + self.date))
-
             ########################################################################################################
             # Base image computations and exports
             ########################################################################################################
@@ -467,7 +472,7 @@ class ExperimentClass:
             # Image transformations
             ########################################################################################################
 
-            if self.settings.img_transform.perform_img_transform:
+            if self.settings.img_transform.spatial_filters is not None:
                 # Get image features from transformed images (may be empty if no features are computed)
                 iter_feat_list += transform_images(img_obj=img_obj,
                                                    roi_list=roi_list,
@@ -504,8 +509,7 @@ class ExperimentClass:
             df_feat = pd.concat(feat_list, axis=0)
 
             # Write to file
-            file_name = "_".join([file_name_comp for file_name_comp in [self.subject, self.modality, self.data_str, self.date, self.settings.general.config_str, "features.csv"]
-                                  if file_name_comp != ""]).replace(" ", "_")
+            file_name = self._create_base_file_name() + "_features.csv"
 
             # Write successful completion to console or log
             logging.info(self._message_feature_extraction_finished())
@@ -530,7 +534,8 @@ class ExperimentClass:
 
         import logging
         from mirp.imageRead import load_image
-        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, saturate_image, normalise_image
+        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
+            saturate_image, normalise_image, select_largest_slice
         from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
@@ -543,8 +548,7 @@ class ExperimentClass:
             level=logging.INFO, stream=sys.stdout)
 
         # Notifications
-        logging.info("\nInitialising image and mask processing using %s images for %s.",
-                     "_".join([self.modality, self.data_str, self.subject]))
+        logging.info(f"\nInitialising image and mask processing for {'_'.join([self.modality, self.data_str, self.subject])}.")
 
         # Process input parameters.
         crop_as_3d = crop_size is None or len(crop_size) == 3
@@ -623,11 +627,15 @@ class ExperimentClass:
                                                registration_image_name=self.registration_image_file_name_pattern)
                 self.set_image_name(img_obj=img_obj)
 
+            # Select the axial slice with the largest portion of the ROI.
+            if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
+                roi_list = select_largest_slice(roi_list=roi_list)
+
             # Remove metadata
             img_obj.drop_metadata()
             for roi_obj in roi_list:
                 roi_obj.drop_metadata()
-
+            
             ########################################################################################################
             # Update settings and initialise
             ########################################################################################################
@@ -636,11 +644,11 @@ class ExperimentClass:
             curr_setting = copy.deepcopy(self.settings)
 
             # Update settings object with iterable settings
-            curr_setting.vol_adapt.rot_angles = [iter_set.rot_angle[ii]]
-            curr_setting.img_interpolate.new_spacing = [iter_set.vox_spacing[ii]]
-            curr_setting.vol_adapt.translate_x = [iter_set.translate_x[ii]]
-            curr_setting.vol_adapt.translate_y = [iter_set.translate_y[ii]]
-            curr_setting.vol_adapt.translate_z = [iter_set.translate_z[ii]]
+            curr_setting.perturbation.rotation_angles = iter_set.rot_angle[ii]
+            curr_setting.img_interpolate.new_spacing = iter_set.vox_spacing[ii]
+            curr_setting.perturbation.translate_x = iter_set.translate_x[ii]
+            curr_setting.perturbation.translate_y = iter_set.translate_y[ii]
+            curr_setting.perturbation.translate_z = iter_set.translate_z[ii]
 
             ########################################################################################################
             # Determine image noise levels (optional)
@@ -650,10 +658,10 @@ class ExperimentClass:
             est_noise_level = -1.0
 
             # Determine image noise levels
-            if curr_setting.vol_adapt.add_noise and curr_setting.vol_adapt.noise_level is None and est_noise_level == -1.0:
+            if curr_setting.perturbation.add_noise and curr_setting.perturbation.noise_level is None and est_noise_level == -1.0:
                 est_noise_level = estimate_image_noise(img_obj=img_obj, settings=curr_setting, method="chang")
-            elif curr_setting.vol_adapt.add_noise:
-                est_noise_level = curr_setting.vol_adapt.noise_level
+            elif curr_setting.perturbation.add_noise:
+                est_noise_level = curr_setting.perturbation.noise_level
 
             ########################################################################################################
             # Base image-based operations - basic operations on base image (rotation, cropping, noise addition)
@@ -665,7 +673,7 @@ class ExperimentClass:
             img_obj, roi_list = rotate_image(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
 
             # Add random noise to an image
-            if curr_setting.vol_adapt.add_noise:
+            if curr_setting.perturbation.add_noise:
                 img_obj.add_noise(noise_level=est_noise_level, noise_iter=ii)
 
             ########################################################################################################
@@ -788,7 +796,7 @@ class ExperimentClass:
         # Return list of processed images and masks
         return processed_image_list
 
-    def collect_features(self, img_obj, roi_list, feat_list, settings):
+    def collect_features(self, img_obj, roi_list, feat_list, settings: SettingsClass):
         """
         Combine separate feature tables into one single table.
         :param img_obj:
@@ -813,15 +821,15 @@ class ExperimentClass:
                                     "id_cohort": self.cohort,
                                     "img_data_settings_id": settings.general.config_str,
                                     "img_data_modality": self.modality,
-                                    "img_data_config": self.data_str,
+                                    "img_data_config": "_".join(self.data_str),
                                     "img_data_noise_level": img_obj.noise,
                                     "img_data_noise_iter": img_obj.noise_iter,
-                                    "img_data_rotation_angle": settings.vol_adapt.rot_angles[0],
+                                    "img_data_rotation_angle": settings.perturbation.rotation_angles,
                                     "img_data_roi_randomise_iter": [roi_obj.svx_randomisation_id for roi_obj in roi_list],
                                     "img_data_roi_adapt_size": [roi_obj.adapt_size for roi_obj in roi_list],
-                                    "img_data_translate_x": settings.vol_adapt.translate_x[0],
-                                    "img_data_translate_y": settings.vol_adapt.translate_y[0],
-                                    "img_data_translate_z": settings.vol_adapt.translate_z[0],
+                                    "img_data_translate_x": settings.perturbation.translate_x,
+                                    "img_data_translate_y": settings.perturbation.translate_y,
+                                    "img_data_translate_z": settings.perturbation.translate_z,
                                     "img_data_voxel_size": voxel_size,
                                     "img_data_roi": [roi_obj.name for roi_obj in roi_list]},
                                    index=np.arange(len(roi_list)))
@@ -907,8 +915,8 @@ class ExperimentClass:
         name_string += [self.modality]
 
         # Add data string
-        if self.data_str != "" and self.data_str is not None:
-            name_string += [self.data_str]
+        if self.data_str is not None:
+            name_string += self.data_str
 
         # Add configuration string
         if self.settings.general.config_str != "":
@@ -919,8 +927,7 @@ class ExperimentClass:
 
     def _message_computation_initialisation(self):
 
-        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
-        image_descriptor = "_".join(image_descriptor).strip("_")
+        image_descriptor = "_".join(self.data_str).strip("_")
 
         message_str = ["Initialising"]
         if self.compute_features and self.extract_images:
@@ -940,8 +947,7 @@ class ExperimentClass:
         return " ".join(message_str)
 
     def _message_warning_no_features_extracted(self):
-        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
-        image_descriptor = "_".join(image_descriptor).strip("_")
+        image_descriptor = "_".join(self.data_str).strip("_")
 
         message_str = [f"No features were extracted from {image_descriptor} images"]
 
@@ -953,9 +959,7 @@ class ExperimentClass:
         return " ".join(message_str)
 
     def _message_feature_extraction_finished(self):
-
-        image_descriptor = [descr_str for descr_str in [self.modality, self.data_str] if descr_str != ""]
-        image_descriptor = "_".join(image_descriptor).strip("_")
+        image_descriptor = "_".join(self.data_str).strip("_")
 
         message_str = [f"Features were successfully extracted from {image_descriptor} images"]
 
@@ -965,3 +969,20 @@ class ExperimentClass:
         message_str += [f"for {self.subject}."]
 
         return " ".join(message_str)
+
+    def _create_base_file_name(self):
+
+        basename = []
+        if self.subject is not None and self.subject != "":
+            basename += [self.subject]
+
+        if self.data_str is not None and self.data_str != "":
+            basename += self.data_str
+
+        if self.date is not None and self.date != "":
+            basename += [self.date]
+
+        if self.settings.general.config_str is not None and self.settings.general.config_str != "":
+            basename += [self.settings.general.config_str]
+
+        return "_".join(basename).replace(" ", "_")

@@ -38,6 +38,7 @@ def get_local_intensity_features(img_obj, roi_obj):
 
     return df_feat
 
+
 def compute_local_mean_intensity_filter(img_obj, roi_obj):
     """Use a filter to calculate the local mean intensity"""
 
@@ -48,12 +49,16 @@ def compute_local_mean_intensity_filter(img_obj, roi_obj):
     base_ext = np.floor(dist / img_obj.spacing)
 
     # Create displacement map
-    df_base = pd.DataFrame({"x": rep(x=np.arange(-base_ext[2], base_ext[2] + 1),
-                                        each=(2 * base_ext[0] + 1) * (2 * base_ext[1] + 1), times=1),
-                            "y": rep(x=np.arange(-base_ext[1], base_ext[1] + 1), each=2 * base_ext[0] + 1,
-                                        times=2 * base_ext[2] + 1),
-                            "z": rep(x=np.arange(-base_ext[0], base_ext[0] + 1), each=1,
-                                        times=(2 * base_ext[1] + 1) * (2 * base_ext[2] + 1))})
+    df_base = pd.DataFrame({
+        "x": rep(x=np.arange(-base_ext[2], base_ext[2] + 1),
+                 each=(2 * base_ext[0] + 1) * (2 * base_ext[1] + 1),
+                 times=1),
+        "y": rep(x=np.arange(-base_ext[1], base_ext[1] + 1),
+                 each=2 * base_ext[0] + 1,
+                 times=2 * base_ext[2] + 1),
+        "z": rep(x=np.arange(-base_ext[0], base_ext[0] + 1),
+                 each=1,
+                 times=(2 * base_ext[1] + 1) * (2 * base_ext[2] + 1))})
 
     # Calculate distances for displacement map
     df_base["dist"] = np.sqrt(np.sum(np.multiply(df_base.loc[:, ("z", "y", "x")].values, img_obj.spacing) ** 2.0, axis=1))
@@ -69,16 +74,22 @@ def compute_local_mean_intensity_filter(img_obj, roi_obj):
     df_base.loc[:, ["x", "y", "z"]] -= df_base.loc[0, ["x", "y", "z"]]
 
     # Generate convolution filter
-    conv_filter = np.zeros(shape=(np.max(df_base.z).astype(int) + 1, np.max(df_base.y).astype(int) + 1,
+    conv_filter = np.zeros(shape=(np.max(df_base.z).astype(int) + 1,
+                                  np.max(df_base.y).astype(int) + 1,
                                   np.max(df_base.x).astype(int) + 1))
     conv_filter[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.weight
 
     # Filter image using mean filter
     if img_obj.modality == "PT":
         # Use 0.0 constant for PET data
-        img_avg = ndi.filters.convolve(img_obj.get_voxel_grid(), weights=conv_filter, mode="constant", cval=0.0)
+        img_avg = ndi.convolve(img_obj.get_voxel_grid(),
+                               weights=conv_filter,
+                               mode="constant",
+                               cval=0.0)
     else:
-        img_avg = ndi.filters.convolve(img_obj.get_voxel_grid(), weights=conv_filter, mode="nearest")
+        img_avg = ndi.convolve(img_obj.get_voxel_grid(),
+                               weights=conv_filter,
+                               mode="nearest")
 
     # Construct data frame for comparison
     df_local = pd.DataFrame({"g":      np.ravel(img_obj.get_voxel_grid()),
@@ -89,7 +100,7 @@ def compute_local_mean_intensity_filter(img_obj, roi_obj):
 
 
 def compute_local_mean_intensity_direct(img_obj, roi_obj):
-    "Calculate mean intensity directly from the voxels"
+    """Calculate mean intensity directly from the voxels"""
 
     # Determine distance
     dist = (3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 10.0
@@ -129,6 +140,7 @@ def compute_local_mean_intensity_direct(img_obj, roi_obj):
     else:
         return None
 
+
 def compute_local_intensity_features(df_local_int):
 
     # Create feature table
@@ -144,7 +156,7 @@ def compute_local_intensity_features(df_local_int):
     df_local_int = df_local_int.loc[df_local_int.in_roi == True, :]
 
     # Check if there are any voxels within the roi
-    if len(df_local_int)==0:
+    if len(df_local_int) == 0:
         return df_feat
 
     # Global grey level peak

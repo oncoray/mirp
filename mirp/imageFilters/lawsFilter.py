@@ -1,176 +1,219 @@
 import numpy as np
+import copy
 
+from typing import List, Union
 from mirp.imageClass import ImageClass
 from mirp.imageProcess import calculate_features
+from mirp.imageFilters.utilities import SeparableFilterSet, pool_voxel_grids
+from mirp.importSettings import SettingsClass
+from mirp.roiClass import RoiClass
 
 
 class LawsFilter:
-    def __init__(self, settings):
+    def __init__(self, settings: SettingsClass, name: str):
 
-        # Whether response maps or texture energy images should be made rotationally invariant
-        self.rot_invariance = settings.img_transform.laws_rot_invar
+        # Normalise kernel and energy filters? This is true by default (see IBSI).
+        self.kernel_normalise = True
+        self.energy_normalise = True
+
+        # Set the filter name
+        self.laws_kernel: Union[None, str, List[str]] = settings.img_transform.laws_kernel
 
         # Size of neighbourhood in chebyshev distance from center voxel
-        self.delta = settings.img_transform.laws_delta
+        self.delta: Union[None, int, List[int]] = settings.img_transform.laws_delta
 
         # 2D or 3D filter
-        self.by_slice = settings.general.by_slice
+        self.by_slice = settings.img_transform.by_slice
 
         # Whether Laws texture energy should be calculated
         self.calculate_energy = settings.img_transform.laws_calculate_energy
 
-        # Generate filter list
-        self.filter_list = self.filter_order(user_combination=settings.img_transform.laws_kernel)
+        # Whether response maps or texture energy images should be made rotationally invariant
+        self.rotation_invariance = settings.img_transform.laws_rotation_invariance
 
-        # Normalise filters?
-        self.kernel_normalise = True
+        # Which pooling method is used.
+        self.pooling_method = settings.img_transform.laws_pooling_method
 
-    def apply_transformation(self, img_obj: ImageClass, roi_list, settings, compute_features=False, extract_images=False, file_path=None):
+        # Set boundary condition
+        self.mode = settings.img_transform.laws_boundary_condition
 
-        feat_list = []
+    def _generate_object(self):
+        # Generator for transformation objects.
+        laws_kernel = copy.deepcopy(self.laws_kernel)
+        if not isinstance(laws_kernel, list):
+            laws_kernel = [laws_kernel]
 
-        # Iterate over wavelet filters
-        for current_filter_set in self.filter_list:
+        delta = copy.deepcopy(self.delta)
+        if not isinstance(delta, list):
+            delta = [delta]
 
-            # Copy roi list
-            roi_trans_list = [roi_obj.copy() for roi_obj in roi_list]
+        if not self.calculate_energy:
+            delta = [None]
 
-            # Add spatially transformed image object. In case of rotational invariance, this is averaged.
-            img_trans_obj = self.transform(img_obj=img_obj, filter_set=current_filter_set, mode=settings.img_transform.boundary_condition)
+        # Iterate over options to yield filter objects with specific settings. A copy of the parent object is made to
+        # avoid updating by reference.
+        for current_laws_kernel in laws_kernel:
+            for current_delta in delta:
+                filter_object = copy.deepcopy(self)
+                filter_object.laws_kernel = current_laws_kernel
+                filter_object.delta = current_delta
 
-            # Export image
+                yield filter_object
+
+    def apply_transformation(self,
+                             img_obj: ImageClass,
+                             roi_list: List[RoiClass],
+                             settings: SettingsClass,
+                             compute_features=False,
+                             extract_images=False,
+                             file_path=None):
+
+        feature_list = []
+
+        # Iterate over generated filter objects with unique settings.
+        for filter_object in self._generate_object():
+
+            # Create a response map.
+            response_map = filter_object.transform(img_obj=img_obj)
+
+            # Export the image.
             if extract_images:
-                img_trans_obj.export(file_path=file_path)
+                response_map.export(file_path=file_path)
 
-            # Compute features
+            # Compute features.
             if compute_features:
-                feat_list += [calculate_features(img_obj=img_trans_obj, roi_list=roi_trans_list, settings=settings,
-                                                 append_str=img_trans_obj.spat_transform + "_")]
-            # Clean up
-            del img_trans_obj
+                feature_list += [calculate_features(img_obj=response_map,
+                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
+                                                    settings=settings.img_transform.feature_settings,
+                                                    append_str=response_map.spat_transform + "_")]
 
-        return feat_list
+            del response_map
 
-    def transform(self, img_obj, filter_set, mode):
+        return feature_list
+
+    def transform(self, img_obj):
 
         # Copy base image
-        img_laws_obj = img_obj.copy(drop_image=True)
+        response_map = img_obj.copy(drop_image=True)
 
         # Set spatial transformation filter string
-        spat_transform = "laws_" + "".join(filter_set[0])
+        spatial_transform_string = ["laws", self.laws_kernel]
         if self.calculate_energy:
-            spat_transform += "_energy"
-        if self.rot_invariance:
-            spat_transform += "_invar"
+            spatial_transform_string += ["energy", "delta", str(self.delta)]
+        if self.rotation_invariance:
+            spatial_transform_string += ["invar"]
 
-        # Set the transform
-        img_laws_obj.set_spatial_transform(spat_transform)
+        # Set the name of the transform.
+        response_map.set_spatial_transform("_".join(spatial_transform_string))
 
         # Skip transformation in case the input image is missing
         if img_obj.is_missing:
-            return img_laws_obj
+            return response_map
 
-        # Create empty voxel grid
-        img_voxel_grid = np.zeros(img_obj.size, dtype=np.float32)
+        # Initialise voxel grid.
+        response_voxel_grid = None
 
-        for current_filter in filter_set:
-            # Calculate response map for the given combination of kernels
-            img_laws_grid = self.transform_grid(img_voxel_grid=img_obj.get_voxel_grid(), filter_order=current_filter, mode=mode)
+        # Get filter list.
+        filter_set_list: List[SeparableFilterSet] = self.get_filter_set().permute_filters(
+            rotational_invariance=self.rotation_invariance)
 
-            if self.calculate_energy:
-                img_laws_grid = self.response_to_energy(voxel_grid=img_laws_grid, mode=mode)
+        for ii, filter_set in enumerate(filter_set_list):
 
-            img_voxel_grid += img_laws_grid / (len(filter_set) * 1.0)
+            # Convolve and compute response map.
+            pooled_voxel_grid = filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
+                                                    mode=self.mode)
 
-            del img_laws_grid
+            # Pool grids.
+            response_voxel_grid = pool_voxel_grids(x1=response_voxel_grid,
+                                                   x2=pooled_voxel_grid,
+                                                   pooling_method=self.pooling_method)
 
-        # Update voxel grid
-        img_laws_obj.set_voxel_grid(voxel_grid=img_voxel_grid)
+            # Remove img_laws_grid to explicitly release memory when collecting garbage.
+            del pooled_voxel_grid
 
-        return img_laws_obj
+        if self.pooling_method == "mean":
+            # Perform final pooling step for mean pooling.
+            response_voxel_grid = np.divide(response_voxel_grid, len(filter_set_list))
 
-    def transform_grid(self, img_voxel_grid, filter_order, mode):
-        import scipy.ndimage as ndi
+        # Compute energy map from the response map.
+        if self.calculate_energy:
+            response_voxel_grid = self.response_to_energy(voxel_grid=response_voxel_grid)
 
-        for ii in np.arange(len(filter_order)):
+        # Store the voxel grid in the ImageObject.
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
 
-            # Define kernel based on input filter names. Note that these are ordered as "XYZ" whereas numpy assumes "ZYX".
-            # Hence we read the filter names in the reverse order.
-            laws_kernel_name = filter_order[-ii-1]
-            if laws_kernel_name == "L5":
-                laws_kernel = np.array([1.0, 4.0, 6.0, 4.0, 1.0])
-            elif laws_kernel_name == "E5":
-                laws_kernel = np.array([-1.0, -2.0, 0.0, 2.0, 1.0])
-            elif laws_kernel_name == "S5":
-                laws_kernel = np.array([-1.0, 0.0, 2.0, 0.0, -1.0])
-            elif laws_kernel_name == "W5":
-                laws_kernel = np.array([-1.0, 2.0, 0.0, -2.0, 1.0])
-            elif laws_kernel_name == "R5":
-                laws_kernel = np.array([1.0, -4.0, 6.0, -4.0, 1.0])
-            else:
-                raise ValueError("%s is not an implemented Laws kernel")
+        return response_map
 
-            # Normalise kernel
-            if self.kernel_normalise:
-                laws_kernel /= np.sum(np.abs(laws_kernel))
+    def response_to_energy(self, voxel_grid):
 
-            # Apply filters
-            if self.by_slice:
-                img_voxel_grid = ndi.convolve1d(img_voxel_grid, weights=laws_kernel, axis=ii + 1, mode=mode)
-            else:
-                img_voxel_grid = ndi.convolve1d(img_voxel_grid, weights=laws_kernel, axis=ii, mode=mode)
-
-        return img_voxel_grid
-
-    def response_to_energy(self, voxel_grid, mode):
-        import scipy.ndimage as ndi
-
-        # Define the local neighbourhood for summation
-        sum_kernel = np.ones(2*self.delta+1, dtype=np.float32)
-
-        # Take absolute value of the voxel grid
+        # Take absolute value of the voxel grid.
         voxel_grid = np.abs(voxel_grid)
 
-        if self.kernel_normalise:
-            sum_kernel /= np.sum(sum_kernel)
+        # Set the filter size.
+        filter_size = 2 * self.delta + 1
 
-        # Perform summation across slices
-        if not self.by_slice:
-            voxel_grid = ndi.convolve1d(voxel_grid, weights=sum_kernel, axis=0, mode=mode)
-        # TODO: Update results so that energy outside volume is not taken into account: i.e. better
+        # Set up the filter kernel.
+        if self.energy_normalise:
+            filter_kernel = np.ones(filter_size, dtype=float) / filter_size
+        else:
+            filter_kernel = np.ones(filter_size, dtype=float)
 
-        # Sum in slice
-        voxel_grid = ndi.convolve1d(voxel_grid, weights=sum_kernel, axis=1, mode=mode)
-        voxel_grid = ndi.convolve1d(voxel_grid, weights=sum_kernel, axis=2, mode=mode)
+        # Create a filter set.
+        if self.by_slice:
+            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
+        else:
+            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
+
+        # Apply the filter.
+        voxel_grid = filter_set.convolve(voxel_grid=voxel_grid, mode=self.mode)
 
         return voxel_grid
 
-    def filter_order(self, user_combination=None):
-        import itertools
+    def get_filter_set(self):
 
-        if self.by_slice:
-            q_rep = 2
-        else:
-            q_rep = 3
+        # Get kernels
+        kernels: str = copy.deepcopy(self.laws_kernel)
 
-        # Check if there is user-provided combination
-        if user_combination is None or user_combination == ["all"]:
-            # Generate combinations of kernels. If rotational invariance is required, only the base combinations are generated.
-            if self.rot_invariance:
-                comb_list = list(itertools.combinations_with_replacement(["L5", "E5", "R5", "S5", "W5"], q_rep))
+        # Deparse kernels to a list
+        kernel_list = [kernels[ii:ii + 2] for ii in range(0, len(kernels), 2)]
+
+        filter_x = None
+        filter_y = None
+        filter_z = None
+
+        for ii, kernel in enumerate(kernel_list):
+            if kernel.lower() == "l5":
+                laws_kernel = np.array([1.0, 4.0, 6.0, 4.0, 1.0])
+            elif kernel.lower() == "e5":
+                laws_kernel = np.array([-1.0, -2.0, 0.0, 2.0, 1.0])
+            elif kernel.lower() == "s5":
+                laws_kernel = np.array([-1.0, 0.0, 2.0, 0.0, -1.0])
+            elif kernel.lower() == "w5":
+                laws_kernel = np.array([-1.0, 2.0, 0.0, -2.0, 1.0])
+            elif kernel.lower() == "r5":
+                laws_kernel = np.array([1.0, -4.0, 6.0, -4.0, 1.0])
+            elif kernel.lower() == "l3":
+                laws_kernel = np.array([1.0, 2.0, 1.0])
+            elif kernel.lower() == "e3":
+                laws_kernel = np.array([-1.0, 0.0, 1.0])
+            elif kernel.lower() == "s3":
+                laws_kernel = np.array([-1.0, 2.0, -1.0])
             else:
-                comb_list = list(itertools.product(["L5", "E5", "R5", "S5", "W5"], repeat=q_rep))
+                raise ValueError(f"{kernel} is not an implemented Laws kernel")
 
-            # Convert tuples from itertools to list
-            comb_list = [[list(curr_comb)] for curr_comb in comb_list]
-        else:
-            # Split list of input strings and parse to combinations list
-            # comb_list = [[[user_combination[ii:ii+2] for ii in range(0, len(user_combination), 2)]]]
-            comb_list = [[[curr_combination[ii:ii + 2] for ii in range(0, len(curr_combination), 2)]] for curr_combination in user_combination]
+            # Normalise kernel
+            if self.kernel_normalise:
+                laws_kernel /= np.sqrt(np.sum(np.power(laws_kernel, 2.0)))
 
-        # If rotational invariance is required, all unique permutations for each base combinations are added to the list
-        if self.rot_invariance:
-            comb_list = [[list(curr_comb_1) for curr_comb_1 in list(set(list(itertools.permutations(curr_comb[0], q_rep))))] for curr_comb in comb_list]
+            # Assign filter to variable.
+            if ii == 0:
+                filter_x = laws_kernel
+            elif ii == 1:
+                filter_y = laws_kernel
+            elif ii == 2:
+                filter_z = laws_kernel
 
-        # Set filter_list
-        return comb_list
+        # Create FilterSet object
+        return SeparableFilterSet(filter_x=filter_x,
+                                  filter_y=filter_y,
+                                  filter_z=filter_z)
