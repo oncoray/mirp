@@ -107,7 +107,7 @@ class ImageClass:
         return img_copy
 
     def show(self, img_slice):
-        import matplotlib as plt
+        import matplotlib.pyplot as plt
 
         if self.is_missing:
             return
@@ -132,6 +132,8 @@ class ImageClass:
                    extent=[0, 1.0, 0, 1.0],
                    alpha=1.0,
                    interpolation="none")
+
+        plt.show()
 
     def set_spacing(self, new_spacing):
 
@@ -371,6 +373,8 @@ class ImageClass:
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=upd_voxel_grid)
+
+        1
 
     def interpolate_missing_slices(self):
 
