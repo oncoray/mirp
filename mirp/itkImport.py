@@ -32,7 +32,7 @@ def read_itk_image(image_folder, modality=None, name_contains=None):
     # Determine origin, spacing, and orientation
     image_origin = np.array(itk_img.GetOrigin())[::-1]
     image_spacing = np.array(itk_img.GetSpacing())[::-1]
-    image_orientation = itk.array_from_matrix(itk_img.GetDirection())[::-1]
+    image_orientation = np.reshape(np.ravel(itk.array_from_matrix(itk_img.GetDirection()))[::-1], [3, 3])
 
     # Create an ImageClass object from the input image.
     image_obj = ImageClass(
@@ -145,7 +145,7 @@ def _load_itk_segmentation(image_folder, roi: str):
         # Determine origin, spacing, and orientation
         mask_origin = np.array(itk_img.GetOrigin())[::-1]
         mask_spacing = np.array(itk_img.GetSpacing())[::-1]
-        mask_orientation = itk.array_from_matrix(itk_img.GetDirection())[::-1]
+        mask_orientation = np.reshape(np.ravel(itk.array_from_matrix(itk_img.GetDirection()))[::-1], [3, 3])
 
         # Create an ImageClass object using the mask.
         roi_mask_obj = ImageClass(
