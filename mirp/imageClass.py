@@ -878,7 +878,7 @@ class ImageClass:
         itk_img = itk.GetImageFromArray(self.get_voxel_grid().astype(cast_type), is_vector=False)
         itk_img.SetOrigin(self.origin[::-1])
         itk_img.SetSpacing(self.spacing[::-1])
-        itk_img.SetDirection(itk.matrix_from_array(self.orientation[::-1]))
+        itk_img.SetDirection(itk.matrix_from_array(np.reshape(np.ravel(self.orientation)[::-1], [3, 3])))
 
         return itk_img
 
