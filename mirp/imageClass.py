@@ -66,12 +66,10 @@ class ImageClass:
         self.noise_iter = 0
 
         # Translation parameters
-        self.transl_fraction_x = 0.0
-        self.transl_fraction_y = 0.0
-        self.transl_fraction_z = 0.0
+        self.translation: Union[None, np.ndarray] = None
 
         # Rotation parameters
-        self.rotation_angle = 0.0
+        self.rotation_angle: Union[None, float] = None
 
         # Set voxel grid and image
         if not no_image:
@@ -295,44 +293,58 @@ class ImageClass:
             new_spacing[0] = self.spacing[0]
 
         # Image translation
-        translate_z = settings.perturbation.translate_z
-        translate_y = settings.perturbation.translate_y
-        translate_x = settings.perturbation.translate_x
+        translation = np.array([
+            settings.perturbation.translate_z,
+            settings.perturbation.translate_y,
+            settings.perturbation.translate_x
+        ])
 
-        # Convert to [0.0, 1.0] range
-        translate_x = translate_x - np.floor(translate_x)
-        translate_y = translate_y - np.floor(translate_y)
-        translate_z = translate_z - np.floor(translate_z)
-        trans_vec = np.array([translate_z, translate_y, translate_x])
+        # Convert translation to [0.0, 1.0 range].
+        translation = translation - np.floor(translation)
 
-        # Add translation fractions
-        self.transl_fraction_x = translate_x
-        self.transl_fraction_y = translate_y
-        self.transl_fraction_z = translate_z
+        # Set translation
+        self.translation = translation
 
-        # Skip if translation in both directions is 0.0
-        if translate_x == 0.0 and translate_y == 0.0 and translate_z == 0.0 and not interpolate_flag:
+        # Rotation around the z-axis (initial axis in numpy)
+        rotation_angle = np.radians(settings.perturbation.rotation_angles)
+        rotation_matrix = np.array([[np.cos(rotation_angle), np.sin(rotation_angle)],
+                                    [-np.sin(rotation_angle), np.cos(rotation_angle)]])
+
+        # Set rotation
+        self.rotation_angle = settings.perturbation.rotation_angles
+
+        # Combine rotation and translation matrix into an affine matrix. See e.g.
+        # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/geometry/geo-tran.html
+        affine_matrix = np.identity(4, dtype=float)
+        affine_matrix[1:3, 1:3] = rotation_matrix
+        affine_matrix[0:3, 3] = translation
+
+        # Skip if nor interpolation, nor affine transformation are required.
+        if np.allclose(np.identity(4, dtype=float), affine_matrix) and not interpolate_flag:
             return None
 
         # Check if pre-processing is required
         if settings.img_interpolate.anti_aliasing:
-            self.set_voxel_grid(voxel_grid=gaussian_preprocess_filter(orig_vox=self.get_voxel_grid(),
-                                                                      orig_spacing=self.spacing,
-                                                                      sample_spacing=new_spacing,
-                                                                      param_beta=settings.img_interpolate.smoothing_beta,
-                                                                      mode="nearest",
-                                                                      by_slice=by_slice))
+            self.set_voxel_grid(voxel_grid=gaussian_preprocess_filter(
+                orig_vox=self.get_voxel_grid(),
+                orig_spacing=self.spacing,
+                sample_spacing=new_spacing,
+                param_beta=settings.img_interpolate.smoothing_beta,
+                mode="nearest",
+                by_slice=by_slice
+            ))
 
         # Interpolate image and positioning
-        self.size, sample_spacing, upd_voxel_grid, grid_origin = \
-            interpolate_to_new_grid(orig_dim=self.size,
-                                    orig_spacing=self.spacing,
-                                    orig_vox=self.get_voxel_grid(),
-                                    sample_spacing=new_spacing,
-                                    translation=trans_vec,
-                                    order=order,
-                                    mode="nearest",
-                                    align_to_center=True)
+        self.size, sample_spacing, upd_voxel_grid, grid_origin = interpolate_to_new_grid(
+            orig_dim=self.size,
+            orig_spacing=self.spacing,
+            orig_vox=self.get_voxel_grid(),
+            sample_spacing=new_spacing,
+            affine_matrix=affine_matrix,
+            order=order,
+            mode="nearest",
+            align_to_center=True
+        )
 
         # Update origin before spacing, because computing the origin requires the original affine matrix.
         self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
@@ -611,63 +623,6 @@ class ImageClass:
 
         self.saturate(intensity_range=saturation_range)
 
-    def rotate(self, angle):
-        """Rotate volume along z-axis."""
-
-        # Skip for missing images
-        if self.is_missing:
-            return
-
-        import scipy.ndimage as ndi
-        from mirp.featureSets.volumeMorphology import get_rotation_matrix
-
-        # Find actual output size of x-y plane
-        new_z_dim = np.asmatrix([self.size[0], 0.0, 0.0]) * get_rotation_matrix(np.radians(angle), dim=3, rot_axis=0)
-        new_y_dim = np.asmatrix([0.0, self.size[1], 0.0]) * get_rotation_matrix(np.radians(angle), dim=3, rot_axis=0)
-        new_x_dim = np.asmatrix([0.0, 0.0, self.size[2]]) * get_rotation_matrix(np.radians(angle), dim=3, rot_axis=0)
-        new_dim_flt = np.squeeze(np.array(np.abs(new_z_dim)) + np.array(np.abs(new_y_dim) + np.abs(new_x_dim)))
-
-        # Get voxel grid
-        voxel_grid = self.get_voxel_grid()
-
-        # Rotate voxels along angle in the y-x plane and find truncated output size
-        voxel_grid = ndi.rotate(voxel_grid.astype(np.float32), angle=angle, axes=(1, 2), reshape=True, order=1, mode="nearest")
-        new_dim_int = np.array(np.shape(voxel_grid)) * 1.0
-
-        if (self.modality == "CT") and (self.spat_transform == "base"):
-            voxel_grid = np.round(voxel_grid)
-
-        # Update spacing
-        self.spacing *= new_dim_int / new_dim_flt
-
-        # Set rotation angle
-        self.rotation_angle = angle
-
-        # Update voxel grid with rotated voxels
-        self.set_voxel_grid(voxel_grid=voxel_grid)
-
-    # def translate(self, t_x=0.0, t_y=0.0, t_z=0.0):
-    #     """Translate image volume"""
-    #     from mirp.imageProcess import interpolate_to_new_grid
-    #
-    #     # Skip for missing images
-    #     if self.is_missing:
-    #         return
-    #
-    #     # Calculate the new sample origin after translation
-    #     sample_origin = np.array(self.origin)
-    #     sample_origin[0] += t_z * self.spacing[0]
-    #     sample_origin[1] += t_y * self.spacing[1]
-    #     sample_origin[2] += t_x * self.spacing[2]
-    #
-    #     # Interpolate at shift points
-    #     self.size, self.origin, self.spacing, upd_voxel_grid = \
-    #         interpolate_to_new_grid(orig_dim=self.size, orig_origin=self.origin, orig_spacing=self.spacing, orig_vox=self.get_voxel_grid(),
-    #                                 sample_dim=self.size, sample_origin=sample_origin, sample_spacing=self.spacing, order=1, mode="nearest")
-    #
-    #     # Update voxel grid
-    #     self.set_voxel_grid(voxel_grid=upd_voxel_grid)
-
     def crop(self,
              ind_ext_z=None,
              ind_ext_y=None,
@@ -838,16 +793,16 @@ class ImageClass:
                            "y", str(self.spacing[1])[:5],
                            "z", str(self.spacing[0])[:5]]
 
-        if self.rotation_angle != 0.0:
+        if self.rotation_angle is not None and self.rotation_angle != 0.0:
             # Rotation angle
             descr_list += ["rot", str(self.rotation_angle)[:5]]
 
-        if not (self.transl_fraction_x == 0.0 and self.transl_fraction_y == 0.0 and self.transl_fraction_z == 0.0):
+        if self.translation is not None and not np.all(self.translation == 0.0):
             # Translation fraction
             descr_list += ["trans",
-                           "x", str(self.transl_fraction_x)[:5],
-                           "y", str(self.transl_fraction_y)[:5],
-                           "z", str(self.transl_fraction_z)[:5]]
+                           "x", str(self.translation[2])[:5],
+                           "y", str(self.translation[1])[:5],
+                           "z", str(self.translation[0])[:5]]
 
         if self.noise != -1.0:
             # Noise level

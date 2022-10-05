@@ -292,7 +292,7 @@ class ExperimentClass:
         from mirp.imageProcess import crop_image, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
             create_tissue_mask, bias_field_correction, normalise_image, select_largest_slice
-        from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
+        from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
         import copy
 
         # Configure logger
@@ -413,16 +413,17 @@ class ExperimentClass:
 
             ########################################################################################################
             # Base image-based operations - basic operations on base image (rotation, cropping, noise addition)
-            # Note interpolation and translation are performed simultaneously, and interpolation is only done after
-            # application of spatial filters
+            # Note interpolation, translation and rotation are performed simultaneously.
             ########################################################################################################
-
-            # Rotate object
-            img_obj, roi_list = rotate_image(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
 
             # Crop image to a box extending at most 15 cm around the combined ROI
             if curr_setting.perturbation.crop_around_roi:
-                img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=150.0, z_only=False)
+                img_obj, roi_list = crop_image(
+                    img_obj=img_obj,
+                    roi_list=roi_list,
+                    boundary=curr_setting.perturbation.crop_distance,
+                    z_only=False
+                )
 
             # Add random noise to an image
             if curr_setting.perturbation.add_noise:
@@ -432,7 +433,7 @@ class ExperimentClass:
             # Interpolation of base image
             ########################################################################################################
 
-            # Translate and interpolate image to isometric voxels
+            # Translate, rotate and interpolate image
             img_obj = interpolate_image(img_obj=img_obj, settings=curr_setting)
             roi_list = interpolate_roi(roi_list=roi_list, img_obj=img_obj, settings=curr_setting)
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
@@ -536,7 +537,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
             saturate_image, normalise_image, select_largest_slice
-        from mirp.imagePerturbations import rotate_image, adapt_roi_size, randomise_roi_contours
+        from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
 
@@ -665,12 +666,8 @@ class ExperimentClass:
 
             ########################################################################################################
             # Base image-based operations - basic operations on base image (rotation, cropping, noise addition)
-            # Note interpolation and translation are performed simultaneously, and interpolation is only done after
-            # application of spatial filters
+            # Note interpolation, rotation and translation are performed simultaneously.
             ########################################################################################################
-
-            # Rotate object
-            img_obj, roi_list = rotate_image(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
 
             # Add random noise to an image
             if curr_setting.perturbation.add_noise:

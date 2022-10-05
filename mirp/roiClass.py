@@ -553,15 +553,6 @@ class RoiClass:
         # If none of the above rois was empty, return false
         return False
 
-    def rotate(self, angle, img_obj):
-        """ Rotates roi in the y-x plane """
-
-        # Register with image prior to rotation
-        self.register(img_obj=img_obj)
-
-        # Rotate roi
-        self.roi.rotate(angle)
-
     def dilate(self, by_slice, dist=None, vox_dist=None):
         from mirp.featureSets.utilities import rep
         import scipy.ndimage as ndi

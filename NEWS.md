@@ -4,6 +4,11 @@
 
 ## Minor changes
 - `SimpleITK` has been removed as a dependency. Handling of non-DICOM imaging is now done through `itk` itself.
+- Rotation - as a perturbation or augmentation operation - is now performed as part of the interpolation process. 
+  Previously, rotation was implemented using `scipy.ndimage.rotate`. This, combined with any translation or 
+  interpolation operation would involve two interpolation steps. Aside from removing a computationally intensive 
+  step, this also prevents unnecessary image degradation through the interpolation process. The new implementation 
+  operates using affine matrix transformations.
 
 # Version 1.2.0
 

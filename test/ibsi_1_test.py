@@ -1,4 +1,3 @@
-import pytest
 import os
 from math import log10, floor
 from mirp.experimentClass import ExperimentClass

@@ -10,40 +10,6 @@ from mirp.roiClass import RoiClass
 from typing import Union, List
 
 
-def rotate_image(img_obj: ImageClass,
-                 settings: Union[None, SettingsClass] = None,
-                 rot_angle: Union[None, float, List[float]] = None,
-                 roi_list: Union[None, List[RoiClass]] = None):
-    """ Rotation of image and rois """
-
-    if settings is not None:
-        rot_angle = settings.perturbation.rotation_angles
-    elif rot_angle is None:
-        logging.error("No rotation angles were provided. A single rotation angle is expected.")
-
-    if isinstance(rot_angle, list):
-        # Check rotation angle.
-        if len(rot_angle) > 1:
-            logging.warning("Multiple rotation angles were provided. Only the first is selected.")
-
-        # Set rotation angle.
-        rot_angle = rot_angle[0]
-
-    # Avoid rotation if the angle is a multiple of 360 degrees.
-    if rot_angle % 360.0 == 0.0:
-        return img_obj, roi_list
-
-    if roi_list is not None:
-        # Rotate roi objects.
-        roi_list = [roi_object.copy() for roi_object in roi_list]
-        [roi_object.rotate(angle=rot_angle, img_obj=img_obj) for roi_object in roi_list]
-
-    # Rotate image object
-    img_obj.rotate(angle=rot_angle)
-
-    return img_obj, roi_list
-
-
 def randomise_roi_contours(roi_list, img_obj, settings: SettingsClass):
     """Use SLIC to randomise the roi based on supervoxels"""
 

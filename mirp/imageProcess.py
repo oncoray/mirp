@@ -762,21 +762,26 @@ def discretise_image_intensities(img_obj: ImageClass,
     return img_discr, roi_discr
 
 
-def interpolate_to_new_grid(orig_dim,
-                            orig_spacing,
-                            orig_vox,
-                            sample_dim=None,
-                            sample_spacing=None,
-                            grid_origin=None,
-                            translation=np.array([0.0, 0.0, 0.0]), order=1, mode="nearest", align_to_center=True):
+def interpolate_to_new_grid(
+        orig_dim: np.ndarray,
+        orig_spacing: np.ndarray,
+        orig_vox: np.ndarray,
+        affine_matrix: Union[None, np.ndarray] = None,
+        sample_dim: Union[None, np.ndarray] = None,
+        sample_spacing: Union[None, np.ndarray] = None,
+        grid_origin: Union[None, np.ndarray] = None,
+        order: int = 1,
+        mode: str = "nearest",
+        align_to_center: bool = True):
     """
     Resamples input grid and returns the output grid.
     :param orig_dim: dimensions of the input grid
-    :param orig_spacing: spacing (in world measures) of the input grid
+    :param orig_spacing: spacing (in physical world units) of the input grid
     :param orig_vox: input grid
+    :param affine_matrix: 4x4 matrix for performing affine transformations.
     :param sample_dim: desired output size (determined within the function if None)
-    :param sample_spacing: desired sample spacing (in world measures; should be provided if sample_dim or sample_origin is None)
-    :param translation: a translation vector that is used to shift the interpolation grid (in voxel measures)
+    :param sample_spacing: desired sample spacing (in physical world units; should be provided if sample_dim or sample_origin is None)
+    :param grid_origin: origin of the grid in physical world units.
     :param order: interpolation spline order (0=nnb, 1=linear, 2=order 2 spline, 3=cubic splice, max 5).
     :param mode: describes how to handle extrapolation beyond input grid.
     :param align_to_center: whether the input and output grids should be aligned by their centers (True) or their origins (False)
@@ -784,6 +789,9 @@ def interpolate_to_new_grid(orig_dim,
     """
 
     import scipy.ndimage as ndi
+
+    if affine_matrix is None:
+        affine_matrix = np.identity(4, dtype=float)
 
     # Check if sample spacing is provided
     if sample_dim is None and sample_spacing is None:
@@ -801,10 +809,13 @@ def interpolate_to_new_grid(orig_dim,
     if sample_dim is None:
         sample_dim = np.ceil(np.multiply(orig_dim, orig_spacing / sample_spacing))
 
+    # Cast to integer.
+    sample_dim = sample_dim.astype(int)
+
     # Set grid spacing (i.e. a fractional spacing in input voxel dimensions)
     grid_spacing = sample_spacing / orig_spacing
 
-    # Set grid origin, if not provided previously
+    # Set grid origin, if not provided previously.
     if grid_origin is None:
         if align_to_center:
             grid_origin = 0.5 * (np.array(orig_dim) - 1.0) - 0.5 * (np.array(sample_dim) - 1.0) * grid_spacing
@@ -813,29 +824,42 @@ def interpolate_to_new_grid(orig_dim,
             grid_origin = np.array([0.0, 0.0, 0.0])
 
         # Update with translation vector
-        grid_origin += translation * grid_spacing
-
-    # Convert sample_spacing and sample_origin to normalised original spacing (where voxel distance is 1 in each direction)
-    # This is required for the use of ndi.map_coordinates, which uses the original grid as reference.
+        # grid_origin += translation * grid_spacing
 
     # Generate interpolation map grid
     map_z, map_y, map_x = np.mgrid[:sample_dim[0], :sample_dim[1], :sample_dim[2]]
 
-    # Transform map to normalised original space
-    map_z = map_z * grid_spacing[0] + grid_origin[0]
-    map_z = map_z.astype(np.float32)
-    map_y = map_y * grid_spacing[1] + grid_origin[1]
-    map_y = map_y.astype(np.float32)
-    map_x = map_x * grid_spacing[2] + grid_origin[2]
-    map_x = map_x.astype(np.float32)
+    # Map coordinates to a centric system prior to the affine transform, so that [0.0, 0.0, 0.0] is in the center of
+    # the image.
+    map_z = map_z.flatten() / (sample_dim[0] - 1.0) - 0.5
+    map_y = map_y.flatten() / (sample_dim[1] - 1.0) - 0.5
+    map_x = map_x.flatten() / (sample_dim[2] - 1.0) - 0.5
+
+    # Perform the affine transformation to compute the coordinates where the original grid should be interpolated.
+    new_coordinates = np.matmul(affine_matrix, np.array([map_z, map_y, map_x, np.ones(len(map_x), dtype=float)]))
+
+    # Remove map variables locally.
+    del map_z, map_y, map_x
+
+    # Drop the final column of the coordinates.
+    new_coordinates = np.delete(new_coordinates, 3, axis=0)
+
+    # Transform coordinates back to origin-centric alignment.
+    new_coordinates = np.multiply(new_coordinates + 0.5, sample_dim[:, np.newaxis] - 1.0)
+
+    # Update coordinates with grid origin.
+    new_coordinates = np.multiply(new_coordinates, grid_spacing[:, np.newaxis]) + grid_origin[:, np.newaxis]
 
     # Interpolate orig_vox on interpolation grid
     map_vox = ndi.map_coordinates(
         input=orig_vox.astype(np.float32),
-        coordinates=np.array([map_z, map_y, map_x], dtype=np.float32),
+        coordinates=new_coordinates,
         order=order,
         mode=mode
     )
+
+    # Shape map_vox to the correct dimensions.
+    map_vox = np.reshape(map_vox, sample_dim)
 
     # Return interpolated grid and spatial coordinates
     return sample_dim, sample_spacing, map_vox, grid_origin
