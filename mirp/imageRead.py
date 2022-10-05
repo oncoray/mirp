@@ -1,7 +1,7 @@
 import os
 import warnings
 
-import SimpleITK as sitk
+import itk
 import numpy as np
 import pandas as pd
 import pydicom
@@ -9,14 +9,9 @@ import pydicom
 from typing import Union
 from mirp.dicomImport import read_dicom_image_series, read_dicom_rt_struct, read_roi_names, get_all_dicom_headers
 from mirp.imageClass import ImageClass
-from mirp.imageMetaData import get_sitk_dicom_meta_tag
+from mirp.imageMetaData import get_itk_dicom_meta_tag
 from mirp.importSettings import SettingsClass
 from mirp.itkImport import read_itk_image, read_itk_segmentations
-# Monkey patch for dicom files with implicit VR tags that also export meta file tags (0x0002 0x----) as meta data.
-# This seems to have happened for some RayStation exports
-# from mirp.pydicom_fix import read_dataset
-# pydicom.filereader.read_dataset = read_dataset
-# from pydicom.filereader import read_dataset
 
 
 def find_regions_of_interest(roi_folder, subject):
@@ -229,14 +224,18 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
         file_path = os.path.normpath(os.path.join(image_folder, file_name))
 
         # Set file type
-        if file_name.lower().endswith((".dcm", ".ima")): img_file_type = "dicom"
-        elif file_name.lower().endswith((".nii", ".nii.gz")): img_file_type = "nifti"
-        elif file_name.lower().endswith(".nrrd"): img_file_type = "nrrd"
-        else: img_file_type = "unknown"
+        if file_name.lower().endswith((".dcm", ".ima")):
+            img_file_type = "dicom"
+        elif file_name.lower().endswith((".nii", ".nii.gz")):
+            img_file_type = "nifti"
+        elif file_name.lower().endswith(".nrrd"):
+            img_file_type = "nrrd"
+        else:
+            img_file_type = "unknown"
 
         # Try to read file and get voxel grid data
         try:
-            sitk_img = sitk.ReadImage(file_path)
+            itk_img = itk.imread(filename=file_path)
             import_successful = True
         except:
             import_successful = False
@@ -245,25 +244,29 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
         if import_successful:
 
             # Load spatial data: note that simple ITK reads in (x,y,z) order
-            img_origin    = np.array(sitk_img.GetOrigin())
-            img_spacing   = np.array(sitk_img.GetSpacing())
-            img_dimension = np.array(sitk_img.GetSize())
+            img_origin = np.array(itk_img.GetOrigin())
+            img_spacing = np.array(itk_img.GetSpacing())
+            img_dimension = np.array(itk_img.GetSize())
 
             # Determine modality
             if img_file_type == "dicom":
                 # From file meta information
-                img_modality = sitk_img.GetMetaData("0008|0060")
+                img_modality = itk_img.GetMetaData("0008|0060")
             else:
                 # From file name
-                if "MR" in file_name:    img_modality = "MR"
-                elif "PET" in file_name: img_modality = "PT"
-                elif ("PT" in file_name) and ("PTV" not in file_name): img_modality = "PT"
-                elif ("CT" in file_name) and ("CTV" not in file_name): img_modality = "CT"
+                if "MR" in file_name:
+                    img_modality = "MR"
+                elif "PET" in file_name:
+                    img_modality = "PT"
+                elif ("PT" in file_name) and ("PTV" not in file_name):
+                    img_modality = "PT"
+                elif ("CT" in file_name) and ("CTV" not in file_name):
+                    img_modality = "CT"
                 else:
                     if folder_contains is not None and len(file_list) == 1:
                         img_modality = folder_contains
                     else:
-                        img_vox = sitk.GetArrayFromImage(sitk_img)
+                        img_vox = itk.GetArrayFromImage(itk_img)
                         if (np.min(img_vox) == 0 or np.min(img_vox) == 1) and np.max(img_vox) == 1:
                             img_modality = "SEG"
                         else:
@@ -271,7 +274,10 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
 
             # In DICOM, update spacing with slice thickness as z-spacing
             if img_file_type == "dicom":
-                img_spacing[2] = get_sitk_dicom_meta_tag(sitk_img=sitk_img, tag="0018|0050", tag_type="float", default=2.0)
+                img_spacing[2] = get_itk_dicom_meta_tag(itk_img=itk_img,
+                                                        tag="0018|0050",
+                                                        tag_type="float",
+                                                        default=2.0)
 
             # Set characteristics
             df_char_curr = pd.Series({"file_name":        file_name,
@@ -294,6 +300,7 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
         else:
             # Parse data where Simple ITK fails
             if not file_name.lower().endswith('.dcm'): continue
+            if not file_name.lower().endswith('.dcm'): continue
 
             # Read DICOM file using pydicom
             dcm = pydicom.dcmread(image_folder + "/" + file_name, stop_before_pixels=True, force=True)
@@ -305,16 +312,16 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
                 df_char_curr = pd.Series({"file_name": file_name,
                                           "file_path": file_path,
                                           "file_type": img_file_type,
-                                          "modality":  img_modality,
-                                          "size_x":    -1,
-                                          "size_y":    -1,
-                                          "size_z":    -1,
+                                          "modality": img_modality,
+                                          "size_x": -1,
+                                          "size_y": -1,
+                                          "size_z": -1,
                                           "spacing_x": np.nan,
                                           "spacing_y": np.nan,
                                           "spacing_z": np.nan,
-                                          "pos_x":     np.nan,
-                                          "pos_y":     np.nan,
-                                          "pos_z":     np.nan})
+                                          "pos_x": np.nan,
+                                          "pos_y": np.nan,
+                                          "pos_z": np.nan})
 
                 # Append data frame to list
                 list_char.append(df_char_curr)
@@ -326,7 +333,7 @@ def read_basic_image_characteristics(image_folder, folder_contains=None):
 
 
 def check_file_name(file_name, file_path):
-    """Checks file name and replaces non-ASCII characters. This prevents crashes with SimpleITK readImage function"""
+    """Checks file name and replaces non-ASCII characters."""
 
     # Check if name contains non-ASCII characters by attempting to encode file name as ascii
     try:

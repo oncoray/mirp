@@ -192,7 +192,7 @@ def has_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag):
     return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
 
 
-def get_sitk_dicom_meta_tag(sitk_img, tag, tag_type, default=None):
+def get_itk_dicom_meta_tag(itk_img, tag, tag_type, default=None):
     # Reads dicom tag
 
     # Initialise with default
@@ -200,7 +200,7 @@ def get_sitk_dicom_meta_tag(sitk_img, tag, tag_type, default=None):
 
     # Read from header using simple itk
     try:
-        tag_value = sitk_img.GetMetaData(tag)
+        tag_value = itk_img.GetMetaData(tag)
     except:
         pass
 

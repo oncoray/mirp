@@ -141,18 +141,7 @@ class ImageClass:
         self.spacing: np.ndarray = new_spacing
 
         # Recompute the affine matrices
-        m_affine = np.zeros((3, 3), dtype=float)
-
-        # z-coordinates
-        m_affine[:, 0] = self.spacing[0] * np.array([self.orientation[0], self.orientation[1], self.orientation[2]])
-
-        # y-coordinates
-        m_affine[:, 1] = self.spacing[1] * np.array([self.orientation[3], self.orientation[4], self.orientation[5]])
-
-        # x-coordinates
-        m_affine[:, 2] = self.spacing[2] * np.array([self.orientation[6], self.orientation[7], self.orientation[8]])
-
-        self.m_affine = m_affine
+        self.m_affine = np.reshape(np.repeat(self.spacing, 3), [3, 3]) * self.orientation
         self.m_affine_inv = np.linalg.inv(self.m_affine)
 
     def set_voxel_grid(self, voxel_grid):
@@ -869,13 +858,10 @@ class ImageClass:
 
         return "_".join(descr_list)
 
-    def convert2sitk(self):
-        """Converts image object back to Simple ITK
-        This step may precede writing to file."""
+    def convert_to_itk(self):
+        """Converts the image to an itk format"""
+        import itk
 
-        import SimpleITK as sitk
-
-        # Skip if the image is missing
         if self.is_missing:
             return None
 
@@ -888,18 +874,18 @@ class ImageClass:
         else:
             cast_type = self.get_voxel_grid().dtype
 
-        # Convert image voxels
-        sitk_img = sitk.GetImageFromArray(self.get_voxel_grid().astype(cast_type), isVector=False)
-        sitk_img.SetOrigin(self.origin[::-1])
-        sitk_img.SetSpacing(self.spacing[::-1])
-        sitk_img.SetDirection(self.orientation[::-1])
+        # Convert image voxels to an itk format.
+        itk_img = itk.GetImageFromArray(self.get_voxel_grid().astype(cast_type), is_vector=False)
+        itk_img.SetOrigin(self.origin[::-1])
+        itk_img.SetSpacing(self.spacing[::-1])
+        itk_img.SetDirection(itk.matrix_from_array(self.orientation[::-1]))
 
-        return sitk_img
+        return itk_img
 
     def write(self, file_path, file_name):
         """ Writes the image to a file """
-        import SimpleITK as sitk
         import os
+        import itk
 
         # Check if path exists
         file_path = os.path.normpath(file_path)
@@ -910,11 +896,11 @@ class ImageClass:
         file_path = os.path.join(file_path, file_name)
 
         # Convert image to simple itk format
-        sitk_img = self.convert2sitk()
+        itk_img = self.convert_to_itk()
 
         # Write to file using simple itk, and the image is not missing
-        if sitk_img is not None:
-            sitk.WriteImage(sitk_img, file_path, True)
+        if itk_img is not None:
+            itk.imwrite(itk_img, file_path)
 
     def write_dicom(self, file_path, file_name, bit_depth=16):
         if self.metadata is None:
@@ -928,7 +914,8 @@ class ImageClass:
             del self.metadata[filemeta_tag]
 
         # Save to file
-        self.metadata.save_as(filename=os.path.join(file_path, file_name), write_like_original=False)
+        self.metadata.save_as(filename=os.path.join(file_path, file_name),
+                              write_like_original=False)
 
     def write_dicom_series(self, file_path, file_name="", bit_depth=16):
         if self.metadata is None:

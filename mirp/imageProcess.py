@@ -768,7 +768,7 @@ def interpolate_to_new_grid(orig_dim,
                             sample_dim=None,
                             sample_spacing=None,
                             grid_origin=None,
-                            translation=np.array([0.0, 0.0, 0.0]), order=1, mode="nearest", align_to_center=True, processor="scipy"):
+                            translation=np.array([0.0, 0.0, 0.0]), order=1, mode="nearest", align_to_center=True):
     """
     Resamples input grid and returns the output grid.
     :param orig_dim: dimensions of the input grid
@@ -780,9 +780,10 @@ def interpolate_to_new_grid(orig_dim,
     :param order: interpolation spline order (0=nnb, 1=linear, 2=order 2 spline, 3=cubic splice, max 5).
     :param mode: describes how to handle extrapolation beyond input grid.
     :param align_to_center: whether the input and output grids should be aligned by their centers (True) or their origins (False)
-    :param processor: which function to use for interpolation: "scipy" for scipy.ndimage.map_coordinates and "sitk" for SimpleITK.ResampleImageFilter
     :return:
     """
+
+    import scipy.ndimage as ndi
 
     # Check if sample spacing is provided
     if sample_dim is None and sample_spacing is None:
@@ -814,59 +815,27 @@ def interpolate_to_new_grid(orig_dim,
         # Update with translation vector
         grid_origin += translation * grid_spacing
 
-    if processor == "scipy":
-        import scipy.ndimage as ndi
+    # Convert sample_spacing and sample_origin to normalised original spacing (where voxel distance is 1 in each direction)
+    # This is required for the use of ndi.map_coordinates, which uses the original grid as reference.
 
-        # Convert sample_spacing and sample_origin to normalised original spacing (where voxel distance is 1 in each direction)
-        # This is required for the use of ndi.map_coordinates, which uses the original grid as reference.
+    # Generate interpolation map grid
+    map_z, map_y, map_x = np.mgrid[:sample_dim[0], :sample_dim[1], :sample_dim[2]]
 
-        # Generate interpolation map grid
-        map_z, map_y, map_x = np.mgrid[:sample_dim[0], :sample_dim[1], :sample_dim[2]]
+    # Transform map to normalised original space
+    map_z = map_z * grid_spacing[0] + grid_origin[0]
+    map_z = map_z.astype(np.float32)
+    map_y = map_y * grid_spacing[1] + grid_origin[1]
+    map_y = map_y.astype(np.float32)
+    map_x = map_x * grid_spacing[2] + grid_origin[2]
+    map_x = map_x.astype(np.float32)
 
-        # Transform map to normalised original space
-        map_z = map_z * grid_spacing[0] + grid_origin[0]
-        map_z = map_z.astype(np.float32)
-        map_y = map_y * grid_spacing[1] + grid_origin[1]
-        map_y = map_y.astype(np.float32)
-        map_x = map_x * grid_spacing[2] + grid_origin[2]
-        map_x = map_x.astype(np.float32)
-
-        # Interpolate orig_vox on interpolation grid
-        map_vox = ndi.map_coordinates(input=orig_vox.astype(np.float32),
-                                      coordinates=np.array([map_z, map_y, map_x], dtype=np.float32),
-                                      order=order,
-                                      mode=mode)
-
-    elif processor == "sitk":
-        import SimpleITK as sitk
-
-        # Convert input voxel grid to sitk image. Note that SimpleITK expects x,y,z ordering, while we use z,y,
-        # x ordering. Hence origins, spacings and sizes are inverted for both input image (sitk_orig_img) and
-        # ResampleImageFilter objects.
-        sitk_orig_img = sitk.GetImageFromArray(orig_vox.astype(np.float32), isVector=False)
-        sitk_orig_img.SetOrigin(np.array([0.0, 0.0, 0.0]))
-        sitk_orig_img.SetSpacing(np.array([1.0, 1.0, 1.0]))
-
-        interpolator = sitk.ResampleImageFilter()
-
-        # Set interpolator algorithm; SimpleITK has more interpolators, but for now use the older scheme for scipy.
-        if order == 0:
-            interpolator.SetInterpolator(sitk.sitkNearestNeighbor)
-        elif order == 1:
-            interpolator.SetInterpolator(sitk.sitkLinear)
-        elif order == 2:
-            interpolator.SetInterpolator(sitk.sitkBSplineResamplerOrder2)
-        elif order == 3:
-            interpolator.SetInterpolator(sitk.sitkBSpline)
-
-        # Set output origin and output spacing
-        interpolator.SetOutputOrigin(grid_origin[::-1])
-        interpolator.SetOutputSpacing(grid_spacing[::-1])
-        interpolator.SetSize(sample_dim[::-1].astype(int).tolist())
-
-        map_vox = sitk.GetArrayFromImage(interpolator.Execute(sitk_orig_img))
-    else:
-        raise ValueError("The selected processor should be one of \"scipy\" or \"sitk\"")
+    # Interpolate orig_vox on interpolation grid
+    map_vox = ndi.map_coordinates(
+        input=orig_vox.astype(np.float32),
+        coordinates=np.array([map_z, map_y, map_x], dtype=np.float32),
+        order=order,
+        mode=mode
+    )
 
     # Return interpolated grid and spatial coordinates
     return sample_dim, sample_spacing, map_vox, grid_origin

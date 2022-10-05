@@ -3,7 +3,7 @@ import warnings
 from typing import Union
 
 import numpy as np
-import SimpleITK as sitk
+import itk
 
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass, merge_roi_objects
@@ -17,27 +17,33 @@ class NoITKSegmentationFileFound(Exception):
 def read_itk_image(image_folder, modality=None, name_contains=None):
 
     # Identify the ITK (NIfTI or NRRD) file.
-    itk_file = _find_itk_images(image_folder=image_folder, name_contains=name_contains, is_mask=False)
+    itk_file = _find_itk_images(
+        image_folder=image_folder,
+        name_contains=name_contains,
+        is_mask=False
+    )
 
     # Load the image
-    sitk_img = sitk.ReadImage(os.path.join(image_folder, itk_file))
+    itk_img = itk.imread(os.path.join(image_folder, itk_file))
 
     # Import the image volume
-    voxel_grid = sitk.GetArrayFromImage(sitk_img).astype(float)
+    voxel_grid = itk.GetArrayFromImage(itk_img).astype(float)
 
     # Determine origin, spacing, and orientation
-    image_origin = np.array(sitk_img.GetOrigin())[::-1]
-    image_spacing = np.array(sitk_img.GetSpacing())[::-1]
-    image_orientation = np.array(sitk_img.GetDirection())[::-1]
+    image_origin = np.array(itk_img.GetOrigin())[::-1]
+    image_spacing = np.array(itk_img.GetSpacing())[::-1]
+    image_orientation = itk.array_from_matrix(itk_img.GetDirection())[::-1]
 
     # Create an ImageClass object from the input image.
-    image_obj = ImageClass(voxel_grid=voxel_grid,
-                           origin=image_origin,
-                           spacing=image_spacing,
-                           orientation=image_orientation,
-                           modality=modality,
-                           spat_transform="base",
-                           no_image=False)
+    image_obj = ImageClass(
+        voxel_grid=voxel_grid,
+        origin=image_origin,
+        spacing=image_spacing,
+        orientation=image_orientation,
+        modality=modality,
+        spat_transform="base",
+        no_image=False
+    )
 
     return image_obj
 
@@ -102,8 +108,8 @@ def _find_itk_images(image_folder, name_contains=None, is_mask=False):
         # Check if the image is actually a mask.
 
         # Load the file and convert to numpy.
-        sitk_img = sitk.ReadImage(os.path.join(image_folder, file_list[0]))
-        img_volume = sitk.GetArrayViewFromImage(sitk_img)
+        itk_img = itk.imread(os.path.join(image_folder, file_list[0]))
+        img_volume = itk.GetArrayFromImage(itk_img)
 
         # Check if the image is a mask.
         if (np.min(img_volume) == 0 or np.min(img_volume) == 1) and np.max(img_volume) == 1:
@@ -131,26 +137,30 @@ def _load_itk_segmentation(image_folder, roi: str):
             continue
 
         # Load the segmentation file
-        sitk_img = sitk.ReadImage(os.path.join(image_folder, file_name))
+        itk_img = itk.imread(os.path.join(image_folder, file_name))
 
         # Obtain mask
-        mask = sitk.GetArrayFromImage(sitk_img).astype(bool)
+        mask = itk.GetArrayFromImage(itk_img).astype(bool)
 
         # Determine origin, spacing, and orientation
-        mask_origin = np.array(sitk_img.GetOrigin())[::-1]
-        mask_spacing = np.array(sitk_img.GetSpacing())[::-1]
-        mask_orientation = np.array(sitk_img.GetDirection())[::-1]
+        mask_origin = np.array(itk_img.GetOrigin())[::-1]
+        mask_spacing = np.array(itk_img.GetSpacing())[::-1]
+        mask_orientation = itk.array_from_matrix(itk_img.GetDirection())[::-1]
 
         # Create an ImageClass object using the mask.
-        roi_mask_obj = ImageClass(voxel_grid=mask,
-                                  origin=mask_origin,
-                                  spacing=mask_spacing,
-                                  orientation=mask_orientation,
-                                  modality="SEG",
-                                  spat_transform="base",
-                                  no_image=False)
+        roi_mask_obj = ImageClass(
+            voxel_grid=mask,
+            origin=mask_origin,
+            spacing=mask_spacing,
+            orientation=mask_orientation,
+            modality="SEG",
+            spat_transform="base",
+            no_image=False
+        )
 
-        roi_list += [RoiClass(name=single_roi, contour=None, roi_mask=roi_mask_obj)]
+        roi_list += [RoiClass(name=single_roi,
+                              contour=None,
+                              roi_mask=roi_mask_obj)]
 
     # Attempt to merge deparsed roi objects.
     if len(roi_list) > 0:
