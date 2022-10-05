@@ -1077,8 +1077,8 @@ class ImageClass:
         pixel_spacing = [self.spacing[2], self.spacing[1]]
         self.set_metadata(tag=(0x0028, 0x0030), value=pixel_spacing)
 
-        # Image orientation
-        image_orientation = self.orientation[::-1][:6]
+        # Image orientation. The matrix needs to be flattened first prior to extracting the orientation in the 2D plane.
+        image_orientation = np.ravel(self.orientation)[::-1][:6]
         self.set_metadata(tag=(0x0020, 0x0037), value=image_orientation)
 
         # Image position

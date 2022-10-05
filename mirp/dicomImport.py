@@ -173,8 +173,8 @@ def read_dicom_image_series(image_folder, modality=None, series_uid=None):
     else:
         image_orientation += [0.0, 0.0, 1.0]
 
-    # Revert to z, y, x order
-    image_orientation = image_orientation[::-1]
+    # Revert to z, y, x order and reshape to matrix.
+    image_orientation = np.reshape(image_orientation[::-1], [3, 3])
 
     # Create an ImageClass object and store dicom meta-data
     img_obj = ImageClass(voxel_grid=voxel_grid,
