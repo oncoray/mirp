@@ -1,3 +1,10 @@
+# Version 1.3.0
+
+## Major changes
+
+## Minor changes
+- `SimpleITK` has been removed as a dependency. Handling of non-DICOM imaging is now done through `itk` itself.
+
 # Version 1.2.0
 
 ## Major changes
