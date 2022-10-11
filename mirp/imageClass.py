@@ -38,7 +38,6 @@ class ImageClass:
         # The spacing, the affine matrix and its inverse are set using the set_spacing method.
         self.spacing = None
         self.m_affine = None
-        self.m_affine_inv = None
 
         # Set voxel spacing. This also set the affine matrix and its inverse.
         self.set_spacing(new_spacing=np.array(spacing))
@@ -142,7 +141,6 @@ class ImageClass:
 
         # Recompute the affine matrices
         self.m_affine = np.reshape(np.repeat(self.spacing, 3), [3, 3]) * self.orientation
-        self.m_affine_inv = np.linalg.inv(self.m_affine)
 
     def set_voxel_grid(self, voxel_grid):
         """ Sets voxel grid """
@@ -257,7 +255,8 @@ class ImageClass:
 
     def interpolate(self, by_slice, settings: SettingsClass):
         """Performs interpolation of the image volume"""
-        from mirp.imageProcess import interpolate_to_new_grid, gaussian_preprocess_filter
+        from mirp.imageProcess import gaussian_preprocess_filter
+        from scipy.ndimage import map_coordinates
 
         # Skip for missing images
         if self.is_missing:
@@ -275,10 +274,6 @@ class ImageClass:
         else:
             # Use provided spacing.
             new_spacing = settings.img_interpolate.new_spacing
-
-            # For in-slice resampling, set the first element (z-direction) to the slice spacing.
-            if by_slice:
-                new_spacing[0] = self.spacing[0]
 
             # Convert to numpy array.
             new_spacing = np.array(new_spacing)
@@ -309,20 +304,12 @@ class ImageClass:
 
         # Rotation around the z-axis (initial axis in numpy)
         rotation_angle = np.radians(settings.perturbation.rotation_angles)
-        rotation_matrix = np.array([[np.cos(rotation_angle), np.sin(rotation_angle)],
-                                    [-np.sin(rotation_angle), np.cos(rotation_angle)]])
 
         # Set rotation
         self.rotation_angle = settings.perturbation.rotation_angles
 
-        # Combine rotation and translation matrix into an affine matrix. See e.g.
-        # https://pages.mtu.edu/~shene/COURSES/cs3621/NOTES/geometry/geo-tran.html
-        affine_matrix = np.identity(4, dtype=float)
-        affine_matrix[1:3, 1:3] = rotation_matrix
-        affine_matrix[0:3, 3] = translation
-
         # Skip if nor interpolation, nor affine transformation are required.
-        if np.allclose(np.identity(4, dtype=float), affine_matrix) and not interpolate_flag:
+        if not interpolate_flag and np.allclose(translation, 0.0) and np.isclose(rotation_angle, 0.0):
             return None
 
         # Check if pre-processing is required
@@ -336,29 +323,98 @@ class ImageClass:
                 by_slice=by_slice
             ))
 
-        # Interpolate image and positioning
-        self.size, sample_spacing, upd_voxel_grid, grid_origin = interpolate_to_new_grid(
-            orig_dim=self.size,
-            orig_spacing=self.spacing,
-            orig_vox=self.get_voxel_grid(),
-            sample_spacing=new_spacing,
-            affine_matrix=affine_matrix,
-            order=order,
-            mode="nearest",
-            align_to_center=True
+        # Determine dimensions of voxel grid after resampling.
+        sample_dim = np.ceil(np.multiply(self.size, self.spacing / new_spacing)).astype(int)
+
+        # Set grid spacing (i.e. a fractional spacing in input voxel dimensions)
+        grid_spacing = new_spacing / self.spacing
+
+        # Set grid origin according to IBSI reference manual, and update with the translation.
+        grid_origin = translation * grid_spacing +\
+                      0.5 * (np.array(self.size) - 1.0) -\
+                      0.5 * (np.array(sample_dim) - 1.0) * grid_spacing
+
+        # Set grid origin in world coordinates.
+        world_grid_origin = self.to_world_coordinates(x=grid_origin,
+                                                      trim_result=False)
+
+        # Establish the rotation center.
+        world_rotation_center = self.to_world_coordinates(x=grid_origin + 0.5 * (sample_dim - 1) * grid_spacing)
+
+        # Compute affine and inverse affine matrix.
+        affine_matrix = self.get_affine_matrix()
+        inverse_affine_matrix = self.get_affine_matrix(inverse=True)
+
+        # Create affine matrix for rotating around the rotation center.
+        #   W' = T * R * T^-1 * W
+        #      = A_geometric * W
+        # Here T^-1 moves the center of the world space to the rotation center, R performs the rotation and T^-1
+        # moves the center of world space to the origin. Since all matrices are square and have the same dimensions,
+        # we will first compute T * R * T^-1, and then multiply this with grid coordinates in world coordinates.
+
+        # Set up the rotation matrix for rotation in the y-x plane.
+        rotation_matrix = np.identity(4, dtype=float)
+        rotation_matrix[1:3, 1:3] = np.array([[np.cos(rotation_angle), np.sin(rotation_angle)],
+                                              [-np.sin(rotation_angle), np.cos(rotation_angle)]])
+
+        # Create the entire affine matrix to perform the rotation around the rotation center.
+        geometric_affine_matrix = np.matmul(rotation_matrix,
+                                            self._get_origin_matrix(origin=world_rotation_center,
+                                                                    inverse=True))
+        geometric_affine_matrix = np.matmul(self._get_origin_matrix(origin=world_rotation_center),
+                                            geometric_affine_matrix)
+
+        # Multiply all matrices so: A_affine ^-1 * A_geometric * A_affine
+        matrix = np.matmul(geometric_affine_matrix,
+                           affine_matrix)
+        matrix = np.matmul(inverse_affine_matrix,
+                           matrix)
+
+        # Generate interpolation grid in voxel space.
+        voxel_map_z, voxel_map_y, voxel_map_x = np.mgrid[:sample_dim[0], :sample_dim[1], :sample_dim[2]]
+        voxel_map_z = voxel_map_z.flatten() * grid_spacing[0] + grid_origin[0]
+        voxel_map_y = voxel_map_y.flatten() * grid_spacing[1] + grid_origin[1]
+        voxel_map_x = voxel_map_x.flatten() * grid_spacing[2] + grid_origin[2]
+
+        # Set up voxel map coordinates as a 4 x n matrix.
+        voxel_map_coordinates = np.array(
+            [voxel_map_z,
+             voxel_map_y,
+             voxel_map_x,
+             np.ones(voxel_map_x.shape, dtype=float)]
         )
 
-        # Update origin before spacing, because computing the origin requires the original affine matrix.
-        self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
+        # Free up voxel map variables.
+        del voxel_map_x, voxel_map_y, voxel_map_z
 
-        # Update spacing and affine matrix.
-        self.set_spacing(sample_spacing)
+        # Rotate and translate the voxel grid.
+        voxel_map_coordinates = np.matmul(matrix, voxel_map_coordinates)[0:3, :]
+
+        # Interpolate orig_vox on interpolation grid
+        sample_voxel_grid = map_coordinates(
+            input=self.get_voxel_grid(),
+            coordinates=voxel_map_coordinates,
+            order=order,
+            mode="nearest"
+        )
+
+        # Shape map_vox to the correct dimensions.
+        sample_voxel_grid = np.reshape(sample_voxel_grid, sample_dim)
 
         # Round intensities in case of modalities with inherently discretised intensities
         if (self.modality == "CT") and (self.spat_transform == "base"):
-            upd_voxel_grid = np.round(upd_voxel_grid)
+            sample_voxel_grid = np.round(sample_voxel_grid)
         elif (self.modality == "PT") and (self.spat_transform == "base"):
-            upd_voxel_grid[upd_voxel_grid < 0.0] = 0.0
+            sample_voxel_grid[sample_voxel_grid < 0.0] = 0.0
+
+        # Orientation changes through rotation.
+        self.orientation = np.matmul(rotation_matrix, self._get_orientation_matrix())[0:3, 0:3]
+
+        # Update origin
+        self.origin = np.squeeze(np.matmul(geometric_affine_matrix, world_grid_origin[:, np.newaxis]), axis=1)[0:3]
+
+        # Update spacing and affine matrix.
+        self.set_spacing(new_spacing)
 
         # Set interpolation
         self.interpolated = True
@@ -372,9 +428,7 @@ class ImageClass:
             self.interpolation_algorithm = "si" + str(order)
 
         # Set voxel grid
-        self.set_voxel_grid(voxel_grid=upd_voxel_grid)
-
-        1
+        self.set_voxel_grid(voxel_grid=sample_voxel_grid)
 
     def interpolate_missing_slices(self):
 
@@ -633,7 +687,7 @@ class ImageClass:
              ind_ext_x=None,
              xy_only=False,
              z_only=False):
-        """"Crop image to the provided map extent."""
+        """Crop image to the provided map extent."""
 
         # Skip for missing images
         if self.is_missing:
@@ -666,8 +720,8 @@ class ImageClass:
                                     min_bound_ind[1]:max_bound_ind[1] + 1,
                                     min_bound_ind[2]:max_bound_ind[2] + 1]
 
-        # Update origin and z-slice position
-        self.origin += np.dot(self.m_affine, np.transpose(min_bound_ind))
+        # Update origin
+        self.origin = self.to_world_coordinates(x=np.array(min_bound_ind))
 
         # Update voxel grid
         self.set_voxel_grid(voxel_grid=voxel_grid)
@@ -719,7 +773,8 @@ class ImageClass:
         cropped_grid = cropped_grid.astype(voxel_grid.dtype)
 
         # Update origin
-        self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
+        self.origin = self.to_world_coordinates(x=np.array(min_ind_orig))
+        # self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_grid)
@@ -942,7 +997,8 @@ class ImageClass:
                 slice_img_obj = copy.deepcopy(base_img_obj)
 
                 # Update origin and slice position
-                slice_img_obj.origin += np.dot(self.m_affine, np.array([ii, 0, 0]))
+                slice_img_obj.origin = self.to_world_coordinates(x=np.array([ii, 0, 0]))
+                # slice_img_obj.origin += np.dot(self.m_affine, np.array([ii, 0, 0]))
 
                 # Update name
                 if slice_img_obj.name is not None:
@@ -959,7 +1015,8 @@ class ImageClass:
             slice_img_obj = copy.deepcopy(base_img_obj)
 
             # Update origin and slice position
-            slice_img_obj.origin += np.dot(self.m_affine, np.array([slice_number, 0, 0]))
+            slice_img_obj.origin = self.to_world_coordinates(x=np.array([slice_number, 0, 0]))
+            # slice_img_obj.origin += np.dot(self.m_affine, np.array([slice_number, 0, 0]))
 
             # Update name
             if slice_img_obj.name is not None:
@@ -1322,3 +1379,192 @@ class ImageClass:
                              tag=(0x0020, 0x9164),
                              value=self.get_metadata(tag=(0x0020, 0x0052), tag_type="str"))
         self.set_metadata(tag=(0x0020, 0x9222), value=Sequence([dim_index_seq_elem]))
+
+    def to_world_coordinates(
+            self,
+            x: np.ndarray,
+            origin: Union[None, np.ndarray] = None,
+            orientation: Union[None, np.ndarray] = None,
+            spacing: Union[None, np.ndarray] = None,
+            trim_result: bool = True):
+
+        # Add empty dimension if the coordinates are unset.
+        if len(x.shape) == 1:
+            squeeze_on_exit = True
+            x = x[:, np.newaxis]
+
+        else:
+            squeeze_on_exit = False
+
+        # Setup voxel coordinates
+        voxel_coordinates = np.ones([4, x.shape[1]])
+        voxel_coordinates[0:3, :] = x
+
+        # Define affine matrix.
+        affine_matrix = self.get_affine_matrix(
+            origin=origin,
+            orientation=orientation,
+            spacing=spacing,
+            inverse=False
+        )
+
+        # World coordinates
+        world_coordinates = np.matmul(affine_matrix, voxel_coordinates)
+
+        if trim_result:
+            world_coordinates = world_coordinates[0:3, :]
+
+        if squeeze_on_exit:
+            world_coordinates = np.squeeze(world_coordinates, axis=1)
+
+        return world_coordinates
+
+    def to_voxel_coordinates(
+            self,
+            x: np.ndarray,
+            origin: Union[None, np.ndarray] = None,
+            orientation: Union[None, np.ndarray] = None,
+            spacing: Union[None, np.ndarray] = None,
+            trim_result: bool = True):
+
+        # Add empty dimension if the coordinates are unset.
+        if len(x.shape) == 1:
+            squeeze_on_exit = True
+            x = x[:, np.newaxis]
+
+        else:
+            squeeze_on_exit = False
+
+        # Setup voxel coordinates
+        world_coordinates = np.ones([4, x.shape[1]])
+        world_coordinates[0:3, :] = x
+
+        # Define inverse affine matrix.
+        inverse_affine_matrix = self.get_affine_matrix(
+            origin=origin,
+            orientation=orientation,
+            spacing=spacing,
+            inverse=True
+        )
+
+        # Convert from world to voxel coordinates
+        voxel_coordinates = np.matmul(inverse_affine_matrix, world_coordinates)
+
+        if trim_result:
+            voxel_coordinates = voxel_coordinates[0:3, :]
+
+        if squeeze_on_exit:
+            voxel_coordinates = np.squeeze(voxel_coordinates, axis=1)
+
+        return voxel_coordinates
+
+    def get_affine_matrix(self,
+                          origin: Union[None, np.ndarray] = None,
+                          orientation: Union[None, np.ndarray] = None,
+                          spacing: Union[None, np.ndarray] = None,
+                          inverse: bool = False):
+        """
+        An affine matrix can be used to convert between local (voxel) and world coordinates:
+          W = A_origin * A_orientation * A_spacing * X
+            = A_affine * X
+
+        Here we use the fact that all right-hand matrices except X are square matrices with the same dimensions,
+        and thus are associative. Here we compute the result of A_origin * A_orientation * A_spacing.
+
+        :param origin: Origin of the voxel grid in world coordinates. If None, the origin of the image is used.
+        :param orientation: Orientation of the voxel grid in the world coordinate frame. If None, the orientation of
+        the image is used.
+        :param spacing: Spacing of voxels in world units. If None, the spacing of the image is used.
+        :param inverse: Return
+
+        :return: affine 4 x 4 matrix
+        """
+
+        # Matrix multiplication of orientation and spacing (scale) matrices (A_orientation * A_spacing).
+        matrix = np.matmul(self._get_orientation_matrix(orientation=orientation),
+                           self._get_spacing_matrix(spacing=spacing))
+
+        # Matrix multiplication of the origin matrix and the previous result (A_origin * (A_orientation * A_spacing)).
+        matrix = np.matmul(self._get_origin_matrix(origin=origin),
+                           matrix)
+
+        # Compute inverse affine matrix for translating from world coordinates to voxel coordinates.
+        if inverse:
+            matrix = np.linalg.inv(matrix)
+
+        return matrix
+
+    def _get_orientation_matrix(
+            self,
+            size: int = 4,
+            orientation: Union[None, np.ndarray] = None):
+
+        if size not in [3, 4]:
+            raise ValueError(f"The size argument should be 3 or 4. Found: {size}")
+
+        if orientation is None:
+            orientation = self.orientation
+
+        # Create identity matrix and insert orientation matrix.
+        orientation_matrix = np.identity(n=size, dtype=float)
+        orientation_matrix[0:3, 0:3] = orientation
+
+        return orientation_matrix
+
+    def _get_spacing_matrix(
+            self,
+            size: int = 4,
+            spacing: Union[None, np.ndarray] = None,
+            inverse: bool = False):
+
+        if size not in [3, 4]:
+            raise ValueError(f"The size argument should be 3 or 4. Found: {size}")
+
+        if spacing is None:
+            spacing = self.spacing
+
+        if size == 4:
+            spacing = np.append(spacing, 1.0)
+
+        if inverse:
+            spacing = 1.0 / spacing
+
+        # Create identity matrix.
+        spacing_matrix = np.identity(n=size, dtype=float)
+
+        # Fill diagonal of the identify matrix with spacing.
+        np.fill_diagonal(spacing_matrix, spacing)
+
+        return spacing_matrix
+
+    def _get_origin_matrix(
+            self,
+            origin: Union[None, np.ndarray] = None,
+            inverse: bool = False):
+
+        if origin is None:
+            origin = self.origin
+
+        if inverse:
+            origin = -1.0 * origin
+
+        origin_matrix = np.identity(n=4, dtype=float)
+        origin_matrix[0:3, 3] = origin
+
+        return origin_matrix
+
+    def world_coordinates(self):
+
+        # Create grid.
+        voxel_coordinate_z, voxel_coordinate_y, voxel_coordinate_x = np.mgrid[
+                                                                     :self.size[0],
+                                                                     :self.size[1],
+                                                                     :self.size[2]]
+
+        # Set voxel coordinates.
+        voxel_coordinates = np.array([voxel_coordinate_z.flatten().astype(float),
+                                      voxel_coordinate_y.flatten().astype(float),
+                                      voxel_coordinate_x.flatten().astype(float)])
+
+        # Convert world coordinates.
+        return self.to_world_coordinates(x=voxel_coordinates)
