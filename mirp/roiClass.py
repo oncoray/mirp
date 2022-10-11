@@ -249,7 +249,7 @@ class RoiClass:
 
             # Interpolate ROI mask at the grid coordinates.
             new_mask = map_coordinates(
-                input=self.roi.get_voxel_grid(),
+                input=self.roi.get_voxel_grid().astype(float),
                 coordinates=grid_coordinates,
                 order=1,
                 mode="nearest"
