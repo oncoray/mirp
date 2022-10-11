@@ -188,13 +188,18 @@ class RoiClass:
         # Perform anti-aliasing if required.
         if settings.img_interpolate.anti_aliasing:
             from mirp.imageProcess import gaussian_preprocess_filter
-            self.roi.set_voxel_grid(voxel_grid=gaussian_preprocess_filter(orig_vox=self.roi.get_voxel_grid(), orig_spacing=self.roi.spacing,
-                                                                          sample_spacing=img_obj.spacing,
-                                                                          param_beta=settings.img_interpolate.smoothing_beta,
-                                                                          mode="nearest",
-                                                                          by_slice=settings.general.by_slice))
+            self.roi.set_voxel_grid(
+                voxel_grid=gaussian_preprocess_filter(
+                    orig_vox=self.roi.get_voxel_grid(),
+                    orig_spacing=self.roi.spacing,
+                    sample_spacing=img_obj.spacing,
+                    param_beta=settings.img_interpolate.smoothing_beta,
+                    mode="nearest",
+                    by_slice=settings.general.by_slice
+                )
+            )
 
-        # Register with image
+        # Register with image to create a segmentation mask with the same dimensions as the image.
         self.register(img_obj=img_obj)
 
         # Binarise
@@ -204,12 +209,12 @@ class RoiClass:
         """Register roi with image
         Do not apply threshold until after interpolation"""
 
+        from scipy.ndimage import map_coordinates
+
         if apply_to_self is False:
             roi_copy = self.copy()
             roi_copy.register(img_obj=img_obj, apply_to_self=True)
             return roi_copy
-
-        from mirp.imageProcess import interpolate_to_new_grid
 
         # Skip if image and/or is missing
         if img_obj is None or self.roi is None:
@@ -219,42 +224,48 @@ class RoiClass:
         registration_required = False
 
         # Mismatch in grid dimension
-        if np.any([np.abs(np.array(self.roi.size) - np.array(img_obj.size)) > 0.0]):
+        if not np.array_equal(self.roi.size, img_obj.size):
             registration_required = True
 
         # Mismatch in origin
-        if np.any([np.abs(self.roi.origin - img_obj.origin) > 0.0]):
+        if not np.allclose(self.roi.origin, img_obj.origin):
             registration_required = True
 
         # Mismatch in spacing
-        if np.any([np.abs(self.roi.spacing - img_obj.spacing) > 0.0]):
+        if not np.allclose(self.roi.spacing, img_obj.spacing):
             registration_required = True
 
+        # Mismatch in orientation
         if not np.allclose(self.roi.orientation, img_obj.orientation):
-            raise ValueError("Cannot register segmentation and image object due to different alignments. "
-                             "Please use an external programme to transfer segmentation to the image.")
+            registration_required = True
 
         if registration_required:
-            # Register roi to image; this transforms the roi grid into
-            self.roi.size, sample_spacing, voxel_grid, grid_origin = \
-                interpolate_to_new_grid(orig_dim=self.roi.size,
-                                        orig_spacing=self.roi.spacing,
-                                        orig_vox=self.roi.get_voxel_grid(),
-                                        sample_dim=img_obj.size,
-                                        sample_spacing=img_obj.spacing,
-                                        grid_origin=np.dot(self.roi.m_affine_inv, np.transpose(img_obj.origin - self.roi.origin)),
-                                        order=1,
-                                        mode="nearest",
-                                        align_to_center=False)
 
-            # Update origin before spacing, because computing the origin requires the original affine matrix.
-            self.roi.origin = self.roi.origin + np.dot(self.roi.m_affine, np.transpose(grid_origin))
+            # Create grid coordinates in world space using the image object.
+            grid_coordinates = img_obj.world_coordinates()
 
-            # Update spacing and affine matrix.
-            self.roi.set_spacing(sample_spacing)
+            # Translate grid coordinates into voxel space of the roi object.
+            grid_coordinates = self.roi.to_voxel_coordinates(x=grid_coordinates)
+
+            # Interpolate ROI mask at the grid coordinates.
+            new_mask = map_coordinates(
+                input=self.roi.get_voxel_grid(),
+                coordinates=grid_coordinates,
+                order=1,
+                mode="nearest"
+            )
+
+            new_mask = np.reshape(new_mask, img_obj.size)
+
+            # Update orientation and origin of the ROI object.
+            self.roi.orientation = copy.deepcopy(img_obj.orientation)
+            self.roi.origin = copy.deepcopy(img_obj.origin)
+
+            # Update spacing of the ROI object.
+            self.roi.spacing = copy.deepcopy(img_obj.spacing)
 
             # Update voxel grid
-            self.roi.set_voxel_grid(voxel_grid=voxel_grid)
+            self.roi.set_voxel_grid(voxel_grid=new_mask)
 
     def binarise_mask(self):
 
