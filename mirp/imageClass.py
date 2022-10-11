@@ -288,6 +288,7 @@ class ImageClass:
         # within the slice.
         if by_slice:
             new_spacing[0] = self.spacing[0]
+        new_spacing = new_spacing.astype(float)
 
         # Image translation
         translation = np.array([
@@ -414,7 +415,7 @@ class ImageClass:
         self.origin = np.squeeze(np.matmul(geometric_affine_matrix, world_grid_origin[:, np.newaxis]), axis=1)[0:3]
 
         # Update spacing and affine matrix.
-        self.set_spacing(new_spacing)
+        self.spacing = new_spacing
 
         # Set interpolation
         self.interpolated = True
