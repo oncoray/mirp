@@ -252,7 +252,7 @@ class RoiClass:
                 input=self.roi.get_voxel_grid().astype(float),
                 coordinates=grid_coordinates,
                 order=1,
-                mode="nearest"
+                mode="constant"
             )
 
             new_mask = np.reshape(new_mask, img_obj.size)
