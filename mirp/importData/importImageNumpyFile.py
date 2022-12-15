@@ -6,18 +6,24 @@ from mirp.importData.importImageFile import ImageFile
 
 
 class ImageNumpyFile(ImageFile):
-    def __init__(self, file_path: str,
-                 file_type: str,
-                 sample_name: Union[None, str] = None,
-                 suggested_sample_name: Union[None, str, dict[str, str, str]] = None,
-                 image_name: Union[None, str] = None,
-                 modality: Union[None, str] = None):
-        super().__init__(file_path=file_path,
-                         sample_name=sample_name,
-                         suggested_sample_name=suggested_sample_name,
-                         image_name=image_name,
-                         modality=modality,
-                         file_type=file_type)
+    def __init__(
+            self,
+            file_path: Union[None, str] = None,
+            dir_path: Union[None, str] = None,
+            sample_name: Union[None, str] = None,
+            file_name: Union[None, str] = None,
+            image_name: Union[None, str] = None,
+            modality: Union[None, str] = None,
+            file_type: Union[None, str] = None):
+
+        super().__init__(
+            file_path=file_path,
+            dir_path=dir_path,
+            sample_name=sample_name,
+            file_name=file_name,
+            image_name=image_name,
+            modality=modality,
+            file_type=file_type)
 
     def check(self, raise_error=False):
 

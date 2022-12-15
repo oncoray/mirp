@@ -1,7 +1,7 @@
 from typing import Union
 
 
-def supported_modalities(modality: Union[None, str] = None):
+def supported_image_modalities(modality: Union[None, str] = None):
     if modality is None:
         return ["ct", "pt", "pet", "mr", "mri", "generic"]
 
@@ -19,6 +19,23 @@ def supported_modalities(modality: Union[None, str] = None):
 
     else:
         raise ValueError(f"Encountered an unknown image modality as modality argument: {modality}")
+
+
+def supported_mask_modalities(modality: Union[None, str] = None):
+    if modality is None:
+        return ["rtsruct", "seg", "generic_mask"]
+
+    elif modality == "rtstruct":
+        return ["rtstruct"]
+
+    elif modality in ["seg"]:
+        return ["seg"]
+
+    elif modality == "generic_mask":
+        return ["generic_mask"]
+
+    else:
+        raise ValueError(f"Encountered an unknown segmentation modality as modality argument: {modality}")
 
 
 def supported_file_types(file_type: Union[None, str] = None):

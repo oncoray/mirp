@@ -9,8 +9,9 @@ from mirp.importData.importImageDicomFile import ImageDicomFile
 
 class ImageFileStack:
 
-    def __init__(self,
-                 image_list: Union[List[ImageDicomFile], List[ImageFile]]):
+    def __init__(
+            self,
+            image_list: Union[List[ImageDicomFile], List[ImageFile]]):
 
         self.image_list = image_list
         self.sample_name = image_list[0].sample_name
@@ -40,9 +41,6 @@ class ImageFileStack:
         # Update image list explicitly.
         if self.image_list is not None:
             self.image_list = [image_file.set_sample_name(sample_name) for image_file in self.image_list]
-
-    def reset_sample_name(self):
-        self.image_list = [image_file.reset_sample_name() for image_file in self.image_list]
 
     def check(self, raise_error=False):
 

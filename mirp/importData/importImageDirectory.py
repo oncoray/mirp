@@ -10,14 +10,16 @@ from mirp.importData.importImageFile import ImageFile
 
 class ImageDirectory:
 
-    def __init__(self,
-                 directory,
-                 sample_name: Union[None, str, List[str]] = None,
-                 image_name: Union[None, str] = None,
-                 sub_folder: Union[None, str] = None,
-                 modality: Union[None, str] = None,
-                 file_type: Union[None, str] = None,
-                 contain_multiple_samples: [bool] = False):
+    def __init__(
+            self,
+            directory,
+            sample_name: Union[None, str, List[str]] = None,
+            image_name: Union[None, str] = None,
+            sub_folder: Union[None, str] = None,
+            modality: Union[None, str] = None,
+            file_type: Union[None, str] = None,
+            contain_multiple_samples: [bool] = False,
+            **kwargs):
 
         self.image_directory = directory
         self.sample_name = sample_name
