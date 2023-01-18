@@ -37,7 +37,6 @@ class ImageClass:
 
         # The spacing, the affine matrix and its inverse are set using the set_spacing method.
         self.spacing = None
-        self.m_affine = None
 
         # Set voxel spacing. This also set the affine matrix and its inverse.
         self.set_spacing(new_spacing=np.array(spacing))
@@ -138,9 +137,6 @@ class ImageClass:
 
         # Update spacing
         self.spacing: np.ndarray = new_spacing
-
-        # Recompute the affine matrices
-        self.m_affine = np.reshape(np.repeat(self.spacing, 3), [3, 3]) * self.orientation
 
     def set_voxel_grid(self, voxel_grid):
         """ Sets voxel grid """
@@ -775,7 +771,6 @@ class ImageClass:
 
         # Update origin
         self.origin = self.to_world_coordinates(x=np.array(min_ind_orig))
-        # self.origin += np.dot(self.m_affine, np.transpose(grid_origin))
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_grid)
@@ -999,7 +994,6 @@ class ImageClass:
 
                 # Update origin and slice position
                 slice_img_obj.origin = self.to_world_coordinates(x=np.array([ii, 0, 0]))
-                # slice_img_obj.origin += np.dot(self.m_affine, np.array([ii, 0, 0]))
 
                 # Update name
                 if slice_img_obj.name is not None:
@@ -1017,7 +1011,6 @@ class ImageClass:
 
             # Update origin and slice position
             slice_img_obj.origin = self.to_world_coordinates(x=np.array([slice_number, 0, 0]))
-            # slice_img_obj.origin += np.dot(self.m_affine, np.array([slice_number, 0, 0]))
 
             # Update name
             if slice_img_obj.name is not None:
