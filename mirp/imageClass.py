@@ -262,8 +262,11 @@ class ImageClass:
         if self.slice_position is not None:
             self.interpolate_missing_slices()
 
+        # Read interpolation flag.
+        interpolate_flag = settings.img_interpolate.interpolate
+
         # Local interpolation constants
-        if settings.img_interpolate.new_spacing is None:
+        if settings.img_interpolate.new_spacing is None or not interpolate_flag:
             # Use original spacing.
             new_spacing = self.spacing
 
@@ -277,8 +280,6 @@ class ImageClass:
         # Read order of multidimensional spline filter (0=nearest neighbours, 1=linear, 3=cubic)
         order = settings.img_interpolate.spline_order
 
-        # Read interpolation flag.
-        interpolate_flag = settings.img_interpolate.interpolate
 
         # Set spacing for interpolation across slices to the original spacing in case interpolation is only conducted
         # within the slice.
