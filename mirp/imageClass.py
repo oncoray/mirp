@@ -280,7 +280,6 @@ class ImageClass:
         # Read order of multidimensional spline filter (0=nearest neighbours, 1=linear, 3=cubic)
         order = settings.img_interpolate.spline_order
 
-
         # Set spacing for interpolation across slices to the original spacing in case interpolation is only conducted
         # within the slice.
         if by_slice:

@@ -10,7 +10,10 @@ from mirp.roiClass import RoiClass
 from typing import Union, List
 
 
-def randomise_roi_contours(roi_list, img_obj, settings: SettingsClass):
+def randomise_roi_contours(
+        roi_list: List[RoiClass],
+        img_obj: ImageClass,
+        settings: SettingsClass):
     """Use SLIC to randomise the roi based on supervoxels"""
 
     # Check whether randomisation should take place
