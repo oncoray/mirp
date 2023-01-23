@@ -53,7 +53,7 @@ def randomise_roi_contours(roi_list, img_obj, settings: SettingsClass):
         overlap_fract[overlap_fract < 0.20] = 0.0
 
         # Determine grid indices of the resected grid with respect to the original image grid
-        grid_origin = world_to_index(coord=res_img_obj.origin, origin=img_obj.origin, spacing=img_obj.spacing)
+        grid_origin = img_obj.to_voxel_coordinates(x=res_img_obj.origin)
         grid_origin = grid_origin.astype(int)
 
         # Iteratively create randomised regions of interest
