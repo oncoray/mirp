@@ -28,7 +28,11 @@ def randomise_roi_contours(
     for roi_ind in np.arange(0, len(roi_list)):
 
         # Resect image to speed up segmentation process
-        res_img_obj, res_roi_obj = crop_image(img_obj=img_obj, roi_obj=roi_list[roi_ind], boundary=25.0, z_only=False)
+        res_img_obj, res_roi_obj = crop_image(
+            img_obj=img_obj,
+            roi_obj=roi_list[roi_ind],
+            boundary=25.0,
+            z_only=False)
 
         # Check if the roi is empty. If so, add the number of required empty rois
         if res_roi_obj.is_empty():
@@ -42,10 +46,15 @@ def randomise_roi_contours(
             continue
 
         # Get supervoxels
-        img_segments = get_supervoxels(img_obj=res_img_obj, roi_obj=res_roi_obj, settings=settings)
+        img_segments = get_supervoxels(
+            img_obj=res_img_obj,
+            roi_obj=res_roi_obj,
+            settings=settings)
 
         # Determine overlap of supervoxels with contour
-        overlap_indices, overlap_fract, overlap_size = get_supervoxel_overlap(roi_obj=res_roi_obj, img_segments=img_segments)
+        overlap_indices, overlap_fract, overlap_size = get_supervoxel_overlap(
+            roi_obj=res_roi_obj,
+            img_segments=img_segments)
 
         # Set the highest overlap to 1.0 to ensure selection of at least 1 supervoxel
         overlap_fract[np.argmax(overlap_fract)] = 1.0

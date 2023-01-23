@@ -10,6 +10,10 @@
   step, this also prevents unnecessary image degradation through the interpolation process. The new implementation 
   operates using affine matrix transformations.
 
+## Fixes
+
+- Fixed a deprecation warning caused by `slic` of the `scikit-learn` module.
+
 # Version 1.2.0
 
 ## Major changes

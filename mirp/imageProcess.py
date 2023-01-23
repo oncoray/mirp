@@ -262,9 +262,10 @@ def estimate_image_noise(img_obj, settings, method="chang"):
     return est_noise
 
 
-def get_supervoxels(img_obj: ImageClass,
-                    roi_obj: RoiClass,
-                    settings: SettingsClass):
+def get_supervoxels(
+        img_obj: ImageClass,
+        roi_obj: RoiClass,
+        settings: SettingsClass):
     """Extracts supervoxels from an image"""
 
     from skimage.segmentation import slic
@@ -307,8 +308,15 @@ def get_supervoxels(img_obj: ImageClass,
         img_voxel_grid = img_voxel_grid.astype(float)
 
     # Create a slic segmentation of the image stack
-    img_segments = slic(image=img_voxel_grid, n_segments=n_segments, sigma=sigma, spacing=img_obj.spacing,
-                        compactness=0.05, multichannel=False, convert2lab=False, enforce_connectivity=True)
+    img_segments = slic(
+        image=img_voxel_grid,
+        n_segments=n_segments,
+        sigma=sigma,
+        spacing=img_obj.spacing,
+        compactness=0.05,
+        convert2lab=False,
+        enforce_connectivity=True,
+        channel_axis=None)
     img_segments += 1
 
     # Release img_voxel_grid
