@@ -17,7 +17,6 @@ def randomise_roi_contours(roi_list, img_obj, settings: SettingsClass):
     if not settings.perturbation.randomise_roi:
         return roi_list
 
-    from mirp.utilities import world_to_index
     from scipy.ndimage import binary_closing
 
     new_roi_list = []

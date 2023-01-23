@@ -6,16 +6,6 @@ import pandas as pd
 import numpy as np
 
 
-def index_to_world(index, origin, spacing):
-    """"Translates index to world coordinates"""
-    return origin + index * spacing
-
-
-def world_to_index(coord, origin, spacing):
-    """"Translates world coordinates to index"""
-    return (coord - origin) / spacing
-
-
 def extract_roi_names(roi_list):
     """
     Extract the names of the regions of interest in roi_list
