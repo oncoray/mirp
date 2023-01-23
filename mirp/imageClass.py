@@ -827,7 +827,8 @@ class ImageClass:
         file_name = self.get_export_descriptor() + ".nii.gz"
 
         # Export image to file
-        self.write(file_path=file_path, file_name=file_name)
+        if file_path is not None:
+            self.write(file_path=file_path, file_name=file_name)
 
     def get_export_descriptor(self):
         """

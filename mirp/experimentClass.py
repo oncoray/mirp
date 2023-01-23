@@ -309,6 +309,9 @@ class ExperimentClass:
         # Get iterables from current settings which lead to different image adaptations
         iter_set, n_outer_iter, n_inner_iter = self.get_iterable_parameters(settings=self.settings)
 
+        # Set initial values.
+        img_obj = roi_list = None
+
         # Load image and roi
         if self.keep_images_in_memory:
             base_img_obj, base_roi_list = load_image(image_folder=self.image_folder,
@@ -489,13 +492,15 @@ class ExperimentClass:
             if self.compute_features:
                 feat_list.append(self.collect_features(img_obj=img_obj, roi_list=roi_list, feat_list=iter_feat_list, settings=curr_setting))
 
-            # Clean up
-            del img_obj, roi_list
+            # Clean up if required.
+            if self.write_path is not None:
+                del img_obj, roi_list
 
         ########################################################################################################
         # Feature aggregation over settings
         ########################################################################################################
 
+        feature_table = None
         if self.compute_features:
 
             # Strip empty entries
@@ -507,7 +512,7 @@ class ExperimentClass:
                 return None
 
             # Concatenate feat list
-            df_feat = pd.concat(feat_list, axis=0)
+            feature_table = pd.concat(feat_list, axis=0)
 
             # Write to file
             file_name = self._create_base_file_name() + "_features.csv"
@@ -515,14 +520,22 @@ class ExperimentClass:
             # Write successful completion to console or log
             logging.info(self._message_feature_extraction_finished())
 
-            if self.write_path is None:
-                return df_feat
-            else:
-                df_feat.to_csv(path_or_buf=os.path.join(self.write_path, file_name),
-                               sep=";",
-                               na_rep="NA",
-                               index=False,
-                               decimal=".")
+            if self.write_path is not None:
+                feature_table.to_csv(
+                    path_or_buf=os.path.join(self.write_path, file_name),
+                    sep=";",
+                    na_rep="NA",
+                    index=False,
+                    decimal=".")
+
+        if self.compute_features and self.extract_images and self.write_path is None:
+            return feature_table, img_obj, roi_list
+
+        elif self.compute_features and self.write_path is None:
+            return feature_table
+
+        elif self.extract_images and self.write_path is None:
+            return img_obj, roi_list
 
     def process_deep_learning(self,
                               output_slices=False,

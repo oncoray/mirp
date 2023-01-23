@@ -967,12 +967,18 @@ class RoiClass:
         roi_str_components += [self.get_export_descriptor()]
 
         # Write morphological and intensity roi
-        if self.roi_morphology is not None and self.roi_intensity is not None:
-            self.roi_morphology.write(file_path=file_path, file_name="_".join(roi_str_components + ["morph.nii.gz"]))
-            self.roi_intensity.write(file_path=file_path, file_name="_".join(roi_str_components + ["int.nii.gz"]))
+        if self.roi_morphology is not None and self.roi_intensity is not None and file_path is not None:
+            self.roi_morphology.write(
+                file_path=file_path,
+                file_name="_".join(roi_str_components + ["morph.nii.gz"]))
+            self.roi_intensity.write(
+                file_path=file_path,
+                file_name="_".join(roi_str_components + ["int.nii.gz"]))
 
-        elif self.roi is not None:
-            self.roi.write(file_path=file_path, file_name="_".join(roi_str_components + ["nii.gz"]))
+        elif self.roi is not None and file_path is not None:
+            self.roi.write(
+                file_path=file_path,
+                file_name="_".join(roi_str_components + ["nii.gz"]))
 
         else:
             return
