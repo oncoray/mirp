@@ -27,14 +27,14 @@ def test_noise_perturbation():
     feature_table, img_obj, roi_list = experiment.process()
 
     # Assert that object location and origin have not changed.
-    assert np.allclose(img_obj.origin, [-100.400, -79.626, -174.395])
+    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
     assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.origin, [-100.400, -79.626, -174.395])
+    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
     assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
-    assert np.isclose(feature_table["morph_volume"][0], 358417.64)
+    assert np.isclose(feature_table["morph_volume"][0], 357750.3)
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.829533)
+    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def test_translation_perturbation():
@@ -50,30 +50,27 @@ def test_translation_perturbation():
     feature_table, img_obj, roi_list = experiment.process()
 
     # Origin has changed.
-    assert ~np.allclose(img_obj.origin, [-100.400, -79.626, -174.395])
-    assert ~np.allclose(roi_list[0].roi.origin, [-100.400, -79.626, -174.395])
-    assert np.allclose(img_obj.origin, [-100.100, -79.528, -174.297])
-    assert np.allclose(roi_list[0].roi.origin, [-100.100, -79.528, -174.297])
+    assert ~np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
+    assert ~np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(img_obj.origin, [-101.300, -79.826, -174.629])
+    assert np.allclose(roi_list[0].roi.origin, [-101.300, -79.826, -174.629])
 
     # Assert that object orientation did not change.
     assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
     assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume should not change that much.
-    assert 358400.0 < feature_table["morph_volume"][0] < 358600.0
+    assert 357500.0 < feature_table["morph_volume"][0] < 358500.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.829533)
+    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def test_rotation_perturbation():
     perturbation_settings = ImagePerturbationSettingsClass(
         crop_around_roi=False,
-        perturbation_rotation_angles=45.0,
-        # perturbation_roi_adapt_type="fraction",
-        # perturbation_roi_adapt_size=0.2,
-        # perturbation_randomise_roi_repetitions=1
+        perturbation_rotation_angles=45.0
     )
 
     # Set up experiment.
@@ -83,10 +80,10 @@ def test_rotation_perturbation():
     feature_table, img_obj, roi_list = experiment.process()
 
     # Origin has changed in x-y plane.
-    assert ~np.allclose(img_obj.origin, [-100.400, -79.626, -174.395])
-    assert ~np.allclose(roi_list[0].roi.origin, [-100.400, -79.626, -174.395])
-    assert np.allclose(img_obj.origin, [-100.400, -121.130, -76.265])
-    assert np.allclose(roi_list[0].roi.origin, [-100.400, -121.130, -76.265])
+    assert ~np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
+    assert ~np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(img_obj.origin, [-101.400, -121.579, -76.290])
+    assert np.allclose(roi_list[0].roi.origin, [-101.400, -121.579, -76.290])
 
     # Orientation has changed.
     assert np.allclose(img_obj.orientation,
@@ -99,11 +96,101 @@ def test_rotation_perturbation():
                         [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]])
 
     # Volume should not change that much.
-    assert 358300.0 < feature_table["morph_volume"][0] < 358600.0
+    assert 357500.0 < feature_table["morph_volume"][0] < 358500.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.829533)
+    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_perturbation_fraction_growth():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_roi_adapt_type="fraction",
+        perturbation_roi_adapt_size=0.2
+        # perturbation_randomise_roi_repetitions=1
+    )
+
+    # Set up experiment.
+    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+
+    # Run computations.
+    feature_table, img_obj, roi_list = experiment.process()
+
+    # Origin remains the same.
+    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+
+    # Assert that object orientation did not change.
+    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
+    # Volume should grow by 20%.
+    assert 357500.0 * 1.20 < feature_table["morph_volume"][0] < 358500.0 * 1.20
+
+    # Mean value should change slightly.
+    assert 40.0 < feature_table["stat_mean"][0] < 50.0
+    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_perturbation_fraction_shrink():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_roi_adapt_type="fraction",
+        perturbation_roi_adapt_size=-0.2
+        # perturbation_randomise_roi_repetitions=1
+    )
+
+    # Set up experiment.
+    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+
+    # Run computations.
+    feature_table, img_obj, roi_list = experiment.process()
+
+    # Origin remains the same.
+    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+
+    # Assert that object orientation did not change.
+    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
+    # Volume should shrink by 20%.
+    assert 357500.0 * 0.80 < feature_table["morph_volume"][0] < 358500.0 * 0.80
+
+    # Mean value should change slightly.
+    assert 40.0 < feature_table["stat_mean"][0] < 50.0
+    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_perturbation_distance_grow():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_roi_adapt_type="distance",
+        perturbation_roi_adapt_size=2.0
+        # perturbation_randomise_roi_repetitions=1
+    )
+
+    # Set up experiment.
+    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+
+    # Run computations.
+    feature_table, img_obj, roi_list = experiment.process()
+
+    # Origin remains the same.
+    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+
+    # Assert that object orientation did not change.
+    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
+    # Volume should grow.
+    assert 420000.0 < feature_table["morph_volume"][0] < 421000.0
+
+    # Mean value should change slightly.
+    assert 40.0 < feature_table["stat_mean"][0] < 50.0
+    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def generate_experiments(perturbation_settings):
@@ -161,7 +248,7 @@ def create_settings(
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=False,
-        interpolate=False,
+        interpolate=True,
         spline_order=3,
         new_spacing=new_spacing,
         anti_aliasing=False
