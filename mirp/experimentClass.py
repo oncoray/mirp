@@ -562,7 +562,7 @@ class ExperimentClass:
             level=logging.INFO, stream=sys.stdout)
 
         # Notifications
-        logging.info(f"\nInitialising image and mask processing for {'_'.join([self.modality, self.data_str, self.subject])}.")
+        logging.info(self._message_computation_initialisation())
 
         # Process input parameters.
         crop_as_3d = crop_size is None or len(crop_size) == 3
