@@ -12,6 +12,16 @@ PERTURB_IMAGES = False
 WRITE_TEMP_FILES = True
 
 
+def within_tolerance(ref, tol, x):
+    # Read from pandas Series
+    x = x.values[0]
+
+    if abs(x - ref) <= tol:
+        return True
+    else:
+        return False
+
+
 def _get_default_settings(by_slice: bool,
                           configuration_id: str,
                           base_feature_families="none"):
@@ -67,10 +77,11 @@ def _get_default_settings(by_slice: bool,
     return general_settings, image_interpolation_settings, feature_computation_parameters, resegmentation_settings, perturbation_settings
 
 
-def _process_experiment(configuration_id: str,
-                        by_slice: bool,
-                        image_transformation_settings: ImageTransformationSettingsClass,
-                        base_feature_families: str = "none"):
+def _process_experiment(
+        configuration_id: str,
+        by_slice: bool,
+        image_transformation_settings: ImageTransformationSettingsClass,
+        base_feature_families: str = "none"):
 
     # Set testing directory
     test_dir = os.path.join(CURRENT_DIR, "data", "temp")
@@ -79,9 +90,10 @@ def _process_experiment(configuration_id: str,
 
     # Get default settings.
     general_settings, image_interpolation_settings, feature_computation_parameters, resegmentation_settings, \
-        perturbation_settings = _get_default_settings(by_slice=by_slice,
-                                                      configuration_id=configuration_id,
-                                                      base_feature_families=base_feature_families)
+        perturbation_settings = _get_default_settings(
+        by_slice=by_slice,
+        configuration_id=configuration_id,
+        base_feature_families=base_feature_families)
 
     settings = SettingsClass(
         general_settings=general_settings,
@@ -150,7 +162,24 @@ def test_ibsi_2_config_none():
         base_feature_families="statistics"
     )
 
-    # TODO assert stuff one IBSI 2 is done.
+    assert (within_tolerance(3.65, 0.34, data["stat_kurt"]))
+    assert (within_tolerance(-434, 21, data["stat_p10"]))
+    assert (within_tolerance(93, 0.1, data["stat_p90"]))
+    assert (within_tolerance(-4.92, 0.42, data["stat_cov"]))
+    assert (within_tolerance(6.96e+09, 4.5e+08, data["stat_energy"]))
+    assert (within_tolerance(69, 6.4, data["stat_iqr"]))
+    assert (within_tolerance(377, 10, data["stat_max"]))
+    assert (within_tolerance(-47, 4.6, data["stat_mean"]))
+    assert (within_tolerance(160, 5, data["stat_mad"]))
+    assert (within_tolerance(41, 0.6, data["stat_median"]))
+    assert (within_tolerance(122, 4, data["stat_medad"]))
+    assert (within_tolerance(-1000, 10, data["stat_min"]))
+    assert (within_tolerance(1, 0.85, data["stat_qcod"]))
+    assert (within_tolerance(1380, 10, data["stat_range"]))
+    assert (within_tolerance(64.4, 5.8, data["stat_rmad"]))
+    assert (within_tolerance(236, 5, data["stat_rms"]))
+    assert (within_tolerance(-2.17, 0.07, data["stat_skew"]))
+    assert (within_tolerance(53300, 2000, data["stat_var"]))
 
     # Configuration 1.B ------------------------------------------------------------------------------------------------
     image_transformation_settings = ImageTransformationSettingsClass(
@@ -168,7 +197,24 @@ def test_ibsi_2_config_none():
         base_feature_families="statistics"
     )
 
-    # TODO assert stuff one IBSI 2 is done.
+    assert (within_tolerance(3.71, 0.47, data["stat_kurt"]))
+    assert (within_tolerance(-427, 29, data["stat_p10"]))
+    assert (within_tolerance(92, 0.1, data["stat_p90"]))
+    assert (within_tolerance(-4.94, 0.64, data["stat_cov"]))
+    assert (within_tolerance(1.96e+10, 1.9e+09, data["stat_energy"]))
+    assert (within_tolerance(67, 9.1, data["stat_iqr"]))
+    assert (within_tolerance(377, 15, data["stat_max"]))
+    assert (within_tolerance(-46.4, 5.9, data["stat_mean"]))
+    assert (within_tolerance(159, 7, data["stat_mad"]))
+    assert (within_tolerance(41, 0.7, data["stat_median"]))
+    assert (within_tolerance(121, 6, data["stat_medad"]))
+    assert (within_tolerance(-997, 3, data["stat_min"]))
+    assert (within_tolerance(0.944, 0.925, data["stat_qcod"]))
+    assert (within_tolerance(1370, 20, data["stat_range"]))
+    assert (within_tolerance(63.6, 7.3, data["stat_rmad"]))
+    assert (within_tolerance(234, 7, data["stat_rms"]))
+    assert (within_tolerance(-2.18, 0.09, data["stat_skew"]))
+    assert (within_tolerance(52600, 2800, data["stat_var"]))
 
 
 def test_ibsi_2_config_mean_filter():
@@ -192,7 +238,26 @@ def test_ibsi_2_config_mean_filter():
         image_transformation_settings=image_transformation_settings
     )
 
-    # TODO assert stuff one IBSI 2 is done.
+    data.columns = [column_name.replace("mean_d_5_", "") for column_name in data.columns.values]
+
+    assert (within_tolerance(3.53, 0.33, data["stat_kurt"]))
+    assert (within_tolerance(-402, 18, data["stat_p10"]))
+    assert (within_tolerance(79.8, 0.1, data["stat_p90"]))
+    assert (within_tolerance(-4.33, 0.34, data["stat_cov"]))
+    assert (within_tolerance(6.15e+09, 3.9e+08, data["stat_energy"]))
+    assert (within_tolerance(82, 10.5, data["stat_iqr"]))
+    assert (within_tolerance(334, 7, data["stat_max"]))
+    assert (within_tolerance(-49.9, 4.4, data["stat_mean"]))
+    assert (within_tolerance(153, 5, data["stat_mad"]))
+    assert (within_tolerance(38.1, 0.7, data["stat_median"]))
+    assert (within_tolerance(116, 4, data["stat_medad"]))
+    assert (within_tolerance(-889, 3, data["stat_min"]))
+    assert (within_tolerance(1.85, 0.66, data["stat_qcod"]))
+    assert (within_tolerance(1220, 10, data["stat_range"]))
+    assert (within_tolerance(67.7, 5.6, data["stat_rmad"]))
+    assert (within_tolerance(222, 5, data["stat_rms"]))
+    assert (within_tolerance(-2.13, 0.07, data["stat_skew"]))
+    assert (within_tolerance(46600, 1600, data["stat_var"]))
 
     # Configuration 2.B ------------------------------------------------------------------------------------------------
     image_transformation_settings = ImageTransformationSettingsClass(
@@ -210,7 +275,26 @@ def test_ibsi_2_config_mean_filter():
         image_transformation_settings=image_transformation_settings
     )
 
-    # TODO assert stuff one IBSI 2 is done.
+    data.columns = [column_name.replace("mean_d_5_", "") for column_name in data.columns.values]
+
+    assert (within_tolerance(3.59, 0.46, data["stat_kurt"]))
+    assert (within_tolerance(-389, 25, data["stat_p10"]))
+    assert (within_tolerance(77.2, 0.1, data["stat_p90"]))
+    assert (within_tolerance(-4.22, 0.47, data["stat_cov"]))
+    assert (within_tolerance(1.68e+10, 1.6e+09, data["stat_energy"]))
+    assert (within_tolerance(92.6, 13.5, data["stat_iqr"]))
+    assert (within_tolerance(316, 7, data["stat_max"]))
+    assert (within_tolerance(-49.9, 5.7, data["stat_mean"]))
+    assert (within_tolerance(149, 6, data["stat_mad"]))
+    assert (within_tolerance(37.3, 0.6, data["stat_median"]))
+    assert (within_tolerance(114, 5, data["stat_medad"]))
+    assert (within_tolerance(-906, 5, data["stat_min"]))
+    assert (within_tolerance(2.97, 0.58, data["stat_qcod"]))
+    assert (within_tolerance(1220, 10, data["stat_range"]))
+    assert (within_tolerance(68.1, 6.9, data["stat_rmad"]))
+    assert (within_tolerance(217, 7, data["stat_rms"]))
+    assert (within_tolerance(-2.13, 0.09, data["stat_skew"]))
+    assert (within_tolerance(44400, 2300, data["stat_var"]))
 
 
 def test_ibsi_2_config_laplacian_of_gaussian_filter():
