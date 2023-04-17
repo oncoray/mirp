@@ -2342,7 +2342,7 @@ def import_configuration_settings(compute_features: bool,
 
     # Prevent checking of feature parameters if features are not computed.
     if not compute_features:
-        base_feature_families = None,
+        base_feature_families = None
         response_map_feature_families = None
 
     for branch in root.findall("config"):
