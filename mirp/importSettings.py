@@ -2281,8 +2281,9 @@ def import_configuration_settings(compute_features: bool,
 
         # Prevent checking of feature parameters if features are not computed.
         if not compute_features:
-            kwargs.update({"base_feature_families": "none",
-                           "response_map_feature_families": "none"})
+            kwargs.update({
+                "base_feature_families": "none",
+                "response_map_feature_families": "none"})
 
         # Set general settings.
         general_settings = GeneralSettingsClass(**kwargs)
@@ -2292,8 +2293,10 @@ def import_configuration_settings(compute_features: bool,
         kwargs.pop("no_approximation", None)
 
         # Set image interpolation settings
-        image_interpolation_settings = ImageInterpolationSettingsClass(by_slice=general_settings.by_slice,
-                                                                       **kwargs)
+        image_interpolation_settings = ImageInterpolationSettingsClass(
+            by_slice=general_settings.by_slice,
+            **kwargs)
+
         # Set ROI interpolation settings
         roi_interpolation_settings = RoiInterpolationSettingsClass(**kwargs)
 
