@@ -37,11 +37,12 @@ def _get_default_settings(by_slice: bool = False):
     return general_settings, image_interpolation_settings, feature_computation_parameters
 
 
-def _setup_experiment(configuration_id: str,
-                      by_slice: bool,
-                      phantom: str,
-                      test_dir: str,
-                      image_transformation_settings: ImageTransformationSettingsClass):
+def _setup_experiment(
+        configuration_id: str,
+        by_slice: bool,
+        phantom: str,
+        test_dir: str,
+        image_transformation_settings: ImageTransformationSettingsClass):
 
     # Check if the temporary directory still exists.
     if os.path.isdir(test_dir) and REMOVE_TEMP_RESPONSE_MAPS:
@@ -83,10 +84,11 @@ def _setup_experiment(configuration_id: str,
     return main_experiment
 
 
-def _test_filter_configuration(configuration_id: str,
-                               phantom: str,
-                               image_transformation_settings: ImageTransformationSettingsClass,
-                               filter_kernel=None):
+def _test_filter_configuration(
+        configuration_id: str,
+        phantom: str,
+        image_transformation_settings: ImageTransformationSettingsClass,
+        filter_kernel=None):
 
     test_dir = os.path.join(CURRENT_DIR, "data", "temp")
     reference_dir = os.path.join(CURRENT_DIR, "data", "ibsi_2_reference_response_maps")
@@ -95,11 +97,12 @@ def _test_filter_configuration(configuration_id: str,
     if filter_kernel is None:
         filter_kernel = image_transformation_settings.spatial_filters[0]
 
-    experiment = _setup_experiment(configuration_id=configuration_id,
-                                   by_slice=image_transformation_settings.by_slice,
-                                   phantom=phantom,
-                                   test_dir=test_dir,
-                                   image_transformation_settings=image_transformation_settings)
+    experiment = _setup_experiment(
+        configuration_id=configuration_id,
+        by_slice=image_transformation_settings.by_slice,
+        phantom=phantom,
+        test_dir=test_dir,
+        image_transformation_settings=image_transformation_settings)
 
     # Generate data
     _ = experiment.process()
@@ -130,9 +133,7 @@ def _test_filter_configuration(configuration_id: str,
     reference_response_map = itk.imread(filename=os.path.join(reference_dir, dir_files[0]))
     reference_response_map_voxels = itk.GetArrayFromImage(reference_response_map)
 
-    assert(np.allclose(test_response_map_voxels,
-                       reference_response_map_voxels,
-                       atol=0.001))
+    assert(np.allclose(test_response_map_voxels, reference_response_map_voxels, atol=0.001))
 
 
 def test_ibsi_2_mean_filter():
@@ -185,8 +186,11 @@ def test_ibsi_2_mean_filter():
     )
 
     # Add to settings.
-    settings_list = [image_transformation_settings_1a1, image_transformation_settings_1a2,
-                     image_transformation_settings_1a3, image_transformation_settings_1a4]
+    settings_list = [
+        image_transformation_settings_1a1,
+        image_transformation_settings_1a2,
+        image_transformation_settings_1a3,
+        image_transformation_settings_1a4]
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
