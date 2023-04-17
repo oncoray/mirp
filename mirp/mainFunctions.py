@@ -157,7 +157,9 @@ def extract_images_for_deep_learning(data_config,
     """
 
     # Parse data
-    settings_list = import_configuration_settings(path=settings_config)
+    settings_list = import_configuration_settings(
+        compute_features=False,
+        path=settings_config)
     data_obj_list = import_data_settings(path=data_config,
                                          config_settings=settings_list,
                                          keep_images_in_memory=False,
