@@ -10,6 +10,7 @@ from mirp.contourClass import ContourClass
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
 from mirp.importSettings import SettingsClass
 
+
 class RoiClass:
     # Class for regions of interest
 
