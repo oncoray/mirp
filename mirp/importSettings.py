@@ -2056,7 +2056,7 @@ class ImageTransformationSettingsClass:
                 raise ValueError(f"The {var_name} parameter cannot be negative.")
 
             # Set filter order.
-            single_filter_order = list(np.arange(0, x+1))
+            single_filter_order = list(range(x+1))
 
             # Generate all valid combinations.
             x = [list(combination) for combination in product(single_filter_order, repeat=n_elements) if
