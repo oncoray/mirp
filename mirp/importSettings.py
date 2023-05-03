@@ -12,12 +12,13 @@ from typing import Union, List
 
 class GeneralSettingsClass:
 
-    def __init__(self,
-                 by_slice: Union[str, bool] = False,
-                 config_str: str = "",
-                 divide_disconnected_roi: str = "keep_as_is",
-                 no_approximation: bool = False,
-                 **kwargs):
+    def __init__(
+            self,
+            by_slice: Union[str, bool] = False,
+            config_str: str = "",
+            divide_disconnected_roi: str = "keep_as_is",
+            no_approximation: bool = False,
+            **kwargs):
         """
         Sets general experiment parameters.
 
@@ -64,8 +65,9 @@ class GeneralSettingsClass:
 
         # Check divide_disconnected_roi
         if divide_disconnected_roi not in ["keep_as_is", "keep_largest", "combine"]:
-            raise ValueError(f"The divide_disconnected_roi parameter should be 'keep_as_is', 'keep_largest', "
-                             f"'combine'. Found: {divide_disconnected_roi}")
+            raise ValueError(
+                f"The divide_disconnected_roi parameter should be 'keep_as_is', 'keep_largest', "
+                f"'combine'. Found: {divide_disconnected_roi}")
 
         # Set divide_disconnected_roi
         self.divide_disconnected_roi: str = divide_disconnected_roi
@@ -76,14 +78,15 @@ class GeneralSettingsClass:
 
 class ImageInterpolationSettingsClass:
 
-    def __init__(self,
-                 by_slice: bool,
-                 interpolate: bool = False,
-                 spline_order: int = 3,
-                 new_spacing: Union[float, int, List[int], List[float], None] = None,
-                 anti_aliasing: bool = True,
-                 smoothing_beta: float = 0.98,
-                 **kwargs):
+    def __init__(
+            self,
+            by_slice: bool,
+            interpolate: bool = False,
+            spline_order: int = 3,
+            new_spacing: Union[float, int, List[int], List[float], None] = None,
+            anti_aliasing: bool = True,
+            smoothing_beta: float = 0.98,
+            **kwargs):
         """
         Sets parameters related to image interpolation.
 
@@ -112,8 +115,8 @@ class ImageInterpolationSettingsClass:
 
         # Check if the spline order is valid.
         if spline_order < 0 or spline_order > 5:
-            raise ValueError(f"The interpolation spline order should be an integer between 0 and 5. Found:"
-                             f" {spline_order}")
+            raise ValueError(
+                f"The interpolation spline order should be an integer between 0 and 5. Found: {spline_order}")
 
         # Set spline order for the interpolating spline.
         self.spline_order: int = spline_order
@@ -125,8 +128,9 @@ class ImageInterpolationSettingsClass:
         else:
             # When interpolation is desired, check that the desired spacing is set.
             if new_spacing is None:
-                raise ValueError("The desired voxel spacing for resampling is required if interpolation=True. "
-                                 "However, no new spacing was defined.")
+                raise ValueError(
+                    "The desired voxel spacing for resampling is required if interpolation=True. "
+                    "However, no new spacing was defined.")
 
             # Parse value to list of floating point values to facilitate checks.
             if isinstance(new_spacing, (int, float)):
@@ -134,8 +138,10 @@ class ImageInterpolationSettingsClass:
 
             # Check if nested list elements are present.
             if any(isinstance(ii, list) for ii in new_spacing):
-                new_spacing = [self._check_new_sample_spacing(by_slice=by_slice, new_spacing=new_spacing_element)
-                               for new_spacing_element in new_spacing]
+                new_spacing = [
+                    self._check_new_sample_spacing(by_slice=by_slice, new_spacing=new_spacing_element)
+                    for new_spacing_element in new_spacing
+                ]
 
             else:
                 new_spacing = [self._check_new_sample_spacing(by_slice=by_slice, new_spacing=new_spacing)]
@@ -154,8 +160,9 @@ class ImageInterpolationSettingsClass:
         # Check that smoothing beta lies between 0.0 and 1.0.
         if anti_aliasing:
             if smoothing_beta <= 0.0 or smoothing_beta > 1.0:
-                raise ValueError(f"The value of the smoothing_beta parameter should lie between 0.0 and 1.0, "
-                                 f"not including 0.0. Found: {smoothing_beta}")
+                raise ValueError(
+                    f"The value of the smoothing_beta parameter should lie between 0.0 and 1.0, "
+                    f"not including 0.0. Found: {smoothing_beta}")
 
         # Set smoothing beta.
         self.smoothing_beta: float = smoothing_beta
@@ -184,8 +191,9 @@ class ImageInterpolationSettingsClass:
                 new_spacing.insert(0, None)
 
             else:
-                raise ValueError(f"The desired voxel spacing for in-slice resampling should consist of two "
-                                 f"elements. Found: {len(new_spacing)} elements.")
+                raise ValueError(
+                    f"The desired voxel spacing for in-slice resampling should consist of two "
+                    f"elements. Found: {len(new_spacing)} elements.")
         else:
             if len(new_spacing) == 1:
                 # This creates isotropic spacing.
@@ -196,18 +204,20 @@ class ImageInterpolationSettingsClass:
                 pass
 
             else:
-                raise ValueError(f"The desired voxel spacing for volumetric resampling should consist of three "
-                                 f"elements. Found: {len(new_spacing)} elements.")
+                raise ValueError(
+                    f"The desired voxel spacing for volumetric resampling should consist of three "
+                    f"elements. Found: {len(new_spacing)} elements.")
 
         return new_spacing
 
 
 class RoiInterpolationSettingsClass:
 
-    def __init__(self,
-                 roi_spline_order: int = 1,
-                 roi_interpolation_mask_inclusion_threshold: float = 0.5,
-                 **kwargs):
+    def __init__(
+            self,
+            roi_spline_order: int = 1,
+            roi_interpolation_mask_inclusion_threshold: float = 0.5,
+            **kwargs):
         """
         Sets interpolation parameters for the region of interest mask. MIRP actively maps the interpolation mask to the
         image, which is interpolated prior to the mask. Therefore, parameters such as new_spacing are missing.
@@ -224,32 +234,36 @@ class RoiInterpolationSettingsClass:
 
         # Check if the spline order is valid.
         if roi_spline_order < 0 or roi_spline_order > 5:
-            raise ValueError(f"The interpolation spline order for the ROI should be an integer between 0 and 5. Found:"
-                             f" {roi_spline_order}")
+            raise ValueError(
+                f"The interpolation spline order for the ROI should be an integer between 0 and 5. Found:"
+                f" {roi_spline_order}")
 
         # Set spline order.
         self.spline_order = roi_spline_order
 
         # Check if the inclusion threshold is between 0 and 1.
         if roi_interpolation_mask_inclusion_threshold <= 0.0 or roi_interpolation_mask_inclusion_threshold > 1.0:
-            raise ValueError(f"The inclusion threshold for the ROI mask should be between 0.0 and 1.0, excluding 0.0. Found: {roi_interpolation_mask_inclusion_threshold}")
+            raise ValueError(
+                f"The inclusion threshold for the ROI mask should be between 0.0 and 1.0, excluding 0.0. "
+                f"Found: {roi_interpolation_mask_inclusion_threshold}")
 
         self.incl_threshold = roi_interpolation_mask_inclusion_threshold
 
 
 class ImagePostProcessingClass:
 
-    def __init__(self,
-                 bias_field_correction: bool = False,
-                 bias_field_correction_n_fitting_levels: int = 3,
-                 bias_field_correction_n_max_iterations: Union[int, List[int], None] = None,
-                 bias_field_convergence_threshold: float = 0.001,
-                 intensity_normalisation: str = "none",
-                 intensity_normalisation_range: Union[List[float], None] = None,
-                 intensity_normalisation_saturation: Union[List[float], None] = None,
-                 tissue_mask_type: str = "relative_range",
-                 tissue_mask_range: Union[List[float], None] = None,
-                 **kwargs):
+    def __init__(
+            self,
+            bias_field_correction: bool = False,
+            bias_field_correction_n_fitting_levels: int = 3,
+            bias_field_correction_n_max_iterations: Union[int, List[int], None] = None,
+            bias_field_convergence_threshold: float = 0.001,
+            intensity_normalisation: str = "none",
+            intensity_normalisation_range: Union[List[float], None] = None,
+            intensity_normalisation_saturation: Union[List[float], None] = None,
+            tissue_mask_type: str = "relative_range",
+            tissue_mask_range: Union[List[float], None] = None,
+            **kwargs):
         """
         Sets parameters related to image post-processing. The current parameters can be used to post-process MR
         imaging.
@@ -299,8 +313,9 @@ class ImagePostProcessingClass:
                 raise TypeError("The bias_field_correction_n_fitting_levels should be integer with value 1 or larger.")
 
             if bias_field_correction_n_fitting_levels < 1:
-                raise ValueError(f"The bias_field_correction_n_fitting_levels should be integer with value 1 or larger. "
-                                 f"Found: {bias_field_correction_n_fitting_levels}")
+                raise ValueError(
+                    f"The bias_field_correction_n_fitting_levels should be integer with value 1 or larger. "
+                    f"Found: {bias_field_correction_n_fitting_levels}")
 
         else:
             bias_field_correction_n_fitting_levels = None
@@ -320,25 +335,29 @@ class ImagePostProcessingClass:
 
             # Ensure that the list of maximum iteration values equals the number of fitting levels.
             if bias_field_correction_n_fitting_levels > 1 and len(bias_field_correction_n_max_iterations) == 1:
-                bias_field_correction_n_max_iterations = [bias_field_correction_n_max_iterations[0] for ii in range(
-                    bias_field_correction_n_fitting_levels)]
+                bias_field_correction_n_max_iterations = [
+                    bias_field_correction_n_max_iterations[0]
+                    for ii in range(bias_field_correction_n_fitting_levels)
+                ]
 
             # Check that the list of maximum iteration values is equal to the number of fitting levels.
             if len(bias_field_correction_n_max_iterations) != bias_field_correction_n_fitting_levels:
-                raise ValueError(f"The bias_field_correction_n_max_iterations parameter should be a list with a "
-                                 f"length equal to the number of fitting levels ("
-                                 f"{bias_field_correction_n_fitting_levels}). Found list with "
-                                 f"{len(bias_field_correction_n_max_iterations)} values.")
+                raise ValueError(
+                    f"The bias_field_correction_n_max_iterations parameter should be a list with a length equal to the"
+                    f" number of fitting levels ({bias_field_correction_n_fitting_levels}). Found list with "
+                    f"{len(bias_field_correction_n_max_iterations)} values.")
 
             # Check that all values are integers.
             if not all(isinstance(ii, int) for ii in bias_field_correction_n_max_iterations):
-                raise TypeError(f"The bias_field_correction_n_max_iterations parameter should be a list of positive "
-                                f"integer values. At least one value was not an integer.")
+                raise TypeError(
+                    f"The bias_field_correction_n_max_iterations parameter should be a list of positive "
+                    f"integer values. At least one value was not an integer.")
 
             # Check that all values are positive.
             if not all([ii > 0 for ii in bias_field_correction_n_max_iterations]):
-                raise ValueError(f"The bias_field_correction_n_max_iterations parameter should be a list of positive "
-                                 f"integer values. At least one value was zero or negative.")
+                raise ValueError(
+                    f"The bias_field_correction_n_max_iterations parameter should be a list of positive "
+                    f"integer values. At least one value was zero or negative.")
 
         else:
             bias_field_correction_n_max_iterations = None
@@ -351,12 +370,14 @@ class ImagePostProcessingClass:
 
             # Check that the value is a float.
             if not isinstance(bias_field_convergence_threshold, float):
-                raise TypeError(f"The bias_field_convergence_threshold parameter is expected to be a non-negative "
-                                f"floating point value. Found: a value that was not a floating point value.")
+                raise TypeError(
+                    f"The bias_field_convergence_threshold parameter is expected to be a non-negative "
+                    f"floating point value. Found: a value that was not a floating point value.")
 
             if bias_field_convergence_threshold <= 0.0:
-                raise TypeError(f"The bias_field_convergence_threshold parameter is expected to be a non-positive "
-                                f"floating point value. Found: a value that was 0.0 or negative ({bias_field_convergence_threshold}).")
+                raise TypeError(
+                    f"The bias_field_convergence_threshold parameter is expected to be a non-positive floating point "
+                    f"value. Found: a value that was 0.0 or negative ({bias_field_convergence_threshold}).")
 
         else:
             bias_field_convergence_threshold = None
@@ -366,9 +387,10 @@ class ImagePostProcessingClass:
 
         # Check that intensity_normalisation has the correct values.
         if intensity_normalisation not in ["none", "range", "relative_range", "quantile_range", "standardisation"]:
-            raise ValueError(f"The intensity_normalisation parameter is expected to have one of the following values:"
-                             f" 'none', 'range', 'relative_range', 'quantile_range', 'standardisation'. Found:"
-                             f" {intensity_normalisation}.")
+            raise ValueError(
+                f"The intensity_normalisation parameter is expected to have one of the following values: "
+                f"'none', 'range', 'relative_range', 'quantile_range', 'standardisation'. Found: "
+                f"{intensity_normalisation}.")
 
         # Set intensity_normalisation parameter.
         self.intensity_normalisation = intensity_normalisation
@@ -388,19 +410,22 @@ class ImagePostProcessingClass:
         if intensity_normalisation == "range":
             # Check that the range has length 2 and contains floating point values.
             if not isinstance(intensity_normalisation_range, list):
-                raise TypeError(f"The intensity_normalisation_range parameter for range-based normalisation should "
-                                f"be a list with exactly two values, which are mapped to 0.0 and 1.0 respectively. "
-                                f"Found: an object that is not a list.")
+                raise TypeError(
+                    f"The intensity_normalisation_range parameter for range-based normalisation should "
+                    f"be a list with exactly two values, which are mapped to 0.0 and 1.0 respectively. "
+                    f"Found: an object that is not a list.")
 
             if len(intensity_normalisation_range) != 2:
-                raise ValueError(f"The intensity_normalisation_range parameter for range-based normalisation should "
-                                 f"be a list with exactly two values, which are mapped to 0.0 and 1.0 respectively. "
-                                 f"Found: list with {len(intensity_normalisation_range)} values.")
+                raise ValueError(
+                    f"The intensity_normalisation_range parameter for range-based normalisation should "
+                    f"be a list with exactly two values, which are mapped to 0.0 and 1.0 respectively. "
+                    f"Found: list with {len(intensity_normalisation_range)} values.")
 
             if not all(isinstance(ii, float) for ii in intensity_normalisation_range):
-                raise TypeError(f"The intensity_normalisation_range parameter for range-based normalisation should "
-                                f"be a list with exactly two floating point values, which are mapped to 0.0 and 1.0 "
-                                f"respectively. Found: one or more values that are not floating point values.")
+                raise TypeError(
+                    f"The intensity_normalisation_range parameter for range-based normalisation should "
+                    f"be a list with exactly two floating point values, which are mapped to 0.0 and 1.0 "
+                    f"respectively. Found: one or more values that are not floating point values.")
 
         elif intensity_normalisation in ["relative_range", "quantile_range"]:
             # Check that the range has length 2 and contains floating point values between 0.0 and 1.0.
@@ -410,24 +435,28 @@ class ImagePostProcessingClass:
                 intensity_normalisation_specifier = "quantile range-based normalisation"
 
             if not isinstance(intensity_normalisation_range, list):
-                raise TypeError(f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
-                                f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
-                                f"respectively. Found: an object that is not a list.")
+                raise TypeError(
+                    f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
+                    f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
+                    f"respectively. Found: an object that is not a list.")
 
             if len(intensity_normalisation_range) != 2:
-                raise ValueError(f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
-                                 f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
-                                 f"respectively. Found: list with {len(intensity_normalisation_range)} values.")
+                raise ValueError(
+                    f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
+                    f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
+                    f"respectively. Found: list with {len(intensity_normalisation_range)} values.")
 
             if not all(isinstance(ii, float) for ii in intensity_normalisation_range):
-                raise TypeError(f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
-                                f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
-                                f"respectively. Found: one or more values that are not floating point values.")
+                raise TypeError(
+                    f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
+                    f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
+                    f"respectively. Found: one or more values that are not floating point values.")
 
             if not all([0.0 <= ii <= 1.0 for ii in intensity_normalisation_range]):
-                raise TypeError(f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
-                                f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
-                                f"respectively. Found: one or more values that are outside the [0.0, 1.0] range.")
+                raise TypeError(
+                    f"The intensity_normalisation_range parameter for {intensity_normalisation_specifier} "
+                    f"should be a list with exactly two values, which are mapped to 0.0 and 1.0 "
+                    f"respectively. Found: one or more values that are outside the [0.0, 1.0] range.")
 
         else:
             # None and standardisation do not use this range.
@@ -441,12 +470,12 @@ class ImagePostProcessingClass:
             intensity_normalisation_saturation = [np.nan, np.nan]
 
         if not isinstance(intensity_normalisation_saturation, list):
-            raise TypeError("The tissue_mask_range parameter is expected to be a list of two floating point "
-                            "values.")
+            raise TypeError("The tissue_mask_range parameter is expected to be a list of two floating point values.")
 
         if not len(intensity_normalisation_saturation) == 2:
-            raise ValueError(f"The tissue_mask_range parameter should consist of two values. Found: "
-                             f"{len(intensity_normalisation_saturation)} values.")
+            raise ValueError(
+                f"The tissue_mask_range parameter should consist of two values. Found: "
+                f"{len(intensity_normalisation_saturation)} values.")
 
         if not all(isinstance(ii, float) for ii in intensity_normalisation_saturation):
             raise TypeError("The tissue_mask_range parameter can only contain floating point or np.nan values.")
@@ -456,8 +485,9 @@ class ImagePostProcessingClass:
 
         # Check tissue_mask_type
         if tissue_mask_type not in ["none", "range", "relative_range"]:
-            raise ValueError(f"The tissue_mask_type parameter is expected to have one of the following values: "
-                             f"'none', 'range', or 'relative_range'. Found: {tissue_mask_type}.")
+            raise ValueError(
+                f"The tissue_mask_type parameter is expected to have one of the following values: "
+                f"'none', 'range', or 'relative_range'. Found: {tissue_mask_type}.")
 
         # Set tissue_mask_type
         self.tissue_mask_type: str = tissue_mask_type
@@ -472,20 +502,21 @@ class ImagePostProcessingClass:
         # Perform checks on tissue_mask_range.
         if tissue_mask_type != "none":
             if not isinstance(tissue_mask_range, list):
-                raise TypeError("The tissue_mask_range parameter is expected to be a list of two floating point "
-                                "values.")
+                raise TypeError(
+                    "The tissue_mask_range parameter is expected to be a list of two floating point values.")
 
             if not len(tissue_mask_range) == 2:
-                raise ValueError(f"The tissue_mask_range parameter should consist of two values. Found: "
-                                 f"{len(tissue_mask_range)} values.")
+                raise ValueError(
+                    f"The tissue_mask_range parameter should consist of two values. Found: "
+                    f"{len(tissue_mask_range)} values.")
 
             if not all(isinstance(ii, float) for ii in tissue_mask_range):
                 raise TypeError("The tissue_mask_range parameter can only contain floating point or np.nan values.")
 
             if tissue_mask_type == "relative_range":
                 if not all([(0.0 <= ii <= 1.0) or np.isnan(ii) for ii in tissue_mask_range]):
-                    raise ValueError("The tissue_mask_range parameter should consist of two values between 0.0 and "
-                                     "1.0.")
+                    raise ValueError(
+                        "The tissue_mask_range parameter should consist of two values between 0.0 and 1.0.")
 
         # Set tissue_mask_range.
         self.tissue_mask_range: List[float] = tissue_mask_range
@@ -680,11 +711,12 @@ class ImagePerturbationSettingsClass:
 
 class ResegmentationSettingsClass:
 
-    def __init__(self,
-                 resegmentation_method: Union[str, List[str]] = "none",
-                 resegmentation_intensity_range: Union[None, List[float]] = None,
-                 resegmentation_sigma: float = 3.0,
-                 **kwargs):
+    def __init__(
+            self,
+            resegmentation_method: Union[str, List[str]] = "none",
+            resegmentation_intensity_range: Union[None, List[float]] = None,
+            resegmentation_sigma: float = 3.0,
+            **kwargs):
         """
         Sets parameters related to resegmentation of the ROI mask. Resegmentation is used to remove parts of the
         mask that correspond to undesired intensities that should be excluded, e.g. those corresponding to air.
@@ -713,8 +745,9 @@ class ResegmentationSettingsClass:
 
         # Check that methods are valid.
         if not all([ii in ["none", "threshold", "range", "sigma", "outlier"] for ii in resegmentation_method]):
-            raise ValueError("The resegmentation_method parameter can only have the following values: 'none', "
-                             "'threshold', 'range', 'sigma' and 'outlier'.")
+            raise ValueError(
+                "The resegmentation_method parameter can only have the following values: 'none', "
+                "'threshold', 'range', 'sigma' and 'outlier'.")
 
         # Remove redundant values.
         if "threshold" in resegmentation_method and "range" in resegmentation_method:
@@ -732,16 +765,19 @@ class ResegmentationSettingsClass:
             resegmentation_intensity_range = [np.nan, np.nan]
 
         if not isinstance(resegmentation_intensity_range, list):
-            raise TypeError(f"The resegmentation_intensity_range parameter should be a list with exactly two "
-                            f"values. Found: an object that is not a list.")
+            raise TypeError(
+                f"The resegmentation_intensity_range parameter should be a list with exactly two "
+                f"values. Found: an object that is not a list.")
 
         if len(resegmentation_intensity_range) != 2:
-            raise ValueError(f"The resegmentation_intensity_range parameter should be a list with exactly two "
-                             f"values. Found: list with {len(resegmentation_intensity_range)} values.")
+            raise ValueError(
+                f"The resegmentation_intensity_range parameter should be a list with exactly two "
+                f"values. Found: list with {len(resegmentation_intensity_range)} values.")
 
         if not all(isinstance(ii, float) for ii in resegmentation_intensity_range):
-            raise TypeError(f"The resegmentation_intensity_range parameter should be a list with exactly two "
-                            f"values. Found: one or more values that are not floating point values.")
+            raise TypeError(
+                f"The resegmentation_intensity_range parameter should be a list with exactly two "
+                f"values. Found: one or more values that are not floating point values.")
 
         self.intensity_range: List[float] = resegmentation_intensity_range
 
@@ -754,27 +790,28 @@ class ResegmentationSettingsClass:
 
 class FeatureExtractionSettingsClass:
 
-    def __init__(self,
-                 by_slice: bool,
-                 no_approximation: bool,
-                 ibsi_compliant: bool = True,
-                 base_feature_families: Union[None, str, List[str]] = "all",
-                 base_discretisation_method: Union[None, str, List[str]] = None,
-                 base_discretisation_n_bins: Union[None, int, List[int]] = None,
-                 base_discretisation_bin_width: Union[None, float, List[float]] = None,
-                 ivh_discretisation_method: str = "none",
-                 ivh_discretisation_n_bins: Union[None, int] = 1000,
-                 ivh_discretisation_bin_width: Union[None, float] = None,
-                 glcm_distance: Union[float, List[float]] = 1.0,
-                 glcm_spatial_method: Union[None, str, List[str]] = None,
-                 glrlm_spatial_method: Union[None, str, List[str]] = None,
-                 glszm_spatial_method: Union[None, str, List[str]] = None,
-                 gldzm_spatial_method: Union[None, str, List[str]] = None,
-                 ngtdm_spatial_method: Union[None, str, List[str]] = None,
-                 ngldm_distance: Union[float, List[float]] = 1.0,
-                 ngldm_difference_level: Union[float, List[float]] = 0.0,
-                 ngldm_spatial_method: Union[None, str, List[str]] = None,
-                 **kwargs):
+    def __init__(
+            self,
+            by_slice: bool,
+            no_approximation: bool,
+            ibsi_compliant: bool = True,
+            base_feature_families: Union[None, str, List[str]] = "all",
+            base_discretisation_method: Union[None, str, List[str]] = None,
+            base_discretisation_n_bins: Union[None, int, List[int]] = None,
+            base_discretisation_bin_width: Union[None, float, List[float]] = None,
+            ivh_discretisation_method: str = "none",
+            ivh_discretisation_n_bins: Union[None, int] = 1000,
+            ivh_discretisation_bin_width: Union[None, float] = None,
+            glcm_distance: Union[float, List[float]] = 1.0,
+            glcm_spatial_method: Union[None, str, List[str]] = None,
+            glrlm_spatial_method: Union[None, str, List[str]] = None,
+            glszm_spatial_method: Union[None, str, List[str]] = None,
+            gldzm_spatial_method: Union[None, str, List[str]] = None,
+            ngtdm_spatial_method: Union[None, str, List[str]] = None,
+            ngldm_distance: Union[float, List[float]] = 1.0,
+            ngldm_difference_level: Union[float, List[float]] = 0.0,
+            ngldm_spatial_method: Union[None, str, List[str]] = None,
+            **kwargs):
         """
         Sets feature computation parameters for computation from the base image, without the image undergoing
         convolutional filtering.
@@ -923,8 +960,9 @@ class FeatureExtractionSettingsClass:
         ] for ii in base_feature_families]
 
         if not all(valid_families):
-            raise ValueError(f"One or more families in the base_feature_families parameter were not recognised: "
-                             f"{', '.join([base_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}")
+            raise ValueError(
+                f"One or more families in the base_feature_families parameter were not recognised: "
+                f"{', '.join([base_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}")
 
         # Set families.
         self.families: List[str] = base_feature_families
@@ -942,8 +980,9 @@ class FeatureExtractionSettingsClass:
 
             if not all(discretisation_method in ["fixed_bin_size", "fixed_bin_number", "none"] for
                        discretisation_method in base_discretisation_method):
-                raise ValueError("Available values for the base_discretisation_method parameter are 'fixed_bin_size', "
-                                 "'fixed_bin_number', and 'none'. One or more values were not recognised.")
+                raise ValueError(
+                    "Available values for the base_discretisation_method parameter are 'fixed_bin_size', "
+                    "'fixed_bin_number', and 'none'. One or more values were not recognised.")
 
             # Check discretisation_n_bins
             if "fixed_bin_number" in base_discretisation_method:
@@ -954,12 +993,14 @@ class FeatureExtractionSettingsClass:
                     base_discretisation_n_bins = [base_discretisation_n_bins]
 
                 if not all(isinstance(n_bins, int) for n_bins in base_discretisation_n_bins):
-                    raise TypeError("The base_discretisation_n_bins parameter is expected to contain integers with "
-                                    "value 2 or larger. Found one or more values that were not integers.")
+                    raise TypeError(
+                        "The base_discretisation_n_bins parameter is expected to contain integers with "
+                        "value 2 or larger. Found one or more values that were not integers.")
 
                 if not all(n_bins >= 2 for n_bins in base_discretisation_n_bins):
-                    raise ValueError("The base_discretisation_n_bins parameter is expected to contain integers with "
-                                     "value 2 or larger. Found one or more values that were less than 2.")
+                    raise ValueError(
+                        "The base_discretisation_n_bins parameter is expected to contain integers with "
+                        "value 2 or larger. Found one or more values that were less than 2.")
 
             else:
                 base_discretisation_n_bins = None
@@ -973,13 +1014,15 @@ class FeatureExtractionSettingsClass:
                     base_discretisation_bin_width = [base_discretisation_bin_width]
 
                 if not all(isinstance(bin_size, float) for bin_size in base_discretisation_bin_width):
-                    raise TypeError("The base_discretisation_bin_width parameter is expected to contain floating "
-                                    "point values greater than 0.0. Found one or more values that were not floating "
-                                    "points.")
+                    raise TypeError(
+                        "The base_discretisation_bin_width parameter is expected to contain floating "
+                        "point values greater than 0.0. Found one or more values that were not floating "
+                        "points.")
 
                 if not all(bin_size > 0.0 for bin_size in base_discretisation_bin_width):
-                    raise ValueError("The base_discretisation_bin_width parameter is expected to contain floating "
-                                     "point values greater than 0.0. Found one or more values that were 0.0 or less.")
+                    raise ValueError(
+                        "The base_discretisation_bin_width parameter is expected to contain floating "
+                        "point values greater than 0.0. Found one or more values that were 0.0 or less.")
 
             else:
                 base_discretisation_bin_width = None
@@ -996,19 +1039,22 @@ class FeatureExtractionSettingsClass:
 
         if self.has_ivh_family():
             if ivh_discretisation_method not in ["fixed_bin_size", "fixed_bin_number", "none"]:
-                raise ValueError("Available values for the ivh_discretisation_method parameter are 'fixed_bin_size', "
-                                 "'fixed_bin_number', and 'none'. One or more values were not recognised.")
+                raise ValueError(
+                    "Available values for the ivh_discretisation_method parameter are 'fixed_bin_size', "
+                    "'fixed_bin_number', and 'none'. One or more values were not recognised.")
 
             # Check discretisation_n_bins
             if "fixed_bin_number" in ivh_discretisation_method:
 
                 if not isinstance(ivh_discretisation_n_bins, int):
-                    raise TypeError("The ivh_discretisation_n_bins parameter is expected to be an integer with "
-                                    "value 2 or greater. Found: a value that was not an integer.")
+                    raise TypeError(
+                        "The ivh_discretisation_n_bins parameter is expected to be an integer with "
+                        "value 2 or greater. Found: a value that was not an integer.")
 
                 if not ivh_discretisation_n_bins >= 2:
-                    raise ValueError("The ivh_discretisation_n_bins parameter is expected to be an integer with "
-                                     f"value 2 or greater. Found: {ivh_discretisation_n_bins}")
+                    raise ValueError(
+                        "The ivh_discretisation_n_bins parameter is expected to be an integer with "
+                        f"value 2 or greater. Found: {ivh_discretisation_n_bins}")
 
             else:
                 ivh_discretisation_n_bins = None
@@ -1017,13 +1063,14 @@ class FeatureExtractionSettingsClass:
             if "fixed_bin_size" in ivh_discretisation_method:
 
                 if not isinstance(ivh_discretisation_bin_width, float):
-                    raise TypeError("The ivh_discretisation_bin_width parameter is expected to be a floating "
-                                    "point value greater than 0.0. Found a value that was not a floating "
-                                    "point.")
+                    raise TypeError(
+                        "The ivh_discretisation_bin_width parameter is expected to be a floating "
+                        "point value greater than 0.0. Found a value that was not a floating point.")
 
                 if not ivh_discretisation_bin_width > 0.0:
-                    raise ValueError("The ivh_discretisation_bin_width parameter is expected to  be a floating "
-                                     f"point value greater than 0.0. Found: {ivh_discretisation_bin_width}")
+                    raise ValueError(
+                        "The ivh_discretisation_bin_width parameter is expected to  be a floating "
+                        f"point value greater than 0.0. Found: {ivh_discretisation_bin_width}")
 
             else:
                 ivh_discretisation_bin_width = None
@@ -1045,16 +1092,19 @@ class FeatureExtractionSettingsClass:
                 glcm_distance = [glcm_distance]
 
             if not all(isinstance(distance, float) for distance in glcm_distance):
-                raise TypeError("The glcm_distance parameter is expected to contain floating point values of 1.0 "
-                                "or greater. Found one or more values that were not floating points.")
+                raise TypeError(
+                    "The glcm_distance parameter is expected to contain floating point values of 1.0 "
+                    "or greater. Found one or more values that were not floating points.")
 
             if not all(distance >= 1.0 for distance in glcm_distance):
-                raise ValueError("The glcm_distance parameter is expected to contain floating point values of 1.0 "
-                                 "or greater. Found one or more values that were less than 1.0.")
+                raise ValueError(
+                    "The glcm_distance parameter is expected to contain floating point values of 1.0 "
+                    "or greater. Found one or more values that were less than 1.0.")
 
             # Check spatial method.
-            glcm_spatial_method = self.check_valid_directional_spatial_method(glcm_spatial_method,
-                                                                              "glcm_spatial_method")
+            glcm_spatial_method = self.check_valid_directional_spatial_method(
+                glcm_spatial_method,
+                "glcm_spatial_method")
 
         else:
             glcm_distance = None
@@ -1066,8 +1116,8 @@ class FeatureExtractionSettingsClass:
         # Set GLRLM attributes.
         if self.has_glrlm_family():
             # Check spatial method.
-            glrlm_spatial_method = self.check_valid_directional_spatial_method(glrlm_spatial_method,
-                                                                               "glrlm_spatial_method")
+            glrlm_spatial_method = self.check_valid_directional_spatial_method(
+                glrlm_spatial_method, "glrlm_spatial_method")
 
         else:
             glrlm_spatial_method = None
@@ -1077,8 +1127,8 @@ class FeatureExtractionSettingsClass:
         # Set GLSZM attributes.
         if self.has_glszm_family():
             # Check spatial method.
-            glszm_spatial_method = self.check_valid_omnidirectional_spatial_method(glszm_spatial_method,
-                                                                                   "glszm_spatial_method")
+            glszm_spatial_method = self.check_valid_omnidirectional_spatial_method(
+                glszm_spatial_method, "glszm_spatial_method")
         else:
             glszm_spatial_method = None
 
@@ -1087,8 +1137,8 @@ class FeatureExtractionSettingsClass:
         # Set GLDZM attributes.
         if self.has_gldzm_family():
             # Check spatial method.
-            gldzm_spatial_method = self.check_valid_omnidirectional_spatial_method(gldzm_spatial_method,
-                                                                                   "gldzm_spatial_method")
+            gldzm_spatial_method = self.check_valid_omnidirectional_spatial_method(
+                gldzm_spatial_method, "gldzm_spatial_method")
 
         else:
             gldzm_spatial_method = None
@@ -1098,8 +1148,8 @@ class FeatureExtractionSettingsClass:
         # Set NGTDM attributes.
         if self.has_ngtdm_family():
             # Check spatial method
-            ngtdm_spatial_method = self.check_valid_omnidirectional_spatial_method(ngtdm_spatial_method,
-                                                                                   "ngtdm_spatial_method")
+            ngtdm_spatial_method = self.check_valid_omnidirectional_spatial_method(
+                ngtdm_spatial_method, "ngtdm_spatial_method")
 
         else:
             ngtdm_spatial_method = None
@@ -1114,28 +1164,32 @@ class FeatureExtractionSettingsClass:
                 ngldm_distance = [ngldm_distance]
 
             if not all(isinstance(distance, float) for distance in ngldm_distance):
-                raise TypeError("The ngldm_distance parameter is expected to contain floating point values of 1.0 "
-                                "or greater. Found one or more values that were not floating points.")
+                raise TypeError(
+                    "The ngldm_distance parameter is expected to contain floating point values of 1.0 "
+                    "or greater. Found one or more values that were not floating points.")
 
             if not all(distance >= 1.0 for distance in ngldm_distance):
-                raise ValueError("The ngldm_distance parameter is expected to contain floating point values of 1.0 "
-                                 "or greater. Found one or more values that were less than 1.0.")
+                raise ValueError(
+                    "The ngldm_distance parameter is expected to contain floating point values of 1.0 "
+                    "or greater. Found one or more values that were less than 1.0.")
 
             # Check spatial method
-            ngldm_spatial_method = self.check_valid_omnidirectional_spatial_method(ngldm_spatial_method,
-                                                                                   "ngldm_spatial_method")
+            ngldm_spatial_method = self.check_valid_omnidirectional_spatial_method(
+                ngldm_spatial_method, "ngldm_spatial_method")
 
             # Check difference level.
             if not isinstance(ngldm_difference_level, list):
                 ngldm_difference_level = [ngldm_difference_level]
 
             if not all(isinstance(difference, float) for difference in ngldm_difference_level):
-                raise TypeError("The ngldm_difference_level parameter is expected to contain floating point values of 0.0 "
-                                "or greater. Found one or more values that were not floating points.")
+                raise TypeError(
+                    "The ngldm_difference_level parameter is expected to contain floating point values of 0.0 "
+                    "or greater. Found one or more values that were not floating points.")
 
             if not all(difference >= 0.0 for difference in ngldm_difference_level):
-                raise ValueError("The ngldm_difference_level parameter is expected to contain floating point values "
-                                 "of 0.0 or greater. Found one or more values that were less than 0.0.")
+                raise ValueError(
+                    "The ngldm_difference_level parameter is expected to contain floating point values "
+                    "of 0.0 or greater. Found one or more values that were less than 0.0.")
 
         else:
             ngldm_spatial_method = None
@@ -1205,17 +1259,18 @@ class FeatureExtractionSettingsClass:
 
         # Check that x contains strings.
         if not all(isinstance(spatial_method, str) for spatial_method in x):
-            raise TypeError(f"The {var_name} parameter expects one or more of the following values: "
-                            f"{', '.join(all_spatial_method)}."
-                            f" Found: one or more values that were not strings.")
+            raise TypeError(
+                f"The {var_name} parameter expects one or more of the following values: "
+                f"{', '.join(all_spatial_method)}. Found: one or more values that were not strings.")
 
         # Check spatial method.
         valid_spatial_method = [spatial_method in all_spatial_method for spatial_method in x]
 
         if not all(valid_spatial_method):
-            raise ValueError(f"The {var_name} parameter expects one or more of the following values: "
-                             f"{', '.join(all_spatial_method)}. Found: "
-                             f"{', '.join([spatial_method for spatial_method in x if spatial_method in all_spatial_method])}")
+            raise ValueError(
+                f"The {var_name} parameter expects one or more of the following values: "
+                f"{', '.join(all_spatial_method)}. Found: "
+                f"{', '.join([spatial_method for spatial_method in x if spatial_method in all_spatial_method])}")
 
         return x
 
@@ -1238,71 +1293,73 @@ class FeatureExtractionSettingsClass:
 
         # Check that x contains strings.
         if not all(isinstance(spatial_method, str) for spatial_method in x):
-            raise TypeError(f"The {var_name} parameter expects one or more of the following values: "
-                            f"{', '.join(all_spatial_method)}. "
-                            f"Found: one or more values that were not strings.")
+            raise TypeError(
+                f"The {var_name} parameter expects one or more of the following values: "
+                f"{', '.join(all_spatial_method)}. Found: one or more values that were not strings.")
 
         # Check spatial method.
         valid_spatial_method = [spatial_method in all_spatial_method for spatial_method in x]
 
         if not all(valid_spatial_method):
-            raise ValueError(f"The {var_name} parameter expects one or more of the following values: "
-                             f"{', '.join(all_spatial_method)}. Found: "
-                             f"{', '.join([spatial_method for spatial_method in x if spatial_method in all_spatial_method])}")
+            raise ValueError(
+                f"The {var_name} parameter expects one or more of the following values: "
+                f"{', '.join(all_spatial_method)}. Found: "
+                f"{', '.join([spatial_method for spatial_method in x if spatial_method in all_spatial_method])}")
 
         return x
 
 
 class ImageTransformationSettingsClass:
 
-    def __init__(self,
-                 by_slice: bool,
-                 response_map_feature_settings: Union[FeatureExtractionSettingsClass, None],
-                 response_map_feature_families: Union[None, str, List[str]] = "statistical",
-                 response_map_discretisation_method: Union[None, str, List[str]] = "fixed_bin_number",
-                 response_map_discretisation_n_bins: Union[None, int, List[int]] = 16,
-                 response_map_discretisation_bin_width: Union[None, int, List[int]] = None,
-                 filter_kernels: Union[None, str, List[str]] = None,
-                 boundary_condition: Union[None, str] = "mirror",
-                 separable_wavelet_families: Union[None, str, List[str]] = None,
-                 separable_wavelet_set: Union[None, str, List[str]] = None,
-                 separable_wavelet_stationary: bool = True,
-                 separable_wavelet_decomposition_level: Union[None, int, List[int]] = 1,
-                 separable_wavelet_rotation_invariance: bool = True,
-                 separable_wavelet_pooling_method: str = "max",
-                 separable_wavelet_boundary_condition: Union[None, str] = None,
-                 nonseparable_wavelet_families: Union[None, str, List[str]] = None,
-                 nonseparable_wavelet_decomposition_level: Union[None, int, List[int]] = 1,
-                 nonseparable_wavelet_response: Union[None, str] = "real",
-                 nonseparable_wavelet_boundary_condition: Union[None, str] = None,
-                 gaussian_sigma: Union[None, float, List[float]] = None,
-                 gaussian_kernel_truncate: Union[None, float] = 4.0,
-                 gaussian_kernel_boundary_condition: Union[None, str] = None,
-                 laplacian_of_gaussian_sigma: Union[None, float, List[float]] = None,
-                 laplacian_of_gaussian_kernel_truncate: Union[None, float] = 4.0,
-                 laplacian_of_gaussian_pooling_method: str = "none",
-                 laplacian_of_gaussian_boundary_condition: Union[None, str] = None,
-                 laws_kernel: Union[None, str, List[str]] = None,
-                 laws_delta: Union[int, List[int]] = 7,
-                 laws_compute_energy: bool = True,
-                 laws_rotation_invariance: bool = True,
-                 laws_pooling_method: str = "max",
-                 laws_boundary_condition: Union[None, str] = None,
-                 gabor_sigma: Union[None, float, List[float]] = None,
-                 gabor_lambda: Union[None, float, List[float]] = None,
-                 gabor_gamma: Union[None, float, List[float]] = 1.0,
-                 gabor_theta: Union[None, float, List[float]] = 0.0,
-                 gabor_theta_step: Union[None, float] = None,
-                 gabor_response: str = "modulus",
-                 gabor_rotation_invariance: bool = False,
-                 gabor_pooling_method: str = "max",
-                 gabor_boundary_condition: Union[None, str] = None,
-                 mean_filter_kernel_size: Union[None, int, List[int]] = None,
-                 mean_filter_boundary_condition: Union[None, str] = None,
-                 riesz_filter_order: Union[None, int, List[int]] = None,
-                 riesz_filter_tensor_sigma: Union[None, float, List[float]] = None,
-                 **kwargs
-                 ):
+    def __init__(
+            self,
+            by_slice: bool,
+            response_map_feature_settings: Union[FeatureExtractionSettingsClass, None],
+            response_map_feature_families: Union[None, str, List[str]] = "statistical",
+            response_map_discretisation_method: Union[None, str, List[str]] = "fixed_bin_number",
+            response_map_discretisation_n_bins: Union[None, int, List[int]] = 16,
+            response_map_discretisation_bin_width: Union[None, int, List[int]] = None,
+            filter_kernels: Union[None, str, List[str]] = None,
+            boundary_condition: Union[None, str] = "mirror",
+            separable_wavelet_families: Union[None, str, List[str]] = None,
+            separable_wavelet_set: Union[None, str, List[str]] = None,
+            separable_wavelet_stationary: bool = True,
+            separable_wavelet_decomposition_level: Union[None, int, List[int]] = 1,
+            separable_wavelet_rotation_invariance: bool = True,
+            separable_wavelet_pooling_method: str = "max",
+            separable_wavelet_boundary_condition: Union[None, str] = None,
+            nonseparable_wavelet_families: Union[None, str, List[str]] = None,
+            nonseparable_wavelet_decomposition_level: Union[None, int, List[int]] = 1,
+            nonseparable_wavelet_response: Union[None, str] = "real",
+            nonseparable_wavelet_boundary_condition: Union[None, str] = None,
+            gaussian_sigma: Union[None, float, List[float]] = None,
+            gaussian_kernel_truncate: Union[None, float] = 4.0,
+            gaussian_kernel_boundary_condition: Union[None, str] = None,
+            laplacian_of_gaussian_sigma: Union[None, float, List[float]] = None,
+            laplacian_of_gaussian_kernel_truncate: Union[None, float] = 4.0,
+            laplacian_of_gaussian_pooling_method: str = "none",
+            laplacian_of_gaussian_boundary_condition: Union[None, str] = None,
+            laws_kernel: Union[None, str, List[str]] = None,
+            laws_delta: Union[int, List[int]] = 7,
+            laws_compute_energy: bool = True,
+            laws_rotation_invariance: bool = True,
+            laws_pooling_method: str = "max",
+            laws_boundary_condition: Union[None, str] = None,
+            gabor_sigma: Union[None, float, List[float]] = None,
+            gabor_lambda: Union[None, float, List[float]] = None,
+            gabor_gamma: Union[None, float, List[float]] = 1.0,
+            gabor_theta: Union[None, float, List[float]] = 0.0,
+            gabor_theta_step: Union[None, float] = None,
+            gabor_response: str = "modulus",
+            gabor_rotation_invariance: bool = False,
+            gabor_pooling_method: str = "max",
+            gabor_boundary_condition: Union[None, str] = None,
+            mean_filter_kernel_size: Union[None, int, List[int]] = None,
+            mean_filter_boundary_condition: Union[None, str] = None,
+            riesz_filter_order: Union[None, int, List[int]] = None,
+            riesz_filter_tensor_sigma: Union[None, float, List[float]] = None,
+            **kwargs
+    ):
         """
         Sets parameters for filter transformation.
 
@@ -1533,8 +1590,9 @@ class ImageTransformationSettingsClass:
 
         # Check boundary condition.
         self.boundary_condition = boundary_condition
-        self.boundary_condition: str = self.check_boundary_condition(boundary_condition,
-                                                                     "boundary_condition")
+        self.boundary_condition: str = self.check_boundary_condition(
+            boundary_condition,
+            "boundary_condition")
 
         # Check mean filter settings
         if self.has_mean_filter():
@@ -1543,16 +1601,19 @@ class ImageTransformationSettingsClass:
                 mean_filter_kernel_size = [mean_filter_kernel_size]
 
             if not all(isinstance(kernel_size, int) for kernel_size in mean_filter_kernel_size):
-                raise TypeError(f"All kernel sizes for the mean filter are expected to be integer values equal or "
-                                f"greater than 1. Found: one or more kernel sizes that were not integers.")
+                raise TypeError(
+                    f"All kernel sizes for the mean filter are expected to be integer values equal or "
+                    f"greater than 1. Found: one or more kernel sizes that were not integers.")
 
             if not all(kernel_size >= 1 for kernel_size in mean_filter_kernel_size):
-                raise ValueError(f"All kernel sizes for the mean filter are expected to be integer values equal or "
-                                 f"greater than 1. Found: one or more kernel sizes less then 1.")
+                raise ValueError(
+                    f"All kernel sizes for the mean filter are expected to be integer values equal or "
+                    f"greater than 1. Found: one or more kernel sizes less then 1.")
 
             # Check boundary condition
-            mean_filter_boundary_condition = self.check_boundary_condition(mean_filter_boundary_condition,
-                                                                           "mean_filter_boundary_condition")
+            mean_filter_boundary_condition = self.check_boundary_condition(
+                mean_filter_boundary_condition,
+                "mean_filter_boundary_condition")
 
         else:
             mean_filter_kernel_size = None
@@ -1564,16 +1625,19 @@ class ImageTransformationSettingsClass:
         # Check Gaussian kernel settings.
         if self.has_gaussian_filter():
             # Check sigma.
-            gaussian_sigma = self.check_sigma(gaussian_sigma,
-                                              "gaussian_sigma")
+            gaussian_sigma = self.check_sigma(
+                gaussian_sigma,
+                "gaussian_sigma")
 
             # Check filter truncation.
-            gaussian_kernel_truncate = self.check_truncation(gaussian_kernel_truncate,
-                                                             "gaussian_kernel_truncate")
+            gaussian_kernel_truncate = self.check_truncation(
+                gaussian_kernel_truncate,
+                "gaussian_kernel_truncate")
 
             # Check boundary condition
-            gaussian_kernel_boundary_condition = self.check_boundary_condition(gaussian_kernel_boundary_condition,
-                                                                               "gaussian_kernel_boundary_condition")
+            gaussian_kernel_boundary_condition = self.check_boundary_condition(
+                gaussian_kernel_boundary_condition,
+                "gaussian_kernel_boundary_condition")
 
         else:
             gaussian_sigma = None
@@ -1587,8 +1651,9 @@ class ImageTransformationSettingsClass:
         # Check laplacian-of-gaussian filter settings
         if self.has_laplacian_of_gaussian_filter():
             # Check sigma.
-            laplacian_of_gaussian_sigma = self.check_sigma(laplacian_of_gaussian_sigma,
-                                                           "laplacian_of_gaussian_sigma")
+            laplacian_of_gaussian_sigma = self.check_sigma(
+                laplacian_of_gaussian_sigma,
+                "laplacian_of_gaussian_sigma")
 
             # Check filter truncation.
             laplacian_of_gaussian_kernel_truncate = self.check_truncation(laplacian_of_gaussian_kernel_truncate,
@@ -1631,12 +1696,14 @@ class ImageTransformationSettingsClass:
                     laws_delta = [laws_delta]
 
                 if not all(isinstance(delta, int) for delta in laws_delta):
-                    raise TypeError("The laws_delta parameter is expected to be one or more integers with value 0 or "
-                                    "greater. Found: one or more values that are not integer.")
+                    raise TypeError(
+                        "The laws_delta parameter is expected to be one or more integers with value 0 or "
+                        "greater. Found: one or more values that are not integer.")
 
                 if not all(delta >= 0 for delta in laws_delta):
-                    raise ValueError("The laws_delta parameter is expected to be one or more integers with value 0 or "
-                                     "greater. Found: one or more values that are less than 0.")
+                    raise ValueError(
+                        "The laws_delta parameter is expected to be one or more integers with value 0 or "
+                        "greater. Found: one or more values that are less than 0.")
 
             else:
                 laws_delta = None
@@ -1646,12 +1713,10 @@ class ImageTransformationSettingsClass:
                 raise TypeError("The laws_rotation_invariance parameter is expected to be a boolean value.")
 
             # Check pooling method.
-            laws_pooling_method = self.check_pooling_method(laws_pooling_method,
-                                                            "laws_pooling_method")
+            laws_pooling_method = self.check_pooling_method(laws_pooling_method, "laws_pooling_method")
 
             # Check boundary condition
-            laws_boundary_condition = self.check_boundary_condition(
-                laws_boundary_condition, "laws_boundary_condition")
+            laws_boundary_condition = self.check_boundary_condition(laws_boundary_condition, "laws_boundary_condition")
 
         else:
             laws_kernel = None
@@ -1674,18 +1739,17 @@ class ImageTransformationSettingsClass:
             gabor_sigma = self.check_sigma(gabor_sigma, "gabor_sigma")
 
             # Check gamma. Gamma behaves like sigma.
-            gabor_gamma = self.check_sigma(gabor_gamma,
-                                           "gabor_gamma")
+            gabor_gamma = self.check_sigma(gabor_gamma, "gabor_gamma")
 
             # Check lambda. Lambda behaves like sigma
-            gabor_lambda = self.check_sigma(gabor_lambda,
-                                            "gabor_lambda")
+            gabor_lambda = self.check_sigma(gabor_lambda, "gabor_lambda")
 
             # Check theta step.
             if gabor_theta_step is not None:
                 if not isinstance(gabor_theta_step, (float, int)):
-                    raise TypeError("The gabor_theta_step parameter is expected to be an angle, in degrees. Found a "
-                                    "value that was not a number.")
+                    raise TypeError(
+                        "The gabor_theta_step parameter is expected to be an angle, in degrees. Found a "
+                        "value that was not a number.")
 
                 if gabor_theta_step == 0.0:
                     gabor_theta_step = None
@@ -1693,8 +1757,9 @@ class ImageTransformationSettingsClass:
             if gabor_theta_step is not None:
                 # Check that the step would divide the 360 degree circle into a integer number of steps.
                 if not (360.0 / gabor_theta_step).is_integer():
-                    raise ValueError(f"The gabor_theta_step parameter should divide a circle into equal portions. "
-                                     f"The current settings would create {360.0 / gabor_theta_step} portions.")
+                    raise ValueError(
+                        f"The gabor_theta_step parameter should divide a circle into equal portions. "
+                        f"The current settings would create {360.0 / gabor_theta_step} portions.")
 
             # Check theta.
             gabor_pool_theta = gabor_theta_step is not None
@@ -1703,27 +1768,27 @@ class ImageTransformationSettingsClass:
                 gabor_theta = [gabor_theta]
 
             if gabor_theta_step is not None and len(gabor_theta) > 1:
-                raise ValueError(f"The gabor_theta parameter cannot have more than one value when used in conjunction"
-                                 f" with the gabor_theta_step parameter")
+                raise ValueError(
+                    f"The gabor_theta parameter cannot have more than one value when used in conjunction"
+                    f" with the gabor_theta_step parameter")
 
             if not all(isinstance(theta, (float, int)) for theta in gabor_theta):
-                raise TypeError(f"The gabor_theta parameter is expected to be one or more values indicating angles in"
-                                f" degrees. Found: one or more values that were not numeric.")
+                raise TypeError(
+                    f"The gabor_theta parameter is expected to be one or more values indicating angles in"
+                    f" degrees. Found: one or more values that were not numeric.")
 
             if gabor_theta_step is not None:
                 gabor_theta = [gabor_theta[0] + ii for ii in np.arange(0.0, 360.0, gabor_theta_step)]
 
             # Check filter response.
-            gabor_response = self.check_response(gabor_response,
-                                                 "gabor_response")
+            gabor_response = self.check_response(gabor_response, "gabor_response")
 
             # Check rotation invariance
             if not isinstance(gabor_rotation_invariance, bool):
                 raise TypeError("The gabor_rotation_invariance parameter is expected to be a boolean value.")
 
             # Check pooling method
-            gabor_pooling_method = self.check_pooling_method(gabor_pooling_method,
-                                                             "gabor_pooling_method")
+            gabor_pooling_method = self.check_pooling_method(gabor_pooling_method, "gabor_pooling_method")
 
             # Check boundary condition
             gabor_boundary_condition = self.check_boundary_condition(
@@ -1753,12 +1818,11 @@ class ImageTransformationSettingsClass:
         # Check separable wavelet settings.
         if self.has_separable_wavelet_filter():
             # Check wavelet families.
-            separable_wavelet_families = self.check_separable_wavelet_families(separable_wavelet_families,
-                                                                               "separable_wavelet_families")
+            separable_wavelet_families = self.check_separable_wavelet_families(
+                separable_wavelet_families, "separable_wavelet_families")
 
             # Check wavelet filter sets.
-            separable_wavelet_set = self.check_separable_wavelet_sets(separable_wavelet_set,
-                                                                      "separable_wavelet_set")
+            separable_wavelet_set = self.check_separable_wavelet_sets(separable_wavelet_set, "separable_wavelet_set")
 
             # Check if wavelet is stationary
             if not isinstance(separable_wavelet_stationary, bool):
@@ -1773,8 +1837,8 @@ class ImageTransformationSettingsClass:
                 raise TypeError("The separable_wavelet_rotation_invariance parameter is expected to be a boolean value.")
 
             # Check pooling method.
-            separable_wavelet_pooling_method = self.check_pooling_method(separable_wavelet_pooling_method,
-                                                                         "separable_wavelet_pooling_method")
+            separable_wavelet_pooling_method = self.check_pooling_method(
+                separable_wavelet_pooling_method, "separable_wavelet_pooling_method")
 
             # Check boundary condition.
             separable_wavelet_boundary_condition = self.check_boundary_condition(
@@ -1808,8 +1872,8 @@ class ImageTransformationSettingsClass:
                 nonseparable_wavelet_decomposition_level, "nonseparable_wavelet_decomposition_level")
 
             # Check filter response.
-            nonseparable_wavelet_response = self.check_response(nonseparable_wavelet_response,
-                                                                "nonseparable_wavelet_response")
+            nonseparable_wavelet_response = self.check_response(
+                nonseparable_wavelet_response, "nonseparable_wavelet_response")
 
             # Check boundary condition.
             nonseparable_wavelet_boundary_condition = self.check_boundary_condition(
@@ -1828,15 +1892,13 @@ class ImageTransformationSettingsClass:
 
         # Check Riesz filter orders.
         if self.has_riesz_filter():
-            riesz_filter_order = self.check_riesz_filter_order(riesz_filter_order,
-                                                               "riesz_filter_order")
+            riesz_filter_order = self.check_riesz_filter_order(riesz_filter_order, "riesz_filter_order")
 
         else:
             riesz_filter_order = None
 
         if self.has_steered_riesz_filter():
-            riesz_filter_tensor_sigma = self.check_sigma(riesz_filter_tensor_sigma,
-                                                         "riesz_filter_tensor_sigma")
+            riesz_filter_tensor_sigma = self.check_sigma(riesz_filter_tensor_sigma, "riesz_filter_tensor_sigma")
 
         else:
             riesz_filter_tensor_sigma = None
@@ -1851,13 +1913,13 @@ class ImageTransformationSettingsClass:
                 x = copy.deepcopy(self.boundary_condition)
 
             else:
-                raise ValueError(f"No value for the {var_name} parameter could be set, due to a lack of a"
-                                 f"default.")
+                raise ValueError(f"No value for the {var_name} parameter could be set, due to a lack of a default.")
 
         # Check value
         if x not in ["reflect", "constant", "nearest", "mirror", "wrap"]:
-            raise ValueError(f"The provided value for the {var_name} is not valid. One of 'reflect', 'constant', "
-                             f"'nearest', 'mirror' or 'wrap' was expected. Found: {x}")
+            raise ValueError(
+                f"The provided value for the {var_name} is not valid. One of 'reflect', 'constant', "
+                f"'nearest', 'mirror' or 'wrap' was expected. Found: {x}")
 
         return x
 
@@ -1869,8 +1931,9 @@ class ImageTransformationSettingsClass:
             valid_pooling_method += ["none"]
 
         if x not in valid_pooling_method:
-            raise ValueError(f"The {var_name} parameter expects one of the following values: "
-                             f"{', '.join(valid_pooling_method)}. Found: {x}")
+            raise ValueError(
+                f"The {var_name} parameter expects one of the following values: "
+                f"{', '.join(valid_pooling_method)}. Found: {x}")
 
         return x
 
@@ -1882,12 +1945,14 @@ class ImageTransformationSettingsClass:
 
         # Check that the sigma values are floating points.
         if not all(isinstance(sigma, float) for sigma in x):
-            raise TypeError(f"The {var_name} parameter is expected to consists of floating points with values "
-                            f"greater than 0.0. Found: one or more values that were not floating points.")
+            raise TypeError(
+                f"The {var_name} parameter is expected to consists of floating points with values "
+                f"greater than 0.0. Found: one or more values that were not floating points.")
 
         if not all(sigma > 0.0 for sigma in x):
-            raise ValueError(f"The {var_name} parameter is expected to consists of floating points with values "
-                             f"greater than 0.0. Found: one or more values with value 0.0 or less.")
+            raise ValueError(
+                f"The {var_name} parameter is expected to consists of floating points with values "
+                f"greater than 0.0. Found: one or more values with value 0.0 or less.")
 
         return x
 
@@ -1896,12 +1961,14 @@ class ImageTransformationSettingsClass:
 
         # Check that the truncation values are floating points.
         if not isinstance(x, float):
-            raise TypeError(f"The {var_name} parameter is expected to be a floating point with value "
-                            f"greater than 0.0. Found: a value that was not a floating point.")
+            raise TypeError(
+                f"The {var_name} parameter is expected to be a floating point with value "
+                f"greater than 0.0. Found: a value that was not a floating point.")
 
         if not x > 0.0:
-            raise ValueError(f"The {var_name} parameter is expected to be a floating point with value "
-                             f"greater than 0.0. Found: a value of 0.0 or less.")
+            raise ValueError(
+                f"The {var_name} parameter is expected to be a floating point with value "
+                f"greater than 0.0. Found: a value of 0.0 or less.")
 
         return x
 
@@ -1912,8 +1979,9 @@ class ImageTransformationSettingsClass:
 
         # Check that response is correct.
         if x not in valid_response:
-            raise ValueError(f"The {var_name} parameter is not correct. Expected one of {', '.join(valid_response)}. "
-                             f"Found: {x}")
+            raise ValueError(
+                f"The {var_name} parameter is not correct. Expected one of {', '.join(valid_response)}. "
+                f"Found: {x}")
 
         return x
 
@@ -1930,9 +1998,10 @@ class ImageTransformationSettingsClass:
         valid_kernel = [kernel.lower() in available_kernels for kernel in x]
 
         if not all(valid_kernel):
-            raise ValueError(f"The {var_name} parameter requires wavelet families that match those defined in the "
-                             f"pywavelets package. Could not match: "
-                             f"{', '.join([kernel for ii, kernel in x if not valid_kernel[ii]])}")
+            raise ValueError(
+                f"The {var_name} parameter requires wavelet families that match those defined in the "
+                f"pywavelets package. Could not match: "
+                f"{', '.join([kernel for ii, kernel in x if not valid_kernel[ii]])}")
 
         # Return lowercase values.
         return [xx.lower() for xx in x]
@@ -1947,9 +2016,10 @@ class ImageTransformationSettingsClass:
         valid_kernel = [kernel.lower() in available_kernels for kernel in x]
 
         if not all(valid_kernel):
-            raise ValueError(f"The {var_name} parameter expects one or more of the following values: "
-                             f"{', '.join(available_kernels)}. Could not match: "
-                             f"{', '.join([kernel for ii, kernel in x if not valid_kernel[ii]])}")
+            raise ValueError(
+                f"The {var_name} parameter expects one or more of the following values: "
+                f"{', '.join(available_kernels)}. Could not match: "
+                f"{', '.join([kernel for ii, kernel in x if not valid_kernel[ii]])}")
 
         # Return lowercase values.
         return [xx.lower() for xx in x]
@@ -1961,12 +2031,14 @@ class ImageTransformationSettingsClass:
             x = [x]
 
         if not all(isinstance(xx, int) for xx in x):
-            raise TypeError(f"The {var_name} parameter should be one or more integer "
-                            f"values of at least 1. Found: one or more values that was not an integer.")
+            raise TypeError(
+                f"The {var_name} parameter should be one or more integer "
+                f"values of at least 1. Found: one or more values that was not an integer.")
 
         if not all(xx >= 1 for xx in x):
-            raise ValueError(f"The {var_name} parameter should be one or more integer "
-                             f"values of at least 1. Found: one or more values that was not an integer.")
+            raise ValueError(
+                f"The {var_name} parameter should be one or more integer "
+                f"values of at least 1. Found: one or more values that was not an integer.")
 
         return x
 
@@ -1998,10 +2070,11 @@ class ImageTransformationSettingsClass:
         valid_kernel = [kernel.lower() in possible_combinations for kernel in x]
 
         if not all(valid_kernel):
-            raise ValueError(f"The {var_name} parameter requires combinations of low (l) and high-pass (h) kernels. "
-                             f"Two kernels should be specified for 2D, and three for 3D. Found the following invalid "
-                             f"combinations: "
-                             f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
+            raise ValueError(
+                f"The {var_name} parameter requires combinations of low (l) and high-pass (h) kernels. "
+                f"Two kernels should be specified for 2D, and three for 3D. Found the following invalid "
+                f"combinations: "
+                f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
 
         # Return lowercase values.
         return [xx.lower() for xx in x]
@@ -2027,10 +2100,11 @@ class ImageTransformationSettingsClass:
         valid_kernel = [kernel.lower() in possible_combinations for kernel in x]
 
         if not all(valid_kernel):
-            raise ValueError(f"The {var_name} parameter requires combinations of Laws kernels. The follow kernels are "
-                             f"implemented: {', '.join(kernels)}. Two kernels should be specified for 2D, "
-                             f"and three for 3D. Found the following illegal combinations: "
-                             f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
+            raise ValueError(
+                f"The {var_name} parameter requires combinations of Laws kernels. The follow kernels are "
+                f"implemented: {', '.join(kernels)}. Two kernels should be specified for 2D, "
+                f"and three for 3D. Found the following illegal combinations: "
+                f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
 
         # Return lowercase values.
         return [xx.lower() for xx in x]
@@ -2071,18 +2145,21 @@ class ImageTransformationSettingsClass:
 
         # Check that all elements of x have the right length, and do not negative orders.
         if not all(len(xx) == n_elements for xx in x):
-            raise ValueError(f"The {var_name} parameter is expected to contain filter orders, each consisting of "
-                             f"{n_elements} non-negative integer values. One or more filter orders did not have the "
-                             f"expected number of elements.")
+            raise ValueError(
+                f"The {var_name} parameter is expected to contain filter orders, each consisting of "
+                f"{n_elements} non-negative integer values. One or more filter orders did not have the "
+                f"expected number of elements.")
 
         if not all(all(isinstance(xxx, int) for xxx in xx) for xx in x):
-            raise ValueError(f"The {var_name} parameter is expected to contain filter orders, each consisting of "
-                             f"{n_elements} non-negative integer values. One or more filter orders did not fully "
-                             f"consist of integer values.")
+            raise ValueError(
+                f"The {var_name} parameter is expected to contain filter orders, each consisting of "
+                f"{n_elements} non-negative integer values. One or more filter orders did not fully "
+                f"consist of integer values.")
 
         if not all(all(xxx >= 0 for xxx in xx) for xx in x):
-            raise ValueError(f"The {var_name} parameter is expected to contain filter orders, each consisting of "
-                             f"{n_elements} non-negative integer values. One or more filter orders contained negative values.")
+            raise ValueError(
+                f"The {var_name} parameter is expected to contain filter orders, each consisting of "
+                f"{n_elements} non-negative integer values. One or more filter orders contained negative values.")
 
         return x
 
@@ -2100,8 +2177,8 @@ class ImageTransformationSettingsClass:
         elif not isinstance(x, list):
             x = [x]
 
-        return x is not None and any(filter_kernel in ["gaussian", "riesz_gaussian", "riesz_steered_gaussian"] for
-                                     filter_kernel in x)
+        return x is not None and any(
+            filter_kernel in ["gaussian", "riesz_gaussian", "riesz_steered_gaussian"] for filter_kernel in x)
 
     def has_laplacian_of_gaussian_filter(self, x=None):
         if x is None:
@@ -2109,8 +2186,11 @@ class ImageTransformationSettingsClass:
         elif not isinstance(x, list):
             x = [x]
 
-        return x is not None and any(filter_kernel in ["laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log",
-                                     "riesz_steered_laplacian_of_gaussian", "riesz_steered_log"] for filter_kernel in x)
+        return x is not None and any(
+            filter_kernel in [
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log",
+                "riesz_steered_laplacian_of_gaussian", "riesz_steered_log"
+            ] for filter_kernel in x)
 
     def has_laws_filter(self, x=None):
         if x is None:
@@ -2126,8 +2206,8 @@ class ImageTransformationSettingsClass:
         elif not isinstance(x, list):
             x = [x]
 
-        return x is not None and any(filter_kernel in ["gabor", "riesz_gabor", "riesz_steered_gabor"] for
-                                     filter_kernel in x)
+        return x is not None and any(
+            filter_kernel in ["gabor", "riesz_gabor", "riesz_steered_gabor"] for filter_kernel in x)
 
     def has_separable_wavelet_filter(self, x=None):
         if x is None:
@@ -2143,8 +2223,10 @@ class ImageTransformationSettingsClass:
         elif not isinstance(x, list):
             x = [x]
 
-        return x is not None and any(filter_kernel in ["nonseparable_wavelet", "riesz_nonseparable_wavelet",
-                                     "riesz_steered_nonseparable_wavelet"] for filter_kernel in x)
+        return x is not None and any(
+            filter_kernel in [
+                "nonseparable_wavelet", "riesz_nonseparable_wavelet", "riesz_steered_nonseparable_wavelet"
+            ] for filter_kernel in x)
 
     def has_riesz_filter(self, x=None):
         if x is None:
@@ -2165,15 +2247,16 @@ class ImageTransformationSettingsClass:
 
 class SettingsClass:
 
-    def __init__(self,
-                 general_settings: GeneralSettingsClass,
-                 img_interpolate_settings: ImageInterpolationSettingsClass,
-                 roi_interpolate_settings: RoiInterpolationSettingsClass,
-                 post_process_settings: ImagePostProcessingClass,
-                 perturbation_settings: ImagePerturbationSettingsClass,
-                 roi_resegment_settings: ResegmentationSettingsClass,
-                 feature_extr_settings: FeatureExtractionSettingsClass,
-                 img_transform_settings: ImageTransformationSettingsClass):
+    def __init__(
+            self,
+            general_settings: GeneralSettingsClass,
+            img_interpolate_settings: ImageInterpolationSettingsClass,
+            roi_interpolate_settings: RoiInterpolationSettingsClass,
+            post_process_settings: ImagePostProcessingClass,
+            perturbation_settings: ImagePerturbationSettingsClass,
+            roi_resegment_settings: ResegmentationSettingsClass,
+            feature_extr_settings: FeatureExtractionSettingsClass,
+            img_transform_settings: ImageTransformationSettingsClass):
 
         self.general = general_settings
         self.img_interpolate = img_interpolate_settings
@@ -2268,9 +2351,10 @@ def str2type(strx, data_type, default=None):
         return strx
 
 
-def import_configuration_settings(compute_features: bool,
-                                  path: Union[None, str] = None,
-                                  **kwargs):
+def import_configuration_settings(
+        compute_features: bool,
+        path: Union[None, str] = None,
+        **kwargs):
     import os.path
 
     # Make a copy of the kwargs argument to avoid updating by reference.
@@ -2310,9 +2394,10 @@ def import_configuration_settings(compute_features: bool,
         resegmentation_settings = ResegmentationSettingsClass(**kwargs)
 
         # Set feature extraction settings
-        feature_extraction_settings = FeatureExtractionSettingsClass(by_slice=general_settings.by_slice,
-                                                                     no_approximation=general_settings.no_approximation,
-                                                                     **kwargs)
+        feature_extraction_settings = FeatureExtractionSettingsClass(
+            by_slice=general_settings.by_slice,
+            no_approximation=general_settings.no_approximation,
+            **kwargs)
 
         # Set image transformation settings.
         image_transformation_settings = ImageTransformationSettingsClass(
@@ -2320,14 +2405,16 @@ def import_configuration_settings(compute_features: bool,
             response_map_feature_settings=feature_extraction_settings,
             **kwargs)
 
-        return [SettingsClass(general_settings=general_settings,
-                              img_interpolate_settings=image_interpolation_settings,
-                              roi_interpolate_settings=roi_interpolation_settings,
-                              post_process_settings=post_processing_settings,
-                              perturbation_settings=perturbation_settings,
-                              roi_resegment_settings=resegmentation_settings,
-                              feature_extr_settings=feature_extraction_settings,
-                              img_transform_settings=image_transformation_settings)]
+        return [SettingsClass(
+            general_settings=general_settings,
+            img_interpolate_settings=image_interpolation_settings,
+            roi_interpolate_settings=roi_interpolation_settings,
+            post_process_settings=post_processing_settings,
+            perturbation_settings=perturbation_settings,
+            roi_resegment_settings=resegmentation_settings,
+            feature_extr_settings=feature_extraction_settings,
+            img_transform_settings=image_transformation_settings)
+        ]
 
     elif not os.path.exists(path):
         raise FileNotFoundError(f"The settings file could not be found at {path}.")
@@ -2503,9 +2590,10 @@ def import_configuration_settings(compute_features: bool,
 
         else:
             # If the section is absent, assume that no features are extracted.
-            feature_extr_settings = FeatureExtractionSettingsClass(by_slice=general_settings.by_slice,
-                                                                   no_approximation=general_settings.no_approximation,
-                                                                   base_feature_families=None)
+            feature_extr_settings = FeatureExtractionSettingsClass(
+                by_slice=general_settings.by_slice,
+                no_approximation=general_settings.no_approximation,
+                base_feature_families=None)
 
         # Process image transformation settings
         img_transform_branch = branch.find("img_transform")
@@ -2608,9 +2696,10 @@ def import_configuration_settings(compute_features: bool,
             )
 
         else:
-            img_transform_settings = ImageTransformationSettingsClass(by_slice=general_settings.by_slice,
-                                                                      response_map_feature_settings=feature_extr_settings,
-                                                                      response_map_feature_families=None)
+            img_transform_settings = ImageTransformationSettingsClass(
+                by_slice=general_settings.by_slice,
+                response_map_feature_settings=feature_extr_settings,
+                response_map_feature_families=None)
 
         # Deep learning branch
         deep_learning_branch = branch.find("deep_learning")
@@ -2624,26 +2713,28 @@ def import_configuration_settings(compute_features: bool,
             )
 
         # Parse to settings
-        settings_list += [SettingsClass(general_settings=general_settings,
-                                        img_interpolate_settings=img_interp_settings,
-                                        roi_interpolate_settings=roi_interp_settings,
-                                        post_process_settings=post_process_settings,
-                                        perturbation_settings=perturbation_settings,
-                                        roi_resegment_settings=roi_resegment_settings,
-                                        feature_extr_settings=feature_extr_settings,
-                                        img_transform_settings=img_transform_settings)]
+        settings_list += [SettingsClass(
+            general_settings=general_settings,
+            img_interpolate_settings=img_interp_settings,
+            roi_interpolate_settings=roi_interp_settings,
+            post_process_settings=post_process_settings,
+            perturbation_settings=perturbation_settings,
+            roi_resegment_settings=roi_resegment_settings,
+            feature_extr_settings=feature_extr_settings,
+            img_transform_settings=img_transform_settings)]
 
     return settings_list
 
 
-def import_data_settings(path,
-                         config_settings,
-                         compute_features=False,
-                         extract_images=False,
-                         plot_images=False,
-                         keep_images_in_memory=False,
-                         file_structure=False,
-                         **kwargs):
+def import_data_settings(
+        path,
+        config_settings,
+        compute_features=False,
+        extract_images=False,
+        plot_images=False,
+        keep_images_in_memory=False,
+        file_structure=False,
+        **kwargs):
     from mirp.experimentClass import ExperimentClass
     import os
     import logging
@@ -2662,6 +2753,7 @@ def import_data_settings(path,
                 if dir_file.lower().endswith((".dcm", ".ima", ".nii", ".nii.gz", ".nifti", ".nifti.gz", ".nrrd")):
                     file_found = True
                     break
+
         return file_found
 
     # Configure logger
@@ -2705,20 +2797,23 @@ def import_data_settings(path,
             }))]
 
         # Concatenate to single data frame.
-        image_data_identifier_list = pd.concat(image_data_identifier_list,
-                                               ignore_index=True)
+        image_data_identifier_list = pd.concat(image_data_identifier_list, ignore_index=True)
 
         # Populate image data identifiers aside from subject/
         n_unique_sets = image_data_identifier_list.shape[0]
-        if image_data_identifier_list.drop_duplicates(subset=["modality"], inplace=False).shape[0] == n_unique_sets:
+        if image_data_identifier_list.drop_duplicates(
+                subset=["modality"],
+                inplace=False).shape[0] == n_unique_sets:
             image_data_identifiers = ["modality"]
 
-        elif image_data_identifier_list.drop_duplicates(subset=["modality", "folder"], inplace=False).shape[0] == \
-                n_unique_sets:
+        elif image_data_identifier_list.drop_duplicates(
+                subset=["modality", "folder"],
+                inplace=False).shape[0] == n_unique_sets:
             image_data_identifiers = ["modality", "folder"]
 
-        elif image_data_identifier_list.drop_duplicates(subset=["modality", "image_file_name_pattern"],
-                                                        inplace=False).shape[0] == n_unique_sets:
+        elif image_data_identifier_list.drop_duplicates(
+                subset=["modality", "image_file_name_pattern"],
+                inplace=False).shape[0] == n_unique_sets:
             image_data_identifiers = ["modality", "file_name"]
 
         else:
@@ -2733,8 +2828,8 @@ def import_data_settings(path,
             roi_folder = str2type(data_branch.find("roi_folder"), "path")
             roi_reg_img_folder = str2type(data_branch.find("registration_image_folder"), "str")
             image_file_name_pattern = str2type(data_branch.find("image_filename_pattern"), "str")
-            registration_image_file_name_pattern = str2type(data_branch.find("registration_image_filename_pattern"),
-                                                            "str")
+            registration_image_file_name_pattern = str2type(
+                data_branch.find("registration_image_filename_pattern"), "str")
             roi_names = str2list(data_branch.find("roi_names"), "str")
             roi_list_path: str = str2type(data_branch.find("roi_list_path"), "str")
             divide_disconnected_roi = str2type(data_branch.find("divide_disconnected_roi"), "str", "combine")
@@ -2744,8 +2839,8 @@ def import_data_settings(path,
             if extraction_config is not None and config_settings is not None:
                 new_config_settings = []
 
-                # Iterate over configuration names mentioned in the data and compare those to the configuration strings in the settings
-                # If a match is found, the configuration is set to the new configuration list.
+                # Iterate over configuration names mentioned in the data and compare those to the configuration strings
+                # in the settings. If a match is found, the configuration is set to the new configuration list.
                 for config_name in extraction_config:
                     for ii in np.arange(len(config_settings)):
                         if config_settings[ii].general.config_str == config_name:
@@ -2766,7 +2861,8 @@ def import_data_settings(path,
                         "No image folder was set. If images are located directly in the patient folder, use subject_dir as tag")
                     continue
 
-                # Set correct paths in case folders are tagged with subject_dir. This tag indicates that the data is directly in the subject folder
+                # Set correct paths in case folders are tagged with subject_dir. This tag indicates that the data is
+                # directly in the subject folder.
                 if image_folder == "subject_dir":
                     image_folder = ""
                 if roi_folder == "subject_dir":
@@ -2869,23 +2965,24 @@ def import_data_settings(path,
                         else:
                             raise ValueError(f"Encountered an unexpected data_identifier: {data_identifier}")
 
-                    data_obj = ExperimentClass(modality=image_modality,
-                                               subject=curr_subj,
-                                               cohort=cohort_id,
-                                               write_path=write_path,
-                                               image_folder=image_dir_subj,
-                                               roi_folder=roi_dir_subj,
-                                               roi_reg_img_folder=roi_reg_img_subj,
-                                               image_file_name_pattern=image_file_name_pattern,
-                                               registration_image_file_name_pattern=registration_image_file_name_pattern,
-                                               roi_names=roi_names,
-                                               data_str=data_string,
-                                               provide_diagnostics=provide_diagnostics,
-                                               settings=curr_config_setting,
-                                               compute_features=compute_features,
-                                               extract_images=extract_images,
-                                               plot_images=plot_images,
-                                               keep_images_in_memory=keep_images_in_memory)
+                    data_obj = ExperimentClass(
+                        modality=image_modality,
+                        subject=curr_subj,
+                        cohort=cohort_id,
+                        write_path=write_path,
+                        image_folder=image_dir_subj,
+                        roi_folder=roi_dir_subj,
+                        roi_reg_img_folder=roi_reg_img_subj,
+                        image_file_name_pattern=image_file_name_pattern,
+                        registration_image_file_name_pattern=registration_image_file_name_pattern,
+                        roi_names=roi_names,
+                        data_str=data_string,
+                        provide_diagnostics=provide_diagnostics,
+                        settings=curr_config_setting,
+                        compute_features=compute_features,
+                        extract_images=extract_images,
+                        plot_images=plot_images,
+                        keep_images_in_memory=keep_images_in_memory)
 
                     data_obj_list.append(data_obj)
 
