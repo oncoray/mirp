@@ -1259,8 +1259,8 @@ class ImageTransformationSettingsClass:
                  by_slice: bool,
                  response_map_feature_settings: Union[FeatureExtractionSettingsClass, None],
                  response_map_feature_families: Union[None, str, List[str]] = "statistical",
-                 response_map_discretisation_method: Union[None, str, List[str]] = None,
-                 response_map_discretisation_n_bins: Union[None, int, List[int]] = None,
+                 response_map_discretisation_method: Union[None, str, List[str]] = "fixed_bin_number",
+                 response_map_discretisation_n_bins: Union[None, int, List[int]] = 16,
                  response_map_discretisation_bin_width: Union[None, int, List[int]] = None,
                  filter_kernels: Union[None, str, List[str]] = None,
                  boundary_condition: Union[None, str] = "mirror",
@@ -1344,8 +1344,8 @@ class ImageTransformationSettingsClass:
             defined by the ``base_discretisation_bin_width`` parameter. The "none" method assign each unique
             intensity value is assigned its own bin.  Use of "fixed_bin_width" is generally discouraged because most
             filters lack a meaningful range. Default: "fixed_bin_number".
-        :param response_map_discretisation_n_bins: Number of bins used for the "fixed_bin_number" discretisation method. No
-            default value.
+        :param response_map_discretisation_n_bins: Number of bins used for the "fixed_bin_number" discretisation
+            method. Default: 16 bins.
         :param response_map_discretisation_bin_width: Width of each bin in the "fixed_bin_size" discretisation method. No
             default value.
         :param filter_kernels: Names of the filter kernels for which response maps should be created. The following
@@ -2531,11 +2531,11 @@ def import_configuration_settings(compute_features: bool,
                 response_map_feature_families=str2list(
                     img_transform_branch.find("feature_families"), "str", response_map_feature_families),
                 response_map_discretisation_method=str2list(
-                    img_transform_branch.find("discretisation_method"), "str", None),
+                    img_transform_branch.find("discretisation_method"), "str", "fixed_bin_number"),
                 response_map_discretisation_bin_width=str2list(
                     img_transform_branch.find("discretisation_bin_width"), "float", None),
                 response_map_discretisation_n_bins=str2list(
-                    img_transform_branch.find("discretisation_n_bins"), "int", None),
+                    img_transform_branch.find("discretisation_n_bins"), "int", 16),
                 filter_kernels=str2list(read_node(
                     img_transform_branch, ["filter_kernels", "spatial_filters"]), "str", None),
                 boundary_condition=str2type(img_transform_branch.find("boundary_condition"), "str", "mirror"),

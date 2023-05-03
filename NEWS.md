@@ -9,6 +9,12 @@
   interpolation operation would involve two interpolation steps. Aside from removing a computationally intensive 
   step, this also prevents unnecessary image degradation through the interpolation process. The new implementation 
   operates using affine matrix transformations.
+- Discretisation of intensities after filtering (i.e. intensities of response maps) now uses a *fixed bin number* 
+  method with 16 bins by default. Previously, no default was set, which could lead to unintended results. These 
+  parameters can be manually specified using the `response_map_discretisation_method`, 
+  `response_map_discretisation_bin_width`, and `response_map_discretisation_n_bins` arguments; or alternatively 
+  using the `discretisation_method`, `discretisation_bin_width` and `discretisation_n_bins` parameters of the 
+  `img_transform` section of the settings configuration file. 
 
 ## Fixes
 
