@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Union, Dict
+from typing import Union
 
 from mirp.importData.imageGenericFile import ImageFile
 
