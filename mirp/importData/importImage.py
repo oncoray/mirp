@@ -116,11 +116,6 @@ def import_image(image, **kwargs):
     raise NotImplementedError(f"Unsupported image type: {type(image)}")
 
 
-@singledispatch
-def import_mask(mask, **kwargs):
-    raise NotImplementedError(f"Unsupported mask type: {type(mask)}")
-
-
 @import_image.register(list)
 def _(image: list, **kwargs):
     # List can be anything. Hence, we dispatch import_image for the individual list elements.
@@ -165,39 +160,10 @@ def _(image: str, **kwargs):
                          "containing imaging.")
 
 
-@import_mask.register(list)
-def _(mask: str, **kwargs):
-    # Mask is a string, which could be a path to a xml file, to a csv file, or just a regular
-    # path a path to a file, or a path to a directory. Test which it is and then dispatch.
-
-    if mask.lower().endswith("xml"):
-        ...
-
-    elif mask.lower().endswith("csv"):
-        ...
-
-    elif os.path.isdir(mask):
-        return import_mask(
-            MaskDirectory(directory=mask, **kwargs))
-
-    elif os.path.exists(mask):
-        return import_mask(
-            MaskFile(file_path=mask, **kwargs).create())
-
-    else:
-        raise ValueError("The mask path does not point to a xml file, a csv file, a valid image file or a directory "
-                         "containing imaging.")
-
-
 @import_image.register(pd.DataFrame)
 def _(image: pd.DataFrame,
       image_modality: Union[None, str] = None,
       **kwargs):
-    ...
-
-
-@import_mask.register(pd.DataFrame)
-def _(mask: pd.DataFrame, **kwargs):
     ...
 
 
@@ -206,11 +172,6 @@ def _(image: np.ndarray,
       sample_name: Union[None, str] = None,
       image_modality: Union[None, str] = None,
       **kwargs):
-    ...
-
-
-@import_mask.register(np.ndarray)
-def _(image: np.ndarray, **kwargs):
     ...
 
 
@@ -229,11 +190,6 @@ def _(image: ImageFile, **kwargs):
     return image
 
 
-@import_mask.register(MaskFile)
-def _(image: MaskFile, **kwargs):
-    ...
-
-
 @import_image.register(ImageDirectory)
 def _(image: ImageDirectory, **kwargs):
 
@@ -245,8 +201,3 @@ def _(image: ImageDirectory, **kwargs):
 
     # Dispatch to import_image method for
     return [import_image(current_image) for current_image in image_list]
-
-
-@import_mask.register(MaskDirectory)
-def _(image: MaskDirectory, **kwargs):
-    ...
