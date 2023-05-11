@@ -1,6 +1,6 @@
 from typing import Union, Dict
 
-from mirp.importData.importImageFile import ImageFile
+from mirp.importData.imageGenericFile import ImageFile
 
 
 class ImageNiftiFile(ImageFile):

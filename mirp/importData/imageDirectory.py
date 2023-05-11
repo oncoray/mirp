@@ -5,7 +5,7 @@ import copy
 from typing import Union, List
 from itertools import chain
 from mirp.importData.utilities import supported_file_types
-from mirp.importData.importImageFile import ImageFile
+from mirp.importData.imageGenericFile import ImageFile
 
 
 class ImageDirectory:
@@ -198,11 +198,11 @@ class ImageDirectory:
             if not any(current_item.lower().endswith(ii) for ii in file_extensions):
                 continue
 
-            image_file = ImageFile(file_path=os.path.join(self.image_directory, current_item),
-                                   sample_name=self.sample_name,
-                                   suggested_sample_name=self.suggested_sample_name,
-                                   modality=self.modality,
-                                   file_type=self.file_type).create()
+            image_file = ImageFile(
+                file_path=os.path.join(self.image_directory, current_item),
+                sample_name=self.sample_name,
+                modality=self.modality,
+                file_type=self.file_type).create()
 
             if not image_file.check(raise_error=False):
                 continue

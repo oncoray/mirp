@@ -3,7 +3,7 @@ import os.path
 
 import pandas as pd
 
-from typing import Union, Dict
+from typing import Union
 from fnmatch import fnmatch
 from mirp.importData.utilities import supported_file_types
 
@@ -77,10 +77,10 @@ class ImageFile:
 
     def create(self):
         # Import locally to avoid potential circular references.
-        from mirp.importData.importImageDicomFile import ImageDicomFile
-        from mirp.importData.importImageNiftiFile import ImageNiftiFile
-        from mirp.importData.importImageNrrdFile import ImageNrrdFile
-        from mirp.importData.importImageNumpyFile import ImageNumpyFile
+        from mirp.importData.imageDicomFile import ImageDicomFile
+        from mirp.importData.imageNiftiFile import ImageNiftiFile
+        from mirp.importData.imageNrrdFile import ImageNrrdFile
+        from mirp.importData.imageNumpyFile import ImageNumpyFile
 
         file_extensions = supported_file_types(file_type=self.file_type)
 
@@ -258,10 +258,10 @@ class MaskFile:
 
     def create(self):
         # Import locally to avoid potential circular references.
-        from mirp.importData.importImageDicomFile import MaskDicomFile
-        from mirp.importData.importImageNiftiFile import MaskNiftiFile
-        from mirp.importData.importImageNrrdFile import MaskNrrdFile
-        from mirp.importData.importImageNumpyFile import MaskNumpyFile
+        from mirp.importData.imageDicomFile import MaskDicomFile
+        from mirp.importData.imageNiftiFile import MaskNiftiFile
+        from mirp.importData.imageNrrdFile import MaskNrrdFile
+        from mirp.importData.imageNumpyFile import MaskNumpyFile
 
         file_extensions = supported_file_types(file_type=self.file_type)
 
@@ -274,7 +274,7 @@ class MaskFile:
                 dir_path=self.dir_path,
                 sample_name=self.sample_name,
                 file_name=self.file_name,
-                image_name=self.mask_name,
+                mask_name=self.mask_name,
                 modality=self.modality,
                 file_type="dicom")
 

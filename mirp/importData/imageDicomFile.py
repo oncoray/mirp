@@ -4,7 +4,7 @@ import pandas as pd
 from pydicom import dcmread
 from warnings import warn
 
-from mirp.importData.importImageFile import ImageFile, MaskFile
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.utilities import supported_image_modalities, supported_mask_modalities
 from mirp.imageMetaData import get_pydicom_meta_tag
 

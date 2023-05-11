@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 from mirp.importData.importImage import ImageFile
-from mirp.importData.importImageDicomFile import ImageDicomFile
+from mirp.importData.imageDicomFile import ImageDicomFile
 
 
 class ImageFileStack:
