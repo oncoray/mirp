@@ -13,42 +13,6 @@ from mirp.importData.importImageFileStack import ImageFileStack
 from mirp.importData.utilities import flatten_list
 
 
-def import_data(
-        image,
-        sample_name: Union[None, str, List[str]] = None,
-        image_name=None,
-        image_file_type=None,
-        image_modality=None,
-        image_sub_folder=None,
-        mask=None,
-        mask_name=None,
-        mask_sub_folder=None):
-
-    # Generate list of images.
-    image_list, mask_list = import_image_and_mask(
-        image,
-        mask,
-        sample_name=sample_name,
-        image_name=image_name,
-        image_file_type=image_file_type,
-        image_modality=image_modality,
-        image_sub_folder=image_sub_folder,
-        mask_name=mask_name,
-        mask_sub_folder=mask_sub_folder
-    )
-
-    if not isinstance(image_list, list):
-        image_list = [image_list]
-
-    # Flatten the list.
-    image_list = flatten_list(image_list)
-
-    # Form the initial set of stacks, i.e. the data as they should be formatted.
-    image_stack_list: List[ImageFileStack] = list(_create_image_stack(
-        image_list=image_list,
-        drop_contents=False))
-
-
 
 def _create_image_stack(
         image_list: List[ImageFile],
@@ -97,18 +61,6 @@ def _create_image_stack(
                 file_stack = ImageFileStack(image_list=[non_dicom_image_file])
 
                 yield file_stack
-
-
-def import_image_and_mask(image, mask, **kwargs):
-    image_list = import_image(
-        image=image,
-        **kwargs)
-
-    mask_list = import_mask(
-        mask=mask,
-        **kwargs)
-
-    return image_list, mask_list
 
 
 @singledispatch
