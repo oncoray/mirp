@@ -11,6 +11,15 @@ def import_mask(mask, **kwargs):
 
 
 @import_mask.register(list)
+def _(mask: list, **kwargs):
+    mask_list = import_mask(
+        mask=mask,
+        **kwargs)
+
+    return mask_list
+
+
+@import_mask.register(str)
 def _(mask: str, **kwargs):
     # Mask is a string, which could be a path to a xml file, to a csv file, or just a regular
     # path a path to a file, or a path to a directory. Test which it is and then dispatch.

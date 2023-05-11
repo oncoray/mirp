@@ -79,15 +79,6 @@ def _(image: list, **kwargs):
     return image_list
 
 
-@import_mask.register(list)
-def _(mask: list, **kwargs):
-    mask_list = import_mask(
-        mask=mask,
-        **kwargs)
-
-    return mask_list
-
-
 @import_image.register(str)
 def _(image: str, **kwargs):
     # Image is a string, which could be a path to a xml file, to a csv file, or just a regular
