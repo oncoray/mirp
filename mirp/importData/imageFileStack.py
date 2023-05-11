@@ -8,7 +8,7 @@ from mirp.importData.imageDicomFile import ImageDicomFile
 
 
 class ImageFileStack:
-
+    # TODO: Check if this class is really needed.
     def __init__(
             self,
             image_list: Union[List[ImageDicomFile], List[ImageFile]]):
