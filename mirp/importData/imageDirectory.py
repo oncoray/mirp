@@ -160,6 +160,15 @@ class ImageDirectory:
         if len(path_info) == 0:
             ValueError(f"The {self.image_directory} directory is empty, and no images could be found.")
 
+        # Find entries that have associated files.
+        path_info = [
+            path_info_element for path_info_element in path_info if len(path_info_element[2]) > 0
+        ]
+
+        if len(path_info) == 0:
+            ValueError(
+                f"All directories within the {self.image_directory} directory is empty, and no images could be found.")
+
         # Find entries where the folder structure matches the sub_folder.
         if self.sub_folder is not None:
             path_info = [
@@ -201,7 +210,15 @@ class ImageDirectory:
 
         # Find entries that include files of the right file-type.
         if self.file_type is not None:
-            allowed_file_extensions = supported_file_types(file_type=self.file_type)
+            allowed_file_extensions = tuple(supported_file_types(file_type=self.file_type))
+
+            path_info = [
+                path_info_element for path_info_element in path_info
+                if any(image_file.endswith(allowed_file_extensions) for image_file in path_info_element[3])
+            ]
+
+        # Find entries that contain file names that match the image name.
+        # TODO : continue here.
 
         # Generate paths to directories.
         valid_directories = [self._generate_sub_directories()]
