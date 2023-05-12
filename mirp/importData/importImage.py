@@ -8,7 +8,7 @@ import pandas as pd
 
 from mirp.importData.imageDirectory import ImageDirectory
 from mirp.importData.imageGenericFile import ImageFile
-
+from mirp.importData.utilities import supported_file_types, supported_image_modalities
 
 # def _create_image_stack(
 #         image_list: List[ImageFile],
@@ -66,6 +66,22 @@ def import_image(
         image_file_type: Union[None, str] = None,
         image_modality: Union[None, str, List[str]] = None,
         image_sub_folder: Union[None, str] = None):
+
+    # Check modality.
+    if image_modality is not None:
+        if not isinstance(image_modality, str):
+            raise TypeError(
+                f"The image_modality argument is expected to be a single character string or None. The following "
+                f"modalities are supported: {', '.join(supported_image_modalities(None))}.")
+        _ = supported_image_modalities(image_modality.lower())
+
+    # Check image_file_type.
+    if image_file_type is not None:
+        if not isinstance(image_file_type, str):
+            raise TypeError(
+                f"The image_file_type argument is expected to be a single character string, or None. The following file "
+                f"types are supported: {', '.join(supported_file_types(None))}.")
+        _ = supported_file_types(image_file_type)
 
     image_list = _import_image(
         image,

@@ -2,7 +2,7 @@ from typing import Union, List
 from os.path import split
 
 
-def supported_image_modalities(modality: Union[None, str] = None):
+def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
     if modality is None:
         return ["ct", "pt", "pet", "mr", "mri", "generic"]
 
@@ -19,10 +19,13 @@ def supported_image_modalities(modality: Union[None, str] = None):
         return ["generic"]
 
     else:
-        raise ValueError(f"Encountered an unknown image modality as modality argument: {modality}")
+        raise ValueError(
+            f"Encountered an unknown image modality: {modality}. The following image modalities are supported: "
+            f"{', '.join(supported_image_modalities(None))}. The generic modality lacks special default parameters, "
+            f"and can always be used.")
 
 
-def supported_mask_modalities(modality: Union[None, str] = None):
+def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
     if modality is None:
         return ["rtsruct", "seg", "generic_mask"]
 
@@ -36,10 +39,12 @@ def supported_mask_modalities(modality: Union[None, str] = None):
         return ["generic_mask"]
 
     else:
-        raise ValueError(f"Encountered an unknown segmentation modality as modality argument: {modality}")
+        raise ValueError(
+            f"Encountered an unknown mask modality: {modality}. The following mask modalities are supported: "
+            f"{', '.join(supported_mask_modalities(None))}. The generic modality can always be used.")
 
 
-def supported_file_types(file_type: Union[None, str] = None):
+def supported_file_types(file_type: Union[None, str] = None) -> List[str]:
     if file_type is None:
         return [".dcm", ".nii", ".nii.gz", ".nrrd", ".npy", ".npz"]
 
@@ -56,7 +61,9 @@ def supported_file_types(file_type: Union[None, str] = None):
         return [".npy", ".npz"]
 
     else:
-        raise ValueError(f"Encountered an unknown type of image as file_type argument: {file_type}")
+        raise ValueError(
+            f"Encountered an unknown file type argument: {file_type}. The following file types are supported: "
+            f"{', '.join(supported_file_types(None))}.")
 
 
 def flatten_list(unflattened_list):
@@ -68,10 +75,6 @@ def flatten_list(unflattened_list):
         return flatten_list(unflattened_list[0]) + flatten_list(unflattened_list[1:])
 
     return unflattened_list[:1] + flatten_list(unflattened_list[1:])
-
-
-def create_sample_name():
-    ...
 
 
 def path_to_parts(x: str) -> List[str]:
