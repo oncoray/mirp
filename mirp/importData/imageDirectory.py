@@ -15,22 +15,25 @@ class ImageDirectory:
             directory,
             sample_name: Union[None, str, List[str]] = None,
             image_name: Union[None, str] = None,
-            sub_folder: Union[None, str] = None,
-            modality: Union[None, str] = None,
-            file_type: Union[None, str] = None,
+            image_sub_folder: Union[None, str] = None,
+            image_modality: Union[None, str] = None,
+            image_file_type: Union[None, str] = None,
             contain_multiple_samples: [bool] = False,
             **kwargs):
 
         self.image_directory = directory
         self.sample_name = sample_name
-        self.suggested_sample_name = None
         self.image_name = image_name
-        self.sub_folder = sub_folder
-        self.modality = modality
-        self.file_type: Union[None, str] = file_type
+        self.sub_folder = image_sub_folder
+        self.modality = image_modality
+        self.file_type: Union[None, str] = image_file_type
         self.contain_multiple_samples = contain_multiple_samples
 
     def _directory_contains_images(self):
+
+        # Check if the directory exists,
+        if not os.path.isdir(self.image_directory):
+            return False
 
         # The _create_images generator only returns something if a valid image can be found in the indicated directory.
         # When that happens, return True, otherwise return False.
@@ -77,7 +80,7 @@ class ImageDirectory:
 
                 # The subdirectory should contain the information instead if it is set.
                 if self.sub_folder is not None:
-                    current_directory = os.path.join(self.image_directory, current_sample_name)
+                    current_directory = os.path.join(current_directory, self.sub_folder)
 
                     if not os.path.isdir(current_directory):
                         continue
@@ -119,7 +122,6 @@ class ImageDirectory:
                 new_object.sub_folder = None
 
                 # Suggest sample name.
-                new_object.suggested_sample_name = current_content
                 new_object.sample_name = None
                 if sample_name is not None:
                     # We will replace sample name in the calling function, because we will need to check some other
@@ -201,8 +203,8 @@ class ImageDirectory:
             image_file = ImageFile(
                 file_path=os.path.join(self.image_directory, current_item),
                 sample_name=self.sample_name,
-                modality=self.modality,
-                file_type=self.file_type).create()
+                image_modality=self.modality,
+                image_file_type=self.file_type).create()
 
             if not image_file.check(raise_error=False):
                 continue

@@ -4,6 +4,9 @@ import os.path
 import numpy as np
 import pandas as pd
 
+from mirp.importData.maskGenericFile import MaskFile
+from mirp.importData.maskDirectory import MaskDirectory
+
 
 @singledispatch
 def import_mask(mask, **kwargs):

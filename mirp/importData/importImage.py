@@ -59,15 +59,38 @@ from mirp.importData.imageGenericFile import ImageFile
 #                 yield file_stack
 
 
+def import_image(
+        image,
+        sample_name: Union[None, str, List[str]] = None,
+        image_name: Union[None, str, List[str]] = None,
+        image_file_type: Union[None, str] = None,
+        image_modality: Union[None, str, List[str]] = None,
+        image_sub_folder: Union[None, str] = None):
+
+    image_list = _import_image(
+        image,
+        sample_name=sample_name,
+        image_name=image_name,
+        image_file_type=image_file_type,
+        image_modality=image_modality,
+        image_sub_folder=image_sub_folder
+    )
+
+    if not isinstance(image_list, list):
+        image_list = [image_list]
+
+    return image_list
+
+
 @singledispatch
-def import_image(image, **kwargs):
+def _import_image(image, **kwargs):
     raise NotImplementedError(f"Unsupported image type: {type(image)}")
 
 
-@import_image.register(list)
+@_import_image.register(list)
 def _(image: list, **kwargs):
     # List can be anything. Hence, we dispatch import_image for the individual list elements.
-    image_list = [import_image(
+    image_list = [_import_image(
         image=current_image,
         **kwargs
     ) for current_image in image]
@@ -75,7 +98,7 @@ def _(image: list, **kwargs):
     return image_list
 
 
-@import_image.register(str)
+@_import_image.register(str)
 def _(image: str, **kwargs):
     # Image is a string, which could be a path to a xml file, to a csv file, or just a regular
     # path a path to a file, or a path to a directory. Test which it is and then dispatch.
@@ -87,11 +110,11 @@ def _(image: str, **kwargs):
         ...
 
     elif os.path.isdir(image):
-        return import_image(
+        return _import_image(
             ImageDirectory(directory=image, **kwargs))
 
     elif os.path.exists(image):
-        return import_image(
+        return _import_image(
             ImageFile(file_path=image, **kwargs).create())
 
     else:
@@ -99,14 +122,14 @@ def _(image: str, **kwargs):
                          "containing imaging.")
 
 
-@import_image.register(pd.DataFrame)
+@_import_image.register(pd.DataFrame)
 def _(image: pd.DataFrame,
       image_modality: Union[None, str] = None,
       **kwargs):
     ...
 
 
-@import_image.register(np.ndarray)
+@_import_image.register(np.ndarray)
 def _(image: np.ndarray,
       sample_name: Union[None, str] = None,
       image_modality: Union[None, str] = None,
@@ -114,7 +137,7 @@ def _(image: np.ndarray,
     ...
 
 
-@import_image.register(ImageFile)
+@_import_image.register(ImageFile)
 def _(image: ImageFile, **kwargs):
 
     if not issubclass(type(image), ImageFile):
@@ -129,7 +152,7 @@ def _(image: ImageFile, **kwargs):
     return image
 
 
-@import_image.register(ImageDirectory)
+@_import_image.register(ImageDirectory)
 def _(image: ImageDirectory, **kwargs):
 
     # Check first if the data are consistent for a directory.
@@ -139,4 +162,4 @@ def _(image: ImageDirectory, **kwargs):
     image_list = image.create_images()
 
     # Dispatch to import_image method for
-    return [import_image(current_image) for current_image in image_list]
+    return [_import_image(current_image) for current_image in image_list]

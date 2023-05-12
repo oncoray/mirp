@@ -14,7 +14,7 @@ class ImageNumpyFile(ImageFile):
             file_name: Union[None, str] = None,
             image_name: Union[None, str] = None,
             modality: Union[None, str] = None,
-            file_type: Union[None, str] = None):
+            image_file_type: Union[None, str] = None):
 
         super().__init__(
             file_path=file_path,
@@ -22,8 +22,8 @@ class ImageNumpyFile(ImageFile):
             sample_name=sample_name,
             file_name=file_name,
             image_name=image_name,
-            modality=modality,
-            file_type=file_type)
+            image_modality=modality,
+            image_file_type=image_file_type)
 
     def check(self, raise_error=False):
 

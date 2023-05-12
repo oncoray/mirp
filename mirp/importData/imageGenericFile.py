@@ -17,8 +17,9 @@ class ImageFile:
             sample_name: Union[None, str] = None,
             file_name: Union[None, str] = None,
             image_name: Union[None, str] = None,
-            modality: Union[None, str] = None,
-            file_type: Union[None, str] = None):
+            image_modality: Union[None, str] = None,
+            image_file_type: Union[None, str] = None,
+            **kwargs):
 
         # Sanity check.
         if isinstance(sample_name, list):
@@ -27,8 +28,8 @@ class ImageFile:
         self.file_path: Union[None, str] = file_path
         self.sample_name: Union[None, str] = sample_name
         self.image_name: Union[None, str] = image_name
-        self.modality: Union[None, str] = modality
-        self.file_type: Union[None, str] = file_type
+        self.modality: Union[None, str] = image_modality
+        self.file_type: Union[None, str] = image_file_type
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
@@ -38,6 +39,7 @@ class ImageFile:
             for current_file_extension in supported_file_types(self.file_type):
                 if file_name.endswith(current_file_extension):
                     file_extension = current_file_extension
+                    break
 
             if file_extension is not None:
                 file_name = file_name.replace(file_extension, "")
@@ -95,7 +97,7 @@ class ImageFile:
                 file_name=self.file_name,
                 image_name=self.image_name,
                 modality=self.modality,
-                file_type="dicom")
+                image_file_type="dicom")
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
@@ -108,7 +110,7 @@ class ImageFile:
                 file_name=self.file_name,
                 image_name=self.image_name,
                 modality=self.modality,
-                file_type="nifti")
+                image_file_type="nifti")
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):
@@ -121,7 +123,7 @@ class ImageFile:
                 file_name=self.file_name,
                 image_name=self.image_name,
                 modality=self.modality,
-                file_type="nrrd")
+                image_file_type="nrrd")
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
@@ -134,7 +136,7 @@ class ImageFile:
                 file_name=self.file_name,
                 image_name=self.image_name,
                 modality=self.modality,
-                file_type="numpy")
+                image_file_type="numpy")
 
         else:
             raise NotImplementedError(f"The provided image type is not implemented: {self.file_type}")
