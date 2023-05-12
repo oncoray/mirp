@@ -20,13 +20,19 @@ def test_single_image_import():
     # image_list = import_image(
     #     image=os.path.join(CURRENT_DIR, "data", "sts_images"),
     #     sample_name="STS_001",
-    #     image_sub_folder="CT/nifti/image")
+    #     image_sub_folder=os.path.join("CT", "nifti", "image"))
 
+    # Read a DICOM image stack for a specific sample.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name="STS_001",
-        image_sub_folder="CT/dicom/image")
+        image_sub_folder=os.path.join("CT", "dicom", "image"))
 
+    # Read a Nifti image by specifying the image name
+
+    # Read a DICOM image stack by specifying the modality.
+
+    # Read a
     1
 
 
