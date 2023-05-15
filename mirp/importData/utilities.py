@@ -1,3 +1,4 @@
+import os.path
 from typing import Union, List
 from os.path import split
 
@@ -75,6 +76,41 @@ def flatten_list(unflattened_list):
         return flatten_list(unflattened_list[0]) + flatten_list(unflattened_list[1:])
 
     return unflattened_list[:1] + flatten_list(unflattened_list[1:])
+
+
+def bare_file_name(
+        x: Union[str, List[str]],
+        file_extension: Union[str, List[str]]
+) -> Union[str, List[str]]:
+    """
+    Strips provided extensions from the name of a file.
+    :param x: One or more filenames or path to file names.
+    :param file_extension: One or more extensions that should be stripped
+    :return: One or more filenames from which the extension has been stripped.
+    """
+    return_list = True
+    if isinstance(x, str):
+        x = [x]
+        return_list = False
+
+    if isinstance(file_extension, str):
+        file_extension = [file_extension]
+
+    file_name = [os.path.basename(file_path) for file_path in x]
+
+    for ii, current_file_name in enumerate(file_name):
+        for extension in file_extension:
+            if current_file_name.endswith(extension):
+                file_name[ii] = current_file_name.removesuffix(extension)
+
+                # If a file extension is found, remove it only once -- we want to avoid accidentally stripping the
+                # filename more than necessary.
+                break
+
+    if return_list:
+        return file_name
+    else:
+        return file_name[0]
 
 
 def path_to_parts(x: str) -> List[str]:
