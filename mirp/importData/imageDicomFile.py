@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, List
 
 from pydicom import dcmread
 from warnings import warn
@@ -13,7 +13,7 @@ class ImageDicomFile(ImageFile):
             self,
             file_path: Union[None, str] = None,
             dir_path: Union[None, str] = None,
-            sample_name: Union[None, str] = None,
+            sample_name: Union[None, str, List[str]] = None,
             file_name: Union[None, str] = None,
             image_name: Union[None, str] = None,
             modality: Union[None, str] = None,
@@ -39,19 +39,54 @@ class ImageDicomFile(ImageFile):
             return False
 
         # Read DICOM file.
-        dcm = dcmread(self.file_path,
-                      stop_before_pixels=True,
-                      force=True)
+        dcm = dcmread(
+            self.file_path,
+            stop_before_pixels=True,
 
         # Check that modality is matching.
         dicom_modality = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str")
         support_modalities = supported_image_modalities(self.modality)
         if dicom_modality.lower() not in support_modalities:
             if raise_error:
-                raise ValueError(f"The current DICOM file {self.file_path} does not have the expected modality. "
-                                 f"Found: {dicom_modality.lower()}. Expected: {', '.join(support_modalities)}")
+                raise ValueError(
+                    f"The current DICOM file {self.file_path} does not have the expected modality. "
+                    f"Found: {dicom_modality.lower()}. Expected: {', '.join(support_modalities)}")
 
             return False
+
+        # Check sample name.
+        if self.sample_name is not None:
+
+            allowed_sample_name = self.sample_name
+            if not isinstance(allowed_sample_name, list):
+                allowed_sample_name = [allowed_sample_name]
+
+            # Consider the following DICOM elements: study description, series description, patient name,
+            # patient id, study id.
+            dicom_sample_name = [
+                get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x1030), tag_type="str"),
+                get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x103E), tag_type="str"),
+                get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0010, 0x0010), tag_type="str"),
+                get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0010, 0x0020), tag_type="str"),
+                get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0010), tag_type="str")
+            ]
+
+            dicom_sample_name = [
+                current_dicom_sample_name for current_dicom_sample_name in dicom_sample_name
+                if current_dicom_sample_name is not None
+            ]
+
+            if len(dicom_sample_name) > 0:
+                matching_sample_name = set(dicom_sample_name).intersection(set(allowed_sample_name))
+                if len(matching_sample_name) == 0:
+                    if raise_error:
+                        raise ValueError(
+                            f"The current DICOM file {self.file_path} does not have a matching sample name among "
+                            f"potential identifiers. Potential identifiers: {', '.join(dicom_sample_name)}; "
+                            f"Expected identifiers: {', '.join(allowed_sample_name)}."
+                        )
+                    else:
+                        return False
 
         return True
 
