@@ -5,7 +5,7 @@ import pandas as pd
 
 from typing import Union
 from fnmatch import fnmatch
-from mirp.importData.utilities import supported_file_types
+from mirp.importData.utilities import supported_file_types, match_file_name
 
 
 class ImageFile:
@@ -149,28 +149,31 @@ class ImageFile:
             return True
 
         # Dispatch to subclass based on file_path.
-        file_extensions = supported_file_types(self.file_type)
+        allowed_file_extensions = supported_file_types(self.file_type)
 
         # Check that the file type is correct.
-        if not any(self.file_path.lower().endswith(ii) for ii in file_extensions):
+        if not self.file_path.lower().endswith(tuple(allowed_file_extensions)):
             if raise_error:
-                raise ValueError(f"The file type does not correspond to a known, implemented image type: {self.file_path}.")
+                raise ValueError(
+                    f"The file type does not correspond to a known, implemented image type: {self.file_type}.")
 
             return False
 
         # Check that the file exists.
         if not os.path.exists(self.file_path):
             if raise_error:
-                raise FileNotFoundError(f"The image file could not be found at the expected location: {self.file_path}")
+                raise FileNotFoundError(
+                    f"The image file could not be found at the expected location: {self.file_path}")
 
             return False
 
         # Check that the file name contains image_name.
         if self.image_name is not None:
-            if not fnmatch(os.path.basename(self.file_path), self.image_name):
+            if not match_file_name(self.file_path, pattern=self.image_name, file_extension=allowed_file_extensions):
                 if raise_error:
-                    raise ValueError(f"The file name of the image file {self.file_path} does not match the expected pattern:"
-                                     f" {self.image_name}")
+                    raise ValueError(
+                        f"The file name of the image file {os.path.basename(self.file_path)} does not match "
+                        f"the expected pattern: {self.image_name}")
 
             return False
 
