@@ -1,4 +1,5 @@
 import os.path
+import fnmatch
 from typing import Union, List
 from os.path import split
 
@@ -111,6 +112,38 @@ def bare_file_name(
         return file_name
     else:
         return file_name[0]
+
+
+def match_file_name(
+        x: Union[str, List[str]],
+        pattern: Union[str, List[str]],
+        file_extension: Union[None, str, List[str]]
+) -> Union[bool, List[bool]]:
+    """
+    Determine if any filename matches the provided pattern. fnmatch is used for matching, which allows for wildcards.
+    Only the
+    :param x: a string or path that is the filename or a path to the file.
+    :param pattern: a string or list of strings that should be tested.
+    :param file_extension: None, string or list of strings representing the file extension. If provided, the extension
+    is stripped from the filename prior to matching.
+    :return: a (list of) boolean value(s). True if any pattern appears in the file name, and False if not.
+    """
+    return_list = True
+    if isinstance(x, str):
+        x = [x]
+        return_list = False
+
+    file_name = [os.path.basename(file_path) for file_path in x]
+
+    if file_extension is not None:
+        file_name = bare_file_name(file_name, file_extension=file_extension)
+
+    matches = fnmatch.filter(file_name, pattern)
+
+    if return_list:
+        return matches
+    else:
+        return matches[0]
 
 
 def path_to_parts(x: str) -> List[str]:
