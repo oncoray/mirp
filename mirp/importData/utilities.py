@@ -121,7 +121,6 @@ def match_file_name(
 ) -> Union[bool, List[bool]]:
     """
     Determine if any filename matches the provided pattern. fnmatch is used for matching, which allows for wildcards.
-    Only the
     :param x: a string or path that is the filename or a path to the file.
     :param pattern: a string or list of strings that should be tested.
     :param file_extension: None, string or list of strings representing the file extension. If provided, the extension
