@@ -339,7 +339,8 @@ class ImageDirectory:
 
         image_file_list = []
         for image_file_name in self.image_files:
-            ...
+
+            # Create image file object.
             image_file = ImageFile(
                 file_path=os.path.join(self.image_directory, image_file_name),
                 sample_name=self.sample_name,
@@ -349,12 +350,6 @@ class ImageDirectory:
             if not image_file.check(raise_error=False):
                 continue
 
-            # Create image file from subtype
-            image_file = image_file.create()
-
             image_file_list.append(image_file)
-
-        # Auto-stack images.
-        ...
 
         return image_file_list
