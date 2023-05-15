@@ -4,8 +4,7 @@ import os.path
 import pandas as pd
 
 from typing import Union
-from fnmatch import fnmatch
-from mirp.importData.utilities import supported_file_types, match_file_name
+from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name
 
 
 class ImageFile:
@@ -177,6 +176,61 @@ class ImageFile:
 
             return False
 
+        # Check that image file contains a sample name, if multiple sample names are present. To assess the filename,
+        # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
+        # filename into parts that should contain the sample name.
+        if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
+            file_name = bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
+            if self.image_name is not None:
+                image_id_name = self.image_name
+                if not isinstance(self.image_name, list):
+                    image_id_name = [image_id_name]
+
+                # Find the id that is present in the filename.
+                matching_image_id = None
+                for current_image_id_name in image_id_name:
+                    if current_image_id_name in file_name:
+                        matching_image_id = current_image_id_name
+                        break
+
+                if matching_image_id is not None:
+                    # Handle wildcards in the image id.
+                    matching_image_id.replace("?", "*")
+                    matching_image_id = matching_image_id.split("*")
+                    matching_image_id = [x for x in matching_image_id if x != ""]
+
+                    if len(matching_image_id) == 0:
+                        file_name_parts = [file_name]
+                    else:
+                        # Find the parts of the file name that do not contain the image identifier.
+                        blocked_start = file_name.find(matching_image_id[0])
+                        blocked_end = file_name.find(matching_image_id[-1]) + len(matching_image_id[-1])
+                        file_name_parts = [""]
+                        if blocked_start > 0:
+                            file_name_parts.append(file_name[0:blocked_start])
+
+                        if blocked_end < len(file_name):
+                            file_name_parts.append(file_name[blocked_end:len(file_name)])
+                else:
+                    file_name_parts = [file_name]
+
+            else:
+                file_name_parts = [file_name]
+
+            # Check if any sample name is present.
+            contains_sample_name = [
+                any([x in current_file_name_part for x in self.sample_name])
+                for current_file_name_part in file_name_parts
+            ]
+
+            if not contains_sample_name:
+                if raise_error:
+                    raise ValueError(
+                        f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
+                        f"any of the expected patterns: {', '.join(self.sample_name)}")
+                else:
+                    return False
+
         return True
 
     def get_identifiers(self):
@@ -192,3 +246,6 @@ class ImageFile:
         # Set modality
         if self.modality is None:
             self.modality = "generic"
+
+        # Set sample name.
+
