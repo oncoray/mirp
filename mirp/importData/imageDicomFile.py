@@ -29,8 +29,9 @@ class ImageDicomFile(ImageFile):
             image_file_type=image_file_type)
 
         # These are set using the 'complete' method.
-        self.frame_of_reference_uid = None
-        self.sop_instance_uid = None
+        self.series_instance_uid: Union[None, str] = None
+        self.frame_of_reference_uid: Union[None, str] = None
+        self.sop_instance_uid: Union[None, str] = None
 
     def check(self, raise_error=False):
 
@@ -42,6 +43,7 @@ class ImageDicomFile(ImageFile):
         dcm = dcmread(
             self.file_path,
             stop_before_pixels=True,
+            force=True)
 
         # Check that modality is matching.
         dicom_modality = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str")
@@ -115,6 +117,8 @@ class ImageDicomFile(ImageFile):
         # Set Frame of Reference UID (if any)
         self.frame_of_reference_uid = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x0052), tag_type="str")
 
+        # Set series UID
+        self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0020, 0x000E), tag_type="str")
 
         # Set sample name -- note that if sample_name is a (single) string, it is neither replaced nor updated.
         if self.sample_name is None or isinstance(self.sample_name, list):
