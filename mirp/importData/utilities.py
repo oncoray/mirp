@@ -3,6 +3,8 @@ import fnmatch
 from typing import Union, List
 from os.path import split
 
+import numpy as np
+
 
 def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
     if modality is None:
@@ -132,12 +134,17 @@ def match_file_name(
         x = [x]
         return_list = False
 
+    if isinstance(pattern, str):
+        pattern = list(str)
+
     file_name = [os.path.basename(file_path) for file_path in x]
 
     if file_extension is not None:
         file_name = bare_file_name(file_name, file_extension=file_extension)
 
-    matches = fnmatch.filter(file_name, pattern)
+    matches = np.zeros(len(file_name), dtype=bool)
+    for current_pattern in pattern:
+        matches = np.logical_or(matches, np.array(fnmatch.filter(file_name, current_pattern)))
 
     if return_list:
         return matches
