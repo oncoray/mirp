@@ -1,9 +1,10 @@
 import os
 import os.path
 
+import numpy as np
 import pandas as pd
 
-from typing import Union, List
+from typing import Union, List, Tuple
 from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name
 
 
@@ -18,6 +19,11 @@ class ImageFile:
             image_name: Union[None, str] = None,
             image_modality: Union[None, str] = None,
             image_file_type: Union[None, str] = None,
+            image_data: Union[None, np.ndarray] = None,
+            image_origin: Union[None, Tuple[float]] = None,
+            image_orientation: Union[None, np.ndarray] = None,
+            image_spacing: Union[None, Tuple[float]] = None,
+            image_dimensions: Union[None, Tuple[int]] = None,
             **kwargs):
 
         self.file_path: Union[None, str] = file_path
@@ -25,6 +31,16 @@ class ImageFile:
         self.image_name: Union[None, str] = image_name
         self.modality: Union[None, str] = image_modality
         self.file_type: Union[None, str] = image_file_type
+
+        # Add image data
+        self.image_data = image_data
+        self.image_origin = image_origin,
+        self.image_orientation = image_orientation
+        self.image_spacing = image_spacing
+        self.image_dimension = image_dimensions
+
+        # Check incoming image data.
+        _ = self._check_image_data()
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
@@ -139,6 +155,12 @@ class ImageFile:
         return image_file
 
     def check(self, raise_error=False):
+
+        # Check image data first.
+        image_check = self._check_image_data(raise_error=raise_error)
+        if not image_check:
+            return False
+
         # Check if file_path is set. Otherwise, none of the generic checks below can be used.
         if self.file_path is None:
             return True
@@ -185,6 +207,94 @@ class ImageFile:
                     return False
 
         return True
+
+    def _check_image_data(self, raise_error=False):
+        if self.image_data is None:
+            return True
+
+        # Check that image_data has the expected type.
+        if not isinstance(self.image_data, np.ndarray):
+            if raise_error:
+                raise TypeError(
+                    f"The image_data argument expects None or a numpy ndarray. Found object with class "
+                    f"{type(self.image_data).name}"
+                )
+            else:
+                return False
+
+        # Check that image_data has up to 3 dimensions.
+        data_shape = self.image_data.shape
+        if not 1 <= len(data_shape) <= 3:
+            if raise_error:
+                raise ValueError(
+                    f"MIRP supports image data up to 3 dimensions. The current numpy array has a dimension of "
+                    f"{len(data_shape)} ({data_shape})."
+                )
+            else:
+                return False
+
+        # Check that the shape of image_data matches that of image_dimensions.
+        if self.image_dimension is not None and not np.array_equal(self.image_dimension, data_shape):
+            if raise_error:
+                raise ValueError(
+                    f"The shape of the image data itself and the purported shape (image_dimensions) are different. The "
+                    f"current numpy array has dimensions ({data_shape}), where ({self.image_dimension}) is expected."
+                )
+            else:
+                return False
+
+        # Check that image_origin has the correct number of dimensions.
+        if self.image_origin is not None and not len(data_shape) == len(self.image_origin):
+            if raise_error:
+                raise ValueError(
+                    f"The dimensions of the image data itself ({len(data_shape)} and the dimensions of the origin ("
+                    f"image_origin; {len(self.image_origin)}) are different."
+                )
+            else:
+                return False
+
+        # Check that image_orientation has the correct number of dimensions, and is correctly formatted.
+        if self.image_orientation is not None:
+            if not np.all(np.equal(self.image_orientation, len(data_shape))):
+                if raise_error:
+                    raise ValueError(
+                        f"The orientation matrix should be square, with a dimension equal to the dimensions "
+                        f"the image data itself ({len(data_shape)}. Found: {self.image_orientation.shape}."
+                    )
+                else:
+                    return False
+
+        # Check that image orientation has a l2-norm of 1.0.
+        if self.image_orientation is not None:
+            l2_norm = np.around(np.linalg.norm(self.image_orientation, ord=2), decimals=6)
+            if not l2_norm == 1.0:
+                if raise_error:
+                    raise ValueError(
+                        f"The orientation matrix should be square with an l2-norm of 1.0. Found: {l2_norm}."
+                    )
+                else:
+                    return False
+
+        # Check that spacing has the correct number of dimensions.
+        if self.image_spacing is not None:
+            if not len(self.image_spacing) == len(data_shape):
+                if raise_error:
+                    raise ValueError(
+                        f"The dimensions of the image data itself ({len(data_shape)} and the dimensions of the voxel "
+                        f"spacing (image_spacing; {len(self.image_spacing)}) are different."
+                    )
+                else:
+                    return False
+
+        # Check that spacing contains strictly positive values.
+        if self.image_spacing is not None:
+            if np.any(np.array(self.image_spacing) <= 0.0):
+                if raise_error:
+                    raise ValueError(
+                        f"Image spacing should be strictly positive. Found: {self.image_spacing}."
+                    )
+                else:
+                    return False
 
     def _get_sample_name_from_file(self) -> Union[None, str]:
         allowed_file_extensions = supported_file_types(self.file_type)
@@ -272,3 +382,6 @@ class ImageFile:
 
             else:
                 self.sample_name = None
+
+    def load_file_header(self):
+        ...
