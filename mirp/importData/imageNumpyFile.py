@@ -4,6 +4,9 @@ from typing import Union
 
 from mirp.importData.imageGenericFile import ImageFile
 
+# TODO: make default stackable option dependent on dimension of images -->  2D with same dimensions are stackable; 3D
+#  is not stackable (unless 3rd dimension has size 1).
+
 
 class ImageNumpyFile(ImageFile):
     def __init__(
