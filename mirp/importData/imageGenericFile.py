@@ -3,7 +3,7 @@ import os.path
 
 import pandas as pd
 
-from typing import Union
+from typing import Union, List
 from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name
 
 
@@ -13,19 +13,15 @@ class ImageFile:
             self,
             file_path: Union[None, str] = None,
             dir_path: Union[None, str] = None,
-            sample_name: Union[None, str] = None,
+            sample_name: Union[None, str, List[str]] = None,
             file_name: Union[None, str] = None,
             image_name: Union[None, str] = None,
             image_modality: Union[None, str] = None,
             image_file_type: Union[None, str] = None,
             **kwargs):
 
-        # Sanity check.
-        if isinstance(sample_name, list):
-            raise ValueError("The sample_name argument should be None or a string.")
-
         self.file_path: Union[None, str] = file_path
-        self.sample_name: Union[None, str] = sample_name
+        self.sample_name: Union[None, str, List[str]] = sample_name
         self.image_name: Union[None, str] = image_name
         self.modality: Union[None, str] = image_modality
         self.file_type: Union[None, str] = image_file_type
@@ -180,6 +176,20 @@ class ImageFile:
         # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
         # filename into parts that should contain the sample name.
         if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
+            if self._get_sample_name_from_file() is None:
+                if raise_error:
+                    raise ValueError(
+                        f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
+                        f"any of the expected patterns: {', '.join(self.sample_name)}")
+                else:
+                    return False
+
+        return True
+
+    def _get_sample_name_from_file(self) -> Union[None, str]:
+        allowed_file_extensions = supported_file_types(self.file_type)
+
+        if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
             file_name = bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
             if self.image_name is not None:
                 image_id_name = self.image_name
@@ -218,20 +228,23 @@ class ImageFile:
                 file_name_parts = [file_name]
 
             # Check if any sample name is present.
-            contains_sample_name = [
-                any([x in current_file_name_part for x in self.sample_name])
-                for current_file_name_part in file_name_parts
-            ]
+            matching_name = None
+            matching_frac = 0.0
+            for current_file_name_part in file_name_parts:
+                for current_sample_name in self.sample_name:
+                    if current_sample_name in current_file_name_part:
+                        # Prefer the most complete matches.
+                        if len(current_sample_name) / len(current_file_name_part) > matching_frac:
+                            matching_frac = len(current_sample_name) / len(current_file_name_part)
+                            matching_name = current_sample_name
 
-            if not contains_sample_name:
-                if raise_error:
-                    raise ValueError(
-                        f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
-                        f"any of the expected patterns: {', '.join(self.sample_name)}")
-                else:
-                    return False
+                            if matching_frac == 1.0:
+                                return matching_name
 
-        return True
+            return matching_name
+
+        else:
+            return None
 
     def get_identifiers(self):
 
@@ -243,9 +256,19 @@ class ImageFile:
             "dir_path": [self.get_dir_path()]}))
 
     def complete(self):
-        # Set modality
+        # Set modality.
         if self.modality is None:
             self.modality = "generic"
 
         # Set sample name.
+        if isinstance(self.sample_name, list):
+            file_sample_name = self._get_sample_name_from_file()
 
+            if file_sample_name is None and len(self.sample_name) == 1:
+                self.sample_name = self.sample_name[0]
+
+            elif file_sample_name is not None:
+                self.sample_name = file_sample_name
+
+            else:
+                self.sample_name = None
