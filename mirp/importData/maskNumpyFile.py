@@ -31,8 +31,8 @@ class MaskNumpyFile(MaskFile):
         if not super().check(raise_error=raise_error):
             return False
 
-        # Read Numpy file.
-        mask_data = np.load(file=self.file_path)
+        # Read Numpy file lazily.
+        mask_data = np.load(file=self.file_path, mmap_mode="r")
 
         # Check that the contents are in fact a ndarray.
         if not isinstance(mask_data, np.ndarray):
