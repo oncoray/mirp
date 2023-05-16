@@ -18,17 +18,21 @@ class ImageDirectory:
             image_sub_folder: Union[None, str] = None,
             image_modality: Union[None, str] = None,
             image_file_type: Union[None, str] = None,
+            stack_images: str = "auto",
             **kwargs):
 
         if sample_name is not None and not isinstance(sample_name, list):
             sample_name = [sample_name]
 
         self.image_directory = directory
-        self.sample_name: Union[None, List[str]] = sample_name
+        self.sample_name: Union[None, str, List[str]] = sample_name
         self.image_name = image_name
         self.sub_folder = image_sub_folder
         self.modality = image_modality
-        self.file_type: Union[None, str] = image_file_type
+        self.file_type = image_file_type
+        self.stack_images = stack_images
+
+        # image_files are set using create_images.
         self.image_files: Union[None, List[str]] = None
 
     # def _directory_contains_images(self):
@@ -295,7 +299,9 @@ class ImageDirectory:
             image_sub_directory._create_images()
 
         # Flatten list.
-        return list(chain.from_iterable(image_list))
+        image_list = list(chain.from_iterable(image_list))
+
+        # Try to autostack.
 
     def _create_images(self) -> List[ImageFile]:
         """
