@@ -1,6 +1,7 @@
 import os
 import os.path
 
+import itk
 import numpy as np
 import pandas as pd
 
@@ -384,4 +385,19 @@ class ImageFile:
                 self.sample_name = None
 
     def load_file_header(self):
-        ...
+
+        if self.file_path is None:
+            return None
+
+        if not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The image file could not be found at the expected location: {self.file_path}")
+
+        # Default reader is from itk.
+        reader = itk.ImageFileReader()
+        reader.SetFileName(self.file_path)
+        reader.ReadImageInformation()
+
+        return reader
+
+
