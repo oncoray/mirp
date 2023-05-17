@@ -35,7 +35,7 @@ class ImageFile:
 
         # Add image data
         self.image_data = image_data
-        self.image_origin = image_origin,
+        self.image_origin = image_origin
         self.image_orientation = image_orientation
         self.image_spacing = image_spacing
         self.image_dimension = image_dimensions
