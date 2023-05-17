@@ -95,8 +95,7 @@ class ImageFile:
     def create(self):
         # Import locally to avoid potential circular references.
         from mirp.importData.imageDicomFile import ImageDicomFile
-        from mirp.importData.imageNiftiFile import ImageNiftiFile
-        from mirp.importData.imageNrrdFile import ImageNrrdFile
+        from mirp.importData.imageITKFile import ImageITKFile
         from mirp.importData.imageNumpyFile import ImageNumpyFile
 
         file_extensions = supported_file_types(file_type=self.file_type)
@@ -114,31 +113,28 @@ class ImageFile:
                 modality=self.modality,
                 image_file_type="dicom")
 
-        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
-                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
+        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions):
+            if any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
+                file_type = "nifti"
+            elif any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):
+                file_type = "nrrd"
+            else:
+                raise ValueError(f"DEV: specify file_type")
 
-            # Create Nifti file.
-            image_file = ImageNiftiFile(
+            # Create ITK file.
+            image_file = ImageITKFile(
                 file_path=self.file_path,
                 dir_path=self.dir_path,
                 sample_name=self.sample_name,
                 file_name=self.file_name,
                 image_name=self.image_name,
-                modality=self.modality,
-                image_file_type="nifti")
-
-        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
-                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):
-
-            # Create NRRD file.
-            image_file = ImageNrrdFile(
-                file_path=self.file_path,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                file_name=self.file_name,
-                image_name=self.image_name,
-                modality=self.modality,
-                image_file_type="nrrd")
+                image_modality=self.modality,
+                image_file_type=file_type,
+                image_data=self.image_data,
+                image_origin=self.image_origin,
+                image_orientation=self.image_orientation,
+                image_spacing=self.image_spacing,
+                image_dimensions=self.image_dimension)
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
