@@ -418,3 +418,5 @@ class ImageFile:
             f"implementation for subclasses."
         )
 
+    def remove_metadata(self):
+        self.image_metadata = None
