@@ -379,7 +379,7 @@ class ImageFile:
             "file_name": [self.get_file_name()],
             "dir_path": [self.get_dir_path()]}))
 
-    def complete(self):
+    def complete(self, remove_metadata=True):
         # Load metadata.
         self.load_metadata()
 
@@ -391,10 +391,11 @@ class ImageFile:
         self._complete_image_spacing()
 
         # Check if the complete data passes verification.
-        self.check()
+        self.check(raise_error=True, remove_metadata=False)
 
         # Remove metadata. This allows file connections to be garbage collected.
-        self.remove_metadata()
+        if remove_metadata:
+            self.remove_metadata()
 
     def _complete_modality(self):
         # Set modality.
