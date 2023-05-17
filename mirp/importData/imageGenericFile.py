@@ -433,3 +433,10 @@ class ImageFile:
 
     def remove_metadata(self):
         self.image_metadata = None
+
+    def load_data(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
+            f"implementation for subclasses."
+        )
+    
