@@ -110,8 +110,14 @@ class ImageFile:
                 sample_name=self.sample_name,
                 file_name=self.file_name,
                 image_name=self.image_name,
-                modality=self.modality,
-                image_file_type="dicom")
+                image_modality=self.modality,
+                image_file_type="dicom",
+                image_data=self.image_data,
+                image_origin=self.image_origin,
+                image_orientation=self.image_orientation,
+                image_spacing=self.image_spacing,
+                image_dimensions=self.image_dimension
+            )
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions):
             if any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
@@ -134,7 +140,8 @@ class ImageFile:
                 image_origin=self.image_origin,
                 image_orientation=self.image_orientation,
                 image_spacing=self.image_spacing,
-                image_dimensions=self.image_dimension)
+                image_dimensions=self.image_dimension
+            )
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
