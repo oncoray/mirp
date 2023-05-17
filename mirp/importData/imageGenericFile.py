@@ -388,23 +388,6 @@ class ImageFile:
             else:
                 self.sample_name = None
 
-    def load_file_header(self):
-
-        if self.file_path is None:
-            return None
-
-        if not os.path.exists(self.file_path):
-            raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
-
-        # Default reader is from itk.
-        reader = itk.ImageFileReader()
-        reader.SetFileName(self.file_path)
-        reader.ReadImageInformation()
-
-        return reader
-
-
     def _complete_image_origin(self):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
@@ -426,6 +409,12 @@ class ImageFile:
     def _complete_image_dimensions(self):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_dimensions. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def load_metadata(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of load_metadata. Please specify "
             f"implementation for subclasses."
         )
 
