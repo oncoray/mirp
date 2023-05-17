@@ -78,4 +78,4 @@ class ImageITKFile(ImageFile):
         if self.image_data is None:
             # Load the image
             itk_img = itk.imread(os.path.join(self.file_path))
-            self.image_data = itk.GetArrayFromImage(itk_img).astype(float)
+            self.image_data = itk.GetArrayFromImage(itk_img).astype(np.float32)
