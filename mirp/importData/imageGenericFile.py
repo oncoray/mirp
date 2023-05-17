@@ -40,6 +40,9 @@ class ImageFile:
         self.image_spacing = image_spacing
         self.image_dimension = image_dimensions
 
+        # Add metadata
+        self.image_metadata = None
+
         # Check incoming image data.
         _ = self._check_image_data()
 
