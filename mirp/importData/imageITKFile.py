@@ -40,20 +40,24 @@ class ImageITKFile(ImageFile):
         )
 
     def _complete_image_origin(self):
-        origin = np.array(self.image_metadata.GetOrigin())[::-1]
-        self.image_origin = tuple(origin)
+        if self.image_orientation is None:
+            origin = np.array(self.image_metadata.GetOrigin())[::-1]
+            self.image_origin = tuple(origin)
 
     def _complete_image_orientation(self):
-        orientation = np.reshape(np.ravel(itk.array_from_matrix(self.image_metadata.GetDirection()))[::-1], [3, 3])
-        self.image_orientation = orientation
+        if self.image_orientation is None:
+            orientation = np.reshape(np.ravel(itk.array_from_matrix(self.image_metadata.GetDirection()))[::-1], [3, 3])
+            self.image_orientation = orientation
 
     def _complete_image_spacing(self):
-        spacing = np.array(self.image_metadata.GetSpacing())[::-1]
-        self.image_spacing = tuple(spacing)
+        if self.image_spacing is None:
+            spacing = np.array(self.image_metadata.GetSpacing())[::-1]
+            self.image_spacing = tuple(spacing)
 
     def _complete_image_dimensions(self):
-        dimensions = np.array(self.image_metadata.GetSize())[::-1]
-        self.image_dimension = tuple(dimensions)
+        if self.image_dimension is None:
+            dimensions = np.array(self.image_metadata.GetSize())[::-1]
+            self.image_dimension = tuple(dimensions)
 
     def load_metadata(self):
 
