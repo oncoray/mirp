@@ -374,6 +374,7 @@ class ImageFile:
         if self.modality is None:
             self.modality = "generic"
 
+    def _complete_sample_name(self):
         # Set sample name.
         if isinstance(self.sample_name, list):
             file_sample_name = self._get_sample_name_from_file()
@@ -403,4 +404,28 @@ class ImageFile:
 
         return reader
 
+
+    def _complete_image_origin(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_orientation(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_sample_orientation. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_spacing(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_sample_spacing. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_dimensions(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_sample_dimensions. Please specify "
+            f"implementation for subclasses."
+        )
 
