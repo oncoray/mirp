@@ -41,6 +41,13 @@ class ImageDicomFile(ImageFile):
         if not super().check(raise_error=raise_error):
             return False
 
+        # Metadata needs to be read from files, and should therefore be skipped if not available.
+        if self.file_path is None:
+            return True
+
+        # Load metadata
+        self.load_metadata()
+
         # Read DICOM file.
         dcm = dcmread(
             self.file_path,
