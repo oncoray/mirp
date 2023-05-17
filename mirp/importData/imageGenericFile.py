@@ -370,6 +370,23 @@ class ImageFile:
             "dir_path": [self.get_dir_path()]}))
 
     def complete(self):
+        # Load metadata.
+        self.load_metadata()
+
+        self._complete_modality()
+        self._complete_sample_name()
+        self._complete_image_dimensions()
+        self._complete_image_origin()
+        self._complete_image_orientation()
+        self._complete_image_spacing()
+
+        # Remove metadata. This allows file connections to be garbage collected.
+        self.remove_metadata()
+
+        # Check if the complete data passes verification.
+        self.check()
+
+    def _complete_modality(self):
         # Set modality.
         if self.modality is None:
             self.modality = "generic"
