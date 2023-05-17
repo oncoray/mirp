@@ -1,3 +1,5 @@
+import os.path
+
 from typing import Union, List
 
 from pydicom import dcmread
@@ -149,3 +151,10 @@ class ImageDicomFile(ImageFile):
                     self.sample_name = list(matching_sample_names)[0]
                 else:
                     self.sample_name = None
+    def load_metadata(self):
+        if self.image_metadata is not None:
+            return
+
+        if self.file_path is None or not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The image file could not be found at the expected location: {self.file_path}")

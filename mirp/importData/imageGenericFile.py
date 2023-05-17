@@ -376,11 +376,11 @@ class ImageFile:
         self._complete_image_orientation()
         self._complete_image_spacing()
 
-        # Remove metadata. This allows file connections to be garbage collected.
-        self.remove_metadata()
-
         # Check if the complete data passes verification.
         self.check()
+
+        # Remove metadata. This allows file connections to be garbage collected.
+        self.remove_metadata()
 
     def _complete_modality(self):
         # Set modality.

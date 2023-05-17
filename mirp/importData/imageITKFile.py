@@ -60,11 +60,10 @@ class ImageITKFile(ImageFile):
             self.image_dimension = tuple(dimensions)
 
     def load_metadata(self):
+        if self.image_metadata is not None:
+            return
 
-        if self.file_path is None:
-            return None
-
-        if not os.path.exists(self.file_path):
+        if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}")
 
