@@ -8,7 +8,7 @@ import numpy as np
 
 def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
     if modality is None:
-        return ["ct", "pt", "pet", "mr", "mri", "generic"]
+        return ["ct", "pt", "mr", "generic"]
 
     elif modality == "ct":
         return ["ct"]
@@ -27,6 +27,10 @@ def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
             f"Encountered an unknown image modality: {modality}. The following image modalities are supported: "
             f"{', '.join(supported_image_modalities(None))}. The generic modality lacks special default parameters, "
             f"and can always be used.")
+
+
+def stacking_dicom_image_modalities() -> List[str]:
+    return ["ct", "pt", "mr"]
 
 
 def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
