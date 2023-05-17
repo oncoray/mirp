@@ -439,4 +439,3 @@ class ImageFile:
             f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
             f"implementation for subclasses."
         )
-    

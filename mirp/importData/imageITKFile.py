@@ -74,3 +74,9 @@ class ImageITKFile(ImageFile):
         reader.ReadImageInformation()
 
         self.image_metadata = reader
+
+    def load_data(self):
+        if self.image_data is None:
+            # Load the image
+            itk_img = itk.imread(os.path.join(self.file_path))
+            self.image_data = itk.GetArrayFromImage(itk_img).astype(float)
