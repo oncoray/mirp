@@ -154,7 +154,7 @@ class ImageFile:
 
         return image_file
 
-    def check(self, raise_error=False):
+    def check(self, raise_error=False, remove_metadata=False):
 
         # Check image data first.
         image_check = self._check_image_data(raise_error=raise_error)
@@ -194,21 +194,19 @@ class ImageFile:
 
             return False
 
-        # Check that image file contains a sample name, if multiple sample names are present. To assess the filename,
-        # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
-        # filename into parts that should contain the sample name.
-        if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
-            if self._get_sample_name_from_file() is None:
-                if raise_error:
-                    raise ValueError(
-                        f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
-                        f"any of the expected patterns: {', '.join(self.sample_name)}")
-                else:
-                    return False
+        # Check modality.
+        modality_check = self._check_modality(raise_error=raise_error)
+        if not modality_check:
+            return False
+
+        # Check sample name.
+        sample_name_check = self._check_sample_name(raise_error=raise_error)
+        if not sample_name_check:
+            return False
 
         return True
 
-    def _check_image_data(self, raise_error=False):
+    def _check_image_data(self, raise_error=False) -> bool:
         if self.image_data is None:
             return True
 
@@ -295,6 +293,22 @@ class ImageFile:
                     )
                 else:
                     return False
+
+    def _check_sample_name(self, raise_error: bool) -> bool:
+        # Check that image file contains a sample name, if multiple sample names are present. To assess the filename,
+        # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
+        # filename into parts that should contain the sample name.
+        if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
+            if self._get_sample_name_from_file() is None:
+                if raise_error:
+                    raise ValueError(
+                        f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
+                        f"any of the expected patterns: {', '.join(self.sample_name)}")
+                else:
+                    return False
+
+    def _check_modality(self, raise_error: bool) -> bool:
+        return True
 
     def _get_sample_name_from_file(self) -> Union[None, str]:
         allowed_file_extensions = supported_file_types(self.file_type)
