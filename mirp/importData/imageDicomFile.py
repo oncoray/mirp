@@ -9,6 +9,7 @@ from warnings import warn
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities
 from mirp.imageMetaData import get_pydicom_meta_tag
+from mirp.imageSUV import SUVscalingObj
 
 
 class ImageDicomFile(ImageFile):
@@ -249,4 +250,19 @@ class ImageDicomFile(ImageFile):
                 f"The image file could not be found at the expected location: {self.file_path}")
 
         dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
-        self.image_data = dcm.pixel_array.astype(np.float32)
+        image_data = dcm.pixel_array.astype(np.float32)
+
+        # Update with scale and intercept. These may change per slice.
+        rescale_intercept = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
+        rescale_slope = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
+        image_data = image_data * rescale_slope + rescale_intercept
+
+        # SUV-conversion of PET-data.
+        if get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str") == "PT":
+            suv_conversion_object = SUVscalingObj(dcm=dcm)
+            scale_factor = suv_conversion_object.get_scale_factor(suv_normalisation="bw")
+
+            # Convert to SUV
+            image_data *= scale_factor
+
+        self.image_data = image_data
