@@ -61,7 +61,7 @@ class ImageITKFile(ImageFile):
 
     def load_metadata(self):
         if self.image_metadata is not None:
-            return
+            pass
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
