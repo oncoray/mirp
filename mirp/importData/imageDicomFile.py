@@ -48,7 +48,7 @@ class ImageDicomFile(ImageFile):
         self.frame_of_reference_uid: Union[None, str] = None
         self.sop_instance_uid: Union[None, str] = None
 
-    def check(self, raise_error=False, remove_metadata=True):
+    def check(self, raise_error=False, remove_metadata=True) -> bool:
 
         # Metadata needs to be read from files, and should therefore be skipped if not available.
         if self.file_path is None:
