@@ -98,7 +98,7 @@ class ImageNumpyFile(ImageFile):
 
     def _complete_image_origin(self):
         if self.image_origin is None:
-            image_origin = tuple([0.0, 0.0, 0.0])
+            self.image_origin = tuple([0.0, 0.0, 0.0])
 
     def _complete_image_orientation(self):
         if self.image_orientation is None:
