@@ -10,54 +10,6 @@ from mirp.importData.imageDirectory import ImageDirectory
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.utilities import supported_file_types, supported_image_modalities
 
-# def _create_image_stack(
-#         image_list: List[ImageFile],
-#         drop_contents: bool = True):
-#     """
-#     Generates image stacks from the image files in image_list. With identifiers=="extended" the stack will be created
-#     based on all available information. This will always yield
-#     Otherwise ("basic") only basic information, i.e. the sample name and the modality, will be used.
-#
-#     :param image_list: List of image files that should be organised.
-#     :param drop_contents: False or True. Use True to maintain skeletons only and prevent undue copying of (large)
-#     voxel arrays.
-#     :return: an image stack.
-#     """
-#     # Extract identifiers
-#     image_id_table = pd.concat(
-#         [image_file.get_identifiers() for image_file in image_list],
-#         ignore_index=True)
-#
-#     # Assign grouping identifier for all rows with the same information.
-#     image_id_table["group_id"] = image_id_table.groupby(image_id_table.columns.values.tolist()).ngroup()
-#
-#     # Add positional index to the table. This helps relate the information in image_list to the group they belong to.
-#     image_id_table["list_id"] = np.arange(len(image_list))
-#
-#     for ii in np.unique(image_id_table["group_id"].values):
-#         # Find all images that share identifiers.
-#         proposed_stack = [
-#             image_list[jj] for jj in image_id_table.loc[image_id_table["group_id"].values == ii, :]["list_id"].values
-#         ]
-#
-#         proposed_dicom_stack = [image_file for image_file in proposed_stack if isinstance(image_file, ImageDicomFile)]
-#
-#         if len(proposed_dicom_stack) > 0:
-#             file_stack = ImageFileStack(image_list=proposed_dicom_stack)
-#
-#             yield file_stack
-#
-#         # Non-DICOM files will form their own individual stacks.
-#         proposed_non_dicom_stack = [
-#             image_file for image_file in proposed_stack if not isinstance(image_file, ImageDicomFile)
-#         ]
-#
-#         if len(proposed_non_dicom_stack) > 0:
-#             for non_dicom_image_file in proposed_non_dicom_stack:
-#                 file_stack = ImageFileStack(image_list=[non_dicom_image_file])
-#
-#                 yield file_stack
-
 
 def import_image(
         image,
