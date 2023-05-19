@@ -252,7 +252,10 @@ class ImageDicomFile(ImageFile):
         dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
         image_data = dcm.pixel_array.astype(np.float32)
 
-        # Update with scale and intercept. These may change per slice.
+        # Load metadata.
+        self.load_metadata()
+
+        # Update data with scale and intercept. These may change per slice.
         rescale_intercept = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
         rescale_slope = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
         image_data = image_data * rescale_slope + rescale_intercept
@@ -265,7 +268,7 @@ class ImageDicomFile(ImageFile):
             # Convert to SUV
             image_data *= scale_factor
 
-            if self.image_metadata is not None:
-                self.image_metadata = suv_conversion_object.update_dicom_header(dcm=self.image_metadata)
+            # Update relevant tags in the metadata
+            self.image_metadata = suv_conversion_object.update_dicom_header(dcm=self.image_metadata)
 
         self.image_data = image_data
