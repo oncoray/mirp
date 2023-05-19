@@ -89,6 +89,7 @@ class ImageFile:
             return hashlib.sha256(str(identifier_data).encode(), usedforsecurity=False).digest()
         else:
             return identifier_data
+
     def set_sample_name(self, sample_name: str):
 
         self.sample_name = sample_name
@@ -564,7 +565,7 @@ class ImageFile:
 
         # Update image spacing attribute.
         if self.image_spacing is not None and not len(self.image_spacing) == 3:
-            image_spacing = list(self.image_spacing)
+            image_spacing: List[float] = list(self.image_spacing)
             if dims_to_add == 2:
                 image_spacing.insert(0, image_spacing[0])
                 image_spacing.insert(0, 1.0)
