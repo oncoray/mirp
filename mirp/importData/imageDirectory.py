@@ -6,6 +6,7 @@ from typing import Union, List
 from itertools import chain
 from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name
 from mirp.importData.imageGenericFile import ImageFile
+from mirp.importData.imageGenericFileStack import ImageFileStack
 
 
 class ImageDirectory:
@@ -242,9 +243,58 @@ class ImageDirectory:
         if self.image_files is None or len(self.image_files) == 0:
             pass
 
-        image_file_list = []
+        # Isolate all cases that are not stackable anyway.
+        image_file_list: List[ImageFile] = [
+            image_file_object for image_file_object in self.image_files
+            if not image_file_object.is_stackable()
+        ]
 
-        # Identify the classes of image objects.
-        image_file_object_class = [type(image_file_object) for image_file_object in self.image_files]
-        for current_image_file_object_class in list(set(image_file_object_class)):
-            ...
+        # If none of the images are potentially stackable we don't make any alterations.
+        if len(image_file_list) == len(self.image_files):
+            pass
+
+        image_file_list += list(self._autostack())
+
+        self.image_files = image_file_list
+
+    def _autostack(self) -> ImageFile:
+
+        # Find stackable objects.
+        stackable_image_file_list: List[ImageFile] = [
+            image_file_object for image_file_object in self.image_files
+            if image_file_object.is_stackable()
+        ]
+
+        # Hash identifier data: those files that might be stackable should have the same hash.
+        identifier_list = [
+            image_file_object.get_identifiers(as_hash=True) for image_file_object in stackable_image_file_list
+        ]
+
+        # Create mask to avoid revisiting objects.
+        available_objects = [True] * len(identifier_list)
+
+        while any(available_objects):
+            # Find next unused identifier.
+            identifier = next((
+                identifier for ii, identifier in enumerate(identifier_list)
+                if available_objects[ii] is True
+            ))
+
+            # Identify image file objects that have the same identifier.
+            stack_list = [
+                image_file_object for ii, image_file_object in enumerate(stackable_image_file_list)
+                if available_objects[ii] is True and identifier_list[ii] == identifier
+            ]
+
+            # Update availability.
+            available_objects = [
+                False for ii in range(len(available_objects))
+                if available_objects is True and identifier_list[ii] == identifier
+            ]
+
+            # If there is only one object to stack, it is not necessary to stack the object.
+            if len(stack_list) == 1:
+                yield stack_list[0]
+
+            else:
+                yield ImageFileStack(image_file_objects=stack_list).create()
