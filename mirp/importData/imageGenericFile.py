@@ -40,11 +40,16 @@ class ImageFile:
         self.image_spacing = image_spacing
         self.image_dimension = image_dimensions
 
-        # Add metadata
-        self.image_metadata = None
-
         # Check incoming image data.
         _ = self._check_image_data()
+
+        self.update_image_data()
+
+        # Check updated image data.
+        _ = self._check_image_data()
+
+        # Add metadata
+        self.image_metadata = None
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
@@ -461,3 +466,72 @@ class ImageFile:
             f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
             f"implementation for subclasses."
         )
+
+    def update_image_data(self):
+        if self.image_data is None:
+            pass
+
+        if not isinstance(self.image_data, np.ndarray):
+            raise TypeError(
+                f"The image_data argument expects None or a numpy ndarray. Found object with class "
+                f"{type(self.image_data).name}"
+            )
+
+        # If the image is already 3D, we forgo adding dimensions.
+        if len(self.image_data.shape) == 3:
+            pass
+
+        if not 1 <= len(self.image_data.shape) <= 3:
+            raise ValueError(
+                f"MIRP supports image data up to 3 dimensions. The current numpy array has a dimension of "
+                f"{len(self.image_data.shape)} ({self.image_data.shape})."
+            )
+
+        dims_to_add = 3 - len(self.image_data.shape)
+
+        # Add new dimensions to image.
+        if dims_to_add == 2:
+            self.image_data = self.image_data[np.newaxis, np.newaxis, :]
+        elif dims_to_add == 1:
+            self.image_data = self.image_data[np.newaxis, :, :]
+
+        # Update image dimensions attribute.
+        if self.image_dimension is not None and not len(self.image_dimension) == 3:
+            image_dimension = list(self.image_dimension)
+            if dims_to_add == 2:
+                image_dimension.insert(0, 1)
+                image_dimension.insert(0, 1)
+            elif dims_to_add == 1:
+                image_dimension.insert(0, 1)
+
+            self.image_dimension = tuple(image_dimension)
+
+        # Update image origin attribute.
+        if self.image_origin is not None and not len(self.image_origin) == 3:
+            image_origin = list(self.image_origin)
+            if dims_to_add == 2:
+                image_origin.insert(0, 0)
+                image_origin.insert(0, 0)
+            elif dims_to_add == 1:
+                image_origin.insert(0, 0)
+
+            self.image_origin = tuple(image_origin)
+
+        # Update image orientation attribute.
+        if self.image_orientation is not None and not np.all(np.equal(self.image_orientation.shape, 3)):
+            image_orientation = np.identity(3)
+            if dims_to_add == 2:
+                image_orientation[1:2, 1:2] = self.image_orientation
+            elif dims_to_add == 1:
+                image_orientation[2, 2] = self.image_orientation
+
+            self.image_orientation = image_orientation
+
+        # Update image spacing attribute.
+        if self.image_spacing is not None and not len(self.image_spacing) == 3:
+            image_spacing = list(self.image_spacing)
+            if dims_to_add == 2:
+                image_spacing.insert(0, image_spacing[0])
+                image_spacing.insert(0, 1.0)
+            if dims_to_add == 1:
+                image_spacing.insert(0, 1.0)
