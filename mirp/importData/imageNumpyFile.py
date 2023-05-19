@@ -123,9 +123,11 @@ class ImageNumpyFile(ImageFile):
 
     def load_data(self):
         if self.image_data is not None:
-            # Ensure 3D data.
+            self.update_image_data()
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}")
 
+        self.image_data = np.load(self.file_path)
+        self.update_image_data()
