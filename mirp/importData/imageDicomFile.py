@@ -49,6 +49,15 @@ class ImageDicomFile(ImageFile):
         self.frame_of_reference_uid: Union[None, str] = None
         self.sop_instance_uid: Union[None, str] = None
 
+    def is_stackable(self, stack_images: str):
+        """
+        Is the image potentially stackable?
+        :param stack_images: One of auto, yes or no. Ignored for DICOM imaging, as stackability can be determined
+        from metadata.
+        :return: boolean value, here true.
+        """
+        return True
+
     def check(self, raise_error=False, remove_metadata=True) -> bool:
 
         # Metadata needs to be read from files, and should therefore be skipped if not available.

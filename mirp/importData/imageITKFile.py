@@ -39,6 +39,35 @@ class ImageITKFile(ImageFile):
             image_dimensions=image_dimensions
         )
 
+    def is_stackable(self, stack_images: str) -> bool:
+        """
+        Is the image potentially stackable?
+        :param stack_images: One of auto, yes or no. By default (auto), images are not stackable. Images might be
+        stackable if an image object represents a single slice.
+        :return: boolean value
+        """
+        if stack_images == "auto":
+            return False
+        elif stack_images == "yes":
+            if self.image_dimension is None:
+                raise ValueError(
+                    "The image_dimension argument is expected to be set. Call load_metadata to set this attribute."
+                )
+
+            if len(self.image_dimension) < 3:
+                return True
+            elif self.image_dimension[0] == 1:
+                return True
+            else:
+                return False
+
+        elif stack_images == "no":
+            return False
+        else:
+            raise ValueError(
+                f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}."
+            )
+
     def _complete_image_origin(self):
         if self.image_orientation is None:
             origin = np.array(self.image_metadata.GetOrigin())[::-1]

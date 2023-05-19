@@ -79,9 +79,7 @@ class ImageFile:
             f"implementation for subclasses."
         )
 
-    def set_sample_name(
-            self,
-            sample_name: str):
+    def set_sample_name(self, sample_name: str):
 
         self.sample_name = sample_name
 
