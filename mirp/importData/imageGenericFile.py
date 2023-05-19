@@ -73,6 +73,12 @@ class ImageFile:
         self.file_name: Union[None, str] = file_name
         self.dir_path: Union[None, str] = dir_path
 
+    def is_stackable(self, stack_images: str):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
+            f"implementation for subclasses."
+        )
+
     def set_sample_name(
             self,
             sample_name: str):
