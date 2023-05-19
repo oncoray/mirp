@@ -172,9 +172,10 @@ class ImageDirectory:
             image_sub_directory._create_images()
 
         # Flatten list.
-        image_list = list(chain.from_iterable(image_list))
+        self.image_files = list(chain.from_iterable(image_list))
 
-        # Try to autostack.
+        # Try to stack.
+        self.autostack()
 
     def _create_images(self) -> List[ImageFile]:
         """
@@ -232,3 +233,18 @@ class ImageDirectory:
             image_file_list.append(image_file)
 
         return image_file_list
+
+    def autostack(self):
+        """
+        Form image stacks by combining image file objects of the same class that share identifiers.
+        """
+
+        if self.image_files is None or len(self.image_files) == 0:
+            pass
+
+        image_file_list = []
+
+        # Identify the classes of image objects.
+        image_file_object_class = [type(image_file_object) for image_file_object in self.image_files]
+        for current_image_file_object_class in list(set(image_file_object_class)):
+            ...
