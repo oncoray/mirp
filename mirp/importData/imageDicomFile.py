@@ -1,7 +1,7 @@
 import os.path
 import numpy as np
 
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict
 
 from pydicom import dcmread
 from warnings import warn
@@ -57,6 +57,21 @@ class ImageDicomFile(ImageFile):
         :return: boolean value, here true.
         """
         return True
+
+    def get_identifiers(self) -> Dict:
+        """
+        General identifiers for images. Compared to other
+        :return: a dictionary with identifiers.
+        """
+
+        return dict({
+            "modality": [self.modality],
+            "file_type": [self.file_type],
+            "sample_name": [self.get_sample_name()],
+            "dir_path": [self.get_dir_path()],
+            "series_instance_uid": [self.series_instance_uid],
+            "frame_of_reference_uid": [self.frame_of_reference_uid]
+        })
 
     def check(self, raise_error=False, remove_metadata=True) -> bool:
 

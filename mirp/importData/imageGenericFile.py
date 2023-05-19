@@ -1,11 +1,9 @@
 import os
 import os.path
 
-import itk
 import numpy as np
-import pandas as pd
 
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict
 from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name
 
 
@@ -55,17 +53,6 @@ class ImageFile:
         if isinstance(file_path, str) and file_name is None:
             file_name = os.path.basename(file_path)
 
-            file_extension = None
-            for current_file_extension in supported_file_types(self.file_type):
-                if file_name.endswith(current_file_extension):
-                    file_extension = current_file_extension
-                    break
-
-            if file_extension is not None:
-                file_name = file_name.replace(file_extension, "")
-
-            file_name = file_name.strip(" _^*")
-
         # Attempt to set the directory path, if this is not externally provided.
         if isinstance(file_path, str) and dir_path is None:
             dir_path = os.path.dirname(file_path)
@@ -79,27 +66,74 @@ class ImageFile:
             f"implementation for subclasses."
         )
 
+    def get_identifiers(self) -> Dict:
+        """
+        General identifiers for images. Note that image_origin is not included, as this should be different for every
+        slice in a volume.
+        :return: a dictionary with identifiers.
+        """
+
+        return dict({
+            "modality": [self.modality],
+            "file_type": [self.file_type],
+            "sample_name": [self.get_sample_name()],
+            "dir_path": [self.get_dir_path()],
+            "image_dimensions": [self.get_image_dimension(as_str=True)],
+            "image_spacing": [self.get_image_spacing(as_str=True)],
+            "image_orientation": [self.get_image_orientation(as_str=True)]
+        })
+
     def set_sample_name(self, sample_name: str):
 
         self.sample_name = sample_name
 
     def get_sample_name(self):
         if self.sample_name is None:
-            return "unset_sample_name__"
+            return "unset_sample_name"
 
         return self.sample_name
 
-    def get_file_name(self):
-        if self.file_name is None:
-            return "unset_file_name__"
-
-        return self.file_name
-
     def get_dir_path(self):
         if self.dir_path is None:
-            return "unset_dir_path__"
+            return "unset_dir_path"
 
         return self.dir_path
+
+    def get_image_dimension(self, as_str: bool = False):
+        if not as_str:
+            return self.image_dimension
+
+        if self.image_dimension is None:
+            return "unset_image_dimension"
+
+        return str(self.image_dimension)
+
+    def get_image_spacing(self, as_str: bool = False):
+        if not as_str:
+            return self.image_spacing
+
+        if self.image_spacing is None:
+            return "unset_image_spacing"
+
+        return str(self.image_spacing)
+
+    def get_image_origin(self, as_str: bool = False):
+        if not as_str:
+            return self.image_origin
+
+        if self.image_origin is None:
+            return "unset_image_origin"
+
+        return str(self.image_origin)
+
+    def get_image_orientation(self, as_str: bool = False):
+        if not as_str:
+            return self.image_orientation
+
+        if self.image_orientation is None:
+            return "unset_image_orientation"
+
+        return str(np.ravel(self.image_orientation))
 
     def create(self):
         # Import locally to avoid potential circular references.
@@ -385,15 +419,6 @@ class ImageFile:
 
         else:
             return None
-
-    def get_identifiers(self):
-
-        return pd.DataFrame.from_dict(dict({
-            "modality": [self.modality],
-            "file_type": [self.file_type],
-            "sample_name": [self.get_sample_name()],
-            "file_name": [self.get_file_name()],
-            "dir_path": [self.get_dir_path()]}))
 
     def complete(self, remove_metadata=True):
         # Load metadata.
