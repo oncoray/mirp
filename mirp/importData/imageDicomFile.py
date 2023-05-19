@@ -265,4 +265,7 @@ class ImageDicomFile(ImageFile):
             # Convert to SUV
             image_data *= scale_factor
 
+            if self.image_metadata is not None:
+                self.image_metadata = suv_conversion_object.update_dicom_header(dcm=self.image_metadata)
+
         self.image_data = image_data
