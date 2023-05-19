@@ -1,5 +1,6 @@
 import os
 import os.path
+import hashlib
 
 import numpy as np
 
@@ -66,14 +67,15 @@ class ImageFile:
             f"implementation for subclasses."
         )
 
-    def get_identifiers(self) -> Dict:
+    def get_identifiers(self, as_hash=False) -> Union[Dict, bytes]:
         """
         General identifiers for images. Note that image_origin is not included, as this should be different for every
         slice in a volume.
+        :param as_hash: boolean flag. When true returns a SHA256 hash of the identifier data.
         :return: a dictionary with identifiers.
         """
 
-        return dict({
+        identifier_data = dict({
             "modality": [self.modality],
             "file_type": [self.file_type],
             "sample_name": [self.get_sample_name()],
@@ -83,6 +85,10 @@ class ImageFile:
             "image_orientation": [self.get_image_orientation(as_str=True)]
         })
 
+        if as_hash:
+            return hashlib.sha256(str(identifier_data).encode(), usedforsecurity=False).digest()
+        else:
+            return identifier_data
     def set_sample_name(self, sample_name: str):
 
         self.sample_name = sample_name

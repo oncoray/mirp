@@ -1,4 +1,5 @@
 import os.path
+import hashlib
 import numpy as np
 
 from typing import Union, List, Tuple, Dict
@@ -58,13 +59,13 @@ class ImageDicomFile(ImageFile):
         """
         return True
 
-    def get_identifiers(self) -> Dict:
+    def get_identifiers(self, as_hash=False) -> Union[Dict, bytes]:
         """
         General identifiers for images. Compared to other
         :return: a dictionary with identifiers.
         """
 
-        return dict({
+        identifier_data = dict({
             "modality": [self.modality],
             "file_type": [self.file_type],
             "sample_name": [self.get_sample_name()],
@@ -72,6 +73,11 @@ class ImageDicomFile(ImageFile):
             "series_instance_uid": [self.series_instance_uid],
             "frame_of_reference_uid": [self.frame_of_reference_uid]
         })
+
+        if as_hash:
+            return hashlib.sha256(str(identifier_data).encode(), usedforsecurity=False).digest()
+        else:
+            return identifier_data
 
     def check(self, raise_error=False, remove_metadata=True) -> bool:
 
