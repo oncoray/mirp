@@ -66,6 +66,7 @@ class ImageFileStack(ImageFile):
         )
 
     def create(self):
+        # TODO: dispatch to sub-classes based on file-type.
         ...
 
     def load_metadata(self):
