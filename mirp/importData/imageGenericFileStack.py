@@ -1,11 +1,10 @@
-import os
-import os.path
-
-import numpy as np
-
-from typing import Union, List, Tuple
+from typing import Union, List
 
 from mirp.importData.imageGenericFile import ImageFile
+from mirp.importData.imageDicomFile import ImageDicomFile
+from mirp.importData.imageITKFile import ImageITKFile
+from mirp.importData.imageNumpyFile import ImageNumpyFile
+from mirp.importData.utilities import supported_file_types
 
 
 class ImageFileStack(ImageFile):
@@ -26,7 +25,7 @@ class ImageFileStack(ImageFile):
 
     def __init__(
             self,
-            image_file_objects: List[ImageFile],
+            image_file_objects: Union[List[ImageFile], List[ImageDicomFile], List[ImageITKFile], List[ImageNumpyFile]],
             dir_path: Union[None, str] = None,
             sample_name: Union[None, str] = None,
             image_name: Union[None, str, List[str]] = None,
@@ -65,9 +64,63 @@ class ImageFileStack(ImageFile):
             image_dimensions=None
         )
 
+        self.image_file_objects = image_file_objects
+
     def create(self):
-        # TODO: dispatch to sub-classes based on file-type.
-        ...
+        # Import locally to avoid potential circular references.
+        from mirp.importData.imageDicomFileStack import ImageDicomFileStack
+        from mirp.importData.imageITKFileStack import ImageITKFileStack
+        from mirp.importData.imageNumpyFileStack import ImageNumpyFileStack
+
+        file_extensions = supported_file_types(file_type=self.file_type)
+
+        if any(self.file_path.lower().endswith(ii) for ii in file_extensions) and \
+                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("dicom")):
+            # Create DICOM-specific file.
+            image_file_stack = ImageDicomFileStack(
+                image_file_objects=self.image_file_objects,
+                dir_path=self.dir_path,
+                sample_name=self.sample_name,
+                image_name=self.image_name,
+                image_modality=self.modality,
+                image_file_type="dicom"
+            )
+
+        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions):
+            if any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
+                file_type = "nifti"
+            elif any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):
+                file_type = "nrrd"
+            else:
+                raise ValueError(f"DEV: specify file_type")
+
+            # Create ITK file.
+            image_file_stack = ImageITKFileStack(
+                image_file_objects=self.image_file_objects,
+                dir_path=self.dir_path,
+                sample_name=self.sample_name,
+                image_name=self.image_name,
+                image_modality=self.modality,
+                image_file_type=file_type
+            )
+
+        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
+                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
+
+            # Create Numpy file.
+            image_file_stack = ImageNumpyFileStack(
+                image_file_objects=self.image_file_objects,
+                dir_path=self.dir_path,
+                sample_name=self.sample_name,
+                image_name=self.image_name,
+                image_modality=self.modality,
+                image_file_type="numpy"
+            )
+
+        else:
+            raise NotImplementedError(f"The provided image type is not implemented: {self.file_type}")
+
+        return image_file_stack
 
     def load_metadata(self):
         ...
