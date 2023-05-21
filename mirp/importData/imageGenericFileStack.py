@@ -129,7 +129,11 @@ class ImageFileStack(ImageFile):
         )
 
     def load_metadata(self):
-        ...
+        # Load metadata for underlying files in the order indicated by self.image_file_objects.
+        for image_file_object in self.image_file_objects:
+            image_file_object.load_metadata()
 
     def load_data(self):
-        ...
+        # Load data for underlying files in the order indicated by self.image_file_objects.
+        for image_file_object in self.image_file_objects:
+            image_file_object.load_data()
