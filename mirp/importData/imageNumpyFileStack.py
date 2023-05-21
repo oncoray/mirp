@@ -12,3 +12,7 @@ class ImageNumpyFileStack(ImageFileStack):
             **kwargs
     ):
         super().__init__(image_file_objects, **kwargs)
+
+    def complete(self, remove_metadata=True):
+        # TODO: Order files by file name.
+        ...
