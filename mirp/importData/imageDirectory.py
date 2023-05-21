@@ -297,4 +297,4 @@ class ImageDirectory:
                 yield stack_list[0]
 
             else:
-                yield ImageFileStack(image_file_objects=stack_list).create()
+                yield ImageFileStack(image_file_objects=stack_list).create().complete()
