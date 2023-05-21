@@ -203,8 +203,14 @@ class ImageFile:
                 sample_name=self.sample_name,
                 file_name=self.file_name,
                 image_name=self.image_name,
-                modality=self.modality,
-                image_file_type="numpy")
+                image_modality=self.modality,
+                image_file_type="numpy",
+                image_data=self.image_data,
+                image_origin=self.image_origin,
+                image_orientation=self.image_orientation,
+                image_spacing=self.image_spacing,
+                image_dimensions=self.image_dimension
+            )
 
         else:
             raise NotImplementedError(f"The provided image type is not implemented: {self.file_type}")
