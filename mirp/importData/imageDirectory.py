@@ -257,7 +257,7 @@ class ImageDirectory:
 
         self.image_files = image_file_list
 
-    def _autostack(self) -> ImageFile:
+    def _autostack(self):
 
         # Find stackable objects.
         stackable_image_file_list: List[ImageFile] = [
