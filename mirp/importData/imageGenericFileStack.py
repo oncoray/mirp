@@ -122,6 +122,12 @@ class ImageFileStack(ImageFile):
 
         return image_file_stack
 
+    def complete(self, remove_metadata=True):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of complete. Please specify "
+            f"implementation for subclasses."
+        )
+
     def load_metadata(self):
         ...
 
