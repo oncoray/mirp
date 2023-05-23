@@ -5,9 +5,6 @@ from typing import Union, List, Tuple
 
 from mirp.importData.imageGenericFile import ImageFile
 
-# TODO: make default stackable option dependent on dimension of images -->  2D with same dimensions are stackable; 3D
-#  is not stackable (unless 3rd dimension has size 1).
-
 
 class ImageNumpyFile(ImageFile):
 
@@ -105,10 +102,12 @@ class ImageNumpyFile(ImageFile):
             self.image_orientation = np.identity(3, dtype=float)
 
     def _complete_image_spacing(self, force=False):
-        pass
+        if self.image_spacing is None:
+            self.image_spacing = tuple([1.0, 1.0, 1.0])
 
     def _complete_image_dimensions(self, force=False):
-        pass
+        if self.image_dimension is None:
+            self.image_dimension = tuple(self.image_metadata.shape)
 
     def load_metadata(self):
         if self.image_metadata is not None:
