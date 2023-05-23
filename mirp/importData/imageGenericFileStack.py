@@ -65,6 +65,7 @@ class ImageFileStack(ImageFile):
         )
 
         self.image_file_objects = image_file_objects
+        self.slice_positions: Union[None, List[float]] = None
 
     def create(self):
         # Import locally to avoid potential circular references.
