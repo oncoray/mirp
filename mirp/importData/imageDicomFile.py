@@ -233,8 +233,16 @@ class ImageDicomFile(ImageFile):
             if self.modality in stacking_dicom_image_modalities() and not force:
                 pass
 
+            # Get pixel-spacing.
             spacing = get_pydicom_meta_tag(dcm_seq=self.image_spacing, tag=(0x0028, 0x0030), tag_type="mult_float")
-            spacing += [1.0]
+
+            # Get slice thickness.
+            z_spacing = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0018, 0x0050),
+                tag_type="float",
+                default=1.0)
+            spacing += [z_spacing]
 
             self.image_spacing = tuple(spacing[::-1])
 
