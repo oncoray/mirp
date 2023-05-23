@@ -145,10 +145,10 @@ class ImageDicomFile(ImageFile):
         else:
             return True
 
-    def complete(self, remove_metadata=True):
+    def complete(self, remove_metadata=True, force=False):
 
         # complete loads metadata.
-        super().complete(remove_metadata=False)
+        super().complete(remove_metadata=False, force=force)
 
         # Set SOP instance UID.
         self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
@@ -204,7 +204,7 @@ class ImageDicomFile(ImageFile):
                 else:
                     self.sample_name = None
 
-    def _complete_image_origin(self):
+    def _complete_image_origin(self, force=False):
         if self.image_origin is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities():
@@ -214,7 +214,7 @@ class ImageDicomFile(ImageFile):
             origin = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0032), tag_type="mult_float")[::-1]
             self.image_origin = tuple(origin)
 
-    def _complete_image_orientation(self):
+    def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities():
@@ -229,7 +229,7 @@ class ImageDicomFile(ImageFile):
 
             self.image_orientation = np.reshape(orientation[::-1], [3, 3])
 
-    def _complete_image_spacing(self):
+    def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
             # Image spacing needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities():
@@ -241,7 +241,7 @@ class ImageDicomFile(ImageFile):
 
             self.image_spacing = tuple(spacing[::-1])
 
-    def _complete_image_dimensions(self):
+    def _complete_image_dimensions(self, force=False):
         if self.image_dimension is None:
             # Image dimension needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities():

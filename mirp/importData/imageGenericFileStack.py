@@ -11,16 +11,16 @@ class ImageFileStack(ImageFile):
     def is_stackable(self, stack_images: str):
         return False
 
-    def _complete_image_origin(self):
+    def _complete_image_origin(self, force=False):
         ...
 
-    def _complete_image_orientation(self):
+    def _complete_image_orientation(self, force=False):
         ...
 
-    def _complete_image_spacing(self):
+    def _complete_image_spacing(self, force=False):
         ...
 
-    def _complete_image_dimensions(self):
+    def _complete_image_dimensions(self, force=False):
         ...
 
     def __init__(
@@ -122,7 +122,7 @@ class ImageFileStack(ImageFile):
 
         return image_file_stack
 
-    def complete(self, remove_metadata=True):
+    def complete(self, remove_metadata=True, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of complete. Please specify "
             f"implementation for subclasses."

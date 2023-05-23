@@ -433,16 +433,16 @@ class ImageFile:
         else:
             return None
 
-    def complete(self, remove_metadata=True):
+    def complete(self, remove_metadata=True, force=False):
         # Load metadata.
         self.load_metadata()
 
         self._complete_modality()
         self._complete_sample_name()
-        self._complete_image_dimensions()
-        self._complete_image_origin()
-        self._complete_image_orientation()
-        self._complete_image_spacing()
+        self._complete_image_dimensions(force=force)
+        self._complete_image_origin(force=force)
+        self._complete_image_orientation(force=force)
+        self._complete_image_spacing(force=force)
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
@@ -470,25 +470,25 @@ class ImageFile:
             else:
                 self.sample_name = None
 
-    def _complete_image_origin(self):
+    def _complete_image_origin(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_orientation(self):
+    def _complete_image_orientation(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_orientation. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_spacing(self):
+    def _complete_image_spacing(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_spacing. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_dimensions(self):
+    def _complete_image_dimensions(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_dimensions. Please specify "
             f"implementation for subclasses."

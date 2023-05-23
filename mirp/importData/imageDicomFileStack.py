@@ -13,7 +13,7 @@ class ImageDicomFileStack(ImageFileStack):
     ):
         super().__init__(image_file_objects, **kwargs)
 
-    def complete(self, remove_metadata=True):
+    def complete(self, remove_metadata=True, force=False):
         # TODO: Order files by image origin.
         ...
 
