@@ -207,20 +207,18 @@ class ImageDicomFile(ImageFile):
     def _complete_image_origin(self, force=False):
         if self.image_origin is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
-            if self.modality in stacking_dicom_image_modalities():
+            if self.modality in stacking_dicom_image_modalities() and not force:
                 pass
 
-            # TODO: update for voxel-based DICOM.
             origin = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0032), tag_type="mult_float")[::-1]
             self.image_origin = tuple(origin)
 
     def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
-            if self.modality in stacking_dicom_image_modalities():
+            if self.modality in stacking_dicom_image_modalities() and not force:
                 pass
 
-            # TODO: update for voxel-based and single-slice DICOM.
             orientation = get_pydicom_meta_tag(
                 dcm_seq=self.image_orientation,
                 tag=(0x0020, 0x0037),
@@ -232,10 +230,9 @@ class ImageDicomFile(ImageFile):
     def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
             # Image spacing needs to be determined at the stack-level for slice-based dicom, not for each slice.
-            if self.modality in stacking_dicom_image_modalities():
+            if self.modality in stacking_dicom_image_modalities() and not force:
                 pass
 
-            # TODO: update for voxel-based and single-slice DICOM.
             spacing = get_pydicom_meta_tag(dcm_seq=self.image_spacing, tag=(0x0028, 0x0030), tag_type="mult_float")
             spacing += [1.0]
 
@@ -244,10 +241,9 @@ class ImageDicomFile(ImageFile):
     def _complete_image_dimensions(self, force=False):
         if self.image_dimension is None:
             # Image dimension needs to be determined at the stack-level for slice-based dicom, not for each slice.
-            if self.modality in stacking_dicom_image_modalities():
+            if self.modality in stacking_dicom_image_modalities() and not force:
                 pass
 
-            # TODO: update for voxel-based and single-slice DICOM.
             dimensions = tuple([
                 1,
                 get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x010), tag_type="int"),
