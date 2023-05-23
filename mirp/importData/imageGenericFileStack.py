@@ -11,18 +11,6 @@ class ImageFileStack(ImageFile):
     def is_stackable(self, stack_images: str):
         return False
 
-    def _complete_image_origin(self, force=False):
-        ...
-
-    def _complete_image_orientation(self, force=False):
-        ...
-
-    def _complete_image_spacing(self, force=False):
-        ...
-
-    def _complete_image_dimensions(self, force=False):
-        ...
-
     def __init__(
             self,
             image_file_objects: Union[List[ImageFile], List[ImageDicomFile], List[ImageITKFile], List[ImageNumpyFile]],
@@ -131,6 +119,19 @@ class ImageFileStack(ImageFile):
             f"DEV: There is (intentionally) no generic implementation of complete. Please specify "
             f"implementation for subclasses."
         )
+
+    def _complete_image_origin(self, force=False):
+        # Image origin and other image-related aspects are set using the complete method of subclasses.
+        pass
+
+    def _complete_image_orientation(self, force=False):
+        pass
+
+    def _complete_image_spacing(self, force=False):
+        pass
+
+    def _complete_image_dimensions(self, force=False):
+        pass
 
     def load_metadata(self):
         # Load metadata for underlying files in the order indicated by self.image_file_objects.
