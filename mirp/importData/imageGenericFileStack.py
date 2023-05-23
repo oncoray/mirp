@@ -48,6 +48,9 @@ class ImageFileStack(ImageFile):
         if image_file_type is None:
             image_file_type = image_file_objects[0].file_type
 
+        if len(image_file_objects) == 1:
+            raise ValueError(f"DEV: More than one file is expected for file stacks.")
+
         # Aspects regarding the image itself are set based on the stack itself.
         super().__init__(
             file_path=None,
