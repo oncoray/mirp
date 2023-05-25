@@ -120,6 +120,14 @@ class ImageFileStack(ImageFile):
             f"implementation for subclasses."
         )
 
+    def _complete_sample_name(self):
+        if self.sample_name is None:
+            self.sample_name = self.image_file_objects[0].sample_name
+
+    def _complete_modality(self):
+        if self.modality is None:
+            self.modality = self.image_file_objects[0].modality
+
     def _complete_image_origin(self, force=False):
         # Image origin and other image-related aspects are set using the complete method of subclasses.
         pass
