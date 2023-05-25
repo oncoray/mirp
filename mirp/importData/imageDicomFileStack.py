@@ -22,6 +22,9 @@ class ImageDicomFileStack(ImageFileStack):
         # Load metadata of every slice.
         self.load_metadata()
 
+        self._complete_modality()
+        self._complete_sample_name()
+
         # Placeholders for slice positions.
         image_position_z = [0.0] * len(self.image_file_objects)
         image_position_y = [0.0] * len(self.image_file_objects)
@@ -135,3 +138,6 @@ class ImageDicomFileStack(ImageFileStack):
             tag_type="int")
 
         self.image_dimension = tuple([len(position_table), n_y, n_x])
+
+        # Check if the complete data passes verification.
+        self.check(raise_error=True, remove_metadata=False)
