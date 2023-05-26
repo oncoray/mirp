@@ -1,6 +1,8 @@
+import hashlib
+import itertools
 import os
 import os.path
-import hashlib
+import re
 
 import numpy as np
 
@@ -432,6 +434,90 @@ class ImageFile:
 
         else:
             return None
+
+    def _get_numeric_sequence_from_file(self) -> Union[None, List[str]]:
+        allowed_file_extensions = supported_file_types(self.file_type)
+        file_name = bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
+
+        file_name_parts = [file_name]
+
+        # Remove image name.
+        if self.image_name is not None:
+            image_id_name = self.image_name
+            if not isinstance(image_id_name, list):
+                image_id_name = [image_id_name]
+
+            # Find the id that is present in the filename.
+            matching_image_id = None
+            for current_image_id_name in image_id_name:
+                if current_image_id_name in file_name:
+                    matching_image_id = current_image_id_name
+                    break
+
+            if matching_image_id is not None:
+                # Handle wildcards in the image id.
+                matching_image_id = matching_image_id.replace("?", "*")
+                matching_image_id = matching_image_id.split("*")
+                matching_image_id = [x for x in matching_image_id if x != ""]
+
+                if len(matching_image_id) == 0:
+                    file_name_parts = [file_name]
+                else:
+                    # Find the parts of the file name that do not contain the image identifier.
+                    blocked_start = file_name.find(matching_image_id[0])
+                    blocked_end = file_name.find(matching_image_id[-1]) + len(matching_image_id[-1])
+                    file_name_parts = [""]
+                    if blocked_start > 0:
+                        file_name_parts.append(file_name[0:blocked_start])
+
+                    if blocked_end < len(file_name):
+                        file_name_parts.append(file_name[blocked_end:len(file_name)])
+            else:
+                file_name_parts = [file_name]
+
+        # Remove empty strings (if any).
+        file_name_parts = [
+            current_file_name_part for current_file_name_part in file_name_parts
+            if len(current_file_name_part) > 0
+        ]
+
+        if len(file_name_parts) == 0:
+            return None
+
+        # Remove sample name.
+        if self.sample_name is not None:
+            if isinstance(self.sample_name, list):
+                raise TypeError("The sample_name attribute cannot be a list for extracting numeric sequences.")
+
+            file_name_parts = [
+                current_file_name_part.split(sep=self.sample_name)
+                for current_file_name_part in file_name_parts
+            ]
+
+            # Flatten list
+            file_name_parts = list(itertools.chain.from_iterable(file_name_parts))
+
+        # Remove empty strings (if any).
+        file_name_parts = [
+            current_file_name_part for current_file_name_part in file_name_parts
+            if len(current_file_name_part) > 0
+        ]
+
+        if len(file_name_parts) == 0:
+            return None
+
+        # Isolate sequences of numeric values using regex. Then remove parts where no numeric value was found.
+        file_name_parts = [re.findall(r'\d+', current_file_name_part) for current_file_name_part in file_name_parts]
+        file_name_parts = [
+            current_file_name_part for current_file_name_part in file_name_parts
+            if len(current_file_name_part) > 0
+        ]
+
+        if len(file_name_parts) == 0:
+            return None
+
+        # Flatten list and return.
+        return list(itertools.chain.from_iterable(file_name_parts))
 
     def complete(self, remove_metadata=True, force=False):
         # Load metadata.
