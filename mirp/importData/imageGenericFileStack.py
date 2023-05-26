@@ -141,6 +141,59 @@ class ImageFileStack(ImageFile):
     def _complete_image_dimensions(self, force=False):
         pass
 
+    def sort_image_objects_by_file(self):
+        """
+        Strip sample name and any image name from filenames. Then isolate numeric values.
+        sequences of numeric values. We follow the following rules:
+        1. Check if all files have a numeric value in their name, otherwise, use the original order.
+        2. Check that all files only have a single range of numeric values (otherwise, it might hard to arrange and
+        identify sequences).
+        3. Sort and check that sequences are truly sequential, i.e. have a difference of one.
+        :return: nothing, changes are made in-place.
+        """
+
+        file_name_numeric = [image_object._get_numeric_sequence_from_file() for image_object in self.image_file_objects]
+        if any(current_file_name_numeric is None for current_file_name_numeric in file_name_numeric):
+            warnings.warn(
+                f"Cannot form stacks from numpy slices based on the file name as numeric values are missing "
+                "from one or more files. The original file order is used.", UserWarning
+            )
+            pass
+
+        if any(len(current_file_name_numeric) > 1 for current_file_name_numeric in file_name_numeric):
+            warnings.warn(
+                f"Cannot form stacks from numpy slices based on the file name as more than one sequence of numeric "
+                f"values are present in the name of one or more files. This excludes the sample name (if known) and "
+                f"any identifiers for image data. The original file order is used.", UserWarning
+            )
+            pass
+
+        # Flatten array and convert to integer values.
+        file_name_numeric = list(itertools.chain.from_iterable(file_name_numeric))
+        file_name_numeric = [int(current_file_name_numeric) for current_file_name_numeric in file_name_numeric]
+
+        if len(file_name_numeric) == 1:
+            pass
+
+        # Check that all numbers are sequential.
+        if not np.all(np.diff(np.sort(np.array(file_name_numeric))) == 1):
+            warnings.warn(
+                f"Cannot form stacks from numpy slices based on the file name as numbers are not fully sequential for"
+                f" all files. The original file order is used.", UserWarning
+            )
+            pass
+
+        position_table = pd.DataFrame({
+            "original_object_order": list(range(len(self.image_file_objects))),
+            "order_id": file_name_numeric,
+        }).sort_values(by=["order_id"])
+
+        # Sort image file objects.
+        self.image_file_objects = [
+            self.image_file_objects[position_table.original_object_order[ii]]
+            for ii in range(len(position_table))
+        ]
+
     def load_metadata(self):
         # Load metadata for underlying files in the order indicated by self.image_file_objects.
         for image_file_object in self.image_file_objects:
