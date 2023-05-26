@@ -380,7 +380,7 @@ class ImageFile:
             file_name = bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
             if self.image_name is not None:
                 image_id_name = self.image_name
-                if not isinstance(self.image_name, list):
+                if not isinstance(image_id_name, list):
                     image_id_name = [image_id_name]
 
                 # Find the id that is present in the filename.
@@ -392,7 +392,7 @@ class ImageFile:
 
                 if matching_image_id is not None:
                     # Handle wildcards in the image id.
-                    matching_image_id.replace("?", "*")
+                    matching_image_id = matching_image_id.replace("?", "*")
                     matching_image_id = matching_image_id.split("*")
                     matching_image_id = [x for x in matching_image_id if x != ""]
 
