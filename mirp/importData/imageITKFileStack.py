@@ -1,3 +1,4 @@
+import copy
 import warnings
 import itk
 import numpy as np
@@ -18,6 +19,16 @@ class ImageITKFileStack(ImageFileStack):
         super().__init__(image_file_objects, **kwargs)
 
     def complete(self, remove_metadata=True, force=False):
+        """
+        Fills out missing attributes in an image stack. Image parameters in ITK stacks are fully determined by the
+        origin of all slices in the stack. This method then sorts the image file objects
+        by origin, and uses their relative positions to determine slice spacing and the orientation vector. ITK-image
+        stacks, e.g. stacks of NIfTI or NRRD files should be very very rare, since such formats are specifically
+        designed to address some of the weakness of the DICOM standard slice-based format.
+        :param remove_metadata: Whether metadata should be removed after completing information.
+        :param force: Whether attributes are forced to update or not.
+        :return: nothing, attributes are updated in place.
+        """
         # Load metadata of every slice.
         self.load_metadata()
 
@@ -44,15 +55,6 @@ class ImageITKFileStack(ImageFileStack):
             "position_x": image_position_x
         }).sort_values(by=["position_z", "position_y", "position_x"])
 
-        # Sort image file objects.
-        self.image_file_objects = [
-            self.image_file_objects[position_table.original_object_order[ii]]
-            for ii in range(len(position_table))
-        ]
-
-        # Set image origin.
-        self.image_origin = tuple(np.array(self.image_file_objects[0].image_metadata.GetOrigin())[::-1])
-
         # Set image spacing. Compute the distance between the origins of the slices. This is the slice spacing.
         image_slice_spacing = np.sqrt(
             np.power(np.diff(position_table.position_x.values), 2.0) +
@@ -61,6 +63,39 @@ class ImageITKFileStack(ImageFileStack):
 
         # Find the smallest slice spacing.
         min_slice_spacing = np.min(image_slice_spacing)
+        if min_slice_spacing == 0.0:
+            warnings.warn(
+                "Images files contain overlapping origins. Attempting to sort image files by numeric name "
+                "patterns.", UserWarning)
+            self.sort_image_objects_by_file()
+
+            image_object = copy.deepcopy(self.image_file_objects[0])
+            image_object.complete()
+
+            if self.image_origin is None:
+                self.image_origin = image_object.image_origin
+
+            if self.image_spacing is None:
+                self.image_spacing = image_object.image_spacing
+
+            if self.image_orientation is None:
+                self.image_orientation = image_object.image_orientation
+
+            if self.image_dimension is None:
+                self.image_dimension = tuple([
+                    len(self.image_file_objects), image_object.image_dimension[1], image_object.image_dimension[2]
+                ])
+
+        else:
+            # Sort image file objects.
+            self.image_file_objects = [
+                self.image_file_objects[position_table.original_object_order[ii]]
+                for ii in range(len(position_table))
+            ]
+
+        # Set image origin.
+        if self.image_origin is None:
+            self.image_origin = tuple(np.array(self.image_file_objects[0].image_metadata.GetOrigin())[::-1])
 
         # Find how much other slices differ.
         image_slice_spacing_multiplier = image_slice_spacing / min_slice_spacing
@@ -80,10 +115,11 @@ class ImageITKFileStack(ImageFileStack):
 
         # Set image spacing.
         image_spacing = np.array(self.image_file_objects[0].image_metadata.GetSpacing())[::-1]
-        if image_spacing[0] == image_slice_spacing:
-            self.image_spacing = tuple(image_spacing)
-        else:
-            self.image_spacing = tuple([image_slice_spacing, image_spacing[1], image_spacing[2]])
+        if self.image_spacing is None:
+            if image_spacing[0] == image_slice_spacing:
+                self.image_spacing = tuple(image_spacing)
+            else:
+                self.image_spacing = tuple([image_slice_spacing, image_spacing[1], image_spacing[2]])
 
         # Read orientation metadata.
         image_orientation = np.reshape(np.ravel(itk.array_from_matrix(
@@ -98,12 +134,14 @@ class ImageITKFileStack(ImageFileStack):
 
         # Replace z-orientation and set image_orientation.
         image_orientation[0, :] = z_orientation
-        self.image_orientation = image_orientation
+        if self.image_orientation is None:
+            self.image_orientation = image_orientation
 
         # Set dimension
         image_dimension = np.array(self.image_metadata.GetSize())[::-1]
 
-        self.image_dimension = tuple([len(position_table), image_dimension[1], image_dimension[2]])
+        if self.image_dimension:
+            self.image_dimension = tuple([len(position_table), image_dimension[1], image_dimension[2]])
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
