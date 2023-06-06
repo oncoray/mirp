@@ -7,6 +7,10 @@ import numpy as np
 
 
 def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
+
+    if isinstance(modality, str):
+        modality = modality.lower()
+
     if modality is None:
         return ["ct", "pt", "mr", "generic"]
 
@@ -34,6 +38,10 @@ def stacking_dicom_image_modalities() -> List[str]:
 
 
 def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
+
+    if isinstance(modality, str):
+        modality = modality.lower()
+
     if modality is None:
         return ["rtsruct", "seg", "generic_mask"]
 
@@ -53,8 +61,12 @@ def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
 
 
 def supported_file_types(file_type: Union[None, str] = None) -> List[str]:
+
+    if isinstance(file_type, str):
+        modality = file_type.lower()
+
     if file_type is None:
-        return [".dcm", ".nii", ".nii.gz", ".nrrd", ".npy", ".npz"]
+        return [".dcm", ".nii", ".nii.gz", ".nrrd", ".npy"]
 
     elif file_type == "dicom":
         return [".dcm"]
@@ -69,7 +81,7 @@ def supported_file_types(file_type: Union[None, str] = None) -> List[str]:
         return [".nrrd"]
 
     elif file_type == "numpy":
-        return [".npy", ".npz"]
+        return [".npy"]
 
     else:
         raise ValueError(

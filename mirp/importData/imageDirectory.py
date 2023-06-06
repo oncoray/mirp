@@ -29,8 +29,15 @@ class ImageDirectory:
         self.sample_name: Union[None, str, List[str]] = sample_name
         self.image_name = image_name
         self.sub_folder = image_sub_folder
-        self.modality = image_modality
-        self.file_type = image_file_type
+
+        if isinstance(image_modality, str):
+            image_modality = image_modality.lower()
+        self.modality: Union[None, str] = image_modality
+
+        if isinstance(image_file_type, str):
+            image_file_type = image_file_type.lower()
+        self.file_type: Union[None, str] = image_file_type
+
         self.stack_images = stack_images
 
         # image_files are set using create_images.

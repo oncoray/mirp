@@ -31,7 +31,13 @@ class ImageFile:
         self.file_path: Union[None, str] = file_path
         self.sample_name: Union[None, str, List[str]] = sample_name
         self.image_name: Union[None, str] = image_name
+
+        if isinstance(image_modality, str):
+            image_modality = image_modality.lower()
         self.modality: Union[None, str] = image_modality
+
+        if isinstance(image_file_type, str):
+            image_file_type = image_file_type.lower()
         self.file_type: Union[None, str] = image_file_type
 
         # Add image data
