@@ -150,7 +150,7 @@ def _(image: ImageDirectory, **kwargs):
     image.check(raise_error=True)
 
     # Yield image files.
-    image_list = image.create_images()
+    image.create_images()
 
     # Dispatch to import_image method for
-    return [_import_image(current_image) for current_image in image_list]
+    return [_import_image(current_image) for current_image in image.image_files]
