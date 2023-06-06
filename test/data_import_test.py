@@ -89,19 +89,27 @@ def _convert_to_numpy(as_slice=False):
 
 
 def test_single_image_import():
-    # # Read a Nifti image directly.
-    # image_list = import_image(
-    #     os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "nifti", "image", "image.nii.gz"))
-    #
-    # # Read a DICOM image stack.
-    # image_list = import_image(
-    #     os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"))
-    #
-    # # Read a Nifti image for a specific sample.
-    # image_list = import_image(
-    #     image=os.path.join(CURRENT_DIR, "data", "sts_images"),
-    #     sample_name="STS_001",
-    #     image_sub_folder=os.path.join("CT", "nifti", "image"))
+    # Read a Nifti image directly.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "nifti", "image", "image.nii.gz"))
+
+    # Read a DICOM image stack.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"))
+
+    # Read a numpy image directly.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "image", "STS_001_image.npy"))
+
+    # Read a numpy stack.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy_slice", "image"))
+
+    # Read a Nifti image for a specific sample.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name="STS_001",
+        image_sub_folder=os.path.join("CT", "nifti", "image"))
 
     # Read a DICOM image stack for a specific sample.
     image_list = import_image(
@@ -109,9 +117,39 @@ def test_single_image_import():
         sample_name="STS_001",
         image_sub_folder=os.path.join("CT", "dicom", "image"))
 
-    # Read a Nifti image by specifying the image name
+    # Read a numpy image for a specific sample.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name="STS_001",
+        image_sub_folder=os.path.join("CT", "numpy", "image"))
 
-    # Read a DICOM image stack by specifying the modality.
+    # Read a numpy image stack for a specific sample.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name="STS_001",
+        image_sub_folder=os.path.join("CT", "numpy_slice", "image"))
+
+    # Read a Nifti image by specifying the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "nifti"),
+        image_name="image")
+
+    # Read a numpy file by specifying the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy"),
+        image_name="image")
+
+    # Read a numpy stack by specifying the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy_slice"),
+        image_name="image")
+
+    # Read a DICOM image stack by specifying the modality, the sample name and the file type.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name="STS_001",
+        image_modality="CT",
+        image_file_type="dicom")
 
     # Read a
     1
