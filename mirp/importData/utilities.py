@@ -167,11 +167,13 @@ def path_to_parts(x: str) -> List[str]:
     """
 
     path_parts = []
+    x_head = x
     while True:
-        x_head, x_tail = split(x)
-        path_parts += [x_tail]
-        if x_head == "":
+        x_head, x_tail = split(x_head)
+        if x_tail == "":
+            path_parts += [x_head]
             break
+        path_parts += [x_tail]
 
     return list(reversed(path_parts))
 
