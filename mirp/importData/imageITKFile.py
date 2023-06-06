@@ -69,23 +69,54 @@ class ImageITKFile(ImageFile):
             )
 
     def _complete_image_origin(self, force=False):
-        if self.image_orientation is None:
-            origin = np.array(self.image_metadata.GetOrigin())[::-1]
+        if self.image_origin is None:
+            # Get dimensions, as this determines what can be meaningfully read.
+            n_dimensions = self.image_metadata.GetNumberOfDimensions()
+
+            # Get origin.
+            origin = [0.0] * n_dimensions
+            for ii in range(n_dimensions):
+                origin[n_dimensions - (ii + 1)] = self.image_metadata.GetOrigin(ii)
+
+            # Set origin.
             self.image_origin = tuple(origin)
 
     def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
-            orientation = np.reshape(np.ravel(itk.array_from_matrix(self.image_metadata.GetDirection()))[::-1], [3, 3])
-            self.image_orientation = orientation
+            # Get dimensions, as this determines what can be meaningfully read.
+            n_dimensions = self.image_metadata.GetNumberOfDimensions()
+
+            # Get orientation.
+            orientation = []
+            for ii in range(n_dimensions):
+                orientation.append(self.image_metadata.GetDirection(ii))
+
+            self.image_orientation = np.reshape(np.ravel(np.array(orientation))[::-1], [n_dimensions, n_dimensions])
 
     def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
-            spacing = np.array(self.image_metadata.GetSpacing())[::-1]
+            # Get dimensions, as this determines what can be meaningfully read.
+            n_dimensions = self.image_metadata.GetNumberOfDimensions()
+
+            # Get spacing.
+            spacing = [0.0] * n_dimensions
+            for ii in range(n_dimensions):
+                spacing[n_dimensions - (ii + 1)] = self.image_metadata.GetSpacing(ii)
+
+            # Set spacing.
             self.image_spacing = tuple(spacing)
 
     def _complete_image_dimensions(self, force=False):
         if self.image_dimension is None:
-            dimensions = np.array(self.image_metadata.GetSize())[::-1]
+            # Get dimensions, as this determines what can be meaningfully read.
+            n_dimensions = self.image_metadata.GetNumberOfDimensions()
+
+            # Get size of dimensions
+            dimensions = [0] * n_dimensions
+            for ii in range(n_dimensions):
+                dimensions[n_dimensions - (ii + 1)] = self.image_metadata.GetDimensions(ii)
+
+            # Set size of dimensions
             self.image_dimension = tuple(dimensions)
 
     def load_metadata(self):
@@ -96,8 +127,8 @@ class ImageITKFile(ImageFile):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}")
 
-        # Default reader is from itk.
-        reader = itk.ImageFileReader()
+        # Generate reader.
+        reader = itk.ImageIOFactory.CreateImageIO(self.file_path, itk.CommonEnums.IOFileMode_ReadMode)
         reader.SetFileName(self.file_path)
         reader.ReadImageInformation()
 
