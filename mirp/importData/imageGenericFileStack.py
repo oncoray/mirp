@@ -70,10 +70,7 @@ class ImageFileStack(ImageFile):
         from mirp.importData.imageITKFileStack import ImageITKFileStack
         from mirp.importData.imageNumpyFileStack import ImageNumpyFileStack
 
-        file_extensions = supported_file_types(file_type=self.file_type)
-
-        if any(self.file_path.lower().endswith(ii) for ii in file_extensions) and \
-                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("dicom")):
+        if all(isinstance(image_file_object, ImageDicomFile) for image_file_object in self.image_file_objects):
             # Create DICOM-specific file.
             image_file_stack = ImageDicomFileStack(
                 image_file_objects=self.image_file_objects,
@@ -84,14 +81,7 @@ class ImageFileStack(ImageFile):
                 image_file_type="dicom"
             )
 
-        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions):
-            if any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
-                file_type = "nifti"
-            elif any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):
-                file_type = "nrrd"
-            else:
-                raise ValueError(f"DEV: specify file_type")
-
+        elif all(isinstance(image_file_object, ImageITKFile) for image_file_object in self.image_file_objects):
             # Create ITK file.
             image_file_stack = ImageITKFileStack(
                 image_file_objects=self.image_file_objects,
@@ -99,11 +89,10 @@ class ImageFileStack(ImageFile):
                 sample_name=self.sample_name,
                 image_name=self.image_name,
                 image_modality=self.modality,
-                image_file_type=file_type
+                image_file_type=self.image_file_objects[0].file_type
             )
 
-        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
-                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
+        elif all(isinstance(image_file_object, ImageNumpyFile) for image_file_object in self.image_file_objects):
 
             # Create Numpy file.
             image_file_stack = ImageNumpyFileStack(
@@ -116,7 +105,7 @@ class ImageFileStack(ImageFile):
             )
 
         else:
-            raise NotImplementedError(f"The provided image type is not implemented: {self.file_type}")
+            raise TypeError(f"The list of image objects does not consist of a known object type.")
 
         return image_file_stack
 
