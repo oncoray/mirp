@@ -110,6 +110,8 @@ class ImageDicomFile(ImageFile):
 
             return False
 
+        return True
+
     def _check_sample_name(self, raise_error: bool) -> bool:
         if self.sample_name is not None:
             allowed_sample_name = self.sample_name
