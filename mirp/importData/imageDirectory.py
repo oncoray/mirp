@@ -231,6 +231,8 @@ class ImageDirectory:
             if not image_file.check(raise_error=False):
                 continue
 
+            image_file.complete()
+
             image_file_list.append(image_file)
 
         return image_file_list

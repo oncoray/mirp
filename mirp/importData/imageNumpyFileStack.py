@@ -45,6 +45,14 @@ class ImageNumpyFileStack(ImageFileStack):
             self.image_orientation = image_object.image_orientation
 
         if self.image_dimension is None:
-            self.image_dimension = tuple([
-                len(self.image_file_objects), image_object.image_dimension[1], image_object.image_dimension[2]
-            ])
+            image_dimension = image_object.image_dimension
+            if len(image_dimension) == 3:
+                self.image_dimension = tuple([
+                    len(self.image_file_objects), image_object.image_dimension[1], image_object.image_dimension[2]
+                ])
+            elif len(image_dimension) == 2:
+                self.image_dimension = tuple([
+                    len(self.image_file_objects), image_object.image_dimension[0], image_object.image_dimension[1]
+                ])
+            else:
+                self.image_dimension = tuple([len(self.image_file_objects), 1, image_object.image_dimension[0]])

@@ -159,7 +159,7 @@ class ImageFileStack(ImageFile):
                 f"Cannot form stacks from numpy slices based on the file name as numeric values are missing "
                 "from one or more files. The original file order is used.", UserWarning
             )
-            pass
+            return
 
         if any(len(current_file_name_numeric) > 1 for current_file_name_numeric in file_name_numeric):
             warnings.warn(
@@ -167,14 +167,14 @@ class ImageFileStack(ImageFile):
                 f"values are present in the name of one or more files. This excludes the sample name (if known) and "
                 f"any identifiers for image data. The original file order is used.", UserWarning
             )
-            pass
+            return
 
         # Flatten array and convert to integer values.
         file_name_numeric = list(itertools.chain.from_iterable(file_name_numeric))
         file_name_numeric = [int(current_file_name_numeric) for current_file_name_numeric in file_name_numeric]
 
         if len(file_name_numeric) == 1:
-            pass
+            return
 
         # Check that all numbers are sequential.
         if not np.all(np.diff(np.sort(np.array(file_name_numeric))) == 1):
@@ -182,7 +182,7 @@ class ImageFileStack(ImageFile):
                 f"Cannot form stacks from numpy slices based on the file name as numbers are not fully sequential for"
                 f" all files. The original file order is used.", UserWarning
             )
-            pass
+            return
 
         position_table = pd.DataFrame({
             "original_object_order": list(range(len(self.image_file_objects))),

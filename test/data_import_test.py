@@ -103,7 +103,7 @@ def test_single_image_import():
 
     # Read a numpy stack.
     image_list = import_image(
-        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy_slice", "image"))
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy_slice", "image"))
 
     # Read a Nifti image for a specific sample.
     image_list = import_image(

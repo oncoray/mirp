@@ -373,6 +373,8 @@ class ImageFile:
                 else:
                     return False
 
+        return True
+
     def _check_modality(self, raise_error: bool) -> bool:
         return True
 
