@@ -100,6 +100,7 @@ class ImageDirectory:
         if self.sample_name is not None:
             all_samples_selected = True
             sample_name_matches = []
+            matching_sample_names = []
             ignore_dirs = [self.image_directory]
             if self.sub_folder is not None:
                 ignore_dirs += [self.sub_folder]
@@ -112,6 +113,7 @@ class ImageDirectory:
 
                 if len(current_sample_matches) > 0:
                     sample_name_matches += current_sample_matches
+                    matching_sample_names += [sample_name] * len(sample_name_matches)
 
                 else:
                     all_samples_selected = False
@@ -120,11 +122,13 @@ class ImageDirectory:
             # Only filter list if all sample names are uniquely part of their respective paths.
             if all_samples_selected and len(set(sample_name_matches)) == len(sample_name_matches) and len(
                     sample_name_matches) > 0:
-                path_info = [path_info[ii] for ii in sample_name_matches]
 
                 # Add suggested sample names.
-                for ii in range(len(path_info)):
-                    path_info[ii][3] = self.sample_name[sample_name_matches[ii]]
+                for ii, path_info_index in enumerate(sample_name_matches):
+                    path_info[path_info_index][3] = matching_sample_names[ii]
+
+                # Update path_info
+                path_info = [path_info[path_info_index] for path_info_index in sample_name_matches]
 
         # Find entries that include files of the right file-type. First, we keep only those files that are of the
         # correct file type. Then we filter out entries where no files remain. Note that if file_type is not externally
