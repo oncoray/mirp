@@ -81,10 +81,7 @@ def _import_image(image, **kwargs):
 @_import_image.register(list)
 def _(image: list, **kwargs):
     # List can be anything. Hence, we dispatch import_image for the individual list elements.
-    image_list = [_import_image(
-        image=current_image,
-        **kwargs
-    ) for current_image in image]
+    image_list = [_import_image(current_image, **kwargs) for current_image in image]
 
     return image_list
 
