@@ -8,7 +8,7 @@ import pandas as pd
 
 from mirp.importData.imageDirectory import ImageDirectory
 from mirp.importData.imageGenericFile import ImageFile
-from mirp.importData.utilities import supported_file_types, supported_image_modalities
+from mirp.importData.utilities import supported_file_types, supported_image_modalities, flatten_list
 
 
 def import_image(
@@ -69,6 +69,9 @@ def import_image(
 
     if not isinstance(image_list, list):
         image_list = [image_list]
+
+    # Flatten list.
+    image_list = flatten_list(image_list)
 
     return image_list
 
