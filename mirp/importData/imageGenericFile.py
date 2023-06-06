@@ -171,7 +171,8 @@ class ImageFile:
                 image_dimensions=self.image_dimension
             )
 
-        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions):
+        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
+                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("itk")):
             if any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
                 file_type = "nifti"
             elif any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):

@@ -59,6 +59,9 @@ def supported_file_types(file_type: Union[None, str] = None) -> List[str]:
     elif file_type == "dicom":
         return [".dcm"]
 
+    elif file_type == "itk":
+        return [".nii", ".nii.gz", ".nrrd"]
+
     elif file_type == "nifti":
         return [".nii", ".nii.gz"]
 
