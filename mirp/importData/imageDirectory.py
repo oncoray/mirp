@@ -261,6 +261,7 @@ class ImageDirectory:
             raise TypeError("All contents of self.image_files are expected to be ImageFile objects.")
 
         # Isolate all cases that are not stackable anyway.
+        # noinspection PyUnresolvedReferences
         image_file_list = [
             image_file_object for image_file_object in self.image_files
             if not image_file_object.is_stackable(stack_images=self.stack_images)
