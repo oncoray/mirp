@@ -34,7 +34,7 @@ class ImageDirectory:
         self.stack_images = stack_images
 
         # image_files are set using create_images.
-        self.image_files: Union[None, List[str]] = None
+        self.image_files: Union[None, List[str], List[ImageFile]] = None
 
     def check(self, raise_error=False):
 
@@ -86,7 +86,7 @@ class ImageDirectory:
                     f"substructure {self.sub_folder}.")
 
         # Add in sample name placeholder to path-information.
-        path_info: List = [list(path_info_element).append(None) for path_info_element in path_info]
+        path_info: List = [list(path_info_element) + [None] for path_info_element in path_info]
 
         # Find entries where the folder structure contains a sample name. All the sample names must be present to
         # avoid incidental findings.
@@ -170,7 +170,7 @@ class ImageDirectory:
             image_sub_directory.sub_folder = None
             image_sub_directory.image_files = path_info_element[2]
 
-            image_sub_directory._create_images()
+            image_list.append(image_sub_directory._create_images())
 
         # Flatten list.
         self.image_files = list(chain.from_iterable(image_list))
@@ -241,17 +241,20 @@ class ImageDirectory:
         """
 
         if self.image_files is None or len(self.image_files) == 0:
-            pass
+            return
+
+        if not all(isinstance(image_file_object, ImageFile) for image_file_object in self.image_files):
+            raise TypeError("All contents of self.image_files are expected to be ImageFile objects.")
 
         # Isolate all cases that are not stackable anyway.
-        image_file_list: List[ImageFile] = [
+        image_file_list = [
             image_file_object for image_file_object in self.image_files
-            if not image_file_object.is_stackable()
+            if not image_file_object.is_stackable(stack_images=self.stack_images)
         ]
 
         # If none of the images are potentially stackable we don't make any alterations.
         if len(image_file_list) == len(self.image_files):
-            pass
+            return
 
         image_file_list += list(self._autostack())
 
@@ -262,7 +265,7 @@ class ImageDirectory:
         # Find stackable objects.
         stackable_image_file_list: List[ImageFile] = [
             image_file_object for image_file_object in self.image_files
-            if image_file_object.is_stackable()
+            if image_file_object.is_stackable(stack_images=self.stack_images)
         ]
 
         # Hash identifier data: those files that might be stackable should have the same hash.
@@ -287,14 +290,15 @@ class ImageDirectory:
             ]
 
             # Update availability.
-            available_objects = [
-                False for ii in range(len(available_objects))
-                if available_objects is True and identifier_list[ii] == identifier
-            ]
+            for ii in range(len(available_objects)):
+                if available_objects[ii] is True and identifier_list[ii] == identifier:
+                    available_objects[ii] = False
 
             # If there is only one object to stack, it is not necessary to stack the object.
             if len(stack_list) == 1:
                 yield stack_list[0]
 
             else:
-                yield ImageFileStack(image_file_objects=stack_list).create().complete()
+                image_stack = ImageFileStack(image_file_objects=stack_list).create()
+                image_stack.complete()
+                yield image_stack
