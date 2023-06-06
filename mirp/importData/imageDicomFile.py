@@ -144,6 +144,8 @@ class ImageDicomFile(ImageFile):
                         )
                     else:
                         return False
+
+                return True
         else:
             return True
 

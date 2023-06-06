@@ -117,7 +117,7 @@ class ImageDirectory:
 
                 # Add suggested sample names.
                 for ii in range(len(path_info)):
-                    path_info[ii][3] = sample_name_matches[ii]
+                    path_info[ii][3] = self.sample_name[sample_name_matches[ii]]
 
         # Find entries that include files of the right file-type. First, we keep only those files that are of the
         # correct file type. Then we filter out entries where no files remain. Note that if file_type is not externally
@@ -156,7 +156,8 @@ class ImageDirectory:
                 ValueError(
                     f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
                     f"image files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
-                    f"({', '.join(self.image_name)})."
+                    f"({', '.join(self.image_name)}). The name must match exactly. Use wildcard symbol (*) for "
+                    f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
 
         # Read and parse image content in subdirectories.

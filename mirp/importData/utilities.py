@@ -142,7 +142,7 @@ def match_file_name(
         return_list = False
 
     if isinstance(pattern, str):
-        pattern = list(str)
+        pattern = [pattern]
 
     file_name = [os.path.basename(file_path) for file_path in x]
 
@@ -151,12 +151,15 @@ def match_file_name(
 
     matches = np.zeros(len(file_name), dtype=bool)
     for current_pattern in pattern:
-        matches = np.logical_or(matches, np.array(fnmatch.filter(file_name, current_pattern)))
+        matches = np.logical_or(matches, np.array([
+            fnmatch.fnmatch(current_file_name, current_pattern)
+            for current_file_name in file_name
+        ]))
 
     if return_list:
         return matches
     else:
-        return matches[0]
+        return any(matches)
 
 
 def path_to_parts(x: str) -> List[str]:
