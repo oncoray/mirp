@@ -597,7 +597,7 @@ class ImageFile:
 
     def update_image_data(self):
         if self.image_data is None:
-            pass
+            return
 
         if not isinstance(self.image_data, np.ndarray):
             raise TypeError(
@@ -607,7 +607,7 @@ class ImageFile:
 
         # If the image is already 3D, we forgo adding dimensions.
         if len(self.image_data.shape) == 3:
-            pass
+            return
 
         if not 1 <= len(self.image_data.shape) <= 3:
             raise ValueError(

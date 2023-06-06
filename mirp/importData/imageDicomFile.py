@@ -208,7 +208,7 @@ class ImageDicomFile(ImageFile):
         if self.image_origin is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
-                pass
+                return
 
             origin = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0032), tag_type="mult_float")[::-1]
             self.image_origin = tuple(origin)
@@ -217,7 +217,7 @@ class ImageDicomFile(ImageFile):
         if self.image_orientation is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
-                pass
+                return
 
             orientation = get_pydicom_meta_tag(
                 dcm_seq=self.image_orientation,
@@ -231,7 +231,7 @@ class ImageDicomFile(ImageFile):
         if self.image_spacing is None:
             # Image spacing needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
-                pass
+                return
 
             # Get pixel-spacing.
             spacing = get_pydicom_meta_tag(dcm_seq=self.image_spacing, tag=(0x0028, 0x0030), tag_type="mult_float")
@@ -250,7 +250,7 @@ class ImageDicomFile(ImageFile):
         if self.image_dimension is None:
             # Image dimension needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
-                pass
+                return
 
             dimensions = tuple([
                 1,
@@ -262,7 +262,7 @@ class ImageDicomFile(ImageFile):
 
     def load_metadata(self):
         if self.image_metadata is not None:
-            pass
+            return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
@@ -277,7 +277,7 @@ class ImageDicomFile(ImageFile):
 
     def load_data(self):
         if self.image_data is not None:
-            pass
+            return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
