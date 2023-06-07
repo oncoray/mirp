@@ -119,7 +119,7 @@ def _convert_to_flat_directory():
                     dir_contents = os.listdir(source_directory)
                     for current_file in dir_contents:
                         target_file_name = [modality, current_file]
-                        if file_type in ["itk", "dicom"]:
+                        if file_type in ["nifti", "dicom"]:
                             target_file_name = [sample_name] + target_file_name
                         target_file_name = "_".join(target_file_name)
 
