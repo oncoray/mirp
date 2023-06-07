@@ -335,6 +335,46 @@ def test_multiple_image_import():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
 
+def test_single_image_import_flat():
+    # Read a Nifti image directly.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+        sample_name="STS_001",
+        image_name="*CT_image")
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageITKFile)
+    assert image_list[0].sample_name == "STS_001"
+
+    # Read a DICOM image stack.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+        sample_name="STS_001",
+        image_modality="ct")
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageDicomFileStack)
+    assert image_list[0].sample_name == "STS_001"
+    assert image_list[0].modality == "ct"
+
+    # Read a numpy image directly.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+        sample_name="STS_001",
+        image_name="CT*image")
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageNumpyFile)
+    assert image_list[0].sample_name == "STS_001"
+
+    # Read a numpy stack.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+        sample_name="STS_001",
+        image_name="CT*image"
+    )
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageNumpyFileStack)
+    assert image_list[0].sample_name == "STS_001"
+
+
 def test_single_image_mask_import():
     import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "nifti", "image", "image.nii.gz"),
