@@ -1,4 +1,5 @@
 import os.path
+import shutil
 
 import itk
 import numpy as np
@@ -17,7 +18,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def _convert_to_numpy(as_slice=False):
     """
-    Helper script to convert NIfTI files to numpy for testing numpy-based imports.
+    Helper script for converting NIfTI files to numpy for testing numpy-based imports.
 
     :param as_slice:
     :return:
@@ -90,6 +91,42 @@ def _convert_to_numpy(as_slice=False):
                     os.makedirs(target_dir)
 
                 np.save(target_mask_file, arr=source_mask)
+
+
+def _convert_to_flat_directory():
+    """
+    Helper script for converting soft-tissue sarcoma imaging files to a flat directory.
+    :return:
+    """
+
+    sample_names = ["STS_001", "STS_002", "STS_003"]
+    modalities = ["CT", "MR_T1", "PET"]
+    file_types = ["dicom", "nifti", "numpy", "numpy_slice"]
+
+    main_target_directory = os.path.join(CURRENT_DIR, "data", "sts_images_flat")
+
+    for sample_name in sample_names:
+        for modality in modalities:
+            for file_type in file_types:
+                for content_type in ["image", "mask"]:
+                    source_directory = os.path.join(
+                        CURRENT_DIR, "data", "sts_images", sample_name, modality, file_type, content_type)
+
+                    target_directory = os.path.join(main_target_directory, file_type)
+                    if not os.path.exists(target_directory):
+                        os.makedirs(target_directory)
+
+                    dir_contents = os.listdir(source_directory)
+                    for current_file in dir_contents:
+                        target_file_name = [modality, current_file]
+                        if file_type in ["itk", "dicom"]:
+                            target_file_name = [sample_name] + target_file_name
+                        target_file_name = "_".join(target_file_name)
+
+                        shutil.copyfile(
+                            os.path.join(source_directory, current_file),
+                            os.path.join(target_directory, target_file_name)
+                        )
 
 
 def test_single_image_import():
