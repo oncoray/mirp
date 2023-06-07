@@ -224,6 +224,79 @@ def test_multiple_image_import():
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
+    # Read Nifti images for specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name=["STS_002", "STS_003"],
+        image_sub_folder=os.path.join("CT", "nifti", "image"))
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+    assert image_list[0].sample_name == "STS_002"
+    assert image_list[1].sample_name == "STS_003"
+
+    # Read DICOM image stacks for a specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name=["STS_002", "STS_003"],
+        image_sub_folder=os.path.join("CT", "dicom", "image"))
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
+    assert image_list[0].sample_name == "STS_002"
+    assert image_list[1].sample_name == "STS_003"
+    assert all(image_object.modality == "ct" for image_object in image_list)
+
+    # Read numpy images for specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name=["STS_002", "STS_003"],
+        image_sub_folder=os.path.join("CT", "numpy", "image"))
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageNumpyFile) for image_object in image_list)
+    assert image_list[0].sample_name == "STS_002"
+    assert image_list[1].sample_name == "STS_003"
+
+    # Read numpy image stacks for specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        sample_name=["STS_002", "STS_003"],
+        image_sub_folder=os.path.join("CT", "numpy_slice", "image"))
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
+    assert image_list[0].sample_name == "STS_002"
+    assert image_list[1].sample_name == "STS_003"
+
+    # Read Nifti images for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "nifti", "image"))
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+
+    # Read DICOM image stacks for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image"))
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
+    assert image_list[0].sample_name == "STS_001"
+    assert image_list[1].sample_name == "STS_002"
+    assert image_list[2].sample_name == "STS_003"
+    assert all(image_object.modality == "ct" for image_object in image_list)
+
+    # Read numpy images for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "numpy", "image"))
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageNumpyFile) for image_object in image_list)
+
+    # Read numpy image stacks for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "numpy_slice", "image"))
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
+
 
 def test_single_image_mask_import():
     import_image_and_mask(
