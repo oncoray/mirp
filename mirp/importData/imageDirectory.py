@@ -223,6 +223,13 @@ class ImageDirectory:
         # Flatten list.
         self.image_files = list(chain.from_iterable(image_list))
 
+        if len(self.image_files) == 0:
+            raise ValueError(
+                f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
+                f"image files ({', '.join(allowed_file_extensions)}. Likely reasons are mismatches in modality, "
+                f"and sample names."
+            )
+
         # Try to stack.
         self.autostack()
 
