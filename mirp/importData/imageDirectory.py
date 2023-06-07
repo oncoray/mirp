@@ -1,10 +1,13 @@
+import fnmatch
+import itertools
 import os
 import os.path
 import copy
 
 from typing import Union, List
 from itertools import chain
-from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name
+from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
+    bare_file_name
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.imageGenericFileStack import ImageFileStack
 
@@ -97,6 +100,7 @@ class ImageDirectory:
 
         # Find entries where the folder structure contains a sample name. All the sample names must be present to
         # avoid incidental findings.
+        update_sample_name_from_directory = False
         if self.sample_name is not None:
             all_samples_selected = True
             sample_name_matches = []
@@ -122,6 +126,7 @@ class ImageDirectory:
             # Only filter list if all sample names are uniquely part of their respective paths.
             if all_samples_selected and len(set(sample_name_matches)) == len(sample_name_matches) and len(
                     sample_name_matches) > 0:
+                update_sample_name_from_directory = True
 
                 # Add suggested sample names.
                 for ii, path_info_index in enumerate(sample_name_matches):
@@ -170,6 +175,37 @@ class ImageDirectory:
                     f"({', '.join(self.image_name)}). The name must match exactly. Use wildcard symbol (*) for "
                     f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
+
+        # Find entries where file names (NOT directory names) contain sample names. If
+        if self.sample_name is not None and not update_sample_name_from_directory:
+            all_samples_selected = True
+
+            # Flatten all files.
+            file_name_list = list(itertools.chain.from_iterable([
+                bare_file_name(path_info_element[2], file_extension=allowed_file_extensions)
+                for path_info_element in path_info
+            ]))
+
+            # Determine if all sample names appear at least once in the files.
+            for sample_name in self.sample_name:
+                if len(fnmatch.filter(file_name_list, "*" + sample_name + "*")) == 0:
+                    all_samples_selected = False
+                    break
+
+            # Iterate over all path info elements, and keep only those where sample names are present.
+            if all_samples_selected:
+                updated_path_info = []
+                for path_info_element in path_info:
+                    for sample_name in self.sample_name:
+                        matching_file_names = fnmatch.filter(path_info_element[2], "*" + sample_name + "*")
+                        if len(matching_file_names) > 0:
+                            new_path_info_element = copy.deepcopy(path_info_element)
+                            new_path_info_element[2] = matching_file_names
+                            new_path_info_element[3] = sample_name
+
+                            updated_path_info += [new_path_info_element]
+
+                path_info = updated_path_info
 
         # Read and parse image content in subdirectories.
         image_list = []
