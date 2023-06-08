@@ -1,3 +1,4 @@
+import fnmatch
 import hashlib
 import itertools
 import os
@@ -387,6 +388,11 @@ class ImageFile:
     def _get_sample_name_from_file(self) -> Union[None, str]:
         allowed_file_extensions = supported_file_types(self.file_type)
 
+        # Do not obtain sample name from the file name if a file name has already been set.
+        if isinstance(self.sample_name, str):
+            return None
+
+        # Select the most appropriate sample name.
         if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
             file_name = bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
             if self.image_name is not None:
@@ -397,14 +403,21 @@ class ImageFile:
                 # Find the id that is present in the filename.
                 matching_image_id = None
                 for current_image_id_name in image_id_name:
-                    if current_image_id_name in file_name:
+                    # Replace markers for any character string (^) and the sample name (#).
+                    current_image_id_name = current_image_id_name.replace("#", "*")
+                    current_image_id_name = current_image_id_name.replace("^", "*")
+                    if fnmatch.fnmatch(file_name, current_image_id_name):
                         matching_image_id = current_image_id_name
                         break
 
                 if matching_image_id is not None:
                     # Handle wildcards in the image id.
                     matching_image_id = matching_image_id.replace("?", "*")
+
+                    # Split on wildcards.
                     matching_image_id = matching_image_id.split("*")
+
+                    # Identify parts of the image id that are not empty after splitting.
                     matching_image_id = [x for x in matching_image_id if x != ""]
 
                     if len(matching_image_id) == 0:
