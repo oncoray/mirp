@@ -176,7 +176,7 @@ class ImageDirectory:
                     f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
 
-        # Find entries where file names (NOT directory names) contain sample names. If
+        # Find entries where file names (NOT directory names) contain sample names.
         if self.sample_name is not None and not update_sample_name_from_directory:
             all_samples_selected = True
 
@@ -197,15 +197,44 @@ class ImageDirectory:
                 updated_path_info = []
                 for path_info_element in path_info:
                     for sample_name in self.sample_name:
-                        matching_file_names = fnmatch.filter(path_info_element[2], "*" + sample_name + "*")
+                        matching_file_names = set(fnmatch.filter(path_info_element[2], "*" + sample_name + "*"))
+
+                        # Check matching file names for file names that match longer sample names. This prevents
+                        # matching sample_1 to sample_11, if both are present. Note that this sanity check will not
+                        # prevent sample_11 being selected if only sample_1 is provided in self.sample_name. To be
+                        # completely sure the user should specify the naming structure of files, or divide data into
+                        # subdirectories per sample. There are additional checks for file names when forming image
+                        # objects, which may further reduce accidental selection.
+                        if len(matching_file_names) > 0:
+                            for competing_sample_name in self.sample_name:
+                                # The competing sample name should be longer than the current name, and the current
+                                # name should be contained therein.
+                                if len(competing_sample_name) > len(sample_name) \
+                                        and fnmatch.fnmatch(competing_sample_name, "*" + sample_name + "*"):
+
+                                    # Remove file names that match the longer, competing sample name.
+                                    matching_file_names = matching_file_names.difference(
+                                        set(fnmatch.filter(
+                                            list(matching_file_names),
+                                            "*" + competing_sample_name + "*"))
+                                    )
+
+                                    if len(matching_file_names) == 0:
+                                        break
+
                         if len(matching_file_names) > 0:
                             new_path_info_element = copy.deepcopy(path_info_element)
-                            new_path_info_element[2] = matching_file_names
+                            new_path_info_element[2] = list(matching_file_names)
                             new_path_info_element[3] = sample_name
 
                             updated_path_info += [new_path_info_element]
 
                 path_info = updated_path_info
+
+        # TODO: allow for determining sample name based on file name pattern, e.g. #_^_image, which would match
+        #  STS_001_00_image.npy, STS_001_01_image_npy, etc. and yield STS_001 as a sample name. Here # indicates
+        #  position of the sample name. ^ is always ignored. Note that wildcard characters (* and ?) are not allowed
+        #  because this will prevent sample names from being unambiguously detected.
 
         # Read and parse image content in subdirectories.
         image_list = []
@@ -229,6 +258,10 @@ class ImageDirectory:
                 f"image files ({', '.join(allowed_file_extensions)}. Likely reasons are mismatches in modality, "
                 f"and sample names."
             )
+
+        # TODO: If sample names are known, check that each sample name appears the same amount of times. This can be
+        #  used to inform the user that something might be wrong when it comes to identifying sample names,
+        #  e.g. partial matches.
 
         # Try to stack.
         self.autostack()
