@@ -375,6 +375,42 @@ def test_single_image_import_flat():
     assert image_list[0].sample_name == "STS_001"
 
 
+def test_multiple_image_import_flat():
+    ...
+
+
+def test_image_import_flat_poor_naming():
+    """
+    Tests whether we can select files if their naming convention is poor, e.g. sample_1, sample_11, sample_111.
+    :return:
+    """
+    # Test correctness when all names are provided.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti_poor_names"),
+        sample_name=["STS_1", "STS_11", "STS_111"],
+        image_name="*image")
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+    assert image_list[0].sample_name == "STS_1"
+    assert image_list[1].sample_name == "STS_11"
+    assert image_list[2].sample_name == "STS_111"
+
+    # Test correctness when no names are provided.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti_poor_names"),
+        image_name="*image")
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+
+    # Test correctness when no names are provided, but the naming structure is clear.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti_poor_names"),
+        image_name="#_PET_image")
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_1", "STS_11", "STS_111"}
+
+
 def test_single_image_mask_import():
     import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "nifti", "image", "image.nii.gz"),
