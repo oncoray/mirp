@@ -176,6 +176,49 @@ def match_file_name(
         return any(matches)
 
 
+def isolate_sample_name(
+        x: str,
+        pattern: str,
+        file_extenstion: Union[None, str, List[str]]
+) -> Union[None, str]:
+
+    # Pattern should only contain one sample name placeholder (#).
+    if pattern.count("#") != 1:
+        return None
+
+    x = bare_file_name(x, file_extension=file_extenstion)
+
+    # Determine where the sample name placeholder is compared to other wildcards.
+    central_split_id = 0
+    for current_character in pattern:
+        if current_character == "#":
+            break
+        elif current_character == "*":
+            central_split_id += 1
+
+    pattern = pattern.replace("#", "*")
+    if not fnmatch.fnmatch(x, pattern):
+        return None
+
+    pattern_split = pattern.split("*")
+    # Use the fixed (non-wildcard) characters to reduce the string. This is done by stripping away parts to the left
+    # or right of fixed characters based on their position relative to the sample name placeholder.
+    for ii in range(0, central_split_id + 1):
+        if pattern_split[ii] == "":
+            continue
+        x = x.split(pattern_split[ii], 1)[1]
+
+    for ii in reversed(range(central_split_id + 1, len(pattern_split))):
+        if pattern_split[ii] == "":
+            continue
+        x = x.rsplit(pattern_split[ii], 1)[0]
+
+    if x == "":
+        return None
+
+    return x
+
+
 def path_to_parts(x: str) -> List[str]:
     """
     Split a path into its components.

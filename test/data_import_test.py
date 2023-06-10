@@ -129,6 +129,119 @@ def _convert_to_flat_directory():
                         )
 
 
+def test_sample_name_parser():
+    """
+    This tests the isolate_sample_name function that is used to determine sample names from the name of file after a
+    specific pattern.
+    :return:
+    """
+    from mirp.importData.utilities import isolate_sample_name
+
+    # No sample name placeholder symbol.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="*image",
+        file_extenstion=".npy"
+    )
+    assert sample_name is None
+
+    # No matching pattern.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="#_PET*image",
+        file_extenstion=".npy"
+    )
+    assert sample_name is None
+
+    # Simple case.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="#_CT_image",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Sample_Name"
+
+    # Generic case.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="#_*_*",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Sample_Name"
+
+    # Case with preceding element.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="Sample_#_*_*",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Name"
+
+    # Case with wrong preceding element.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="Item_#_*_*",
+        file_extenstion=".npy"
+    )
+    assert sample_name is None
+
+    # Case with preceding and subsequent element.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="Sample_#_CT_*",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Name"
+
+    # Case with wrong subsequent element.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="Sample_#_PET_*",
+        file_extenstion=".npy"
+    )
+    assert sample_name is None
+
+    # Generic case.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="*_#_*_*",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Name"
+
+    # Underspecified case.
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="*#*",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Sample_Name_CT_image"
+
+    # Only placeholder
+    sample_name = isolate_sample_name(
+        x="Sample_Name_CT_image.npy",
+        pattern="#",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Sample_Name_CT_image"
+
+    # Generic case with varying separators.
+    sample_name = isolate_sample_name(
+        x="Sample-Name_CT.image.npy",
+        pattern="*-#_*.*",
+        file_extenstion=".npy"
+    )
+    assert sample_name == "Name"
+
+    # Generic case with varying separators, where the remaining string is empty.
+    sample_name = isolate_sample_name(
+        x="Sample-Name_CT.image.npy",
+        pattern="*-Name#_*.*",
+        file_extenstion=".npy"
+    )
+    assert sample_name is None
+
+
 def test_single_image_import():
 
     # Read a Nifti image directly.
