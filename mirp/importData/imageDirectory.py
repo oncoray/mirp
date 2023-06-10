@@ -29,7 +29,7 @@ class ImageDirectory:
             sample_name = [sample_name]
 
         self.image_directory = directory
-        self.sample_name: Union[None, str, List[str]] = sample_name
+        self.sample_name: Union[None, List[str]] = sample_name
         self.image_name = image_name
         self.sub_folder = image_sub_folder
 
