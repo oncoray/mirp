@@ -176,8 +176,12 @@ class ImageDirectory:
                     f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
 
+        update_sample_name_from_image_name_pattern = False
+        if self.image_name is not None and not update_sample_name_from_directory and "#" in self.image_name:
+            ...
+
         # Find entries where file names (NOT directory names) contain sample names.
-        if self.sample_name is not None and not update_sample_name_from_directory:
+        if self.sample_name is not None and not update_sample_name_from_directory and not update_sample_name_from_image_name_pattern:
             all_samples_selected = True
 
             # Flatten all files.
@@ -235,6 +239,8 @@ class ImageDirectory:
         #  STS_001_00_image.npy, STS_001_01_image_npy, etc. and yield STS_001 as a sample name. Here # indicates
         #  position of the sample name. ^ is always ignored. Note that wildcard characters (* and ?) are not allowed
         #  because this will prevent sample names from being unambiguously detected.
+        #  Idea: find largest
+
 
         # Read and parse image content in subdirectories.
         image_list = []
