@@ -164,7 +164,6 @@ def match_file_name(
     matches = np.zeros(len(file_name), dtype=bool)
     for current_pattern in pattern:
         current_pattern = current_pattern.replace("#", "*")
-        current_pattern = current_pattern.replace("^", "*")
         matches = np.logical_or(matches, np.array([
             fnmatch.fnmatch(current_file_name, current_pattern)
             for current_file_name in file_name

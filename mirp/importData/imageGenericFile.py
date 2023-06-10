@@ -403,9 +403,8 @@ class ImageFile:
                 # Find the id that is present in the filename.
                 matching_image_id = None
                 for current_image_id_name in image_id_name:
-                    # Replace markers for any character string (^) and the sample name (#).
+                    # Replace markers for the sample name (#).
                     current_image_id_name = current_image_id_name.replace("#", "*")
-                    current_image_id_name = current_image_id_name.replace("^", "*")
                     if fnmatch.fnmatch(file_name, current_image_id_name):
                         matching_image_id = current_image_id_name
                         break
