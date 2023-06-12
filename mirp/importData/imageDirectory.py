@@ -98,43 +98,6 @@ class ImageDirectory:
         # Add in sample name placeholder to path-information.
         path_info: List = [list(path_info_element) + [None] for path_info_element in path_info]
 
-        # Find entries where the folder structure contains a sample name. All the sample names must be present to
-        # avoid incidental findings.
-        update_sample_name_from_directory = False
-        if self.sample_name is not None:
-            all_samples_selected = True
-            sample_name_matches = []
-            matching_sample_names = []
-            ignore_dirs = [self.image_directory]
-            if self.sub_folder is not None:
-                ignore_dirs += [self.sub_folder]
-
-            for sample_name in self.sample_name:
-                current_sample_matches = [
-                    ii for ii in range(len(path_info))
-                    if dir_structure_contains_directory(path_info[ii][0], pattern=sample_name, ignore_dir=ignore_dirs)
-                ]
-
-                if len(current_sample_matches) > 0:
-                    sample_name_matches += current_sample_matches
-                    matching_sample_names += [sample_name] * len(sample_name_matches)
-
-                else:
-                    all_samples_selected = False
-                    break
-
-            # Only filter list if all sample names are uniquely part of their respective paths.
-            if all_samples_selected and len(set(sample_name_matches)) == len(sample_name_matches) and len(
-                    sample_name_matches) > 0:
-                update_sample_name_from_directory = True
-
-                # Add suggested sample names.
-                for ii, path_info_index in enumerate(sample_name_matches):
-                    path_info[path_info_index][3] = matching_sample_names[ii]
-
-                # Update path_info
-                path_info = [path_info[path_info_index] for path_info_index in sample_name_matches]
-
         # Find entries that include files of the right file-type. First, we keep only those files that are of the
         # correct file type. Then we filter out entries where no files remain. Note that if file_type is not externally
         # set, all supported image file types are considered.
@@ -158,85 +121,148 @@ class ImageDirectory:
 
         # Find entries that contain file names that match the image name. First, we keep only those files that contain
         # the file pattern, and then we remove empty directories.
-        if self.image_name is not None:
-            for ii, path_info_element in enumerate(path_info):
-                if len(path_info_element[2]) > 0:
-                    path_info[ii][2] = [
-                        image_file for image_file in path_info_element[2]
-                        if match_file_name(image_file, pattern=self.image_name, file_extension=allowed_file_extensions)
-                    ]
-            # Find entries that still contain associated image files with the correct name.
-            path_info = [path_info_element for path_info_element in path_info if len(path_info_element[2]) > 0]
+        path_info = self._filter_image_name(path_info=path_info)
 
-            if len(path_info) == 0:
-                ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
-                    f"image files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
-                    f"({', '.join(self.image_name)}). The name must match exactly. Use wildcard symbol (*) for "
-                    f"partial matching, e.g. {'*' + self.image_name[0]}."
-                )
-
-        # Use sample name pattern to find files.
+        # Use file name pattern to find sample names.
         sample_name_from_pattern = False
         if self.image_name is None or "#" not in self.image_name:
             path_info, sample_name_from_pattern = self._set_pattern_sample_name(path_info=path_info)
-            path_info = self._filter_pattern_sample_name(path_info=path_info)
+
+            if sample_name_from_pattern:
+                path_info = self._filter_pattern_sample_name(path_info=path_info)
+
+        # Use directory name patterns to find sample names (ONLY if sample names are directly provided).
+        sample_name_directory = False
+        if not sample_name_from_pattern and self.sample_name is not None:
+            path_info, sample_name_directory = self._set_directory_sample_name(path_info)
+
+            if sample_name_directory:
+                path_info = self._filter_directory_sample_name(path_info)
+
+        # Read and parse image content in subdirectories.
+        image_list = []
+
+        for path_info_element in path_info:
+            # Make a copy of the object and update the directory and sample name.
+            image_sub_directory = copy.deepcopy(self)
+            image_sub_directory.image_directory = path_info_element[0]
+            image_sub_directory.sample_name = path_info_element[3]
+            image_sub_directory.sub_folder = None
+            image_sub_directory.image_files = path_info_element[2]
+
+            image_list.append(image_sub_directory._create_images())
+
+        # Flatten list.
+        self.image_files = list(chain.from_iterable(image_list))
+
+        # If only a single image is present, and a single sample name provided, and the image does not currently have
+        # a sample name: assume that the provided sample name is intended for the particular image.
+        if self.image_name is not None and len(self.image_name) == 1 and len( self.image_files) == 1 \
+                and  self.image_files[0].sample_name is None:
+            self.image_files[0].sample_name = self.image_name[0]
+
+        if self.sample_name is not None:
+            if len(self.image_files) == 0:
+                ValueError(
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain any images with "
+                    f"the specified sample names ({', '.join(self.sample_name)})."
+                )
+
+            # Check for unset sample names.
+            if any(current_image.sample_name is None for current_image in self.image_files):
+
+                files_missing_sample_name = [
+                    current_image.file_path for current_image in self.image_files
+                    if current_image.sample_name is None
+                ]
+
+                ValueError(
+                    f"One or more files ({', '.join(files_missing_sample_name)}) could not be linked to a sample name"
+                    f"for checking. You may specify an image file name pattern using the image_name argument, "
+                    f"e.g. image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or "
+                    f"John_Doe_001_image.nii. Here, '#' Indicates the sample name, and '*' is a generic wildcard "
+                    f"character."
+                )
+
+            # Filter so that only matching sample names remain.
+            self.image_files = [
+                current_image for current_image in self.image_files
+                if current_image.sample_name in self.sample_name
+            ]
+
+            if len(self.image_files) == 0:
+                ValueError(
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain any images with "
+                    f"the specified sample names ({', '.join(self.sample_name)})."
+                )
+
+            missing_sample_names = set(self.sample_name).difference(
+                set(current_image.sample_name for current_image in self.image_files))
+            if len(missing_sample_names) > 0:
+                ValueError(
+                    f"The {self.image_directory} directory (and its subdirectories did not contain all the images "
+                    f"with the required sample names. Missing: {', '.join(missing_sample_names)}"
+                )
+
+        # Try to stack.
+        self.autostack()
 
 
-        # Find entries where file names (NOT directory names) contain sample names.
-        if self.sample_name is not None and not update_sample_name_from_directory and not update_sample_name_from_image_name_pattern:
-            all_samples_selected = True
 
-            # Flatten all files.
-            file_name_list = list(itertools.chain.from_iterable([
-                bare_file_name(path_info_element[2], file_extension=allowed_file_extensions)
-                for path_info_element in path_info
-            ]))
-
-            # Determine if all sample names appear at least once in the files.
-            for sample_name in self.sample_name:
-                if len(fnmatch.filter(file_name_list, "*" + sample_name + "*")) == 0:
-                    all_samples_selected = False
-                    break
-
-            # Iterate over all path info elements, and keep only those where sample names are present.
-            if all_samples_selected:
-                updated_path_info = []
-                for path_info_element in path_info:
-                    for sample_name in self.sample_name:
-                        matching_file_names = set(fnmatch.filter(path_info_element[2], "*" + sample_name + "*"))
-
-                        # Check matching file names for file names that match longer sample names. This prevents
-                        # matching sample_1 to sample_11, if both are present. Note that this sanity check will not
-                        # prevent sample_11 being selected if only sample_1 is provided in self.sample_name. To be
-                        # completely sure the user should specify the naming structure of files, or divide data into
-                        # subdirectories per sample. There are additional checks for file names when forming image
-                        # objects, which may further reduce accidental selection.
-                        if len(matching_file_names) > 0:
-                            for competing_sample_name in self.sample_name:
-                                # The competing sample name should be longer than the current name, and the current
-                                # name should be contained therein.
-                                if len(competing_sample_name) > len(sample_name) \
-                                        and fnmatch.fnmatch(competing_sample_name, "*" + sample_name + "*"):
-
-                                    # Remove file names that match the longer, competing sample name.
-                                    matching_file_names = matching_file_names.difference(
-                                        set(fnmatch.filter(
-                                            list(matching_file_names),
-                                            "*" + competing_sample_name + "*"))
-                                    )
-
-                                    if len(matching_file_names) == 0:
-                                        break
-
-                        if len(matching_file_names) > 0:
-                            new_path_info_element = copy.deepcopy(path_info_element)
-                            new_path_info_element[2] = list(matching_file_names)
-                            new_path_info_element[3] = sample_name
-
-                            updated_path_info += [new_path_info_element]
-
-                path_info = updated_path_info
+        # # Find entries where file names (NOT directory names) contain sample names.
+        # if self.sample_name is not None and not update_sample_name_from_directory and not update_sample_name_from_image_name_pattern:
+        #     all_samples_selected = True
+        #
+        #     # Flatten all files.
+        #     file_name_list = list(itertools.chain.from_iterable([
+        #         bare_file_name(path_info_element[2], file_extension=allowed_file_extensions)
+        #         for path_info_element in path_info
+        #     ]))
+        #
+        #     # Determine if all sample names appear at least once in the files.
+        #     for sample_name in self.sample_name:
+        #         if len(fnmatch.filter(file_name_list, "*" + sample_name + "*")) == 0:
+        #             all_samples_selected = False
+        #             break
+        #
+        #     # Iterate over all path info elements, and keep only those where sample names are present.
+        #     if all_samples_selected:
+        #         updated_path_info = []
+        #         for path_info_element in path_info:
+        #             for sample_name in self.sample_name:
+        #                 matching_file_names = set(fnmatch.filter(path_info_element[2], "*" + sample_name + "*"))
+        #
+        #                 # Check matching file names for file names that match longer sample names. This prevents
+        #                 # matching sample_1 to sample_11, if both are present. Note that this sanity check will not
+        #                 # prevent sample_11 being selected if only sample_1 is provided in self.sample_name. To be
+        #                 # completely sure the user should specify the naming structure of files, or divide data into
+        #                 # subdirectories per sample. There are additional checks for file names when forming image
+        #                 # objects, which may further reduce accidental selection.
+        #                 if len(matching_file_names) > 0:
+        #                     for competing_sample_name in self.sample_name:
+        #                         # The competing sample name should be longer than the current name, and the current
+        #                         # name should be contained therein.
+        #                         if len(competing_sample_name) > len(sample_name) \
+        #                                 and fnmatch.fnmatch(competing_sample_name, "*" + sample_name + "*"):
+        #
+        #                             # Remove file names that match the longer, competing sample name.
+        #                             matching_file_names = matching_file_names.difference(
+        #                                 set(fnmatch.filter(
+        #                                     list(matching_file_names),
+        #                                     "*" + competing_sample_name + "*"))
+        #                             )
+        #
+        #                             if len(matching_file_names) == 0:
+        #                                 break
+        #
+        #                 if len(matching_file_names) > 0:
+        #                     new_path_info_element = copy.deepcopy(path_info_element)
+        #                     new_path_info_element[2] = list(matching_file_names)
+        #                     new_path_info_element[3] = sample_name
+        #
+        #                     updated_path_info += [new_path_info_element]
+        #
+        #         path_info = updated_path_info
 
         # Read and parse image content in subdirectories.
         image_list = []
@@ -265,14 +291,35 @@ class ImageDirectory:
         #  used to inform the user that something might be wrong when it comes to identifying sample names,
         #  e.g. partial matches.
 
-        # Try to stack.
-        self.autostack()
+
+
+    def _filter_image_name(self, path_info):
+        allowed_file_extensions = supported_file_types(file_type=self.file_type)
+        if self.image_name is not None:
+            for ii, path_info_element in enumerate(path_info):
+                if len(path_info_element[2]) > 0:
+                    path_info[ii][2] = [
+                        image_file for image_file in path_info_element[2]
+                        if match_file_name(image_file, pattern=self.image_name, file_extension=allowed_file_extensions)
+                    ]
+            # Find entries that still contain associated image files with the correct name.
+            path_info = [path_info_element for path_info_element in path_info if len(path_info_element[2]) > 0]
+
+            if len(path_info) == 0:
+                ValueError(
+                    f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
+                    f"image files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
+                    f"({', '.join(self.image_name)}). The name must match exactly. Use wildcard symbol (*) for "
+                    f"partial matching, e.g. {'*' + self.image_name[0]}."
+                )
+
+        return path_info
 
     def _set_pattern_sample_name(self, path_info):
         """
-        Updates path_info based on file names.
-        :param path_info:
-        :return:
+        Updates sample names in path_info based on file names. This procedure is EXACT.
+        :param path_info: path information as generated by os.walk, with additional sample name element.
+        :return: updated path information and update flag.
         """
         allowed_file_extensions = supported_file_types(file_type=self.file_type)
         if self.image_name is None or "#" not in self.image_name:
@@ -319,6 +366,68 @@ class ImageDirectory:
             if len(path_info) == 0:
                 raise ValueError(
                     f"None of the sample names obtained from file names ("
+                    f"{', '.join(set(path_info_element[3] for path_info_element in path_info))}) matched the "
+                    f"provided sample names ({', '.join(self.sample_name)})."
+                )
+
+        return path_info
+
+    def _set_directory_sample_name(self, path_info):
+        """
+        Updates sample names in path_info based on directory names. This procedure is EXACT. Sample names are
+        inferred if and only if all provided sample names are present in the directory structure.
+
+        :param path_info: path information as generated by os.walk, with additional sample name element.
+        :return: updated path information and update flag.
+        """
+
+        update_sample_name = False
+        if self.sample_name is not None:
+            all_samples_selected = True
+            sample_name_matches = []
+            matching_sample_names = []
+            ignore_dirs = [self.image_directory]
+            if self.sub_folder is not None:
+                ignore_dirs += [self.sub_folder]
+
+            for sample_name in self.sample_name:
+                current_sample_matches = [
+                    ii for ii in range(len(path_info))
+                    if dir_structure_contains_directory(path_info[ii][0], pattern=sample_name, ignore_dir=ignore_dirs)
+                ]
+
+                if len(current_sample_matches) > 0:
+                    sample_name_matches += current_sample_matches
+                    matching_sample_names += [sample_name] * len(sample_name_matches)
+
+                else:
+                    all_samples_selected = False
+                    break
+
+            # Only filter list if all sample names are uniquely part of their respective paths.
+            if all_samples_selected and len(set(sample_name_matches)) == len(sample_name_matches) and len(
+                    sample_name_matches) > 0:
+                update_sample_name = True
+
+                # Add suggested sample names.
+                for ii, path_info_index in enumerate(sample_name_matches):
+                    path_info[path_info_index][3] = matching_sample_names[ii]
+
+                # Update path_info
+                path_info = [path_info[path_info_index] for path_info_index in sample_name_matches]
+
+        return path_info, update_sample_name
+
+    def _filter_directory_sample_name(self, path_info):
+        # Filter on user-provided sample-names.
+        if self.sample_name is not None:
+            path_info = [
+                path_info_element for path_info_element in path_info if path_info_element[3] in self.sample_name
+            ]
+
+            if len(path_info) == 0:
+                raise ValueError(
+                    f"None of the sample names obtained from the directory structure ("
                     f"{', '.join(set(path_info_element[3] for path_info_element in path_info))}) matched the "
                     f"provided sample names ({', '.join(self.sample_name)})."
                 )
