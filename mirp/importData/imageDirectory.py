@@ -7,7 +7,7 @@ import copy
 from typing import Union, List
 from itertools import chain
 from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
-    bare_file_name
+    bare_file_name, isolate_sample_name
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.imageGenericFileStack import ImageFileStack
 
@@ -176,9 +176,12 @@ class ImageDirectory:
                     f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
 
-        update_sample_name_from_image_name_pattern = False
-        if self.image_name is not None and not update_sample_name_from_directory and "#" in self.image_name:
-            ...
+        # Use sample name pattern to find files.
+        sample_name_from_pattern = False
+        if self.image_name is None or "#" not in self.image_name:
+            path_info, sample_name_from_pattern = self._set_pattern_sample_name(path_info=path_info)
+            path_info = self._filter_pattern_sample_name(path_info=path_info)
+
 
         # Find entries where file names (NOT directory names) contain sample names.
         if self.sample_name is not None and not update_sample_name_from_directory and not update_sample_name_from_image_name_pattern:
@@ -235,13 +238,6 @@ class ImageDirectory:
 
                 path_info = updated_path_info
 
-        # TODO: allow for determining sample name based on file name pattern, e.g. #_^_image, which would match
-        #  STS_001_00_image.npy, STS_001_01_image_npy, etc. and yield STS_001 as a sample name. Here # indicates
-        #  position of the sample name. ^ is always ignored. Note that wildcard characters (* and ?) are not allowed
-        #  because this will prevent sample names from being unambiguously detected.
-        #  Idea: find largest
-
-
         # Read and parse image content in subdirectories.
         image_list = []
 
@@ -271,6 +267,63 @@ class ImageDirectory:
 
         # Try to stack.
         self.autostack()
+
+    def _set_pattern_sample_name(self, path_info):
+        """
+        Updates path_info based on file names.
+        :param path_info:
+        :return:
+        """
+        allowed_file_extensions = supported_file_types(file_type=self.file_type)
+        if self.image_name is None or "#" not in self.image_name:
+            return path_info, False
+
+        updated_path_info = []
+        for path_info_element in path_info:
+            if len(path_info_element[2]) == 0:
+                continue
+
+            sample_name = [
+                isolate_sample_name(x=file_name, pattern=self.image_name, file_extenstion=allowed_file_extensions)
+                for file_name in path_info_element[2]
+            ]
+
+            filtered_sample_name = [current_sample_name is not None for current_sample_name in sample_name]
+            if len(filtered_sample_name) == 0:
+                continue
+
+            for current_sample_name in set(filtered_sample_name):
+                new_path_info_element = copy.deepcopy(path_info_element)
+                new_path_info_element[2] = [
+                    file_name for ii, file_name in enumerate(path_info_element[2])
+                    if current_sample_name == sample_name[ii]
+                ]
+                new_path_info_element[3] = current_sample_name
+
+                updated_path_info += [new_path_info_element]
+
+        if len(updated_path_info) == 0:
+            raise ValueError(
+                f"The file name pattern did not yield any sample names: {self.image_name}"
+            )
+
+        return updated_path_info, True
+
+    def _filter_pattern_sample_name(self, path_info):
+        # Filter on user-provided sample-names.
+        if self.sample_name is not None:
+            path_info = [
+                path_info_element for path_info_element in path_info if path_info_element[3] in self.sample_name
+            ]
+
+            if len(path_info) == 0:
+                raise ValueError(
+                    f"None of the sample names obtained from file names ("
+                    f"{', '.join(set(path_info_element[3] for path_info_element in path_info))}) matched the "
+                    f"provided sample names ({', '.join(self.sample_name)})."
+                )
+
+        return path_info
 
     def _create_images(self) -> List[ImageFile]:
         """
