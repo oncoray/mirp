@@ -283,7 +283,7 @@ class ImageDirectory:
         #         f"and sample names."
         #     )
         #
-        # # TODO: If sample names are known, check that each sample name appears the same amount of times. This can be
+        # #  If sample names are known, check that each sample name appears the same amount of times. This can be
         # #  used to inform the user that something might be wrong when it comes to identifying sample names,
         # #  e.g. partial matches.
 
