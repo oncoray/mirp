@@ -42,5 +42,5 @@ class ImageDicomFileCT(ImageDicomFile):
     def create(self):
         return self
 
-    def load_data(self):
+    def load_data(self, **kwargs):
         self.image_data = self.load_data_generic()

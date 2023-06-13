@@ -330,7 +330,7 @@ class ImageDicomFile(ImageFile):
 
         self.image_metadata = dcm
 
-    def load_data(self):
+    def load_data(self, **kwargs):
         raise NotImplementedError(
             "DEV: The load_data method should be specified for subclasses of ImageDicomFile. A generic method does not "
             "exist."

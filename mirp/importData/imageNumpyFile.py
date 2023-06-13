@@ -123,7 +123,7 @@ class ImageNumpyFile(ImageFile):
         # `Lazy load the data
         self.image_metadata = np.load(file=self.file_path, mmap_mode="r")
 
-    def load_data(self):
+    def load_data(self, **kwargs):
         if self.image_data is not None:
             self.update_image_data()
 

@@ -137,7 +137,7 @@ class ImageITKFile(ImageFile):
 
         self.image_metadata = reader
 
-    def load_data(self):
+    def load_data(self, **kwargs):
         if self.image_data is not None:
             return
 

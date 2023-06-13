@@ -44,7 +44,7 @@ class ImageDicomFilePT(ImageDicomFile):
     def create(self):
         return self
 
-    def load_data(self):
+    def load_data(self, **kwargs):
         image_data = self.load_data_generic()
 
         # TODO: integrate SUV computations locally.
