@@ -162,21 +162,8 @@ class ImageFile:
         if any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("dicom")):
 
-            # Create DICOM-specific file.
-            image_file = ImageDicomFile(
-                file_path=self.file_path,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                file_name=self.file_name,
-                image_name=self.image_name,
-                image_modality=self.modality,
-                image_file_type="dicom",
-                image_data=self.image_data,
-                image_origin=self.image_origin,
-                image_orientation=self.image_orientation,
-                image_spacing=self.image_spacing,
-                image_dimensions=self.image_dimension
-            )
+            file_class = ImageDicomFile
+            file_type = "dicom"
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("itk")):
@@ -187,43 +174,31 @@ class ImageFile:
             else:
                 raise ValueError(f"DEV: specify file_type")
 
-            # Create ITK file.
-            image_file = ImageITKFile(
-                file_path=self.file_path,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                file_name=self.file_name,
-                image_name=self.image_name,
-                image_modality=self.modality,
-                image_file_type=file_type,
-                image_data=self.image_data,
-                image_origin=self.image_origin,
-                image_orientation=self.image_orientation,
-                image_spacing=self.image_spacing,
-                image_dimensions=self.image_dimension
-            )
+            file_class = ImageITKFile
 
         elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
                 any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
 
-            # Create Numpy file.
-            image_file = ImageNumpyFile(
-                file_path=self.file_path,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                file_name=self.file_name,
-                image_name=self.image_name,
-                image_modality=self.modality,
-                image_file_type="numpy",
-                image_data=self.image_data,
-                image_origin=self.image_origin,
-                image_orientation=self.image_orientation,
-                image_spacing=self.image_spacing,
-                image_dimensions=self.image_dimension
-            )
+            file_class = ImageNumpyFile
+            file_type = "numpy"
 
         else:
             raise NotImplementedError(f"The provided image type is not implemented: {self.file_type}")
+
+        image_file = file_class(
+            file_path=self.file_path,
+            dir_path=self.dir_path,
+            sample_name=self.sample_name,
+            file_name=self.file_name,
+            image_name=self.image_name,
+            image_modality=self.modality,
+            image_file_type=file_type,
+            image_data=self.image_data,
+            image_origin=self.image_origin,
+            image_orientation=self.image_orientation,
+            image_spacing=self.image_spacing,
+            image_dimensions=self.image_dimension
+        )
 
         return image_file
 
