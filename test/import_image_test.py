@@ -606,7 +606,7 @@ def test_multiple_image_import_flat():
     )
     assert len(image_list) == 3
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
-    
+
 
 def test_image_import_flat_poor_naming():
     """
