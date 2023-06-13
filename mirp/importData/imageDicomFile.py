@@ -10,7 +10,6 @@ from warnings import warn
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities
 from mirp.imageMetaData import get_pydicom_meta_tag
-from mirp.imageSUV import SUVscalingObj
 
 
 class ImageDicomFile(ImageFile):
@@ -209,7 +208,7 @@ class ImageDicomFile(ImageFile):
         self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
 
         # Set Frame of Reference UID (if any)
-        self.frame_of_reference_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0052), tag_type="str")
+        self._complete_frame_of_reference_uid()
 
         # Set series UID
         self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x000E), tag_type="str")
@@ -314,6 +313,14 @@ class ImageDicomFile(ImageFile):
             ])
 
             self.image_dimension = dimensions
+
+    def _complete_frame_of_reference_uid(self):
+        if self.frame_of_reference_uid is None:
+            self.frame_of_reference_uid = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0020, 0x0052),
+                tag_type="str"
+            )
 
     def load_metadata(self):
         if self.image_metadata is not None:
