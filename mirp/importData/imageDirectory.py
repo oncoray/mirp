@@ -1,5 +1,3 @@
-import fnmatch
-import itertools
 import os
 import os.path
 import copy
@@ -7,7 +5,7 @@ import copy
 from typing import Union, List
 from itertools import chain
 from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
-    bare_file_name, isolate_sample_name
+    isolate_sample_name
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.imageGenericFileStack import ImageFileStack
 
@@ -72,7 +70,7 @@ class ImageDirectory:
         path_info = list(os.walk(self.image_directory))
 
         if len(path_info) == 0:
-            ValueError(f"The {self.image_directory} directory is empty, and no images could be found.")
+            raise ValueError(f"The {self.image_directory} directory is empty, and no images could be found.")
 
         # Find entries that have associated files.
         path_info = [
@@ -80,7 +78,7 @@ class ImageDirectory:
         ]
 
         if len(path_info) == 0:
-            ValueError(
+            raise ValueError(
                 f"All directories within the {self.image_directory} directory is empty, and no images could be found.")
 
         # Find entries where the folder structure matches the sub_folder.
@@ -114,7 +112,7 @@ class ImageDirectory:
         path_info = [path_info_element for path_info_element in path_info if len(path_info_element[2]) > 0]
 
         if len(path_info) == 0:
-            ValueError(
+            raise ValueError(
                 f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
                 f"image files ({', '.join(allowed_file_extensions)})."
             )
@@ -125,7 +123,7 @@ class ImageDirectory:
 
         # Use file name pattern to find sample names.
         sample_name_from_pattern = False
-        if self.image_name is None or "#" not in self.image_name:
+        if self.image_name is not None and "#" in self.image_name:
             path_info, sample_name_from_pattern = self._set_pattern_sample_name(path_info=path_info)
 
             if sample_name_from_pattern:
@@ -157,13 +155,13 @@ class ImageDirectory:
 
         # If only a single image is present, and a single sample name provided, and the image does not currently have
         # a sample name: assume that the provided sample name is intended for the particular image.
-        if self.image_name is not None and len(self.image_name) == 1 and len( self.image_files) == 1 \
-                and  self.image_files[0].sample_name is None:
+        if self.image_name is not None and len(self.image_name) == 1 and len(self.image_files) == 1 \
+                and self.image_files[0].sample_name is None:
             self.image_files[0].sample_name = self.image_name[0]
 
         if self.sample_name is not None:
             if len(self.image_files) == 0:
-                ValueError(
+                raise ValueError(
                     f"The {self.image_directory} directory (and its subdirectories) did not contain any images with "
                     f"the specified sample names ({', '.join(self.sample_name)})."
                 )
@@ -176,7 +174,7 @@ class ImageDirectory:
                     if current_image.sample_name is None
                 ]
 
-                ValueError(
+                raise ValueError(
                     f"One or more files ({', '.join(files_missing_sample_name)}) could not be linked to a sample name"
                     f"for checking. You may specify an image file name pattern using the image_name argument, "
                     f"e.g. image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or "
@@ -191,7 +189,7 @@ class ImageDirectory:
             ]
 
             if len(self.image_files) == 0:
-                ValueError(
+                raise ValueError(
                     f"The {self.image_directory} directory (and its subdirectories) did not contain any images with "
                     f"the specified sample names ({', '.join(self.sample_name)})."
                 )
@@ -199,15 +197,13 @@ class ImageDirectory:
             missing_sample_names = set(self.sample_name).difference(
                 set(current_image.sample_name for current_image in self.image_files))
             if len(missing_sample_names) > 0:
-                ValueError(
+                raise ValueError(
                     f"The {self.image_directory} directory (and its subdirectories did not contain all the images "
                     f"with the required sample names. Missing: {', '.join(missing_sample_names)}"
                 )
 
         # Try to stack.
         self.autostack()
-
-
 
         # # Find entries where file names (NOT directory names) contain sample names.
         # if self.sample_name is not None and not update_sample_name_from_directory and not update_sample_name_from_image_name_pattern:
@@ -263,35 +259,33 @@ class ImageDirectory:
         #                     updated_path_info += [new_path_info_element]
         #
         #         path_info = updated_path_info
-
-        # Read and parse image content in subdirectories.
-        image_list = []
-
-        for path_info_element in path_info:
-            # Make a copy of the object and update the directory and sample name.
-            image_sub_directory = copy.deepcopy(self)
-            image_sub_directory.image_directory = path_info_element[0]
-            image_sub_directory.sample_name = path_info_element[3]
-            image_sub_directory.sub_folder = None
-            image_sub_directory.image_files = path_info_element[2]
-
-            image_list.append(image_sub_directory._create_images())
-
-        # Flatten list.
-        self.image_files = list(chain.from_iterable(image_list))
-
-        if len(self.image_files) == 0:
-            raise ValueError(
-                f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
-                f"image files ({', '.join(allowed_file_extensions)}. Likely reasons are mismatches in modality, "
-                f"and sample names."
-            )
-
-        # TODO: If sample names are known, check that each sample name appears the same amount of times. This can be
-        #  used to inform the user that something might be wrong when it comes to identifying sample names,
-        #  e.g. partial matches.
-
-
+        #
+        # # Read and parse image content in subdirectories.
+        # image_list = []
+        #
+        # for path_info_element in path_info:
+        #     # Make a copy of the object and update the directory and sample name.
+        #     image_sub_directory = copy.deepcopy(self)
+        #     image_sub_directory.image_directory = path_info_element[0]
+        #     image_sub_directory.sample_name = path_info_element[3]
+        #     image_sub_directory.sub_folder = None
+        #     image_sub_directory.image_files = path_info_element[2]
+        #
+        #     image_list.append(image_sub_directory._create_images())
+        #
+        # # Flatten list.
+        # self.image_files = list(chain.from_iterable(image_list))
+        #
+        # if len(self.image_files) == 0:
+        #     raise ValueError(
+        #         f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
+        #         f"image files ({', '.join(allowed_file_extensions)}. Likely reasons are mismatches in modality, "
+        #         f"and sample names."
+        #     )
+        #
+        # # TODO: If sample names are known, check that each sample name appears the same amount of times. This can be
+        # #  used to inform the user that something might be wrong when it comes to identifying sample names,
+        # #  e.g. partial matches.
 
     def _filter_image_name(self, path_info):
         allowed_file_extensions = supported_file_types(file_type=self.file_type)
@@ -306,10 +300,10 @@ class ImageDirectory:
             path_info = [path_info_element for path_info_element in path_info if len(path_info_element[2]) > 0]
 
             if len(path_info) == 0:
-                ValueError(
+                raise ValueError(
                     f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
                     f"image files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
-                    f"({', '.join(self.image_name)}). The name must match exactly. Use wildcard symbol (*) for "
+                    f"({self.image_name}). The name must match exactly. Use wildcard symbol (*) for "
                     f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
 
@@ -335,7 +329,11 @@ class ImageDirectory:
                 for file_name in path_info_element[2]
             ]
 
-            filtered_sample_name = [current_sample_name is not None for current_sample_name in sample_name]
+            filtered_sample_name = [
+                current_sample_name for current_sample_name in sample_name
+                if current_sample_name is not None
+            ]
+
             if len(filtered_sample_name) == 0:
                 continue
 
