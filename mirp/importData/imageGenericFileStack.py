@@ -71,41 +71,28 @@ class ImageFileStack(ImageFile):
         from mirp.importData.imageNumpyFileStack import ImageNumpyFileStack
 
         if all(isinstance(image_file_object, ImageDicomFile) for image_file_object in self.image_file_objects):
-            # Create DICOM-specific file.
-            image_file_stack = ImageDicomFileStack(
-                image_file_objects=self.image_file_objects,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                image_name=self.image_name,
-                image_modality=self.modality,
-                image_file_type="dicom"
-            )
+            file_stack_class = ImageDicomFileStack
+            file_type = "dicom"
 
         elif all(isinstance(image_file_object, ImageITKFile) for image_file_object in self.image_file_objects):
-            # Create ITK file.
-            image_file_stack = ImageITKFileStack(
-                image_file_objects=self.image_file_objects,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                image_name=self.image_name,
-                image_modality=self.modality,
-                image_file_type=self.image_file_objects[0].file_type
-            )
+            file_stack_class = ImageITKFileStack
+            file_type = self.image_file_objects[0].file_type
 
         elif all(isinstance(image_file_object, ImageNumpyFile) for image_file_object in self.image_file_objects):
-
-            # Create Numpy file.
-            image_file_stack = ImageNumpyFileStack(
-                image_file_objects=self.image_file_objects,
-                dir_path=self.dir_path,
-                sample_name=self.sample_name,
-                image_name=self.image_name,
-                image_modality=self.modality,
-                image_file_type="numpy"
-            )
+            file_stack_class = ImageNumpyFileStack
+            file_type = "numpy"
 
         else:
             raise TypeError(f"The list of image objects does not consist of a known object type.")
+
+        image_file_stack = file_stack_class(
+            image_file_objects=self.image_file_objects,
+            dir_path=self.dir_path,
+            sample_name=self.sample_name,
+            image_name=self.image_name,
+            image_modality=self.modality,
+            image_file_type=file_type
+        )
 
         return image_file_stack
 
