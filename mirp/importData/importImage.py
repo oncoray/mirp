@@ -75,7 +75,8 @@ def import_image(
         image_file_type=image_file_type,
         image_modality=image_modality,
         image_sub_folder=image_sub_folder,
-        stack_images=stack_images
+        stack_images=stack_images,
+        is_mask=False
     )
 
     if not isinstance(image_list, list):
