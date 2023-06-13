@@ -3,6 +3,7 @@ import shutil
 
 import itk
 import numpy as np
+import pytest
 
 from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
@@ -25,10 +26,10 @@ def _convert_to_numpy(as_slice=False):
     """
 
     main_folders = ["STS_001", "STS_002", "STS_003"]
-    subfolders = ["CT", "MR_T1", "PET"]
+    sub_folders = ["CT", "MR_T1", "PET"]
 
     for sample_name in main_folders:
-        for modality in subfolders:
+        for modality in sub_folders:
 
             # Read and parse image
             source_image_file = os.path.join(
@@ -453,7 +454,7 @@ def test_single_image_import_flat():
     image_list = import_image(
         os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         sample_name="STS_001",
-        image_name="*CT_image")
+        image_name="#_CT_image")
     assert len(image_list) == 1
     assert isinstance(image_list[0], ImageITKFile)
     assert image_list[0].sample_name == "STS_001"
@@ -472,7 +473,7 @@ def test_single_image_import_flat():
     image_list = import_image(
         os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         sample_name="STS_001",
-        image_name="CT*image")
+        image_name="CT_#_image")
     assert len(image_list) == 1
     assert isinstance(image_list[0], ImageNumpyFile)
     assert image_list[0].sample_name == "STS_001"
@@ -481,16 +482,131 @@ def test_single_image_import_flat():
     image_list = import_image(
         os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
         sample_name="STS_001",
-        image_name="CT*image"
+        image_name="CT_#_*_image"
     )
     assert len(image_list) == 1
     assert isinstance(image_list[0], ImageNumpyFileStack)
     assert image_list[0].sample_name == "STS_001"
 
+    # Configurations that produce errors.
+    with pytest.raises(ValueError):
+        _ = import_image(
+            os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+            sample_name="STS_001")
+
 
 def test_multiple_image_import_flat():
-    ...
 
+    # Read Nifti images for specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+        sample_name=["STS_002", "STS_003"],
+        image_name="#_CT_image"
+    )
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_002", "STS_003"}
+
+    # Read DICOM image stacks for a specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+        sample_name=["STS_002", "STS_003"],
+        image_name="#_CT_*"
+    )
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_002", "STS_003"}
+    assert all(image_object.modality == "ct" for image_object in image_list)
+
+    # Read numpy images for specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+        sample_name=["STS_002", "STS_003"],
+        image_name="CT_#_image"
+    )
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageNumpyFile) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_002", "STS_003"}
+
+    # Read numpy image stacks for specific samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+        sample_name=["STS_002", "STS_003"],
+        image_name="CT_#_*_image"
+    )
+    assert len(image_list) == 2
+    assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_002", "STS_003"}
+
+    # Read Nifti images for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+        image_name="#_CT_image")
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
+
+    # Read DICOM image stacks for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+        image_name="#_CT_*"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
+    assert all(image_object.modality == "ct" for image_object in image_list)
+
+    # Read numpy images for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+        image_name="CT_#_image"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageNumpyFile) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
+
+    # Read numpy image stacks for all samples.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+        image_name="CT_#_*_image"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
+
+    # Read Nifti images for all samples without specifying the sample name in the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+        image_name="*CT_image")
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+
+    # Read DICOM image stacks for all samples without specifying the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+        image_modality="ct"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
+    assert all(image_object.modality == "ct" for image_object in image_list)
+
+    # Read numpy images for all samples without specifying the sample name in the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+        image_name="CT_*_image"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageNumpyFile) for image_object in image_list)
+
+    # Read numpy image stacks for all samples without specifying the sample name in the image name.
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+        image_name="CT_*_image"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
+    
 
 def test_image_import_flat_poor_naming():
     """
@@ -501,19 +617,10 @@ def test_image_import_flat_poor_naming():
     image_list = import_image(
         os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti_poor_names"),
         sample_name=["STS_1", "STS_11", "STS_111"],
-        image_name="*image")
+        image_name="#_*_image")
     assert len(image_list) == 3
     assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_1"
-    assert image_list[1].sample_name == "STS_11"
-    assert image_list[2].sample_name == "STS_111"
-
-    # Test correctness when no names are provided.
-    image_list = import_image(
-        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti_poor_names"),
-        image_name="*image")
-    assert len(image_list) == 3
-    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
+    assert set(image_object.sample_name for image_object in image_list) == {"STS_1", "STS_11", "STS_111"}
 
     # Test correctness when no names are provided, but the naming structure is clear.
     image_list = import_image(
@@ -522,6 +629,13 @@ def test_image_import_flat_poor_naming():
     assert len(image_list) == 3
     assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
     assert set(image_object.sample_name for image_object in image_list) == {"STS_1", "STS_11", "STS_111"}
+
+    # Test correctness when no names are provided.
+    image_list = import_image(
+        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti_poor_names"),
+        image_name="*image")
+    assert len(image_list) == 3
+    assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
 
 
 def test_single_image_mask_import():
