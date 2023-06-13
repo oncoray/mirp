@@ -109,6 +109,9 @@ class ImageNumpyFile(ImageFile):
         if self.image_dimension is None:
             self.image_dimension = tuple(self.image_metadata.shape)
 
+    def create(self):
+        return self
+
     def load_metadata(self):
         if self.image_metadata is not None:
             return

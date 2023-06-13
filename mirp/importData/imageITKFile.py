@@ -119,6 +119,9 @@ class ImageITKFile(ImageFile):
             # Set size of dimensions
             self.image_dimension = tuple(dimensions)
 
+    def create(self):
+        return self
+
     def load_metadata(self):
         if self.image_metadata is not None:
             return

@@ -149,6 +149,57 @@ class ImageDicomFile(ImageFile):
         else:
             return True
 
+    def create(self):
+        """
+        DICOM-files have different routines depending on the modality. These are then dispatched to different classes
+        using this method.
+        :return: an object of a subclass of ImageDicomFile.
+        """
+
+        # Import locally to prevent circular references.
+        from mirp.importData.imageDicomFileCT import ImageDicomFileCT
+        from mirp.importData.imageDicomFileMR import ImageDicomFileMR
+        from mirp.importData.imageDicomFilePT import ImageDicomFilePT
+
+        # Load metadata so that the modality tag can be read.
+        self.load_metadata()
+
+        modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
+
+        if modality is None:
+            raise TypeError(f"Modality attribute could not be obtained from DICOM file ({self.file_path})")
+
+        if modality == "ct":
+            file_class = ImageDicomFileCT
+        elif modality == "pt":
+            file_class = ImageDicomFilePT
+        elif modality == "mr":
+            file_class = ImageDicomFileMR
+        elif modality == "rtstruct":
+            ...
+        elif modality == "seg":
+            ...
+        else:
+            raise NotImplementedError(
+                f"No routines were implemented for the current modality ({modality}). Please contact the developers "
+                f"if you want to see a particular modality ."
+            )
+
+        return file_class(
+            file_path=self.file_path,
+            dir_path=self.dir_path,
+            sample_name=self.sample_name,
+            file_name=self.file_name,
+            image_modality=self.modality,
+            image_name=self.image_name,
+            image_file_type=self.file_type,
+            image_data=self.image_data,
+            image_origin=self.image_origin,
+            image_orientation=self.image_orientation,
+            image_spacing=self.image_spacing,
+            image_dimensions=self.image_dimension
+        )
+
     def complete(self, remove_metadata=True, force=False):
 
         # complete loads metadata.

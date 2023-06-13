@@ -198,7 +198,7 @@ class ImageFile:
             image_orientation=self.image_orientation,
             image_spacing=self.image_spacing,
             image_dimensions=self.image_dimension
-        )
+        ).create()
 
         return image_file
 
@@ -585,7 +585,7 @@ class ImageFile:
     def remove_metadata(self):
         self.image_metadata = None
 
-    def load_data(self):
+    def load_data(self, **kwargs):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
             f"implementation for subclasses."
