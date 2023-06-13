@@ -280,33 +280,37 @@ class ImageDicomFile(ImageFile):
         self.image_metadata = dcm
 
     def load_data(self):
+        raise NotImplementedError(
+            "DEV: The load_data method should be specified for subclasses of ImageDicomFile. A generic method does not "
+            "exist."
+        )
+
+    def load_data_generic(self) -> np.ndarray:
+        """
+        This is the generic method for loading pixel data from DICOM images that is shared across many modalities.
+        :return:
+        """
         if self.image_data is not None:
-            return
+            return self.image_data
 
-        if self.file_path is None or not os.path.exists(self.file_path):
+        if self.file_path is not None and not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
+                f"The image file could not be found at the expected location: {self.file_path}"
+            )
 
-        dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
-        image_data = dcm.pixel_array.astype(np.float32)
+        if self.file_path is None:
+            raise ValueError(f"A path to a file was expected, but not present.")
 
         # Load metadata.
         self.load_metadata()
+
+        # Read
+        dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
+        image_data = dcm.pixel_array.astype(np.float32)
 
         # Update data with scale and intercept. These may change per slice.
         rescale_intercept = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
         rescale_slope = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
         image_data = image_data * rescale_slope + rescale_intercept
 
-        # SUV-conversion of PET-data.
-        if get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0008, 0x0060), tag_type="str") == "PT":
-            suv_conversion_object = SUVscalingObj(dcm=dcm)
-            scale_factor = suv_conversion_object.get_scale_factor(suv_normalisation="bw")
-
-            # Convert to SUV
-            image_data *= scale_factor
-
-            # Update relevant tags in the metadata
-            self.image_metadata = suv_conversion_object.update_dicom_header(dcm=self.image_metadata)
-
-        self.image_data = image_data
+        return image_data
