@@ -165,4 +165,4 @@ def _(image: ImageDirectory, **kwargs):
     image.create_images()
 
     # Dispatch to import_image method for ImageFile objects. This performs a last check and completes the object.
-    return [_import_image(current_image) for current_image in image.image_files]
+    return [_import_image(current_image, **kwargs) for current_image in image.image_files]

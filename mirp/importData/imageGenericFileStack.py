@@ -234,4 +234,3 @@ class MaskFileStack(ImageFileStack, MaskFile):
         )
 
         return image_file_stack
-    
