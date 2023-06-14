@@ -138,10 +138,20 @@ def _(image: pd.DataFrame,
 
 @_import_image.register(np.ndarray)
 def _(image: np.ndarray,
-      sample_name: Union[None, str] = None,
-      image_modality: Union[None, str] = None,
+      is_mask: bool = False,
       **kwargs):
-    ...
+
+    from imageNumpyFile import ImageNumpyFile, MaskNumpyFile
+
+    if is_mask:
+        image_object = MaskNumpyFile(**kwargs)
+    else:
+        image_object = ImageNumpyFile(**kwargs)
+
+    image_object.image_data = image_object.image_metadata = image
+    image_object.complete()
+    image_object.update_image_data()
+    image_object.check(raise_error=True, remove_metadata=False)
 
 
 @_import_image.register(ImageFile)
