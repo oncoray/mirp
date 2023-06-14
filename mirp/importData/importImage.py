@@ -6,8 +6,8 @@ from typing import Union, List
 import numpy as np
 import pandas as pd
 
-from mirp.importData.imageDirectory import ImageDirectory
-from mirp.importData.imageGenericFile import ImageFile
+from mirp.importData.imageDirectory import ImageDirectory, MaskDirectory
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.utilities import supported_file_types, supported_image_modalities, flatten_list
 
 
@@ -102,7 +102,7 @@ def _(image: list, **kwargs):
 
 
 @_import_image.register(str)
-def _(image: str, **kwargs):
+def _(image: str, is_mask=False, **kwargs):
     # Image is a string, which could be a path to a xml file, to a csv file, or just a regular
     # path a path to a file, or a path to a directory. Test which it is and then dispatch.
 
@@ -113,12 +113,16 @@ def _(image: str, **kwargs):
         ...
 
     elif os.path.isdir(image):
-        return _import_image(
-            ImageDirectory(directory=image, **kwargs))
+        if is_mask:
+            return MaskDirectory(directory=image, **kwargs)
+        else:
+            return ImageDirectory(directory=image, **kwargs)
 
     elif os.path.exists(image):
-        return _import_image(
-            ImageFile(file_path=image, **kwargs).create())
+        if is_mask:
+            return MaskFile(file_path=image, **kwargs).create()
+        else:
+            return ImageFile(file_path=image, **kwargs).create()
 
     else:
         raise ValueError("The image path does not point to a xml file, a csv file, a valid image file or a directory "
