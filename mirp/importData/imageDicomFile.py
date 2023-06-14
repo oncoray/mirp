@@ -7,7 +7,7 @@ from typing import Union, List, Tuple, Dict
 from pydicom import dcmread
 from warnings import warn
 
-from mirp.importData.imageGenericFile import ImageFile
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities
 from mirp.imageMetaData import get_pydicom_meta_tag
 
@@ -174,10 +174,6 @@ class ImageDicomFile(ImageFile):
             file_class = ImageDicomFilePT
         elif modality == "mr":
             file_class = ImageDicomFileMR
-        elif modality == "rtstruct":
-            ...
-        elif modality == "seg":
-            ...
         else:
             raise NotImplementedError(
                 f"No routines were implemented for the current modality ({modality}). Please contact the developers "
@@ -372,3 +368,58 @@ class ImageDicomFile(ImageFile):
         image_data = image_data * rescale_slope + rescale_intercept
 
         return image_data
+
+
+class MaskDicomFile(ImageDicomFile, MaskFile):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def load_data(self, **kwargs):
+        raise NotImplementedError(
+            "DEV: The load_data method should be specified for subclasses of MaskDicomFile. A generic method does not "
+            "exist."
+        )
+
+    def create(self):
+        """
+        DICOM-files have different routines depending on the modality. These are then dispatched to different classes
+        using this method.
+        :return: an object of a subclass of ImageDicomFile.
+        """
+
+        # Import locally to prevent circular references.
+        from mirp.importData.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
+        from mirp.importData.imageDicomFileSEG import MaskDicomFileSEG
+
+        # Load metadata so that the modality tag can be read.
+        self.load_metadata()
+
+        modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
+
+        if modality is None:
+            raise TypeError(f"Modality attribute could not be obtained from DICOM file ({self.file_path})")
+
+        if modality == "rtstruct":
+            file_class = MaskDicomFileRTSTRUCT
+        elif modality == "seg":
+            file_class = MaskDicomFileSEG
+        else:
+            raise NotImplementedError(
+                f"No routines were implemented for the current modality ({modality}). Please contact the developers "
+                f"if you want to see a particular modality added."
+            )
+
+        return file_class(
+            file_path=self.file_path,
+            dir_path=self.dir_path,
+            sample_name=self.sample_name,
+            file_name=self.file_name,
+            image_modality=self.modality,
+            image_name=self.image_name,
+            image_file_type=self.file_type,
+            image_data=self.image_data,
+            image_origin=self.image_origin,
+            image_orientation=self.image_orientation,
+            image_spacing=self.image_spacing,
+            image_dimensions=self.image_dimension
+        )

@@ -72,7 +72,7 @@ class ImageFile:
 
     def is_stackable(self, stack_images: str):
         raise NotImplementedError(
-            f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
+            f"DEV: There is (intentionally) no generic implementation of is_stackable. Please specify "
             f"implementation for subclasses."
         )
 
@@ -659,3 +659,109 @@ class ImageFile:
                 image_spacing.insert(0, 1.0)
             if dims_to_add == 1:
                 image_spacing.insert(0, 1.0)
+
+
+class MaskFile(ImageFile):
+
+    def __init__(
+            self,
+            roi_name: Union[None, str, List[str]] = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        self.roi_name = roi_name
+
+    def is_stackable(self, stack_images: str):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of is_stackable. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_origin(self, force=False):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_image_origin. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_orientation(self, force=False):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_image_orientation. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_spacing(self, force=False):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_image_spacing. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def _complete_image_dimensions(self, force=False):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of _complete_image_dimensions. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def load_metadata(self):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of load_metadata. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def load_data(self, **kwargs):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def create(self):
+        # Import locally to avoid potential circular references.
+        from mirp.importData.imageDicomFile import MaskDicomFile
+        from mirp.importData.imageITKFile import MaskITKFile
+        from mirp.importData.imageNumpyFile import MaskNumpyFile
+
+        file_extensions = supported_file_types(file_type=self.file_type)
+
+        if any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
+                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("dicom")):
+
+            file_class = MaskDicomFile
+            file_type = "dicom"
+
+        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
+                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("itk")):
+            if any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nifti")):
+                file_type = "nifti"
+            elif any(self.file_path.lower().endswith(ii) for ii in supported_file_types("nrrd")):
+                file_type = "nrrd"
+            else:
+                raise ValueError(f"DEV: specify file_type")
+
+            file_class = MaskITKFile
+
+        elif any(self.file_path.lower().endswith(ii) for ii in file_extensions) and\
+                any(self.file_path.lower().endswith(ii) for ii in supported_file_types("numpy")):
+
+            file_class = MaskNumpyFile
+            file_type = "numpy"
+
+        else:
+            raise NotImplementedError(f"The provided mask type is not implemented: {self.file_type}")
+
+        image_file = file_class(
+            file_path=self.file_path,
+            dir_path=self.dir_path,
+            sample_name=self.sample_name,
+            file_name=self.file_name,
+            image_name=self.image_name,
+            image_modality=self.modality,
+            image_file_type=file_type,
+            image_data=self.image_data,
+            image_origin=self.image_origin,
+            image_orientation=self.image_orientation,
+            image_spacing=self.image_spacing,
+            image_dimensions=self.image_dimension,
+            roi_name=self.roi_name
+        ).create()
+
+        return image_file

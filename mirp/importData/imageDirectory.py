@@ -6,8 +6,8 @@ from typing import Union, List
 from itertools import chain
 from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
     isolate_sample_name
-from mirp.importData.imageGenericFile import ImageFile
-from mirp.importData.imageGenericFileStack import ImageFileStack
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
+from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
 
 
 class ImageDirectory:
@@ -44,6 +44,11 @@ class ImageDirectory:
         # image_files are set using create_images.
         self.image_files: Union[None, List[str], List[ImageFile]] = None
 
+        # set object type, object class and object stack class.
+        self.object_type = "image"
+        self.object_class = ImageFile
+        self.object_stack_class = ImageFileStack
+
     def check(self, raise_error=False):
 
         if not isinstance(self.image_directory, str):
@@ -70,7 +75,7 @@ class ImageDirectory:
         path_info = list(os.walk(self.image_directory))
 
         if len(path_info) == 0:
-            raise ValueError(f"The {self.image_directory} directory is empty, and no images could be found.")
+            raise ValueError(f"The {self.image_directory} directory is empty, and no {self.object_type}s could be found.")
 
         # Find entries that have associated files.
         path_info = [
@@ -79,7 +84,8 @@ class ImageDirectory:
 
         if len(path_info) == 0:
             raise ValueError(
-                f"All directories within the {self.image_directory} directory is empty, and no images could be found.")
+                f"All directories within the {self.image_directory} directory are empty, and no {self.object_type}s "
+                f"could be found.")
 
         # Find entries where the folder structure matches the sub_folder.
         if self.sub_folder is not None:
@@ -114,7 +120,7 @@ class ImageDirectory:
         if len(path_info) == 0:
             raise ValueError(
                 f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
-                f"image files ({', '.join(allowed_file_extensions)})."
+                f"{self.object_type} files ({', '.join(allowed_file_extensions)})."
             )
 
         # Find entries that contain file names that match the image name. First, we keep only those files that contain
@@ -162,8 +168,8 @@ class ImageDirectory:
         if self.sample_name is not None:
             if len(self.image_files) == 0:
                 raise ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories) did not contain any images with "
-                    f"the specified sample names ({', '.join(self.sample_name)})."
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain any"
+                    f" {self.object_type}s with the specified sample names ({', '.join(self.sample_name)})."
                 )
 
             # Check for unset sample names.
@@ -176,10 +182,10 @@ class ImageDirectory:
 
                 raise ValueError(
                     f"One or more files ({', '.join(files_missing_sample_name)}) could not be linked to a sample name"
-                    f"for checking. You may specify an image file name pattern using the image_name argument, "
-                    f"e.g. image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or "
-                    f"John_Doe_001_image.nii. Here, '#' Indicates the sample name, and '*' is a generic wildcard "
-                    f"character."
+                    f"for checking. You may specify an image file name pattern using the {self.object_type}_name "
+                    f"argument, e.g. {self.object_type}_name = '#_*_{self.object_type}' would find John_Doe in "
+                    f"John_Doe_CT_{self.object_type}.nii or John_Doe_001_{self.object_type}.nii. Here, '#' indicates "
+                    f"the sample name, and '*' is a generic wildcard character."
                 )
 
             # Filter so that only matching sample names remain.
@@ -190,16 +196,16 @@ class ImageDirectory:
 
             if len(self.image_files) == 0:
                 raise ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories) did not contain any images with "
-                    f"the specified sample names ({', '.join(self.sample_name)})."
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain any"
+                    f" {self.object_type}s with the specified sample names ({', '.join(self.sample_name)})."
                 )
 
             missing_sample_names = set(self.sample_name).difference(
                 set(current_image.sample_name for current_image in self.image_files))
             if len(missing_sample_names) > 0:
                 raise ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories did not contain all the images "
-                    f"with the required sample names. Missing: {', '.join(missing_sample_names)}"
+                    f"The {self.image_directory} directory (and its subdirectories did not contain all the "
+                    f"{self.object_type}s with the required sample names. Missing: {', '.join(missing_sample_names)}"
                 )
 
         # Try to stack.
@@ -302,7 +308,7 @@ class ImageDirectory:
             if len(path_info) == 0:
                 raise ValueError(
                     f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
-                    f"image files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
+                    f"{self.object_type} files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
                     f"({self.image_name}). The name must match exactly. Use wildcard symbol (*) for "
                     f"partial matching, e.g. {'*' + self.image_name[0]}."
                 )
@@ -476,7 +482,7 @@ class ImageDirectory:
         for image_file_name in self.image_files:
 
             # Create image file object.
-            image_file = ImageFile(
+            image_file = self.object_class(
                 file_path=os.path.join(self.image_directory, image_file_name),
                 sample_name=self.sample_name,
                 image_modality=self.modality,
@@ -556,6 +562,18 @@ class ImageDirectory:
                 yield stack_list[0]
 
             else:
-                image_stack = ImageFileStack(image_file_objects=stack_list).create()
+                image_stack = self.object_stack_class(image_file_objects=stack_list).create()
                 image_stack.complete()
                 yield image_stack
+
+
+class MaskDirectory(ImageDirectory):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # set object type, object class and object stack class.
+        self.object_type = "mask"
+        self.object_class = MaskFile
+        self.object_stack_class = MaskFileStack
+

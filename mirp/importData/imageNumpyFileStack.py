@@ -3,7 +3,7 @@ import copy
 from typing import List
 
 from mirp.importData.imageNumpyFile import ImageNumpyFile
-from mirp.importData.imageGenericFileStack import ImageFileStack
+from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
 
 
 class ImageNumpyFileStack(ImageFileStack):
@@ -56,3 +56,9 @@ class ImageNumpyFileStack(ImageFileStack):
                 ])
             else:
                 self.image_dimension = tuple([len(self.image_file_objects), 1, image_object.image_dimension[0]])
+
+
+class MaskNumpyFileStack(ImageNumpyFileStack, MaskFileStack):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

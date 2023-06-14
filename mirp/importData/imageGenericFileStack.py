@@ -6,11 +6,10 @@ from typing import Union, List
 import numpy as np
 import pandas as pd
 
-from mirp.importData.imageGenericFile import ImageFile
-from mirp.importData.imageDicomFile import ImageDicomFile
-from mirp.importData.imageITKFile import ImageITKFile
-from mirp.importData.imageNumpyFile import ImageNumpyFile
-from mirp.importData.utilities import supported_file_types
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
+from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
+from mirp.importData.imageITKFile import ImageITKFile, MaskITKFile
+from mirp.importData.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
 
 
 class ImageFileStack(ImageFile):
@@ -191,3 +190,48 @@ class ImageFileStack(ImageFile):
         # Load data for underlying files in the order indicated by self.image_file_objects.
         for image_file_object in self.image_file_objects:
             image_file_object.load_data()
+
+
+class MaskFileStack(ImageFileStack, MaskFile):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def complete(self, remove_metadata=True, force=False):
+        raise NotImplementedError(
+            f"DEV: There is (intentionally) no generic implementation of complete. Please specify "
+            f"implementation for subclasses."
+        )
+
+    def create(self):
+        # Import locally to avoid potential circular references.
+        from mirp.importData.imageDicomFileStack import MaskDicomFileStack
+        from mirp.importData.imageITKFileStack import MaskITKFileStack
+        from mirp.importData.imageNumpyFileStack import MaskNumpyFileStack
+
+        if all(isinstance(image_file_object, MaskDicomFile) for image_file_object in self.image_file_objects):
+            file_stack_class = MaskDicomFileStack
+            file_type = "dicom"
+
+        elif all(isinstance(image_file_object, MaskITKFile) for image_file_object in self.image_file_objects):
+            file_stack_class = MaskITKFileStack
+            file_type = self.image_file_objects[0].file_type
+
+        elif all(isinstance(image_file_object, MaskNumpyFile) for image_file_object in self.image_file_objects):
+            file_stack_class = MaskNumpyFileStack
+            file_type = "numpy"
+
+        else:
+            raise TypeError(f"The list of image objects does not consist of a known object type.")
+
+        image_file_stack = file_stack_class(
+            image_file_objects=self.image_file_objects,
+            dir_path=self.dir_path,
+            sample_name=self.sample_name,
+            image_name=self.image_name,
+            image_modality=self.modality,
+            image_file_type=file_type
+        )
+
+        return image_file_stack
+    

@@ -3,7 +3,7 @@ import numpy as np
 
 from typing import Union, List, Tuple
 
-from mirp.importData.imageGenericFile import ImageFile
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
 
 
 class ImageNumpyFile(ImageFile):
@@ -131,5 +131,21 @@ class ImageNumpyFile(ImageFile):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}")
 
-        self.image_data = np.load(self.file_path)
+        self.image_data = np.load(self.file_path).astype(np.float32)
+        self.update_image_data()
+
+
+class MaskNumpyFile(ImageNumpyFile, MaskFile):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def load_data(self, **kwargs):
+        if self.image_data is not None:
+            self.update_image_data()
+
+        if self.file_path is None or not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The mask file could not be found at the expected location: {self.file_path}")
+
+        self.image_data = np.load(self.file_path).astype(int)
         self.update_image_data()

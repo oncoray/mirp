@@ -4,7 +4,7 @@ import numpy as np
 
 from typing import Union, List, Tuple
 
-from mirp.importData.imageGenericFile import ImageFile
+from mirp.importData.imageGenericFile import ImageFile, MaskFile
 
 
 class ImageITKFile(ImageFile):
@@ -148,3 +148,21 @@ class ImageITKFile(ImageFile):
         # Load the image
         itk_img = itk.imread(os.path.join(self.file_path))
         self.image_data = itk.GetArrayFromImage(itk_img).astype(np.float32)
+
+
+class MaskITKFile(ImageITKFile, MaskFile):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def load_data(self, **kwargs):
+        if self.image_data is not None:
+            return
+
+        if self.file_path is None or not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The mask file could not be found at the expected location: {self.file_path}")
+
+        # Load the image
+        itk_img = itk.imread(os.path.join(self.file_path))
+        self.image_data = itk.GetArrayFromImage(itk_img).astype(int)

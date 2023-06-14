@@ -6,7 +6,7 @@ import pandas as pd
 from typing import List
 
 from mirp.importData.imageITKFile import ImageITKFile
-from mirp.importData.imageGenericFileStack import ImageFileStack
+from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
 
 
 class ImageITKFileStack(ImageFileStack):
@@ -145,3 +145,9 @@ class ImageITKFileStack(ImageFileStack):
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
+
+
+class MaskITKFileStack(ImageITKFileStack, MaskFileStack):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

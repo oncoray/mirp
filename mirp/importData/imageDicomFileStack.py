@@ -4,7 +4,7 @@ import pandas as pd
 from typing import List
 
 from mirp.importData.imageDicomFile import ImageDicomFile
-from mirp.importData.imageGenericFileStack import ImageFileStack
+from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
 from mirp.imageMetaData import get_pydicom_meta_tag
 
 
@@ -153,3 +153,9 @@ class ImageDicomFileStack(ImageFileStack):
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
+
+
+class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
