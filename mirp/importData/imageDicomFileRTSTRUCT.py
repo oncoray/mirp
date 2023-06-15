@@ -161,3 +161,23 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
             return roi_obj
 
+    def to_object(self, **kwargs):
+
+        from mirp.imageClass import ImageClass
+        from mirp.roiClass import RoiClass
+
+        self.load_data()
+        self.complete()
+        self.update_image_data()
+
+        return RoiClass(
+            name=self.roi_name,
+            contour=None,
+            roi_mask=ImageClass(
+                voxel_grid=self.image_data,
+                origin=self.image_origin,
+                spacing=self.image_spacing,
+                orientation=self.image_orientation,
+                modality=self.modality
+            )
+        )
