@@ -798,7 +798,14 @@ class MaskFile(ImageFile):
             raise TypeError("DEV: the image_data attribute has not been set.")
 
         if np.issubdtype(self.image_data.dtype, bool):
-            return True
+
+            if not np.any(self.image_data):
+                if raise_error:
+                    warnings.warn(
+                        f"No regions of interest were formed ({self.file_path}. The mask object only contains background "
+                        f"values (False). No voxels were found with True values to identify segmentation masks.",
+                        UserWarning
+                    )
 
         if np.issubdtype(self.image_data.dtype, np.integer):
             if np.any(self.image_data < 0):
@@ -815,6 +822,16 @@ class MaskFile(ImageFile):
                         f"More than 10 labels were found ({self.file_path}). Please check that this is correct.",
                         UserWarning
                     )
+
+            if np.all(self.image_data == 0):
+                if raise_error:
+                    warnings.warn(
+                        f"No regions of interest were formed ({self.file_path}. The mask object only contains "
+                        f"background values (0). No voxels were found with positive integers to identify segmentation "
+                        f"masks.",
+                        UserWarning
+                    )
+
         else:
             raise TypeError(f"DEV: the image_data contains non-integer data ({self.image_data.dtype})")
 
@@ -827,57 +844,106 @@ class MaskFile(ImageFile):
         self.update_image_data()
         self.check_mask(raise_error=True)
 
-        # Identify available labels that are non-background.
-        labels: List[int] = np.difference(np.unique(self.image_data), [0]).tolist()
-
-        if len(labels) == 0:
-            warnings.warn(
-                f"No regions of interest were formed ({self.file_path}. The mask object only contains background "
-                f"values (0). No voxels were found with positive integers to identify segmentation masks.",
-                UserWarning
-            )
-
-        # Check which labels should be kept.
-        filtered_labels = []
-        for current_label in labels:
-            if self.roi_name is None:
-                filtered_labels += [current_label]
-            elif isinstance(self.roi_name, str):
-                if self.roi_name == str(current_label) or self.roi_name == "region_" + str(current_label):
-                    filtered_labels += [current_label]
-            elif isinstance(self.roi_name, list):
-                if str(current_label) in self.roi_name or "region_" + str(current_label) in self.roi_name:
-                    filtered_labels += [current_label]
-            elif isinstance(self.roi_name, dict):
-                if str(current_label) in self.roi_name.keys() or "region_" + str(current_label) in self.roi_name.keys():
-                    filtered_labels += [current_label]
-
-        if len(filtered_labels) == 0:
-            warnings.warn(
-                f"No regions of interest were formed ({self.file_path}. The available labels {labels} likely did not "
-                f"match any of the expected labels ({self.roi_name}).",
-                UserWarning
-            )
-
-            return None
-
         roi_list = []
-        for current_label in filtered_labels:
+        if np.issubdtype(self.image_data.dtype, bool):
+            if np.all(self.image_data == False):
+                return None
 
-            # Find roi name to use for the current object.
-            if self.roi_name is None:
-                roi_name = "region_" + str(current_label)
-            elif isinstance(self.roi_name, str):
+            if isinstance(self.roi_name, str):
                 roi_name = self.roi_name
+            elif isinstance(self.roi_name, list):
+                if len(self.roi_name) == 1:
+                    roi_name = self.roi_name[0]
+                else:
+                    warnings.warn(
+                        f"The name of the region of interest could not be unambiguously determined ("
+                        f"{self.file_path}). One of the following should be used, but it is not clear which: "
+                        f"{self.roi_name}",
+                        UserWarning
+                    )
+                    roi_name = "region_1"
+            elif isinstance(self.roi_name, dict):
+                if len(self.roi_name) == 1:
+                    roi_name = list(self.roi_name.values())[0]
+                else:
+                    warnings.warn(
+                        f"The name of the region of interest could not be unambiguously determined ("
+                        f"{self.file_path}). One of the following should be used, but it is not clear which: "
+                        f"{self.roi_name}",
+                        UserWarning
+                    )
+                    roi_name = "region_1"
+            else:
+                roi_name = "region_1"
 
-        return RoiClass(
-            name=self.roi_name,
-            contour=None,
-            roi_mask=ImageClass(
-                voxel_grid=self.image_data,
-                origin=self.image_origin,
-                spacing=self.image_spacing,
-                orientation=self.image_orientation,
-                modality=self.modality
-            )
-        )
+            roi_list += [RoiClass(
+                name=roi_name,
+                contour=None,
+                roi_mask=ImageClass(
+                    voxel_grid=self.image_data,
+                    origin=self.image_origin,
+                    spacing=self.image_spacing,
+                    orientation=self.image_orientation,
+                    modality=self.modality
+                )
+            )]
+
+        else:
+
+            # Identify available labels that are non-background.
+            labels: List[int] = np.difference(np.unique(self.image_data), [0]).tolist()
+
+            if len(labels) == 0:
+                return None
+
+            # Check which labels should be kept.
+            filtered_labels = []
+            for current_label in labels:
+                if self.roi_name is None:
+                    filtered_labels += [current_label]
+                elif isinstance(self.roi_name, str):
+                    if self.roi_name == str(current_label) or self.roi_name == "region_" + str(current_label):
+                        filtered_labels += [current_label]
+                elif isinstance(self.roi_name, list):
+                    if str(current_label) in self.roi_name or "region_" + str(current_label) in self.roi_name:
+                        filtered_labels += [current_label]
+                elif isinstance(self.roi_name, dict):
+                    if str(current_label) in self.roi_name.keys() or "region_" + str(current_label) in self.roi_name.keys():
+                        filtered_labels += [current_label]
+
+            if len(filtered_labels) == 0:
+                warnings.warn(
+                    f"No regions of interest were formed ({self.file_path}. The available labels {labels} likely did not "
+                    f"match any of the expected labels ({self.roi_name}).",
+                    UserWarning
+                )
+
+                return None
+
+            for current_label in filtered_labels:
+
+                # Find roi name to use for the current object.
+                if isinstance(self.roi_name, str):
+                    roi_name = self.roi_name
+                elif isinstance(self.roi_name, list):
+                    roi_name = [x for x in self.roi_name if str(current_label) == x or "region_" + str(current_label) == x]
+                elif isinstance(self.roi_name, dict):
+                    roi_name = self.roi_name.get(str(current_label))
+                    if roi_name is None:
+                        roi_name = self.roi_name.get("region_" + str(current_label))
+                else:
+                    roi_name = "region_" + str(current_label)
+
+                roi_list += [RoiClass(
+                    name=roi_name,
+                    contour=None,
+                    roi_mask=ImageClass(
+                        voxel_grid=self.image_data == current_label,
+                        origin=self.image_origin,
+                        spacing=self.image_spacing,
+                        orientation=self.image_orientation,
+                        modality=self.modality
+                    )
+                )]
+
+        return roi_list

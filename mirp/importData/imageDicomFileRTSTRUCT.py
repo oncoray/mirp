@@ -49,30 +49,45 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                             tag_type="str")
                         break
 
-    def load_data(
-            self,
-            associated_image: Union[None, ImageFile] = None,
-            roi_name: Union[None, str, List[str]] = None,
-            **kwargs):
-        if self.image_data is not None:
-            return
+    def check_mask(self, raise_error=True):
+        if self.image_metadata is None:
+            raise TypeError("DEV: the image_meta_data attribute has not been set.")
 
-        if self.file_path is not None and not os.path.exists(self.file_path):
-            raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}"
+        roi_name_present = [
+            get_pydicom_meta_tag(
+                dcm_seq=current_structure_set_roi_sequence, tag=(0x3006, 0x0026), tag_type="str", default=None)
+            for current_structure_set_roi_sequence in self.image_metadata[(0x3006, 0x0020)]
+        ]
+
+        if len(roi_name_present) == 0 and raise_error:
+            warnings.warn(
+                f"The current RT-structure set ({self.file_path}) does not contain any ROI contours."
             )
 
-        if self.file_path is None:
-            raise ValueError(f"A path to a file was expected, but not present.")
+        if any(x is None for x in roi_name_present) and raise_error:
+            warnings.warn(
+                f"The current RT-structure set ({self.file_path}) lacks one or more ROI names."
+            )
 
-        if not isinstance(associated_image, ImageFile):
-            raise TypeError(f"Processing RTSTRUCT files requires the associated image file to be set.")
+        return True
 
-        if isinstance(roi_name, str):
-            roi_name = [roi_name]
+    def load_data(self, **kwargs):
+        pass
 
-        # Load metadata.
+    def to_object(self, image: Union[None, ImageFile], **kwargs):
+
+        from mirp.imageClass import ImageClass
+        from mirp.roiClass import RoiClass
+        if image is None:
+            raise TypeError(
+                f"Converting an RT-structure to a segmentation mask requires that the corresponding image is set. "
+                f"No image was provided ({self.file_path})."
+            )
+        else:
+            image.complete()
+
         self.load_metadata()
+        self.check_mask()
 
         # Check if a Structure Set ROI Sequence exists (3006, 0020)
         if not get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x3006, 0x0020), test_tag=True):
@@ -92,10 +107,14 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             for current_structure_set_roi_sequence in self.image_metadata[(0x3006, 0x0020)]
         ]
 
-        # Update roi name in case it is missing.
+        # Identify which roi names (and numbers) should be kept by comparing against the roi_name attribute.
         for ii, current_roi_name in enumerate(roi_name_present):
-            if current_roi_name is None:
-                roi_name_present[ii] = "region_" + str(roi_number_present[ii])
+
+            if current_roi_name is None and len(roi_name_present) == 1:
+                if  isinstance(self.roi_name, str):
+                    roi_name_present[ii] = self.roi_name
+                elif
+
 
         # Initialise a data list
         contour_data_list = []
@@ -160,24 +179,3 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                                               settings=settings)
 
             return roi_obj
-
-    def to_object(self, **kwargs):
-
-        from mirp.imageClass import ImageClass
-        from mirp.roiClass import RoiClass
-
-        self.load_data()
-        self.complete()
-        self.update_image_data()
-
-        return RoiClass(
-            name=self.roi_name,
-            contour=None,
-            roi_mask=ImageClass(
-                voxel_grid=self.image_data,
-                origin=self.image_origin,
-                spacing=self.image_spacing,
-                orientation=self.image_orientation,
-                modality=self.modality
-            )
-        )
