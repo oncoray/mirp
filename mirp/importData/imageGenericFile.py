@@ -1,3 +1,4 @@
+import copy
 import fnmatch
 import hashlib
 import itertools
@@ -79,6 +80,9 @@ class ImageFile:
             f"DEV: There is (intentionally) no generic implementation of is_stackable. Please specify "
             f"implementation for subclasses."
         )
+
+    def copy(self):
+        return copy.deepcopy(self)
 
     def get_identifiers(self, as_hash=False) -> Union[Dict, bytes]:
         """
