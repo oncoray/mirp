@@ -15,7 +15,7 @@ class ImageNumpyFileStack(ImageFileStack):
     ):
         super().__init__(image_file_objects, **kwargs)
 
-    def complete(self, remove_metadata=True, force=False):
+    def complete(self, remove_metadata=False, force=False):
         """
         Fills out missing attributes in an image stack. Numpy files are actually barebones, and compared to DICOM
         and many ITK formats lacks the origin. This forces us to determine stacking by the file name.

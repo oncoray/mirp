@@ -95,7 +95,7 @@ class ImageFileStack(ImageFile):
 
         return image_file_stack
 
-    def complete(self, remove_metadata=True, force=False):
+    def complete(self, remove_metadata=False, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of complete. Please specify "
             f"implementation for subclasses."
@@ -197,7 +197,7 @@ class MaskFileStack(ImageFileStack, MaskFile):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def complete(self, remove_metadata=True, force=False):
+    def complete(self, remove_metadata=False, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of complete. Please specify "
             f"implementation for subclasses."

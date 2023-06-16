@@ -7,7 +7,7 @@ import pydicom
 import pandas as pd
 import numpy as np
 
-from mirp.contourClass import ContourClass
+from mirp.contourClass import ContourClassDeprecated
 from mirp.imageSUV import SUVscalingObj
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
@@ -599,7 +599,7 @@ def _convert_rtstruct_to_segmentation(dcm: FileDataset,
                 sop_instance_uid = None
 
             # Store as contour.
-            contour = ContourClass(contour=contour_data, sop_instance_uid=sop_instance_uid)
+            contour = ContourClassDeprecated(contour=contour_data, sop_instance_uid=sop_instance_uid)
 
             # Add contour data to the contour list
             contour_data_list += [contour]

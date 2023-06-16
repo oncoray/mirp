@@ -6,7 +6,7 @@ import pandas as pd
 from pydicom import FileDataset
 from typing import Union, List
 from mirp.imageClass import ImageClass
-from mirp.contourClass import ContourClass
+from mirp.contourClass import ContourClassDeprecated
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
 from mirp.importSettings import SettingsClass
 
@@ -17,7 +17,7 @@ class RoiClass:
     def __init__(
             self,
             name: str,
-            contour: Union[None, List[ContourClass]],
+            contour: Union[None, List[ContourClassDeprecated]],
             roi_mask: Union[None, ImageClass] = None,
             g_range = np.array([np.nan, np.nan]),
             incl_threshold: float = 0.5,
@@ -76,7 +76,7 @@ class RoiClass:
 
             return int_slice_position
 
-        def _contour_merger(contour_object_list: List[ContourClass]):
+        def _contour_merger(contour_object_list: List[ContourClassDeprecated]):
             """This function collects contours from the same slice."""
             # Find slice ids for each contour object.
             slice_ids = [contour.which_slice() for contour in contour_object_list]
@@ -119,7 +119,7 @@ class RoiClass:
         mask_list = []
 
         # Convert contour points (world space) to voxel space.
-        self.contour: List[ContourClass] = [
+        self.contour: List[ContourClassDeprecated] = [
             contour.to_voxel_coordinates(img_obj=img_obj)
             for contour in self.contour
             if contour is not None

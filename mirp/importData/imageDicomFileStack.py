@@ -17,7 +17,7 @@ class ImageDicomFileStack(ImageFileStack):
     ):
         super().__init__(image_file_objects, **kwargs)
 
-    def complete(self, remove_metadata=True, force=False):
+    def complete(self, remove_metadata=False, force=False):
         """
         Fills out missing attributes in an image stack. Image parameters in DICOM stacks, by design,
         are fully determined by the origin of all slices in the stack. This method then sorts the image file objects
@@ -33,29 +33,7 @@ class ImageDicomFileStack(ImageFileStack):
         self._complete_modality()
         self._complete_sample_name()
 
-        # Placeholders for slice positions.
-        image_position_z = [0.0] * len(self.image_file_objects)
-        image_position_y = [0.0] * len(self.image_file_objects)
-        image_position_x = [0.0] * len(self.image_file_objects)
-
-        for ii, image_object in enumerate(self.image_file_objects):
-            slice_origin = get_pydicom_meta_tag(
-                dcm_seq=image_object.image_metadata,
-                tag=(0x0020, 0x0032),
-                tag_type="mult_float",
-                default=np.array([0.0, 0.0, 0.0]))[::-1]
-
-            image_position_z[ii] = slice_origin[0]
-            image_position_y[ii] = slice_origin[1]
-            image_position_x[ii] = slice_origin[2]
-
-        # Order ascending position (DICOM: z increases from feet to head)
-        position_table = pd.DataFrame({
-            "original_object_order": list(range(len(self.image_file_objects))),
-            "position_z": image_position_z,
-            "position_y": image_position_y,
-            "position_x": image_position_x
-        }).sort_values(by=["position_z", "position_y", "position_x"])
+        position_table = self._get_origin_position_table()
 
         # Sort image file objects.
         self.image_file_objects = [
@@ -91,9 +69,6 @@ class ImageDicomFileStack(ImageFileStack):
                 "Slices cannot be aligned correctly. This is likely due to missing slices. "
                 "MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis.",
                 UserWarning)
-
-            # Update slice positions.
-            self.slice_positions = list(np.cumsum(np.insert(np.around(image_slice_spacing, 5), 0, 0.0)))
 
         # Determine image slice spacing.
         image_slice_spacing = np.around(np.mean(image_slice_spacing[image_slice_spacing_multiplier <= 1.2]), 5)
@@ -153,6 +128,34 @@ class ImageDicomFileStack(ImageFileStack):
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
+
+        if remove_metadata:
+            self.remove_metadata()
+
+    def _get_origin_position_table(self) -> pd.DataFrame:
+        # Placeholders for slice positions.
+        image_position_z = [0.0] * len(self.image_file_objects)
+        image_position_y = [0.0] * len(self.image_file_objects)
+        image_position_x = [0.0] * len(self.image_file_objects)
+
+        for ii, image_object in enumerate(self.image_file_objects):
+            slice_origin = get_pydicom_meta_tag(
+                dcm_seq=image_object.image_metadata,
+                tag=(0x0020, 0x0032),
+                tag_type="mult_float",
+                default=np.array([0.0, 0.0, 0.0]))[::-1]
+
+            image_position_z[ii] = slice_origin[0]
+            image_position_y[ii] = slice_origin[1]
+            image_position_x[ii] = slice_origin[2]
+
+        # Order ascending position (DICOM: z increases from feet to head)
+        return pd.DataFrame({
+            "original_object_order": list(range(len(self.image_file_objects))),
+            "position_z": image_position_z,
+            "position_y": image_position_y,
+            "position_x": image_position_x
+        }).sort_values(by=["position_z", "position_y", "position_x"])
 
 
 class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):

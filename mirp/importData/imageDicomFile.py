@@ -195,7 +195,7 @@ class ImageDicomFile(ImageFile):
             image_dimensions=self.image_dimension
         )
 
-    def complete(self, remove_metadata=True, force=False):
+    def complete(self, remove_metadata=False, force=False):
 
         # complete loads metadata.
         super().complete(remove_metadata=False, force=force)

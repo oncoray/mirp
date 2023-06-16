@@ -18,7 +18,7 @@ class ImageITKFileStack(ImageFileStack):
     ):
         super().__init__(image_file_objects, **kwargs)
 
-    def complete(self, remove_metadata=True, force=False):
+    def complete(self, remove_metadata=False, force=False):
         """
         Fills out missing attributes in an image stack. Image parameters in ITK stacks are fully determined by the
         origin of all slices in the stack. This method then sorts the image file objects
