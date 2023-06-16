@@ -17,7 +17,7 @@ class RoiClass:
     def __init__(
             self,
             name: str,
-            contour: Union[None, List[ContourClassDeprecated]],
+            contour: Union[None, List[ContourClassDeprecated]] = None,
             roi_mask: Union[None, ImageClass] = None,
             g_range = np.array([np.nan, np.nan]),
             incl_threshold: float = 0.5,

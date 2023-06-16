@@ -21,7 +21,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         self.image_origin = None
         self.image_orientation = None
         self.image_spacing = None
-        self.image_dimensions = None
+        self.image_dimension = None
 
     def is_stackable(self, stack_images: str):
         return False
@@ -106,6 +106,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if not self.check_mask():
             return None
 
+        roi_list = []
+
         # Find which roi numbers (3006,0022) are associated with which roi names (3004,0024).
         roi_name_present = [
             get_pydicom_meta_tag(
@@ -136,9 +138,14 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         # Obtain segmentation from ROI Contour Sequences (0x3006, 0x0039).
         for roi_contour_sequence in self.image_metadata[(0x3006, 0x0039)]:
-            # Check that the roi number of the current ROI Contour Sequence
-            if not get_pydicom_meta_tag(dcm_seq=roi_contour_sequence, tag=(0x3006, 0x0084), tag_type="str") in \
-                   roi_number_present:
+
+            # Get the roi number of the current ROI Contour Sequence
+            current_roi_number = get_pydicom_meta_tag(
+                dcm_seq=roi_contour_sequence,
+                tag=(0x3006, 0x0084),
+                tag_type="str")
+
+            if current_roi_number not in roi_number_present:
                 continue
 
             # Get image data.
@@ -151,7 +158,38 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if image_data is None:
                 continue
 
+            if not np.any(image_data):
+                continue
 
+            # Complete a copy of the current object.
+            temp_mask_object = self.copy()
+            temp_mask_object.image_data = image_data
+            temp_mask_object.image_origin = image.image_origin
+            temp_mask_object.image_spacing = image.image_spacing
+            temp_mask_object.image_dimension = image.image_dimension
+            temp_mask_object.image_orientation = image.image_orientation
+            temp_mask_object.complete()
+            temp_mask_object.update_image_data()
+
+            current_roi_name = [x for ii, x in enumerate(roi_name_present) if roi_number_present[ii] == current_roi_number]
+            if isinstance(self.roi_name, dict):
+                current_roi_name = self.roi_name.get(current_roi_name)
+
+            roi_list += [RoiClass(
+                name=current_roi_name,
+                roi_mask=ImageClass(
+                    voxel_grid=temp_mask_object.image_data,
+                    origin=temp_mask_object.image_origin,
+                    spacing=temp_mask_object.image_spacing,
+                    orientation=temp_mask_object.image_orientation,
+                    modality=temp_mask_object.modality
+                )
+            )]
+
+        if len(roi_list) == 0:
+            return None
+
+        return roi_list
 
     def convert_contour_to_mask(
             self,
