@@ -280,9 +280,9 @@ def get_supervoxels(
 
     # Get grey level thresholds
     g_range = settings.roi_resegment.intensity_range
-    if g_range[0] == np.nan:
+    if np.isnan(g_range[0]):
         np.min(img_obj.get_voxel_grid()[roi_obj.roi.get_voxel_grid()])
-    if g_range[1] == np.nan:
+    if np.isnan(g_range[1]):
         np.max(img_obj.get_voxel_grid()[roi_obj.roi.get_voxel_grid()])
 
     # Add 10% range outside of the grey level range
