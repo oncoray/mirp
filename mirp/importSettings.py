@@ -948,16 +948,7 @@ class FeatureExtractionSettingsClass:
             base_feature_families = [base_feature_families]
 
         # Check which entries are valid.
-        valid_families: List[bool] = [ii in [
-            "mrp", "morph", "morphology", "morphological", "li", "loc.int", "loc_int", "local_int", "local_intensity",
-            "st", "stat", "stats", "statistics", "statistical", "ih", "int_hist", "int_histogram", "intensity_histogram",
-            "ivh", "int_vol_hist", "intensity_volume_histogram", "cm", "glcm", "grey_level_cooccurrence_matrix",
-            "cooccurrence_matrix", "rlm", "glrlm", "grey_level_run_length_matrix", "run_length_matrix",
-            "szm", "glszm", "grey_level_size_zone_matrix", "size_zone_matrix", "dzm", "gldzm",
-            "grey_level_distance_zone_matrix", "distance_zone_matrix", "tdm", "ngtdm",
-            "neighbourhood_grey_tone_difference_matrix", "grey_tone_difference_matrix", "ldm", "ngldm",
-            "neighbouring_grey_level_dependence_matrix", "grey_level_dependence_matrix", "all", "none"
-        ] for ii in base_feature_families]
+        valid_families: List[bool] = [ii in self.get_available_families() for ii in base_feature_families]
 
         if not all(valid_families):
             raise ValueError(
@@ -1199,6 +1190,19 @@ class FeatureExtractionSettingsClass:
         self.ngldm_dist: Union[None, List[float]] = ngldm_distance
         self.ngldm_diff_lvl: Union[None, List[float]] = ngldm_difference_level
         self.ngldm_spatial_method: Union[None, List[str]] = ngldm_spatial_method
+
+    @staticmethod
+    def get_available_families():
+        return [
+            "mrp", "morph", "morphology", "morphological", "li", "loc.int", "loc_int", "local_int", "local_intensity",
+            "st", "stat", "stats", "statistics", "statistical", "ih", "int_hist", "int_histogram", "intensity_histogram",
+            "ivh", "int_vol_hist", "intensity_volume_histogram", "cm", "glcm", "grey_level_cooccurrence_matrix",
+            "cooccurrence_matrix", "rlm", "glrlm", "grey_level_run_length_matrix", "run_length_matrix",
+            "szm", "glszm", "grey_level_size_zone_matrix", "size_zone_matrix", "dzm", "gldzm",
+            "grey_level_distance_zone_matrix", "distance_zone_matrix", "tdm", "ngtdm",
+            "neighbourhood_grey_tone_difference_matrix", "grey_tone_difference_matrix", "ldm", "ngldm",
+            "neighbouring_grey_level_dependence_matrix", "grey_level_dependence_matrix", "all", "none"
+        ]
 
     def has_any_feature_family(self):
         return not any(family == "none" for family in self.families)
@@ -1529,12 +1533,7 @@ class ImageTransformationSettingsClass:
 
         if filter_kernels is not None:
             # Check validity of the filter kernel names.
-            valid_kernels: List[bool] = [ii in [
-                "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
-                "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
-                "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean"
-            ] for ii in filter_kernels]
+            valid_kernels: List[bool] = [ii in self.get_available_image_filters() for ii in filter_kernels]
 
             if not all(valid_kernels):
                 raise ValueError(f"One or more kernels are not implemented, or were spelled incorrectly: "
@@ -1905,6 +1904,15 @@ class ImageTransformationSettingsClass:
 
         self.riesz_order: Union[None, List[List[int]]] = riesz_filter_order
         self.riesz_filter_tensor_sigma: Union[None, List[float]] = riesz_filter_tensor_sigma
+
+    @staticmethod
+    def get_available_image_filters():
+        return [
+            "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
+            "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
+            "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
+            "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean"
+        ]
 
     def check_boundary_condition(self, x, var_name):
         if x is None:
