@@ -302,15 +302,14 @@ class ExperimentClass:
 
         # Initialise empty feature list
         feat_list = []
+        image_object_list = []
+        roi_object_list = []
 
         # Notify
         logging.info(self._message_computation_initialisation())
 
         # Get iterables from current settings which lead to different image adaptations
         iter_set, n_outer_iter, n_inner_iter = self.get_iterable_parameters(settings=self.settings)
-
-        # Set initial values.
-        img_obj = roi_list = None
 
         # Load image and roi
         if self.keep_images_in_memory:
@@ -463,6 +462,7 @@ class ExperimentClass:
             # Base image computations and exports
             ########################################################################################################
 
+            iter_image_object_list = [img_obj]
             if self.extract_images:
                 img_obj.export(file_path=self.write_path)
                 for roi_obj in roi_list:
@@ -478,23 +478,35 @@ class ExperimentClass:
 
             if self.settings.img_transform.spatial_filters is not None:
                 # Get image features from transformed images (may be empty if no features are computed)
-                iter_feat_list += transform_images(img_obj=img_obj,
-                                                   roi_list=roi_list,
-                                                   settings=curr_setting,
-                                                   compute_features=self.compute_features,
-                                                   extract_images=self.extract_images,
-                                                   file_path=self.write_path)
+                current_feature_list, current_response_map_list = transform_images(
+                    img_obj=img_obj,
+                    roi_list=roi_list,
+                    settings=curr_setting,
+                    compute_features=self.compute_features,
+                    extract_images=self.extract_images,
+                    file_path=self.write_path
+                )
+
+                iter_feat_list += current_feature_list
+                iter_image_object_list += current_response_map_list
 
             ########################################################################################################
             # Collect and combine features for current iteration
             ########################################################################################################
 
             if self.compute_features:
-                feat_list.append(self.collect_features(img_obj=img_obj, roi_list=roi_list, feat_list=iter_feat_list, settings=curr_setting))
+                feat_list.append(self.collect_features(
+                    img_obj=img_obj,
+                    roi_list=roi_list,
+                    feat_list=iter_feat_list,
+                    settings=curr_setting)
+                )
 
-            # Clean up if required.
-            if self.write_path is not None:
-                del img_obj, roi_list
+            if self.extract_images and self.write_path is None:
+                image_object_list += [iter_image_object_list]
+                roi_object_list += [roi_list]
+            else:
+                del img_obj, roi_list, iter_image_object_list
 
         ########################################################################################################
         # Feature aggregation over settings
@@ -529,13 +541,13 @@ class ExperimentClass:
                     decimal=".")
 
         if self.compute_features and self.extract_images and self.write_path is None:
-            return feature_table, img_obj, roi_list
+            return feature_table, image_object_list, roi_object_list
 
         elif self.compute_features and self.write_path is None:
             return feature_table
 
         elif self.extract_images and self.write_path is None:
-            return img_obj, roi_list
+            return image_object_list, roi_object_list
 
     def process_deep_learning(self,
                               output_slices=False,
