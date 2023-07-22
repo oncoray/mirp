@@ -353,12 +353,14 @@ def get_supervoxel_overlap(roi_obj, img_segments, mask=None):
     return overlap_segment_labels, overlap_frac, overlap_size
 
 
-def transform_images(img_obj: ImageClass,
-                     roi_list: List[RoiClass],
-                     settings: SettingsClass,
-                     compute_features=False,
-                     extract_images=False,
-                     file_path=None):
+def transform_images(
+        img_obj: ImageClass,
+        roi_list: List[RoiClass],
+        settings: SettingsClass,
+        compute_features: bool = False,
+        extract_images: bool = False,
+        file_path: Union[None, str] = None
+):
     """
     Performs image transformations and calculates features.
     :param img_obj: image object
@@ -371,11 +373,12 @@ def transform_images(img_obj: ImageClass,
     """
 
     # Empty list for storing features
-    feat_list = []
+    feature_list = []
+    response_map_list = []
 
     # Check if image transformation is required
     if settings.img_transform.spatial_filters is None:
-        return feat_list
+        return feature_list, response_map_list
 
     # Get spatial filters to apply
     spatial_filter = settings.img_transform.spatial_filters
@@ -383,94 +386,61 @@ def transform_images(img_obj: ImageClass,
     # Iterate over spatial filters
     for curr_filter in spatial_filter:
 
+        filter_obj = None
+
         if settings.img_transform.has_separable_wavelet_filter(x=curr_filter):
             # Separable wavelet filters
             from mirp.imageFilters.separableWaveletFilter import SeparableWaveletFilter
-
             filter_obj = SeparableWaveletFilter(settings=settings, name=curr_filter)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
-                                                         roi_list=roi_list,
-                                                         settings=settings,
-                                                         compute_features=compute_features,
-                                                         extract_images=extract_images,
-                                                         file_path=file_path)
 
         elif settings.img_transform.has_nonseparable_wavelet_filter(x=curr_filter):
             # Non-separable wavelet filters
             from mirp.imageFilters.nonseparableWaveletFilter import NonseparableWaveletFilter
-
             filter_object = NonseparableWaveletFilter(settings=settings, name=curr_filter)
-            feat_list += filter_object.apply_transformation(img_obj=img_obj,
-                                                            roi_list=roi_list,
-                                                            settings=settings,
-                                                            compute_features=compute_features,
-                                                            extract_images=extract_images,
-                                                            file_path=file_path)
 
         elif settings.img_transform.has_gaussian_filter(x=curr_filter):
             # Gaussian filters
             from mirp.imageFilters.gaussian import GaussianFilter
-
             filter_obj = GaussianFilter(settings=settings, name=curr_filter)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
-                                                         roi_list=roi_list,
-                                                         settings=settings,
-                                                         compute_features=compute_features,
-                                                         extract_images=extract_images,
-                                                         file_path=file_path)
 
         elif settings.img_transform.has_laplacian_of_gaussian_filter(x=curr_filter):
             # Laplacian of Gaussian filters
             from mirp.imageFilters.laplacianOfGaussian import LaplacianOfGaussianFilter
-
             filter_obj = LaplacianOfGaussianFilter(settings=settings, name=curr_filter)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
-                                                         roi_list=roi_list,
-                                                         settings=settings,
-                                                         compute_features=compute_features,
-                                                         extract_images=extract_images,
-                                                         file_path=file_path)
 
         elif settings.img_transform.has_laws_filter(x=curr_filter):
             # Laws' kernels
             from mirp.imageFilters.lawsFilter import LawsFilter
-
             filter_obj = LawsFilter(settings=settings, name=curr_filter)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
-                                                         roi_list=roi_list,
-                                                         settings=settings,
-                                                         compute_features=compute_features,
-                                                         extract_images=extract_images,
-                                                         file_path=file_path)
 
         elif settings.img_transform.has_gabor_filter(x=curr_filter):
             # Gabor kernels
             from mirp.imageFilters.gaborFilter import GaborFilter
-
             filter_obj = GaborFilter(settings=settings, name=curr_filter)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
-                                                         roi_list=roi_list,
-                                                         settings=settings,
-                                                         compute_features=compute_features,
-                                                         extract_images=extract_images,
-                                                         file_path=file_path)
 
         elif settings.img_transform.has_mean_filter(x=curr_filter):
             # Mean / uniform filter
             from mirp.imageFilters.meanFilter import MeanFilter
-
             filter_obj = MeanFilter(settings=settings, name=curr_filter)
-            feat_list += filter_obj.apply_transformation(img_obj=img_obj,
-                                                         roi_list=roi_list,
-                                                         settings=settings,
-                                                         compute_features=compute_features,
-                                                         extract_images=extract_images,
-                                                         file_path=file_path)
 
         else:
-            raise ValueError(f"{curr_filter} is not implemented as a spatial filter. Please use one of wavelet, laplacian_of_gaussian, mean or laws.")
+            raise ValueError(
+                f"{curr_filter} is not implemented as a spatial filter. Please use one of ",
+                ", ".join(settings.img_transform.get_available_image_filters())
+            )
 
-    return feat_list
+        current_feature_list, current_response_map_list = filter_obj.apply_transformation(
+            img_obj=img_obj,
+            roi_list=roi_list,
+            settings=settings,
+            compute_features=compute_features,
+            extract_images=extract_images,
+            file_path=file_path)
+
+        feature_list += current_feature_list
+        response_map_list += current_response_map_list
+
+    return feature_list, response_map_list
 
 
 def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False):
