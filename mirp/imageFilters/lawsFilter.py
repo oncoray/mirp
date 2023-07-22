@@ -3,14 +3,18 @@ import copy
 
 from typing import List, Union
 from mirp.imageClass import ImageClass
-from mirp.imageProcess import calculate_features
+from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import SeparableFilterSet, pool_voxel_grids
 from mirp.importSettings import SettingsClass
-from mirp.roiClass import RoiClass
 
 
-class LawsFilter:
+class LawsFilter(GenericFilter):
     def __init__(self, settings: SettingsClass, name: str):
+
+        super().__init__(
+            settings=settings,
+            name=name
+        )
 
         # Normalise kernel and energy filters? This is true by default (see IBSI).
         self.kernel_normalise = True
@@ -21,9 +25,6 @@ class LawsFilter:
 
         # Size of neighbourhood in chebyshev distance from center voxel
         self.delta: Union[None, int, List[int]] = settings.img_transform.laws_delta
-
-        # 2D or 3D filter
-        self.by_slice = settings.img_transform.by_slice
 
         # Whether Laws texture energy should be calculated
         self.calculate_energy = settings.img_transform.laws_calculate_energy
@@ -60,38 +61,7 @@ class LawsFilter:
 
                 yield filter_object
 
-    def apply_transformation(self,
-                             img_obj: ImageClass,
-                             roi_list: List[RoiClass],
-                             settings: SettingsClass,
-                             compute_features=False,
-                             extract_images=False,
-                             file_path=None):
-
-        feature_list = []
-
-        # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object():
-
-            # Create a response map.
-            response_map = filter_object.transform(img_obj=img_obj)
-
-            # Export the image.
-            if extract_images:
-                response_map.export(file_path=file_path)
-
-            # Compute features.
-            if compute_features:
-                feature_list += [calculate_features(img_obj=response_map,
-                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
-                                                    settings=settings.img_transform.feature_settings,
-                                                    append_str=response_map.spat_transform + "_")]
-
-            del response_map
-
-        return feature_list
-
-    def transform(self, img_obj):
+    def transform(self, img_obj: ImageClass):
 
         # Copy base image
         response_map = img_obj.copy(drop_image=True)
@@ -120,13 +90,15 @@ class LawsFilter:
         for ii, filter_set in enumerate(filter_set_list):
 
             # Convolve and compute response map.
-            pooled_voxel_grid = filter_set.convolve(voxel_grid=img_obj.get_voxel_grid(),
-                                                    mode=self.mode)
+            pooled_voxel_grid = filter_set.convolve(
+                voxel_grid=img_obj.get_voxel_grid(),
+                mode=self.mode)
 
             # Pool grids.
-            response_voxel_grid = pool_voxel_grids(x1=response_voxel_grid,
-                                                   x2=pooled_voxel_grid,
-                                                   pooling_method=self.pooling_method)
+            response_voxel_grid = pool_voxel_grids(
+                x1=response_voxel_grid,
+                x2=pooled_voxel_grid,
+                pooling_method=self.pooling_method)
 
             # Remove img_laws_grid to explicitly release memory when collecting garbage.
             del pooled_voxel_grid
@@ -160,9 +132,14 @@ class LawsFilter:
 
         # Create a filter set.
         if self.by_slice:
-            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel)
+            filter_set = SeparableFilterSet(
+                filter_x=filter_kernel,
+                filter_y=filter_kernel)
         else:
-            filter_set = SeparableFilterSet(filter_x=filter_kernel, filter_y=filter_kernel, filter_z=filter_kernel)
+            filter_set = SeparableFilterSet(
+                filter_x=filter_kernel,
+                filter_y=filter_kernel,
+                filter_z=filter_kernel)
 
         # Apply the filter.
         voxel_grid = filter_set.convolve(voxel_grid=voxel_grid, mode=self.mode)

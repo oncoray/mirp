@@ -5,17 +5,18 @@ import scipy.fft as fft
 
 from typing import List, Union
 from mirp.imageClass import ImageClass
-from mirp.imageProcess import calculate_features
 from mirp.importSettings import SettingsClass
-from mirp.roiClass import RoiClass
+from mirp.imageFilters.genericFilter import GenericFilter
 
 
-class NonseparableWaveletFilter:
+class NonseparableWaveletFilter(GenericFilter):
 
     def __init__(self, settings: SettingsClass, name: str):
 
-        # In-slice (2D) or 3D wavelet filters
-        self.by_slice = settings.img_transform.by_slice
+        super().__init__(
+            settings=settings,
+            name=name
+        )
 
         # Set wavelet family
         self.wavelet_family: Union[str, List[str]] = settings.img_transform.nonseparable_wavelet_families
@@ -75,39 +76,9 @@ class NonseparableWaveletFilter:
 
                         yield filter_object
 
-    def apply_transformation(self,
-                             img_obj: ImageClass,
-                             roi_list: List[RoiClass],
-                             settings: SettingsClass,
-                             compute_features: bool = False,
-                             extract_images: bool = False,
-                             file_path=None):
-        """Run feature computation and/or image extraction for transformed data"""
-        feature_list = []
-
-        # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object():
-
-            # Create a response map.
-            response_map = filter_object.transform(img_obj=img_obj)
-
-            # Export the image.
-            if extract_images:
-                response_map.export(file_path=file_path)
-
-            # Compute features.
-            if compute_features:
-                feature_list += [calculate_features(img_obj=response_map,
-                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
-                                                    settings=settings.img_transform.feature_settings,
-                                                    append_str=response_map.spat_transform + "_")]
-
-            del response_map
-
-        return feature_list
-
-    def transform(self,
-                  img_obj: ImageClass):
+    def transform(
+            self,
+            img_obj: ImageClass):
 
         # Copy base image
         response_map = img_obj.copy(drop_image=True)
