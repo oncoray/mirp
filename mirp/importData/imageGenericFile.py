@@ -916,7 +916,7 @@ class MaskFile(ImageFile):
 
     def __init__(
             self,
-            roi_name: Union[None, str, List[str], Dict[str]] = None,
+            roi_name: Union[None, str, List[str], Dict[str, str]] = None,
             **kwargs
     ):
         super().__init__(**kwargs)
