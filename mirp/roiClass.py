@@ -1051,7 +1051,7 @@ class RoiClass:
         elif self.roi is not None and file_path is not None:
             self.roi.write(
                 file_path=file_path,
-                file_name="_".join(roi_str_components + ["nii.gz"]))
+                file_name="_".join(roi_str_components + [".nii.gz"]))
 
         else:
             return
