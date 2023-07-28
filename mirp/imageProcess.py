@@ -396,7 +396,7 @@ def transform_images(
         elif settings.img_transform.has_nonseparable_wavelet_filter(x=curr_filter):
             # Non-separable wavelet filters
             from mirp.imageFilters.nonseparableWaveletFilter import NonseparableWaveletFilter
-            filter_object = NonseparableWaveletFilter(settings=settings, name=curr_filter)
+            filter_obj = NonseparableWaveletFilter(settings=settings, name=curr_filter)
 
         elif settings.img_transform.has_gaussian_filter(x=curr_filter):
             # Gaussian filters
