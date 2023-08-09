@@ -14,7 +14,7 @@ from mirp.importData.imageNumpyFileStack import MaskNumpyFileStack
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_single_image_import():
+def test_single_mask_import():
 
     # Read a Nifti image directly.
     mask_list = import_mask(
@@ -43,6 +43,7 @@ def test_single_image_import():
         mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy_slice", "mask"))
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskNumpyFileStack)
+    assert mask_list[0].modality == "generic_mask"
 
     # Read a Nifti image for a specific sample.
     mask_list = import_mask(
@@ -52,8 +53,9 @@ def test_single_image_import():
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskITKFile)
     assert mask_list[0].sample_name == "STS_001"
+    assert mask_list[0].modality == "generic_mask"
 
-    # Read a DICOM image stack for a specific sample.
+    # Read a DICOM RTSTRUCT file for a specific sample.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name="STS_001",
@@ -71,6 +73,7 @@ def test_single_image_import():
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskNumpyFile)
     assert mask_list[0].sample_name == "STS_001"
+    assert mask_list[0].modality == "generic_mask"
 
     # Read a numpy image stack for a specific sample.
     mask_list = import_mask(
@@ -80,6 +83,7 @@ def test_single_image_import():
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskNumpyFileStack)
     assert mask_list[0].sample_name == "STS_001"
+    assert mask_list[0].modality == "generic_mask"
 
     # Read a Nifti image by specifying the image name.
     mask_list = import_mask(
@@ -87,6 +91,7 @@ def test_single_image_import():
         mask_name="mask")
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskITKFile)
+    assert mask_list[0].modality == "generic_mask"
 
     # Read a numpy file by specifying the image name.
     mask_list = import_mask(
@@ -94,6 +99,7 @@ def test_single_image_import():
         mask_name="*mask")
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskNumpyFile)
+    assert mask_list[0].modality == "generic_mask"
 
     # Read a numpy stack by specifying the image name.
     mask_list = import_mask(
@@ -101,14 +107,4 @@ def test_single_image_import():
         mask_name="*mask")
     assert len(mask_list) == 1
     assert isinstance(mask_list[0], MaskNumpyFileStack)
-
-    # Read a DICOM image stack by specifying the modality, the sample name and the file type.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
-        sample_name="STS_001",
-        mask_modality="rtstruct",
-        mask_file_type="dicom")
-    assert len(mask_list) == 1
-    assert isinstance(mask_list[0], MaskDicomFileRTSTRUCT)
-    assert mask_list[0].sample_name == "STS_001"
-    assert mask_list[0].modality == "rtstruct"
+    assert mask_list[0].modality == "generic_mask"
