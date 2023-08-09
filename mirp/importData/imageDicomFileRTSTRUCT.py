@@ -29,6 +29,18 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def create(self):
         return self
 
+    def _complete_image_origin(self, force=False):
+        return
+
+    def _complete_image_orientation(self, force=False):
+        return
+
+    def _complete_image_spacing(self, force=False):
+        return
+
+    def _complete_image_dimensions(self, force=False):
+        return
+
     def _complete_frame_of_reference_uid(self):
         if self.frame_of_reference_uid is None:
             # Try to obtain a frame of reference UID
