@@ -938,6 +938,11 @@ class MaskFile(ImageFile):
             f"implementation for subclasses."
         )
 
+    def _complete_modality(self):
+        # Set modality.
+        if self.modality is None:
+            self.modality = "generic_mask"
+
     def _complete_image_origin(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_origin. Please specify "
