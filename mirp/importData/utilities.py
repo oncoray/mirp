@@ -43,7 +43,7 @@ def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
         modality = modality.lower()
 
     if modality is None:
-        return ["rtsruct", "seg", "generic_mask"]
+        return ["rtstruct", "seg", "generic_mask"]
 
     elif modality == "rtstruct":
         return ["rtstruct"]
