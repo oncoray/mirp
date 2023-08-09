@@ -2,6 +2,7 @@ import copy
 import fnmatch
 import hashlib
 import itertools
+import math
 import os
 import os.path
 import re
@@ -13,7 +14,7 @@ from typing import Union, List, Tuple, Dict
 
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
-from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name
+from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance
 
 
 class ImageFile:
@@ -106,6 +107,44 @@ class ImageFile:
             return hashlib.sha256(str(identifier_data).encode(), usedforsecurity=False).digest()
         else:
             return identifier_data
+
+    def associate_with_mask(self, mask_list):
+        import math
+
+        if mask_list is None:
+            return None
+
+        if len(mask_list) == 0:
+            return None
+
+        # Match on sample name.
+        if self.sample_name is not None:
+            matching_mask_list = [
+                mask_file for mask_file in mask_list
+                if self.sample_name == mask_file.sample_name
+            ]
+
+            if len(matching_mask_list) > 0:
+                return matching_mask_list
+
+        # Match on path distance. Then masks are filtered based on distance to the image, with masks with minimum
+        # distance to the image being kept.
+        if self.dir_path is not None:
+            file_distance = [
+                compute_file_distance(self.dir_path, mask_file.dir_path)
+                for mask_file in mask_list
+            ]
+
+            if any(math.isfinite(current_distance) for current_distance in file_distance):
+                min_distance = min(file_distance)
+                matching_mask_list = [
+                    mask_file for ii, mask_file in enumerate(mask_list)
+                    if file_distance[ii] == min_distance
+                ]
+
+                return matching_mask_list
+
+        return None
 
     def set_sample_name(self, sample_name: str):
 

@@ -1,5 +1,6 @@
 import os.path
 import fnmatch
+import math
 from typing import Union, List
 from os.path import split
 
@@ -293,3 +294,22 @@ def dir_structure_contains_directory(
 
     # Find if any pattern is exactly matched.
     return any(x_elem in pattern for x_elem in x)
+
+
+def compute_file_distance(
+        x: Union[None, str],
+        y: Union[None, str]
+):
+    if x is None or y is None:
+        return math.inf
+
+    try:
+        common_path = os.path.commonpath([x, y])
+    except ValueError:
+        return math.inf
+
+    # Split to
+    common_path = path_to_parts(common_path)
+    x = path_to_parts(x)
+
+    return len(x) - len(common_path)

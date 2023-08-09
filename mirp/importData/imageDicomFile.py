@@ -316,6 +316,25 @@ class ImageDicomFile(ImageFile):
                 tag_type="str"
             )
 
+    def associate_with_mask(self, mask_list):
+        if mask_list is None:
+            return None
+
+        if len(mask_list) == 0:
+            return None
+
+        # Match on frame of reference UID:
+        if self.frame_of_reference_uid is not None:
+            matching_mask_list = [
+                mask_file for mask_file in mask_list
+                if self.frame_of_reference_uid == mask_file.frame_of_reference_uid
+            ]
+
+            if len(matching_mask_list) > 0:
+                return matching_mask_list
+
+        return super().associate_with_mask(mask_list=mask_list)
+
     def load_metadata(self):
         if self.image_metadata is not None:
             return
