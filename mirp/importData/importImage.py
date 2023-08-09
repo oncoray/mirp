@@ -114,15 +114,15 @@ def _(image: str, is_mask=False, **kwargs):
 
     elif os.path.isdir(image):
         if is_mask:
-            return _import_image(MaskDirectory(directory=image, **kwargs))
+            return _import_image(MaskDirectory(directory=image, **kwargs), remove_metadata=True)
         else:
-            return _import_image(ImageDirectory(directory=image, **kwargs))
+            return _import_image(ImageDirectory(directory=image, **kwargs), remove_metadata=True)
 
     elif os.path.exists(image):
         if is_mask:
-            return _import_image(MaskFile(file_path=image, **kwargs))
+            return _import_image(MaskFile(file_path=image, **kwargs), remove_metadata=True)
         else:
-            return _import_image(ImageFile(file_path=image, **kwargs))
+            return _import_image(ImageFile(file_path=image, **kwargs), remove_metadata=True)
 
     else:
         raise ValueError("The image path does not point to a xml file, a csv file, a valid image file or a directory "
@@ -153,9 +153,11 @@ def _(image: np.ndarray,
     image_object.update_image_data()
     image_object.check(raise_error=True, remove_metadata=False)
 
+    return image_object
+
 
 @_import_image.register(ImageFile)
-def _(image: ImageFile, **kwargs):
+def _(image: ImageFile, remove_metadata: bool = False, **kwargs):
 
     # Create image.
     image = image.create()
@@ -166,11 +168,14 @@ def _(image: ImageFile, **kwargs):
     # Complete image data and add identifiers (if any)
     image.complete()
 
+    if remove_metadata:
+        image.remove_metadata()
+
     return image
 
 
 @_import_image.register(ImageDirectory)
-def _(image: ImageDirectory, **kwargs):
+def _(image: ImageDirectory, remove_metadata: bool = False, **kwargs):
 
     # Check first if the data are consistent for a directory.
     image.check(raise_error=True)
@@ -179,4 +184,7 @@ def _(image: ImageDirectory, **kwargs):
     image.create_images()
 
     # Dispatch to import_image method for ImageFile objects. This performs a last check and completes the object.
-    return [_import_image(current_image, **kwargs) for current_image in image.image_files]
+    return [
+        _import_image(current_image, remove_metadata=remove_metadata, **kwargs)
+        for current_image in image.image_files
+    ]
