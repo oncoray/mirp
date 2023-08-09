@@ -114,15 +114,15 @@ def _(image: str, is_mask=False, **kwargs):
 
     elif os.path.isdir(image):
         if is_mask:
-            return MaskDirectory(directory=image, **kwargs)
+            return _import_image(MaskDirectory(directory=image, **kwargs))
         else:
-            return ImageDirectory(directory=image, **kwargs)
+            return _import_image(ImageDirectory(directory=image, **kwargs))
 
     elif os.path.exists(image):
         if is_mask:
-            return MaskFile(file_path=image, **kwargs).create()
+            return _import_image(MaskFile(file_path=image, **kwargs))
         else:
-            return ImageFile(file_path=image, **kwargs).create()
+            return _import_image(ImageFile(file_path=image, **kwargs))
 
     else:
         raise ValueError("The image path does not point to a xml file, a csv file, a valid image file or a directory "
@@ -157,8 +157,8 @@ def _(image: np.ndarray,
 @_import_image.register(ImageFile)
 def _(image: ImageFile, **kwargs):
 
-    if not issubclass(type(image), ImageFile):
-        image = image.create()
+    # Create image.
+    image = image.create()
 
     # Check if the data are consistent.
     image.check(raise_error=True)

@@ -175,10 +175,8 @@ class ImageDicomFile(ImageFile):
         elif modality == "mr":
             file_class = ImageDicomFileMR
         else:
-            raise NotImplementedError(
-                f"No routines were implemented for the current modality ({modality}). Please contact the developers "
-                f"if you want to see a particular modality ."
-            )
+            # This will return a base class, which will fail to pass the modality check.
+            return self
 
         return file_class(
             file_path=self.file_path,
@@ -404,10 +402,8 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         elif modality == "seg":
             file_class = MaskDicomFileSEG
         else:
-            raise NotImplementedError(
-                f"No routines were implemented for the current modality ({modality}). Please contact the developers "
-                f"if you want to see a particular modality added."
-            )
+            # This will return a base class, which will fail to pass the modality check.
+            return self
 
         return file_class(
             file_path=self.file_path,
