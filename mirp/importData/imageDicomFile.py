@@ -8,7 +8,7 @@ from pydicom import dcmread
 from warnings import warn
 
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
-from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities
+from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities, supported_mask_modalities
 from mirp.imageMetaData import get_pydicom_meta_tag
 
 
@@ -371,6 +371,19 @@ class ImageDicomFile(ImageFile):
 class MaskDicomFile(ImageDicomFile, MaskFile):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def _check_modality(self, raise_error: bool) -> bool:
+        dicom_modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str")
+        support_modalities = supported_mask_modalities(self.modality)
+        if dicom_modality.lower() not in support_modalities:
+            if raise_error:
+                raise ValueError(
+                    f"The current DICOM file {self.file_path} does not have the expected modality. "
+                    f"Found: {dicom_modality.lower()}. Expected: {', '.join(support_modalities)}")
+
+            return False
+
+        return True
 
     def load_data(self, **kwargs):
         raise NotImplementedError(
