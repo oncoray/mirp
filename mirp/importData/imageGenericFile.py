@@ -75,6 +75,7 @@ class ImageFile:
 
         self.file_name: Union[None, str] = file_name
         self.dir_path: Union[None, str] = dir_path
+        self.associated_masks = None
 
     def is_stackable(self, stack_images: str):
         raise NotImplementedError(

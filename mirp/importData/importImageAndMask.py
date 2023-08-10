@@ -1,8 +1,9 @@
-from typing import Union, List
+from typing import Union, List, Set
 
 from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
+from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
 
 def import_image_and_mask(
         image,
@@ -16,6 +17,7 @@ def import_image_and_mask(
         mask_file_type: Union[None, str] = None,
         mask_modality: Union[None, str, List[str]] = None,
         mask_sub_folder: Union[None, str] = None,
+        association_strategy: Union[None, str, List[str]] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto"):
 
@@ -41,6 +43,14 @@ def import_image_and_mask(
         stack_masks=stack_masks
     )
 
+    # Determine association strategy, if this is unset.
+    possible_association_strategy = set_association_strategy(image_list=image_list, mask_list=mask_list)
+    if association_strategy is None:
+        association_strategy = possible_association_strategy
+
+    # Test association strategy.
+    ...
+
     # Associate images with mask objects.
     # This is done using the following steps:
     # 1. Associate based on frame of reference identifiers.
@@ -53,6 +63,56 @@ def import_image_and_mask(
     )
 
     # Assign sample names to images and associated masks.
+    ...
+
+
+def set_association_strategy(
+        image_list: List[ImageFile, ImageDicomFile],
+        mask_list: List[MaskFile, MaskDicomFile]
+) -> Set[str]:
+    # Association strategy is set by a process of elimination.
+    possible_strategies = {
+        "frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position"
+    }
+
+    # Check if set is ava
+    if len(mask_list) == 0 or len(image_list) == 0:
+        return set([])
+
+    # Check if association by list order is possible.
+    if len(image_list) != len(mask_list):
+        possible_strategies.remove(element="list_order")
+
+    # Check if association by frame of reference UID is possible.
+    if any(isinstance(image, ImageDicomFile) for image in image_list) and \
+            any(isinstance(mask, MaskDicomFile) for mask in mask_list):
+        dcm_image_list: List[ImageDicomFile] = [image for image in image_list if isinstance(image, ImageDicomFile)]
+        dcm_mask_list: List[MaskDicomFile] = [mask for mask in mask_list if isinstance(mask, MaskDicomFile)]
+
+        # If frame of reference UIDs are completely absent.
+        if all(image.frame_of_reference_uid is None for image in dcm_image_list) or \
+                all(mask.frame_of_reference_uid is None for mask in dcm_mask_list):
+            possible_strategies.remove(element="frame_of_reference")
+
+    else:
+        possible_strategies.remove(element="frame_of_reference")
+
+    # Check if association by sample name is possible.
+    if all(image.sample_name is None for image in image_list) or all(mask.sample_name is None for mask in mask_list):
+        possible_strategies.remove(element="sample_name")
+
+    # Check if file_distance is possible. If directory are absent or singular, file distance cannot be used for
+    # association.
+    image_dir_path = set(image.dir_path for image in image_list) - {None}
+    mask_dir_path = set(mask.dir_path for mask in mask_list) - {None}
+    if len(image_dir_path) <= 1 or len(mask_dir_path) <= 1:
+        possible_strategies.remove(element="file_distance")
+
+    # Check if file_name_similarity is possible. If file names are absent, this is not possible.
+    if all(image.file_name is None for image in image_list) and all(mask.file_name is None for mask in mask_list):
+        possible_strategies.remove(element="file_name_similarity")
+
+    # Check if position can be used.
     ...
 
 
