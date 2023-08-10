@@ -10,7 +10,7 @@ import warnings
 
 import numpy as np
 
-from typing import Union, List, Tuple, Dict
+from typing import Union, List, Tuple, Dict, Set
 
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
@@ -109,28 +109,26 @@ class ImageFile:
         else:
             return identifier_data
 
-    def associate_with_mask(self, mask_list):
+    def associate_with_mask(self, mask_list, association_strategy: Union[None, Set[str]] = None):
         import math
 
-        if mask_list is None:
-            return None
-
-        if len(mask_list) == 0:
-            return None
+        if mask_list is None or len(mask_list) == 0 or association_strategy is None:
+            return
 
         # Match on sample name.
-        if self.sample_name is not None:
+        if "sample_name" in association_strategy and self.sample_name is not None:
             matching_mask_list = [
                 mask_file for mask_file in mask_list
                 if self.sample_name == mask_file.sample_name
             ]
 
             if len(matching_mask_list) > 0:
-                return matching_mask_list
+                self.associated_masks = matching_mask_list
+                return
 
         # Match on path distance. Then masks are filtered based on distance to the image, with masks with minimum
         # distance to the image being kept.
-        if self.dir_path is not None:
+        if "file_distance" in association_strategy and self.dir_path is not None:
             file_distance = [
                 compute_file_distance(self.dir_path, mask_file.dir_path)
                 for mask_file in mask_list
@@ -143,9 +141,14 @@ class ImageFile:
                     if file_distance[ii] == min_distance
                 ]
 
-                return matching_mask_list
+                self.associated_masks = matching_mask_list
+                return
 
-        return None
+        # Match on file name similarity. The image is matched against the most similar mask.
+        if "file_name_similarity" in association_strategy and self.file_name is not None:
+            ...
+
+        return
 
     def set_sample_name(self, sample_name: str):
 

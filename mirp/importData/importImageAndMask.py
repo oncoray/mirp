@@ -5,6 +5,7 @@ from mirp.importData.importMask import import_mask
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
 
+
 def import_image_and_mask(
         image,
         mask,
@@ -43,27 +44,51 @@ def import_image_and_mask(
         stack_masks=stack_masks
     )
 
+    if len(image_list) == 0:
+        raise ValueError(f"No images were present.")
+
     # Determine association strategy, if this is unset.
     possible_association_strategy = set_association_strategy(image_list=image_list, mask_list=mask_list)
     if association_strategy is None:
         association_strategy = possible_association_strategy
+    elif isinstance(association_strategy, str):
+        association_strategy = [association_strategy]
+
+    if not isinstance(association_strategy, set):
+        association_strategy = set(association_strategy)
 
     # Test association strategy.
-    ...
+    unavailable_strategy = association_strategy - possible_association_strategy
+    if len(unavailable_strategy) > 0:
+        raise ValueError(
+            f"One or more strategies for associating images and masks are not available for the provided image and "
+            f"mask set: {', '.join(list(unavailable_strategy))}. Only the following strategies are available: "
+            f"{'. '.join(list(possible_association_strategy))}"
+        )
 
-    # Associate images with mask objects.
-    # This is done using the following steps:
-    # 1. Associate based on frame of reference identifiers.
-    # 2. Associate based on sample name.
-    # 3. Associate based on file distance.
-    # 4. Associate based on order (only if lists have the same length).
-    associated_masks = associate_masks_with_images(
-        image_list=image_list,
-        mask_list=mask_list
-    )
+    if len(possible_association_strategy) == 0:
+        raise ValueError(
+            f"No strategies for associating images and masks are available, indicating that there is no clear way to "
+            f"establish an association."
+        )
 
-    # Assign sample names to images and associated masks.
-    ...
+    # Start association.
+    if association_strategy == {"list_order"}:
+        # If only the list_order strategy is available, use this.
+        for ii, image in enumerate(image_list):
+            image.associated_masks = [mask_list[ii]]
+
+    elif association_strategy == {"single_image"}:
+        # If single_image is the only strategy, use this.
+        image_list[0].associated_masks = mask_list
+
+    else:
+        image_list: List[ImageFile] = [
+            image.associate_with_mask(mask_list=mask_list, association_strategy=association_strategy).copy()
+            for image in image_list
+        ]
+
+    return image_list
 
 
 def set_association_strategy(
@@ -72,16 +97,21 @@ def set_association_strategy(
 ) -> Set[str]:
     # Association strategy is set by a process of elimination.
     possible_strategies = {
-        "frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position"
+        "frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position",
+        "single_image"
     }
 
-    # Check if set is ava
+    # Check that images and masks are available
     if len(mask_list) == 0 or len(image_list) == 0:
         return set([])
 
     # Check if association by list order is possible.
     if len(image_list) != len(mask_list):
         possible_strategies.remove(element="list_order")
+
+    # Check that association with a single image is possible.
+    if len(image_list) > 1:
+        possible_strategies.remove(element="single_image")
 
     # Check if association by frame of reference UID is possible.
     if any(isinstance(image, ImageDicomFile) for image in image_list) and \
@@ -109,11 +139,27 @@ def set_association_strategy(
         possible_strategies.remove(element="file_distance")
 
     # Check if file_name_similarity is possible. If file names are absent, this is not possible.
-    if all(image.file_name is None for image in image_list) and all(mask.file_name is None for mask in mask_list):
+    if all(image.file_name is None for image in image_list) or all(mask.file_name is None for mask in mask_list):
         possible_strategies.remove(element="file_name_similarity")
 
     # Check if position can be used.
-    ...
+    if all(image.image_origin is None for image in image_list) or all(mask.image_origin is None for mask in mask_list):
+        possible_strategies.remove(element="position")
+    else:
+        image_position_data = set([
+            image.get_image_origin(as_str=True) + image.get_image_spacing(as_str=True) +
+            image.get_image_dimension(as_str=True) + image.get_image_orientation(as_str=True)
+            for image in image_list if image.image_origin is not None
+        ])
+        mask_position_data = set([
+            mask.get_image_origin(as_str=True) + mask.get_image_spacing(as_str=True) +
+            mask.get_image_dimension(as_str=True) + mask.get_image_orientation(as_str=True)
+            for mask in mask_list if mask.image_origin is not None
+        ])
+
+        # Check that there are more
+        if len(image_position_data) <= 1 or len(mask_position_data) <= 1:
+            possible_strategies.remove(element="position")
 
 
 def associate_masks_with_images(
