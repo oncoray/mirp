@@ -109,7 +109,10 @@ class ImageFile:
         else:
             return identifier_data
 
-    def associate_with_mask(self, mask_list, association_strategy: Union[None, Set[str]] = None):
+    def associate_with_mask(
+            self,
+            mask_list,
+            association_strategy: Union[None, Set[str]] = None):
         import math
 
         if mask_list is None or len(mask_list) == 0 or association_strategy is None:

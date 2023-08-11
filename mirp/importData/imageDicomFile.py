@@ -316,7 +316,10 @@ class ImageDicomFile(ImageFile):
                 tag_type="str"
             )
 
-    def associate_with_mask(self, mask_list, association_strategy=None):
+    def associate_with_mask(
+            self,
+            mask_list,
+            association_strategy=None):
         if mask_list is None or len(mask_list) == 0 or association_strategy is None:
             return None
 
