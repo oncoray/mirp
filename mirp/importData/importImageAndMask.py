@@ -92,8 +92,8 @@ def import_image_and_mask(
 
 
 def set_association_strategy(
-        image_list: List[ImageFile, ImageDicomFile],
-        mask_list: List[MaskFile, MaskDicomFile]
+        image_list: Union[List[ImageFile], List[ImageDicomFile]],
+        mask_list: Union[List[MaskFile], List[MaskDicomFile]]
 ) -> Set[str]:
     # Association strategy is set by a process of elimination.
     possible_strategies = {
@@ -107,11 +107,11 @@ def set_association_strategy(
 
     # Check if association by list order is possible.
     if len(image_list) != len(mask_list):
-        possible_strategies.remove(element="list_order")
+        possible_strategies.remove("list_order")
 
     # Check that association with a single image is possible.
     if len(image_list) > 1:
-        possible_strategies.remove(element="single_image")
+        possible_strategies.remove("single_image")
 
     # Check if association by frame of reference UID is possible.
     if any(isinstance(image, ImageDicomFile) for image in image_list) and \
@@ -122,29 +122,29 @@ def set_association_strategy(
         # If frame of reference UIDs are completely absent.
         if all(image.frame_of_reference_uid is None for image in dcm_image_list) or \
                 all(mask.frame_of_reference_uid is None for mask in dcm_mask_list):
-            possible_strategies.remove(element="frame_of_reference")
+            possible_strategies.remove("frame_of_reference")
 
     else:
-        possible_strategies.remove(element="frame_of_reference")
+        possible_strategies.remove("frame_of_reference")
 
     # Check if association by sample name is possible.
     if all(image.sample_name is None for image in image_list) or all(mask.sample_name is None for mask in mask_list):
-        possible_strategies.remove(element="sample_name")
+        possible_strategies.remove("sample_name")
 
     # Check if file_distance is possible. If directory are absent or singular, file distance cannot be used for
     # association.
     image_dir_path = set(image.dir_path for image in image_list) - {None}
     mask_dir_path = set(mask.dir_path for mask in mask_list) - {None}
     if len(image_dir_path) <= 1 or len(mask_dir_path) <= 1:
-        possible_strategies.remove(element="file_distance")
+        possible_strategies.remove("file_distance")
 
     # Check if file_name_similarity is possible. If file names are absent, this is not possible.
     if all(image.file_name is None for image in image_list) or all(mask.file_name is None for mask in mask_list):
-        possible_strategies.remove(element="file_name_similarity")
+        possible_strategies.remove("file_name_similarity")
 
     # Check if position can be used.
     if all(image.image_origin is None for image in image_list) or all(mask.image_origin is None for mask in mask_list):
-        possible_strategies.remove(element="position")
+        possible_strategies.remove("position")
     else:
         image_position_data = set([
             image.get_image_origin(as_str=True) + image.get_image_spacing(as_str=True) +
