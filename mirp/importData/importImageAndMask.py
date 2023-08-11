@@ -51,7 +51,11 @@ def import_image_and_mask(
         raise ValueError(f"No images were present.")
 
     # Determine association strategy, if this is unset.
-    possible_association_strategy = set_association_strategy(image_list=image_list, mask_list=mask_list)
+    possible_association_strategy = set_association_strategy(
+        image_list=image_list,
+        mask_list=mask_list
+    )
+
     if association_strategy is None:
         association_strategy = possible_association_strategy
     elif isinstance(association_strategy, str):
@@ -86,10 +90,22 @@ def import_image_and_mask(
         image_list[0].associated_masks = mask_list
 
     else:
-        image_list: List[ImageFile] = [
-            image.associate_with_mask(mask_list=mask_list, association_strategy=association_strategy).copy()
-            for image in image_list
-        ]
+        for ii, image in enumerate(image_list):
+            image.associate_with_mask(
+                mask_list=mask_list,
+                association_strategy=association_strategy
+            )
+
+        if all(image.associated_masks is None for image in image_list):
+            if "single_image" in association_strategy:
+                image_list[0].associated_masks = mask_list
+            elif "list_order" in association_strategy:
+                for ii, image in enumerate(image_list):
+                    image.associated_masks = [mask_list[ii]]
+
+    # Ensure that we are working with deep copies from this point - we don't want to propagate changes to masks,
+    # images by reference.
+    image_list = [image.copy() for image in image_list]
 
     return image_list
 
