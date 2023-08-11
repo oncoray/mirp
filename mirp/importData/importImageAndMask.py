@@ -154,7 +154,7 @@ def set_association_strategy(
     # association.
     image_dir_path = set(image.dir_path for image in image_list) - {None}
     mask_dir_path = set(mask.dir_path for mask in mask_list) - {None}
-    if len(image_dir_path) <= 1 or len(mask_dir_path) <= 1:
+    if len(image_dir_path) == 0 or len(mask_dir_path) <= 1:
         possible_strategies.remove("file_distance")
 
     # Check if file_name_similarity is possible. If file names are absent, this is not possible.
@@ -178,21 +178,6 @@ def set_association_strategy(
 
         # Check that there are more
         if len(image_position_data) <= 1 or len(mask_position_data) <= 1:
-            possible_strategies.remove(element="position")
+            possible_strategies.remove("position")
 
-
-def associate_masks_with_images(
-        image_list: List[ImageFile],
-        mask_list: List[MaskFile]
-):
-    associated_mask_list = [
-        image_file.associate_with_mask(mask_list=mask_list)
-        for image_file in image_list
-    ]
-
-    if all(mask_files is None for mask_files in associated_mask_list) and len(image_list) == len(mask_list):
-        associated_mask_list = [
-            [mask_file] for mask_file in mask_list
-        ]
-
-    return associated_mask_list
+    return possible_strategies
