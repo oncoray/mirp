@@ -8,7 +8,7 @@ from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
 
 def import_image_and_mask(
         image,
-        mask,
+        mask = None,
         sample_name: Union[None, str, List[str]] = None,
         image_name: Union[None, str, List[str]] = None,
         image_file_type: Union[None, str] = None,
@@ -21,6 +21,9 @@ def import_image_and_mask(
         association_strategy: Union[None, str, List[str]] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto"):
+
+    if mask is None:
+        mask = image
 
     # Generate list of images.
     image_list = import_image(
