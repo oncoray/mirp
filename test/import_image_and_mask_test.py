@@ -466,121 +466,120 @@ def test_single_image_and_mask_import_flat():
 
 def test_multiple_image_and_mask_import_flat():
 
-    # Read Nifti masks for specific samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+    # Read Nifti images and masks for specific samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         sample_name=["STS_002", "STS_003"],
+        image_name="#_CT_image",
         mask_name="#_CT_mask"
     )
-    assert len(mask_list) == 2
-    assert all(isinstance(mask_object, MaskITKFile) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_002", "STS_003"}
+    assert len(image_list) == 2
+    assert all(isinstance(image, ImageITKFile) for image in image_list)
+    assert all(image.modality == "generic" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskITKFile) for image in image_list)
+    assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read DICOM RTSTRUCT files for a specific samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+    # Read DICOM images and masks for a specific samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
         sample_name=["STS_002", "STS_003"],
-        mask_name="#_CT_RS"
-    )
-    assert len(mask_list) == 2
-    assert all(isinstance(mask_object, MaskDicomFileRTSTRUCT) for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_002", "STS_003"}
-    assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
-
-    # Read numpy masks for specific samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
-        sample_name=["STS_002", "STS_003"],
-        mask_name="CT_#_mask"
-    )
-    assert len(mask_list) == 2
-    assert all(isinstance(mask_object, MaskNumpyFile) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_002", "STS_003"}
-
-    # Read numpy mask stacks for specific samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
-        sample_name=["STS_002", "STS_003"],
-        mask_name="CT_#_*_mask"
-    )
-    assert len(mask_list) == 2
-    assert all(isinstance(mask_object, MaskNumpyFileStack) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_002", "STS_003"}
-
-    # Read Nifti masks for all samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
-        mask_name="#_CT_image")
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskITKFile) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
-
-    # Read DICOM RTSTRUCT files for all samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
-        mask_name="#_CT_*"
-    )
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskDicomFileRTSTRUCT) for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
-    assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
-
-    # Read numpy masks for all samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
-        mask_name="CT_#_mask"
-    )
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskNumpyFile) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
-
-    # Read numpy mask stacks for all samples.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
-        mask_name="CT_#_*_mask"
-    )
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskNumpyFileStack) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
-
-    # Read Nifti masks for all samples without specifying the sample name in the image name.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
-        mask_name="*CT_mask")
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskITKFile) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-
-    # Read DICOM RTSTRUCT files for all samples without specifying the image name.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+        image_modality="ct",
+        mask_name="#_CT_RS",
         mask_modality="rtstruct"
     )
-    assert len(mask_list) == 9
-    assert all(isinstance(mask_object, MaskDicomFileRTSTRUCT) for mask_object in mask_list)
-    assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
-    assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
+    assert len(image_list) == 2
+    assert all(isinstance(image, ImageDicomFileStack) for image in image_list)
+    assert all(image.modality == "ct" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskDicomFileRTSTRUCT) for image in image_list)
+    assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy masks for all samples without specifying the sample name in the image name.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
-        mask_name="CT_*_mask"
+    # Read numpy images and masks for specific samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+        sample_name=["STS_002", "STS_003"],
+        image_name="CT_#_image",
+        mask_name="CT_#_mask"
     )
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskNumpyFile) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
+    assert len(image_list) == 2
+    assert all(isinstance(image, ImageNumpyFile) for image in image_list)
+    assert all(image.modality == "generic" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskNumpyFile) for image in image_list)
+    assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy mask stacks for all samples without specifying the sample name in the image name.
-    mask_list = import_mask(
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
-        mask_name="CT_*_mask"
+    # Read numpy image and mask stacks for specific samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+        sample_name=["STS_002", "STS_003"],
+        image_name="CT_#_*_image",
+        mask_name="CT_#_*_mask"
     )
-    assert len(mask_list) == 3
-    assert all(isinstance(mask_object, MaskNumpyFileStack) for mask_object in mask_list)
-    assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
+    assert len(image_list) == 2
+    assert all(isinstance(image, ImageNumpyFileStack) for image in image_list)
+    assert all(image.modality == "generic" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskNumpyFileStack) for image in image_list)
+    assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+
+    # Read Nifti images and masks for all samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+        image_name="#_CT_image",
+        mask_name="#_CT_mask"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image, ImageITKFile) for image in image_list)
+    assert all(image.modality == "generic" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskITKFile) for image in image_list)
+    assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+
+    # Read DICOM images and masks for all samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+        image_modality="ct",
+        mask_name="#_CT_RS",
+        mask_modality="rtstruct"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image, ImageDicomFileStack) for image in image_list)
+    assert all(image.modality == "ct" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskDicomFileRTSTRUCT) for image in image_list)
+    assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+
+    # Read numpy images and masks for all samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+        image_name="CT_#_image",
+        mask_name="CT_#_mask"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image, ImageNumpyFile) for image in image_list)
+    assert all(image.modality == "generic" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskNumpyFile) for image in image_list)
+    assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+
+    # Read numpy images and masks for all samples in a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+        image_name="CT_#_*_image",
+        mask_name="CT_#_*_mask"
+    )
+    assert len(image_list) == 3
+    assert all(isinstance(image, ImageNumpyFileStack) for image in image_list)
+    assert all(image.modality == "generic" for image in image_list)
+    assert all(len(image.associated_masks) == 1 for image in image_list)
+    assert all(isinstance(image.associated_masks[0], MaskNumpyFileStack) for image in image_list)
+    assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
+    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
