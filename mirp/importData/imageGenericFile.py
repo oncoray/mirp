@@ -1175,7 +1175,7 @@ class MaskFile(ImageFile):
         else:
 
             # Identify available labels that are non-background.
-            labels: List[int] = np.difference(np.unique(self.image_data), [0]).tolist()
+            labels = list(set(np.unique(self.image_data)) - {0})
 
             if len(labels) == 0:
                 return None
