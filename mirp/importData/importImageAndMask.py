@@ -1,4 +1,4 @@
-from typing import Union, List, Set
+from typing import Union, List, Dict, Set
 
 from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
@@ -18,6 +18,7 @@ def import_image_and_mask(
         mask_file_type: Union[None, str] = None,
         mask_modality: Union[None, str, List[str]] = None,
         mask_sub_folder: Union[None, str] = None,
+        roi_name: Union[None, str, List[str], Dict[str, str]] = None,
         association_strategy: Union[None, str, List[str]] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto"):
@@ -44,7 +45,8 @@ def import_image_and_mask(
         mask_file_type=mask_file_type,
         mask_modality=mask_modality,
         mask_sub_folder=mask_sub_folder,
-        stack_masks=stack_masks
+        stack_masks=stack_masks,
+        roi_name=roi_name
     )
 
     if len(image_list) == 0:
