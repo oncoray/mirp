@@ -35,6 +35,8 @@ class ImageFile:
             image_dimensions: Union[None, Tuple[int]] = None,
             **kwargs):
 
+        super().__init__()
+
         self.file_path: Union[None, str] = file_path
         self.sample_name: Union[None, str, List[str]] = sample_name
         self.image_name: Union[None, str] = image_name
