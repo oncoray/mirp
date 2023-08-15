@@ -36,7 +36,8 @@ class ImageITKFile(ImageFile):
             image_origin=image_origin,
             image_orientation=image_orientation,
             image_spacing=image_spacing,
-            image_dimensions=image_dimensions
+            image_dimensions=image_dimensions,
+            **kwargs
         )
 
     def is_stackable(self, stack_images: str) -> bool:
