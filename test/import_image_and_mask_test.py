@@ -1,5 +1,4 @@
 import os.path
-
 import pytest
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
