@@ -355,7 +355,7 @@ class ImageFile:
 
         # Check that image_orientation has the correct number of dimensions, and is correctly formatted.
         if self.image_orientation is not None:
-            if not np.all(np.equal(self.image_orientation, len(data_shape))):
+            if not np.all(np.equal(self.image_orientation.shape, len(data_shape))):
                 if raise_error:
                     raise ValueError(
                         f"The orientation matrix should be square, with a dimension equal to the dimensions "
