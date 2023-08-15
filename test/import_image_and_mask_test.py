@@ -5,7 +5,6 @@ import pytest
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 from mirp.importData.importImageAndMask import import_image_and_mask
 from mirp.importData.imageITKFile import ImageITKFile, MaskITKFile
-from mirp.importData.imageDicomFile import ImageDicomFile
 from mirp.importData.imageDicomFileStack import ImageDicomFileStack
 from mirp.importData.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
 from mirp.importData.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
