@@ -398,50 +398,69 @@ def test_multiple_image_and_mask_import():
 
 
 def test_single_image_and_mask_import_flat():
-    # Read a Nifti mask directly.
-    mask_list = import_mask(
-        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+    # Read a Nifti image and mask from a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         sample_name="STS_001",
+        image_name="#_CT_image",
         mask_name="#_CT_mask")
-    assert len(mask_list) == 1
-    assert isinstance(mask_list[0], MaskITKFile)
-    assert mask_list[0].modality == "generic_mask"
-    assert mask_list[0].sample_name == "STS_001"
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageITKFile)
+    assert image_list[0].modality == "generic"
+    assert len(image_list[0].associated_masks) == 1
+    assert isinstance(image_list[0].associated_masks[0], MaskITKFile)
+    assert image_list[0].associated_masks[0].modality == "generic_mask"
+    assert image_list[0].sample_name == image_list[0].associated_masks[0].sample_name
 
-    # Read a DICOM RTSTRUCT masks.
-    mask_list = import_mask(
-        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
+    # Read a DICOM image and mask from a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
         sample_name="STS_001",
-        mask_name="*_CT_RS",
+        image_modality="ct",
+        mask_name="#_CT_RS",
         mask_modality="rtstruct")
-    assert len(mask_list) == 1
-    assert isinstance(mask_list[0], MaskDicomFileRTSTRUCT)
-    assert mask_list[0].sample_name == "STS_001"
-    assert mask_list[0].modality == "rtstruct"
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageDicomFileStack)
+    assert image_list[0].modality == "ct"
+    assert len(image_list[0].associated_masks) == 1
+    assert isinstance(image_list[0].associated_masks[0], MaskDicomFileRTSTRUCT)
+    assert image_list[0].associated_masks[0].modality == "rtstruct"
+    assert image_list[0].sample_name == image_list[0].associated_masks[0].sample_name
 
-    # Read a numpy mask directly.
-    mask_list = import_mask(
-        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
+    # Read a numpy image and mask from a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         sample_name="STS_001",
-        mask_name="CT_#_mask")
-    assert len(mask_list) == 1
-    assert isinstance(mask_list[0], MaskNumpyFile)
-    assert mask_list[0].sample_name == "STS_001"
+        image_name="CT_#_image",
+        mask_name="CT_#_mask"
+    )
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageNumpyFile)
+    assert image_list[0].modality == "generic"
+    assert len(image_list[0].associated_masks) == 1
+    assert isinstance(image_list[0].associated_masks[0], MaskNumpyFile)
+    assert image_list[0].associated_masks[0].modality == "generic_mask"
+    assert image_list[0].sample_name == image_list[0].associated_masks[0].sample_name
 
-    # Read a numpy mask.
-    mask_list = import_mask(
-        os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
+    # Read a numpy image and mask from a flat directory.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
         sample_name="STS_001",
+        image_name="CT_#_*_image",
         mask_name="CT_#_*_mask"
     )
-    assert len(mask_list) == 1
-    assert isinstance(mask_list[0], MaskNumpyFileStack)
-    assert mask_list[0].sample_name == "STS_001"
+    assert len(image_list) == 1
+    assert isinstance(image_list[0], ImageNumpyFileStack)
+    assert image_list[0].modality == "generic"
+    assert len(image_list[0].associated_masks) == 1
+    assert isinstance(image_list[0].associated_masks[0], MaskNumpyFileStack)
+    assert image_list[0].associated_masks[0].modality == "generic_mask"
+    assert image_list[0].sample_name == image_list[0].associated_masks[0].sample_name
 
     # Configurations that produce errors.
     with pytest.raises(ValueError):
-        _ = import_mask(
-            os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
+        _ = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
             sample_name="STS_001")
 
 
