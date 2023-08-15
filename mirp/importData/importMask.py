@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Dict
 
 from mirp.importData.imageGenericFile import MaskFile
 from mirp.importData.importImage import _import_image
@@ -12,6 +12,7 @@ def import_mask(
         mask_file_type: Union[None, str] = None,
         mask_modality: Union[None, str, List[str]] = None,
         mask_sub_folder: Union[None, str] = None,
+        roi_name: Union[None, str, List[str], Dict[str, str]] = None,
         stack_masks: str = "auto"
 ) -> List[MaskFile]:
     """
@@ -33,6 +34,7 @@ def import_mask(
     Note that only DICOM files contain metadata concerning modality. Options: "rtstruct", "seg" or "generic_mask".
     :param mask_sub_folder: Fixed directory substructure where mask files are located. If None, this directory
     substructure is not used for filtering files.
+    :param roi_name: Name of the regions of interest that should be assessed.
     :param stack_masks: One of auto, yes or no. If mask files in the same directory cannot be assigned to
     different samples, and are 2D (slices) of the same size, they might belong to the same 3D mask stack. "auto"
     will stack 2D numpy arrays, but not other file types. "yes" will stack all files that contain 2D images,
@@ -70,6 +72,7 @@ def import_mask(
         image_modality=mask_modality,
         image_sub_folder=mask_sub_folder,
         stack_images=stack_masks,
+        roi_name=roi_name,
         is_mask=True
     )
 

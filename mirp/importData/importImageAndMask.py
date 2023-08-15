@@ -8,7 +8,7 @@ from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
 
 def import_image_and_mask(
         image,
-        mask = None,
+        mask=None,
         sample_name: Union[None, str, List[str]] = None,
         image_name: Union[None, str, List[str]] = None,
         image_file_type: Union[None, str] = None,
