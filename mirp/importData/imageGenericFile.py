@@ -2,7 +2,6 @@ import copy
 import fnmatch
 import hashlib
 import itertools
-import math
 import os
 import os.path
 import re
