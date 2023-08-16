@@ -192,3 +192,67 @@ def test_read_numpy_image_and_mask_stack():
     assert len(roi_list) == 1
     assert all(isinstance(roi, RoiClass) for roi in roi_list)
     assert roi_list[0].name == "gtv"
+
+
+def test_read_dicom_image_and_mask_stack():
+    # Simple test.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm")
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, ImageClass)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, RoiClass) for roi in roi_list)
+    assert roi_list[0].name == "GTV_Mass_CT"
+
+    # With roi name specified.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        roi_name="GTV_Mass_CT"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, ImageClass)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, RoiClass) for roi in roi_list)
+    assert roi_list[0].name == "GTV_Mass_CT"
+
+    # With roi name not appearing.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        roi_name="some_roi"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, ImageClass)
+    assert len(roi_list) == 0
+
+    # Multiple roi names of which one is present.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        roi_name=["GTV_Mass_CT", "some_roi", "another_roi"]
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, ImageClass)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, RoiClass) for roi in roi_list)
+    assert roi_list[0].name == "GTV_Mass_CT"
+
+    # Multiple roi names, with dictionary to set labels.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        roi_name={"GTV_Mass_CT": "gtv", "2": "some_roi", "3": "another_roi"}
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, ImageClass)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, RoiClass) for roi in roi_list)
+    assert roi_list[0].name == "gtv"
