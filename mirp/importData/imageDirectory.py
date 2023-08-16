@@ -2,7 +2,7 @@ import os
 import os.path
 import copy
 
-from typing import Union, List
+from typing import Union, List, Dict
 from itertools import chain
 from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
     isolate_sample_name
@@ -569,11 +569,17 @@ class ImageDirectory:
 
 class MaskDirectory(ImageDirectory):
 
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            roi_name: Union[None, str, List[str], Dict[str, str]] = None,
+            **kwargs):
         super().__init__(**kwargs)
 
         # set object type, object class and object stack class.
         self.object_type = "mask"
         self.object_class = MaskFile
         self.object_stack_class = MaskFileStack
+
+        # Set roi name
+        self.roi_name = roi_name
 
