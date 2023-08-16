@@ -143,7 +143,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         if provided_roi_names is not None:
             roi_number_present = [
-                ii for ii, x in enumerate(roi_number_present) if roi_name_present[ii] in provided_roi_names
+                x for ii, x in enumerate(roi_number_present) if roi_name_present[ii] in provided_roi_names
             ]
             roi_name_present = [x for x in roi_name_present if x in provided_roi_names]
 
