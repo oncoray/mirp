@@ -482,11 +482,7 @@ class ImageDirectory:
         for image_file_name in self.image_files:
 
             # Create image file object.
-            image_file = self.object_class(
-                file_path=os.path.join(self.image_directory, image_file_name),
-                sample_name=self.sample_name,
-                image_modality=self.modality,
-                image_file_type=self.file_type).create()
+            image_file = self._create_image_file(image_file_name=image_file_name)
 
             if not image_file.check(raise_error=False):
                 continue
@@ -496,6 +492,18 @@ class ImageDirectory:
             image_file_list.append(image_file)
 
         return image_file_list
+
+    def _create_image_file(self, image_file_name):
+        image_file = self.object_class(
+            file_path=os.path.join(self.image_directory, image_file_name),
+            sample_name=self.sample_name,
+            image_modality=self.modality,
+            image_file_type=self.file_type
+        )
+
+        image_file.create()
+
+        return image_file
 
     def autostack(self):
         """
@@ -583,3 +591,15 @@ class MaskDirectory(ImageDirectory):
         # Set roi name
         self.roi_name = roi_name
 
+    def _create_image_file(self, image_file_name):
+        image_file = self.object_class(
+            file_path=os.path.join(self.image_directory, image_file_name),
+            sample_name=self.sample_name,
+            image_modality=self.modality,
+            image_file_type=self.file_type,
+            roi_name=self.roi_name
+        )
+
+        image_file.create()
+
+        return image_file
