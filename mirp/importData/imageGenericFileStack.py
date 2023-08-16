@@ -191,6 +191,19 @@ class ImageFileStack(ImageFile):
         for image_file_object in self.image_file_objects:
             image_file_object.load_data()
 
+    def stack_slices(self):
+        if self.image_data is not None:
+            return
+
+        image = np.zeros(self.image_dimension, dtype=np.float32)
+        for ii, image_file in enumerate(self.image_file_objects):
+            if image_file.image_data is None:
+                raise ValueError(
+                    "DEV: the image_data attribute of underlying image files are not set. Please call load_data first.")
+            image[ii, :, :] = image_file.image_data.astype(np.float32)
+
+        self.image_data = image
+
 
 class MaskFileStack(ImageFileStack, MaskFile):
 
@@ -234,3 +247,16 @@ class MaskFileStack(ImageFileStack, MaskFile):
         )
 
         return image_file_stack
+
+    def stack_slices(self):
+        if self.image_data is not None:
+            return
+
+        image = np.zeros(self.image_dimension, dtype=int)
+        for ii, image_file in enumerate(self.image_file_objects):
+            if image_file.image_data is None:
+                raise ValueError(
+                    "DEV: the image_data attribute of underlying mask files are not set. Please call load_data first.")
+            image[ii, :, :] = image_file.image_data.astype(int)
+
+        self.image_data = image

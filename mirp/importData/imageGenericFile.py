@@ -642,10 +642,22 @@ class ImageFile:
         self.image_metadata = None
 
     def load_data(self, **kwargs):
+        """
+        Loads data from file as numpy array, and attaches it to the current object by setting the image_data attribute.
+        :param kwargs: Unused arguments.
+        :return:
+        """
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
             f"implementation for subclasses."
         )
+
+    def stack_slices(self):
+        """
+        Stacks slices and sets the image_data attribute. Does nothing unless the image consists of stacks.
+        :return:
+        """
+        pass
 
     def update_image_data(self):
         if self.image_data is None:
@@ -720,6 +732,7 @@ class ImageFile:
 
         self.load_data()
         self.complete()
+        self.stack_slices()
         self.update_image_data()
 
         return ImageClass(
@@ -1127,6 +1140,7 @@ class MaskFile(ImageFile):
 
         self.load_data()
         self.complete()
+        self.stack_slices()
         self.update_image_data()
         self.check_mask(raise_error=True)
 
