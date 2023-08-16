@@ -451,5 +451,6 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
             image_spacing=self.image_spacing,
-            image_dimensions=self.image_dimension
+            image_dimensions=self.image_dimension,
+            roi_name=self.roi_name
         )
