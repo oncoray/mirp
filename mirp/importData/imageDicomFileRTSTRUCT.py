@@ -408,3 +408,24 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             int_slice_position = None
 
         return int_slice_position
+
+    def export_roi_labels(self):
+
+        self.load_metadata()
+
+        # Find which roi numbers (3006,0022) are associated with which roi names (3004,0024).
+        labels = [
+            get_pydicom_meta_tag(
+                dcm_seq=current_structure_set_roi_sequence, tag=(0x3006, 0x0026), tag_type="str", default=None)
+            for current_structure_set_roi_sequence in self.image_metadata[(0x3006, 0x0020)]
+        ]
+
+        if len(labels) == 0:
+            labels = None
+
+        return {
+            "sample_name": self.sample_name,
+            "dir_path": self.dir_path,
+            "file_path": self.file_name,
+            "roi_label": labels
+        }

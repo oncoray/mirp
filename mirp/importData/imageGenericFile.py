@@ -1246,3 +1246,23 @@ class MaskFile(ImageFile):
                 )]
 
         return roi_list
+
+    def export_roi_labels(self):
+
+        if self.image_data is None:
+            self.load_data()
+            self.complete()
+            self.stack_slices()
+
+        # Identify available labels that are non-background.
+        labels = list(set(np.unique(self.image_data)) - {0})
+
+        if len(labels) == 0:
+            labels = None
+
+        return {
+            "sample_name": self.sample_name,
+            "dir_path": self.dir_path,
+            "file_path": self.file_name,
+            "roi_label": labels
+        }

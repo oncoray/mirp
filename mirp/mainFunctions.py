@@ -6,15 +6,52 @@ import multiprocessing as mp
 import os
 import time
 from inspect import stack, getmodule
-from typing import Union, List
+from typing import Union, Optional, List
 
 import numpy as np
 import pandas as pd
 
+from mirp.importData.importMask import import_mask
 from mirp.importSettings import import_configuration_settings, import_data_settings
 from mirp.experimentClass import ExperimentClass
 
-def get_roi_names(data_config=None, settings_config=None, to_file=True):
+
+def get_roi_labels(
+        mask,
+        write_dir: Optional[str],
+        **kwargs
+) -> Optional[List[str]]:
+
+    # Import mask files
+    mask_list = import_mask(mask=mask, **kwargs)
+
+    if len(mask_list) == 0:
+        return None
+
+    # Get labels from mask and parse to a pandas.DataFrame.
+    roi_labels = [mask.export_roi_labels() for mask in mask_list]
+    roi_labels = [labels.update({"id": ii}) for ii, labels in enumerate(roi_labels)]
+    roi_labels = pd.concat(roi_labels)
+
+    if write_dir is not None:
+        # Check if the directory exists, and create otherwise.
+        if not os.path.exists(write_dir):
+            os.makedirs(write_dir)
+
+        file_path = os.path.join(write_dir, "roi_labels.csv")
+        roi_labels.to_csv(
+            path_or_buf=file_path,
+            sep=";",
+            na_rep="NA",
+            index=False,
+            decimal="."
+        )
+
+    else:
+        return roi_labels
+
+
+def _get_roi_names(data_config=None, settings_config=None, to_file=True):
     """ Allows automatic extraction of roi names """
 
     if settings_config is not None:
