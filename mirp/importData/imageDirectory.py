@@ -501,7 +501,7 @@ class ImageDirectory:
             image_file_type=self.file_type
         )
 
-        image_file.create()
+        image_file = image_file.create()
 
         return image_file
 
@@ -600,6 +600,6 @@ class MaskDirectory(ImageDirectory):
             roi_name=self.roi_name
         )
 
-        image_file.create()
+        image_file = image_file.create()
 
         return image_file
