@@ -151,3 +151,12 @@ class MaskITKFileStack(ImageITKFileStack, MaskFileStack):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def complete(self, remove_metadata=False, force=False):
+
+        super().complete(remove_metadata=False, force=force)
+
+        image_object = copy.deepcopy(self.image_file_objects[0])
+        image_object.complete(remove_metadata=False)
+
+        self.roi_name = image_object.roi_name

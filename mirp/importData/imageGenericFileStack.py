@@ -57,7 +57,8 @@ class ImageFileStack(ImageFile):
             image_origin=None,
             image_orientation=None,
             image_spacing=None,
-            image_dimensions=None
+            image_dimensions=None,
+            **kwargs
         )
 
         self.image_file_objects = image_file_objects
@@ -207,8 +208,12 @@ class ImageFileStack(ImageFile):
 
 class MaskFileStack(ImageFileStack, MaskFile):
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+            self,
+            image_file_objects: Union[List[MaskFile], List[MaskDicomFile], List[MaskITKFile], List[MaskNumpyFile]],
+            **kwargs):
+
+        super().__init__(image_file_objects=image_file_objects, **kwargs)
 
     def complete(self, remove_metadata=False, force=False):
         raise NotImplementedError(
@@ -243,7 +248,8 @@ class MaskFileStack(ImageFileStack, MaskFile):
             sample_name=self.sample_name,
             image_name=self.image_name,
             image_modality=self.modality,
-            image_file_type=file_type
+            image_file_type=file_type,
+            roi_name=self.roi_name
         )
 
         return image_file_stack
