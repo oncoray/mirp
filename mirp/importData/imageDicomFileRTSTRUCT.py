@@ -128,7 +128,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         ]
         roi_number_present = [
             get_pydicom_meta_tag(
-                dcm_seq=current_structure_set_roi_sequence, tag=(0x3006, 0x0026), tag_type="str", default=None)
+                dcm_seq=current_structure_set_roi_sequence, tag=(0x3006, 0x0022), tag_type="int", default=None)
             for current_structure_set_roi_sequence in self.image_metadata[(0x3006, 0x0020)]
         ]
 
@@ -142,7 +142,9 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             provided_roi_names = list(self.roi_name.keys())
 
         if provided_roi_names is not None:
-            roi_number_present = [x for ii, x in enumerate(roi_number_present) if roi_name_present[ii] in provided_roi_names]
+            roi_number_present = [
+                ii for ii, x in enumerate(roi_number_present) if roi_name_present[ii] in provided_roi_names
+            ]
             roi_name_present = [x for x in roi_name_present if x in provided_roi_names]
 
         if len(roi_number_present) == 0:
@@ -155,7 +157,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             current_roi_number = get_pydicom_meta_tag(
                 dcm_seq=roi_contour_sequence,
                 tag=(0x3006, 0x0084),
-                tag_type="str")
+                tag_type="int")
 
             if current_roi_number not in roi_number_present:
                 continue
