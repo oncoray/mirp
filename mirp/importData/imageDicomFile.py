@@ -41,7 +41,8 @@ class ImageDicomFile(ImageFile):
             image_origin=image_origin,
             image_orientation=image_orientation,
             image_spacing=image_spacing,
-            image_dimensions=image_dimensions
+            image_dimensions=image_dimensions,
+            **kwargs
         )
 
         # These are set using the 'complete' method.
