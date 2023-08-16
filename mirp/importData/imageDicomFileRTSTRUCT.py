@@ -185,7 +185,10 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             temp_mask_object.complete()
             temp_mask_object.update_image_data()
 
-            current_roi_name = [x for ii, x in enumerate(roi_name_present) if roi_number_present[ii] == current_roi_number]
+            current_roi_name = [
+                x for ii, x in enumerate(roi_name_present) if roi_number_present[ii] == current_roi_number
+            ][0]
+
             if isinstance(self.roi_name, dict):
                 current_roi_name = self.roi_name.get(current_roi_name)
 
