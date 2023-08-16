@@ -1,5 +1,4 @@
 import os.path
-import pytest
 
 from mirp.importData.importImageAndMask import import_image_and_mask
 from mirp.importData.readData import read_image_and_masks
