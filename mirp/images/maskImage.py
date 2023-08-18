@@ -121,3 +121,19 @@ class MaskImage(GenericImage):
                 xy_only=xy_only,
                 z_only=z_only
             )
+
+    def crop_to_size(self, center, crop_size):
+
+        if self.image_encoded:
+            self.decode_voxel_grid()
+            super().crop_to_size(
+                center=center,
+                crop_size=crop_size
+            )
+            self.encode_voxel_grid()
+
+        else:
+            super().crop_to_size(
+                center=center,
+                crop_size=crop_size
+            )

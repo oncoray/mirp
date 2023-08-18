@@ -486,23 +486,26 @@ class GenericImage(BaseImage):
         # Create corresponding image volumes by slicing original volume
         if z_only:
             image_data = image_data[
-                         min_bound_ind[0]:max_bound_ind[0] + 1,
-                         :,
-                         :]
+                min_bound_ind[0]:max_bound_ind[0] + 1,
+                :,
+                :
+            ]
             min_bound_ind[1] = 0
             min_bound_ind[2] = 0
         elif xy_only:
             image_data = image_data[
-                         :,
-                         min_bound_ind[1]:max_bound_ind[1] + 1,
-                         min_bound_ind[2]:max_bound_ind[2] + 1]
+                :,
+                min_bound_ind[1]:max_bound_ind[1] + 1,
+                min_bound_ind[2]:max_bound_ind[2] + 1
+            ]
             min_bound_ind[0] = 0
             max_bound_ind[0] = np.array(self.image_dimension)[0].astype(int)
         else:
             image_data = image_data[
-                         min_bound_ind[0]:max_bound_ind[0] + 1,
-                         min_bound_ind[1]:max_bound_ind[1] + 1,
-                         min_bound_ind[2]:max_bound_ind[2] + 1]
+                min_bound_ind[0]:max_bound_ind[0] + 1,
+                min_bound_ind[1]:max_bound_ind[1] + 1,
+                min_bound_ind[2]:max_bound_ind[2] + 1
+            ]
 
         # Update origin
         self.image_origin = tuple(self.to_world_coordinates(x=np.array(min_bound_ind)))
@@ -510,7 +513,7 @@ class GenericImage(BaseImage):
         # Update voxel grid
         self.set_voxel_grid(voxel_grid=image_data)
 
-    def crop_to_size(self, center, crop_size, xy_only=False):
+    def crop_to_size(self, center, crop_size):
         """Crop images to the exact size"""
 
         # Skip for missing images
@@ -525,40 +528,45 @@ class GenericImage(BaseImage):
 
         # Update grid origin and crop_size for the remainder of the calculation
         grid_origin[np.isnan(crop_size)] = 0
-        crop_size[np.isnan(crop_size)] = self.size[np.isnan(crop_size)]
+        crop_size[np.isnan(crop_size)] = np.array(self.image_dimension)[np.isnan(crop_size)]
 
         # Determine coordinates of the box that can be copied in the original space
         max_ind_orig = grid_origin + crop_size
         min_ind_orig = grid_origin
 
         # Update coordinates based on boundaries in the original images
-        max_ind_orig = np.minimum(max_ind_orig, self.size).astype(int)
-        min_ind_orig = np.maximum(min_ind_orig, [0, 0, 0]).astype(int)
+        max_ind_orig = np.minimum(max_ind_orig, np.array(self.image_dimension)).astype(int)
+        min_ind_orig = np.maximum(min_ind_orig, np.array([0, 0, 0])).astype(int)
 
         # Determine coordinates where this box should land, i.e. perform the coordinate transformation to grid index space.
         max_ind_grid = max_ind_orig - grid_origin
         min_ind_grid = min_ind_orig - grid_origin
 
         # Create an empty voxel_grid to copy to
-        cropped_grid = np.full(crop_size.astype(int), fill_value=np.nan)
+        cropped_image = np.full(crop_size.astype(int), fill_value=np.nan)
 
         # Get slice of voxel grid
-        voxel_grid = self.get_voxel_grid()[min_ind_orig[0]:max_ind_orig[0],
-                     min_ind_orig[1]:max_ind_orig[1],
-                     min_ind_orig[2]:max_ind_orig[2]]
+        image_data = self.get_voxel_grid()[
+            min_ind_orig[0]:max_ind_orig[0],
+            min_ind_orig[1]:max_ind_orig[1],
+            min_ind_orig[2]:max_ind_orig[2]
+        ]
 
         # Put the voxel grid slice into the cropped grid
-        cropped_grid[min_ind_grid[0]:max_ind_grid[0], min_ind_grid[1]:max_ind_grid[1],
-        min_ind_grid[2]:max_ind_grid[2]] = voxel_grid
+        cropped_image[
+            min_ind_grid[0]:max_ind_grid[0],
+            min_ind_grid[1]:max_ind_grid[1],
+            min_ind_grid[2]:max_ind_grid[2]
+        ] = image_data
 
         # Replace any remaining NaN values in the grid by the lowest intensity in voxel_grid
-        cropped_grid[np.isnan(cropped_grid)] = np.min(voxel_grid)
+        cropped_image[np.isnan(cropped_image)] = np.min(image_data)
 
         # Restore the original dtype in case it got lost
-        cropped_grid = cropped_grid.astype(voxel_grid.dtype)
+        cropped_image = cropped_image.astype(image_data.dtype)
 
         # Update origin
-        self.origin = self.to_world_coordinates(x=np.array(min_ind_orig))
+        self.image_origin = tuple(self.to_world_coordinates(x=np.array(min_ind_orig)))
 
         # Set voxel grid
-        self.set_voxel_grid(voxel_grid=cropped_grid)
+        self.set_voxel_grid(voxel_grid=cropped_image)
