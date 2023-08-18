@@ -37,6 +37,24 @@ class BaseImage:
         slice_positions = [0.0] + [slice_distance] * (self.image_dimension[0] - 1)
         return np.cumsum(slice_positions)
 
+    def world_coordinates(self):
+
+        # Create grid.
+        voxel_coordinate_z, voxel_coordinate_y, voxel_coordinate_x = np.mgrid[
+            :self.image_dimension[0],
+            :self.image_dimension[1],
+            :self.image_dimension[2]
+        ]
+
+        # Set voxel coordinates.
+        voxel_coordinates = np.array([
+            voxel_coordinate_z.flatten().astype(float),
+            voxel_coordinate_y.flatten().astype(float),
+            voxel_coordinate_x.flatten().astype(float)])
+
+        # Convert world coordinates.
+        return self.to_world_coordinates(x=voxel_coordinates)
+
     def to_world_coordinates(
             self,
             x: np.ndarray,
