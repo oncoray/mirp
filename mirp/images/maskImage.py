@@ -1,8 +1,9 @@
 import copy
 import numpy as np
-from typing import Optional, Union
+from typing import Optional, Union, List
 
 from mirp.images.genericImage import GenericImage
+from mirp.importSettings import SettingsClass
 
 
 class MaskImage(GenericImage):
@@ -20,7 +21,7 @@ class MaskImage(GenericImage):
 
     def encode_voxel_grid(self):
         # Check if image data are present, or are already encoded.
-        if self.image_data is None or self.image_encoded is True:
+        if self.is_empty() or self.image_encoded is True:
             return
 
         # Check that the image consists of boolean values.
@@ -72,11 +73,11 @@ class MaskImage(GenericImage):
             return decoded_voxel
 
     def set_voxel_grid(self, voxel_grid: np.ndarray):
+        self.image_encoded = False
         super().set_voxel_grid(voxel_grid=voxel_grid)
 
         # Force encoding if the data are boolean.
         if voxel_grid.dtype == bool:
-            self.image_encoded = False
             self.encode_voxel_grid()
 
     def get_voxel_grid(self) -> Union[None, np.ndarray]:
@@ -84,12 +85,70 @@ class MaskImage(GenericImage):
 
     def update_image_data(self):
         # Do not update image data if the data are absent, it is encoded, or the image is already a boolean mask.
-        if self.image_data is None or self.image_encoded or self.image_data.dtype == bool:
+        if self.is_empty() or self.image_encoded or self.image_data.dtype == bool:
             return
 
         # Ensure that mask consists of boolean values.
         self.image_data = np.around(self.image_data, 6) >= np.around(0.5, 6)
         self.encode_voxel_grid()
+
+    def interpolate(
+            self,
+            settings: SettingsClass):
+
+        # Set spacing
+        if settings.img_interpolate.new_spacing is None or not settings.img_interpolate.interpolate:
+            # Use original spacing.
+            new_spacing = self.image_spacing
+
+        elif settings.general.by_slice:
+            # Use provided spacing, in 2D. Spacing for interpolation across slices is set to the original spacing in
+            # case interpolation is only conducted within the slice.
+            new_spacing = list(settings.img_interpolate.new_spacing)
+            new_spacing[0] = self.image_spacing[0]
+
+        else:
+            # Use provided spacing, in 3D
+            new_spacing = settings.img_interpolate.new_spacing
+
+        # Set translation
+        translation: List[float] = [
+            settings.perturbation.translate_z,
+            settings.perturbation.translate_y,
+            settings.perturbation.translate_x
+        ]
+        for ii in range(len(translation)):
+            if translation[ii] is None:
+                translation[ii] = 0.0
+
+        if settings.general.by_slice:
+            translation[0] = 0.0
+
+        # Set rotation.
+        rotation = settings.perturbation.rotation_angles[0]
+
+        return self._interpolate(
+            by_slice=settings.general.by_slice,
+            interpolate=settings.img_interpolate.interpolate,
+            new_spacing=tuple(new_spacing),
+            translation=tuple(translation),
+            rotation=rotation,
+            spline_order=settings.roi_interpolate.spline_order,
+            anti_aliasing=settings.img_interpolate.anti_aliasing,
+            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
+        )
+
+    def register(
+            self,
+            image,
+            settings: SettingsClass
+    ):
+        return self._register(
+            image=image,
+            spline_order=settings.roi_interpolate.spline_order,
+            anti_aliasing=settings.img_interpolate.anti_aliasing,
+            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
+        )
 
     def add_noise(self, **kwargs):
         pass

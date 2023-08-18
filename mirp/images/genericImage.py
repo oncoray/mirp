@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from typing import Optional, Union
+from typing import Optional, Union, Tuple, List
 
 from mirp.images.baseImage import BaseImage
 from mirp.importSettings import SettingsClass
@@ -55,74 +55,74 @@ class GenericImage(BaseImage):
     def update_image_data(self):
         pass
 
-    def decimate(self, by_slice):
-        """
-        Decimates image by removing every second element
-        :param by_slice: Whether the analysis is conducted in 2D or 3D.
-        :return:
-        """
+    def interpolate(
+            self,
+            settings: SettingsClass):
 
-        # Skip for missing images
-        if self.image_data is None:
-            return
+        # Set spacing
+        if settings.img_interpolate.new_spacing is None or not settings.img_interpolate.interpolate:
+            # Use original spacing.
+            new_spacing = self.image_spacing
 
-        # Get the voxel grid
-        image_data = self.get_voxel_grid()
-        image_spacing = np.array(self.image_spacing)
-
-        # Update the voxel grid
-        if by_slice:
-            # Drop every second pixel
-            image_data = image_data[:, slice(None, None, 2), slice(None, None, 2)]
-            self.image_spacing = tuple(image_spacing[[1, 2]] * 2.0)
+        elif settings.general.by_slice:
+            # Use provided spacing, in 2D. Spacing for interpolation across slices is set to the original spacing in
+            # case interpolation is only conducted within the slice.
+            new_spacing = list(settings.img_interpolate.new_spacing)
+            new_spacing[0] = self.image_spacing[0]
 
         else:
-            # Drop every second voxel
-            image_data = image_data[slice(None, None, 2), slice(None, None, 2), slice(None, None, 2)]
+            # Use provided spacing, in 3D
+            new_spacing = settings.img_interpolate.new_spacing
 
-            # Update voxel spacing
-            self.image_spacing = tuple(image_spacing * 2.0)
+        # Set translation
+        translation: List[float] = [
+            settings.perturbation.translate_z,
+            settings.perturbation.translate_y,
+            settings.perturbation.translate_x
+        ]
+        for ii in range(len(translation)):
+            if translation[ii] is None:
+                translation[ii] = 0.0
 
-        # Update voxel grid. This also updates the size attribute.
-        self.set_voxel_grid(voxel_grid=image_data)
+        if settings.general.by_slice:
+            translation[0] = 0.0
 
-    def interpolate(self, by_slice, settings: SettingsClass):
+        # Set rotation.
+        rotation = settings.perturbation.rotation_angles[0]
+
+        return self._interpolate(
+            by_slice=settings.general.by_slice,
+            interpolate=settings.img_interpolate.interpolate,
+            new_spacing=tuple(new_spacing),
+            translation=tuple(translation),
+            rotation=rotation,
+            spline_order=settings.img_interpolate.spline_order,
+            anti_aliasing=settings.img_interpolate.anti_aliasing,
+            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
+        )
+
+    def _interpolate(
+            self,
+            by_slice: bool,
+            interpolate: bool,
+            new_spacing: Tuple[float],
+            translation: Tuple[float],
+            rotation: float,
+            spline_order: int,
+            anti_aliasing: bool,
+            anti_aliasing_smoothing_beta: float
+    ):
         """Performs interpolation of the image volume"""
         from mirp.imageProcess import gaussian_preprocess_filter
         from scipy.ndimage import map_coordinates
 
-        # Skip for missing images
-        if self.image_data is None:
+        # Skip for missing images.
+        if self.is_empty() is None:
             return
 
-        # Read interpolation flag.
-        interpolate_flag = settings.img_interpolate.interpolate
-
-        # Local interpolation constants
-        if settings.img_interpolate.new_spacing is None or not interpolate_flag:
-            # Use original spacing.
-            new_spacing = np.array(self.image_spacing)
-
-        else:
-            # Use provided spacing.
-            new_spacing = settings.img_interpolate.new_spacing
-            new_spacing = np.array(new_spacing)
-
-        # Read order of multidimensional spline filter (0=nearest neighbours, 1=linear, 3=cubic)
-        order = settings.img_interpolate.spline_order
-
-        # Set spacing for interpolation across slices to the original spacing in case interpolation is only conducted
-        # within the slice.
-        if by_slice:
-            new_spacing[0] = self.image_spacing[0]
-        new_spacing = new_spacing.astype(float)
-
-        # Image translation
-        translation = np.array([
-            settings.perturbation.translate_z,
-            settings.perturbation.translate_y,
-            settings.perturbation.translate_x
-        ])
+        # Translate tuples to np.array
+        new_spacing = np.array(new_spacing).astype(float)
+        translation = np.array(translation).astype(float)
 
         # Convert translation to [0.0, 1.0 range].
         translation = translation - np.floor(translation)
@@ -131,23 +131,23 @@ class GenericImage(BaseImage):
         self.translation = translation
 
         # Rotation around the z-axis (initial axis in numpy)
-        rotation_angle = np.radians(settings.perturbation.rotation_angles)
+        rotation_angle = np.radians(rotation)
 
         # Set rotation
-        self.rotation_angle = settings.perturbation.rotation_angles
+        self.rotation_angle = rotation
 
         # Skip if nor interpolation, nor affine transformation are required.
-        if not interpolate_flag and np.allclose(translation, 0.0) and np.isclose(rotation_angle, 0.0):
+        if not interpolate and np.allclose(translation, 0.0) and np.isclose(rotation_angle, 0.0):
             return
 
         # Check if pre-processing is required
-        if settings.img_interpolate.anti_aliasing:
+        if anti_aliasing:
             self.set_voxel_grid(
                 voxel_grid=gaussian_preprocess_filter(
                     orig_vox=self.get_voxel_grid(),
                     orig_spacing=np.array(self.image_spacing),
                     sample_spacing=new_spacing,
-                    param_beta=settings.img_interpolate.smoothing_beta,
+                    param_beta=anti_aliasing_smoothing_beta,
                     mode="nearest",
                     by_slice=by_slice
                 )
@@ -219,7 +219,7 @@ class GenericImage(BaseImage):
         sample_voxel_grid = map_coordinates(
             input=self.get_voxel_grid(),
             coordinates=voxel_map_coordinates,
-            order=order,
+            order=spline_order,
             mode="nearest"
         )
 
@@ -241,15 +241,105 @@ class GenericImage(BaseImage):
         self.interpolated = True
 
         # Set interpolation algorithm
-        if order == 0:
+        if spline_order == 0:
             self.interpolation_algorithm = "nnb"
-        elif order == 1:
+        elif spline_order == 1:
             self.interpolation_algorithm = "lin"
-        elif order > 1:
-            self.interpolation_algorithm = "si" + str(order)
+        elif spline_order > 1:
+            self.interpolation_algorithm = "si" + str(spline_order)
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=sample_voxel_grid)
+        self.update_image_data()
+
+    def register(
+            self,
+            image,
+            settings: SettingsClass
+    ):
+        return self._register(
+            image=image,
+            spline_order=settings.img_interpolate.spline_order,
+            anti_aliasing=settings.img_interpolate.anti_aliasing,
+            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
+        )
+
+    def _register(
+            self,
+            image,
+            spline_order: int,
+            anti_aliasing: bool,
+            anti_aliasing_smoothing_beta: float
+    ):
+        """Register this image with another image."""
+
+        from scipy.ndimage import map_coordinates
+        from mirp.imageProcess import gaussian_preprocess_filter
+
+        # This is just for type hinting. Use typing.Self once this is supported by the codestack.
+        image: GenericImage = image
+
+        # Skip if either internal or external image data are missing.
+        if self.is_empty() or image.is_empty():
+            return
+
+        # Check whether registration is required
+        registration_required = False
+
+        # Mismatch in grid dimension
+        if not np.array_equal(self.image_dimension, image.image_dimension):
+            registration_required = True
+
+        # Mismatch in origin
+        if not np.allclose(self.image_origin, image.image_origin):
+            registration_required = True
+
+        # Mismatch in spacing
+        if not np.allclose(self.image_spacing, image.image_spacing):
+            registration_required = True
+
+        # Mismatch in orientation
+        if not np.allclose(self.image_orientation, image.image_orientation):
+            registration_required = True
+
+        if not registration_required:
+            return
+
+        # Apply anti-aliasing.
+        if anti_aliasing:
+            self.set_voxel_grid(
+                voxel_grid=gaussian_preprocess_filter(
+                    orig_vox=self.get_voxel_grid(),
+                    orig_spacing=np.array(self.image_spacing),
+                    sample_spacing=np.array(image.image_spacing),
+                    param_beta=anti_aliasing_smoothing_beta,
+                    mode="nearest",
+                    by_slice=False
+                )
+            )
+
+        # Create grid coordinates in world space using the image object.
+        grid_coordinates = image.world_coordinates()
+
+        # Translate grid coordinates into voxel space of the current image.
+        grid_coordinates = self.to_voxel_coordinates(x=grid_coordinates)
+
+        # Interpolate at the grid coordinates.
+        new_mask = map_coordinates(
+            input=self.get_voxel_grid().astype(float),
+            coordinates=grid_coordinates,
+            order=spline_order,
+            mode="nearest"
+        )
+
+        # Restore form.
+        new_mask = np.reshape(new_mask, image.image_dimension)
+
+        # Update positional and affine parameters of the image.
+        self.image_orientation = copy.deepcopy(image.image_orientation)
+        self.image_origin = copy.deepcopy(image.image_origin)
+        self.image_spacing = copy.deepcopy(image.image_spacing)
+        self.set_voxel_grid(voxel_grid=new_mask)
         self.update_image_data()
 
     def add_noise(self, noise_level, noise_iteration_id):
@@ -461,6 +551,37 @@ class GenericImage(BaseImage):
             raise ValueError(f"{normalisation_method} is not a valid method for normalising intensity values.")
 
         self.saturate(intensity_range=saturation_range)
+
+    def decimate(self, by_slice):
+        """
+        Decimates image by removing every second element
+        :param by_slice: Whether the analysis is conducted in 2D or 3D.
+        :return:
+        """
+
+        # Skip for missing images
+        if self.image_data is None:
+            return
+
+        # Get the voxel grid
+        image_data = self.get_voxel_grid()
+        image_spacing = np.array(self.image_spacing)
+
+        # Update the voxel grid
+        if by_slice:
+            # Drop every second pixel
+            image_data = image_data[:, slice(None, None, 2), slice(None, None, 2)]
+            self.image_spacing = tuple(image_spacing[[1, 2]] * 2.0)
+
+        else:
+            # Drop every second voxel
+            image_data = image_data[slice(None, None, 2), slice(None, None, 2), slice(None, None, 2)]
+
+            # Update voxel spacing
+            self.image_spacing = tuple(image_spacing * 2.0)
+
+        # Update voxel grid. This also updates the size attribute.
+        self.set_voxel_grid(voxel_grid=image_data)
 
     def crop(
             self,
