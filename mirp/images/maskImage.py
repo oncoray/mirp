@@ -12,6 +12,12 @@ class MaskImage(GenericImage):
 
         self.image_encoded = False
 
+    def is_empty(self):
+        if self.image_encoded:
+            return False
+        else:
+            return self.image_data is None
+
     def encode_voxel_grid(self):
         # Check if image data are present, or are already encoded.
         if self.image_data is None or self.image_encoded is True:

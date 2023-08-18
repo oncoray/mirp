@@ -42,6 +42,9 @@ class GenericImage(BaseImage):
     def drop_image(self):
         self.image_data = None
 
+    def is_empty(self):
+        return self.image_data is None
+
     def set_voxel_grid(self, voxel_grid: np.ndarray):
         self.image_data = voxel_grid
         self.image_dimension = tuple(voxel_grid.shape)
