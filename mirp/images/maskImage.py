@@ -1,5 +1,8 @@
 import copy
+import warnings
+
 import numpy as np
+import pandas as pd
 from typing import Optional, Union, List
 
 from mirp.images.genericImage import GenericImage
@@ -18,6 +21,15 @@ class MaskImage(GenericImage):
             return False
         else:
             return self.image_data is None
+
+    def is_empty_mask(self):
+        if self.is_empty():
+            return True
+
+        if np.sum(self.get_voxel_grid()) == 0:
+            return True
+
+        return False
 
     def encode_voxel_grid(self):
         # Check if image data are present, or are already encoded.
@@ -202,3 +214,238 @@ class MaskImage(GenericImage):
                 center=center,
                 crop_size=crop_size
             )
+
+    def dilate(
+            self,
+            by_slice: bool,
+            distance: Optional[float] = None,
+            voxel_distance: Optional[float] = None):
+        from mirp.featureSets.utilities import rep
+        import scipy.ndimage as ndi
+
+        # Skip if the mask does not exist
+        if self.is_empty():
+            return
+
+        # Check if any distance is provided for dilation
+        if voxel_distance is None and distance is None:
+            return
+
+        # Check whether voxel are isotropic.
+        if not self.is_isotropic(by_slice=by_slice):
+            warnings.warn(
+                "Non-uniform voxel spacing was detected. Mask dilation requires uniform voxel spacing.", UserWarning
+            )
+
+        # Set spacing
+        if by_slice:
+            spacing = np.array(self.image_spacing)[1, 2]
+        else:
+            spacing = np.array(self.image_spacing)
+
+        # Derive filter extension and distance
+        if distance is not None:
+            base_ext: int = np.max([np.floor(distance / np.max(spacing)).astype(int), 0])
+        else:
+            base_ext: int = int(voxel_distance)
+            distance = voxel_distance * np.max(spacing)
+
+        # Check that the dilation size is larger than 1, i.e. base_ext > 0.
+        if base_ext <= 0:
+            warnings.warn(
+                f"Mask was not dilated as the distance ({distance}) was too small compared to voxel spacing ("
+                f"{np.max(spacing)})", UserWarning
+            )
+            return
+
+        # Skip if there is no mask to dilate.
+        if self.is_empty_mask():
+            return
+
+        # Create displacement map
+        df_base = pd.DataFrame({
+            "x": rep(
+                x=np.arange(-base_ext, base_ext + 1),
+                each=(2 * base_ext + 1) * (2 * base_ext + 1),
+                times=1),
+            "y": rep(
+                x=np.arange(-base_ext, base_ext + 1),
+                each=2 * base_ext + 1,
+                times=2 * base_ext + 1),
+            "z": rep(
+                x=np.arange(-base_ext, base_ext + 1),
+                each=1,
+                times=(2 * base_ext + 1) * (2 * base_ext + 1))
+        })
+
+        # Calculate distances for displacement map.
+        df_base["dist"] = np.sqrt(
+            np.sum(np.multiply(df_base.loc[:, ("z", "y", "x")].values, self.image_spacing) ** 2.0, axis=1))
+
+        # Identify elements in range.
+        if by_slice:
+            df_base["in_range"] = np.logical_and(df_base.dist <= distance, df_base.z == 0)
+        else:
+            df_base["in_range"] = df_base.dist <= distance
+
+        # Update voxel coordinates to start at [0,0,0].
+        df_base.loc[:, ["x", "y", "z"]] -= df_base.loc[0, ["x", "y", "z"]]
+
+        # Generate geometric filter structure.
+        geom_struct = np.zeros(
+            shape=(np.max(df_base.z) + 1, np.max(df_base.y) + 1, np.max(df_base.x) + 1),
+            dtype=bool
+        )
+        geom_struct[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.in_range
+
+        # Dilate roi mask and store voxel grid.
+        self.set_voxel_grid(voxel_grid=ndi.binary_dilation(
+            self.get_voxel_grid(),
+            structure=geom_struct,
+            iterations=1)
+        )
+
+    def erode(
+            self,
+            by_slice: bool,
+            max_eroded_volume_fraction: float = 0.8,
+            distance: Optional[float] = None,
+            voxel_distance: Optional[float] = None
+    ):
+        import scipy.ndimage as ndi
+
+        # Skip if the mask does not exist
+        if self.is_empty():
+            return
+
+        # Check if any distance is provided for dilation
+        if voxel_distance is None and distance is None:
+            return
+
+        # Check whether voxel are isotropic.
+        if not self.is_isotropic(by_slice=by_slice):
+            warnings.warn(
+                "Non-uniform voxel spacing was detected. Mask erosion requires uniform voxel spacing.", UserWarning
+            )
+
+        # Set spacing.
+        if by_slice:
+            spacing = np.array(self.image_spacing)[1, 2]
+        else:
+            spacing = np.array(self.image_spacing)
+
+        # Set geometrical structure. For 2D, the structures in different slices are set to 0.
+        geom_struct = ndi.generate_binary_structure(3, 1)
+        if by_slice:
+            geom_struct[(0, 2), :, :] = False
+
+        # Set number of erosion steps.
+        if voxel_distance is None:
+            erode_steps = int(np.max([np.round(np.abs(distance) / np.max(spacing)), 0]))
+        else:
+            erode_steps = int(np.abs(voxel_distance))
+            distance = voxel_distance * np.max(spacing)
+
+        # Check that the number of erosion steps is positive.
+        if erode_steps <= 0:
+            warnings.warn(
+                f"Mask was not eroded as the distance ({distance}) was too small compared to voxel spacing ("
+                f"{np.max(spacing)})", UserWarning
+            )
+            return
+
+        # Skip if there is no mask to erode.
+        if self.is_empty_mask():
+            return
+
+        # Determine initial volume.
+        current_mask = previous_mask = self.get_voxel_grid()
+        initial_volume = np.sum(previous_mask)
+
+        # Iterate over erosion steps.
+        for step in np.arange(0, erode_steps):
+
+            # Perform erosion
+            current_mask = ndi.binary_erosion(previous_mask, structure=geom_struct, iterations=1)
+
+            # Calculate volume of the eroded volume
+            current_volume = np.sum(current_mask)
+
+            # Stop erosion if the volume shrinks below 80 percent of the original volume due to erosion and voxels
+            # from the previous erosion step.
+            if current_volume * 1.0 / initial_volume < max_eroded_volume_fraction:
+                current_mask = previous_mask
+                break
+            else:
+                previous_mask = current_mask
+
+        # Set updated voxels.
+        self.set_voxel_grid(voxel_grid=current_mask)
+
+    def fractional_volume_change(
+            self,
+            by_slice: bool,
+            fractional_change: Optional[float] = None
+    ):
+        import scipy.ndimage as ndi
+
+        # Skip if the roi does not exist
+        if self.is_empty():
+            return
+
+        if fractional_change is None or np.around(fractional_change, 6) == 0.0:
+            return
+
+        # Check whether voxel are isotropic.
+        if not self.is_isotropic(by_slice=by_slice):
+            warnings.warn(
+                "Non-uniform voxel spacing was detected. Mask erosion requires uniform voxel spacing.", UserWarning
+            )
+
+        # Skip if there is no mask to change.
+        if self.is_empty_mask():
+            return
+
+        # Set geometrical structure. For 2D, the structures in different slices are set to 0.
+        geom_struct = ndi.generate_binary_structure(3, 1)
+        if by_slice:
+            geom_struct[(0, 2), :, :] = False
+
+        # Determine original volume
+        previous_mask = self.get_voxel_grid()
+        initial_volume = np.sum(previous_mask)
+
+        # Iteratively grow or shrink the volume. The loop terminates through break statements
+        while True:
+            if fractional_change > 0.0:
+                current_mask = ndi.binary_dilation(previous_mask, structure=geom_struct, iterations=1)
+            else:
+                current_mask = ndi.binary_erosion(previous_mask, structure=geom_struct, iterations=1)
+
+            current_volume = np.sum(current_mask)
+            if current_volume == 0:
+                break
+
+            if 0.0 < fractional_change <= current_volume / initial_volume - 1.0:
+                break
+
+            if 0.0 > fractional_change >= current_volume / initial_volume - 1.0:
+                break
+
+            # Replace previous mask by the current mask.
+            previous_mask = current_mask
+
+        # Randomly add/remove border voxels until desired growth/shrinkage is achieved
+        if not current_volume / initial_volume - 1.0 == fractional_change:
+            additional_vox = np.abs(int(np.floor(initial_volume * (1.0 + fractional_change) - np.sum(previous_mask))))
+            if additional_vox > 0:
+                border_voxel_ind = np.array(np.where(np.logical_xor(previous_mask, current_mask)))
+                select_ind = np.random.choice(a=border_voxel_ind.shape[1], size=additional_vox, replace=False)
+                border_voxel_ind = border_voxel_ind[:, select_ind]
+                if fractional_change > 0.0:
+                    previous_mask[border_voxel_ind[0, :], border_voxel_ind[1, :], border_voxel_ind[2, :]] = True
+                else:
+                    previous_mask[border_voxel_ind[0, :], border_voxel_ind[1, :], border_voxel_ind[2, :]] = False
+
+        # Set the new roi
+        self.set_voxel_grid(voxel_grid=previous_mask)

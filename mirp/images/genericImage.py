@@ -371,6 +371,142 @@ class GenericImage(BaseImage):
         self.set_voxel_grid(voxel_grid=voxel_grid)
         self.update_image_data()
 
+    def estimate_noise(self, method="chang"):
+
+        import scipy.ndimage as ndi
+
+        # Skip if the image is missing
+        if self.is_empty():
+            return
+
+        if method == "rank":
+            """ Estimate image noise level using the method by Rank, Lendl and Unbehauen, Estimation of 
+            image noise variance, IEEE Proc. Vis. Image Signal Process (1999) 146:80-84"""
+
+            # Step 1: filter with a cascading difference filter to suppress original image
+            difference_filter = np.array([-1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)])
+
+            # Filter voxel volume
+            response_map = ndi.convolve1d(self.get_voxel_grid(), weights=difference_filter, axis=1)
+            response_map = ndi.convolve1d(response_map, weights=difference_filter, axis=2)
+
+            # Step 2: compute histogram of local standard deviation and calculate histogram
+            # Calculate local means
+            local_means = ndi.uniform_filter(response_map, size=[1, 3, 3])
+
+            # Calculate local sum of squares
+            sum_filter = np.array([1.0, 1.0, 1.0]) / 3.0
+            local_sum_square = ndi.convolve1d(np.power(response_map, 2.0), weights=sum_filter, axis=1)
+            local_sum_square = ndi.convolve1d(local_sum_square, weights=sum_filter, axis=2)
+
+            # Calculate local variance
+            local_variance = 1.0 / 8.0 * (local_sum_square - 9.0 * np.power(local_means, 2.0))
+
+            # Step 3: calculate median noise - this differs from the original
+            # Set local variances below 0 (due to floating point rounding) to 0.
+            local_variance = np.ravel(local_variance)
+            local_variance[local_variance < 0.0] = 0.0
+
+            # Select robust range (within IQR)
+            local_variance = local_variance[
+                np.percentile(local_variance, 25) <= local_variance <= np.percentile(local_variance, 75)
+            ]
+
+            # Calculate Gaussian noise
+            estimated_noise = np.sqrt(np.mean(local_variance))
+
+            del local_variance
+
+        elif method == "ikeda":
+            """ Estimate image noise level using a method by Ikeda, Makino, Imai et al., A method for estimating noise
+             variance of CT image, Comp Med Imaging Graph (2010) 34:642-650"""
+
+            # Step 1: filter with a cascading difference filter to suppress original image volume
+            diff_filter = np.array([-1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)])
+
+            # Filter voxel volume
+            response_map = ndi.convolve1d(self.get_voxel_grid(), weights=diff_filter, axis=1)
+            response_map = ndi.convolve1d(response_map, weights=diff_filter, axis=2)
+
+            # Step 2: calculate median noise
+            estimated_noise = np.median(np.abs(response_map)) / 0.6754
+
+        elif method == "chang":
+            """ Noise estimation based on wavelets used in Chang, Yu and Vetterli, Adaptive wavelet thresholding for image
+            denoising and compression. IEEE Trans Image Proc (2000) 9:1532-1546"""
+
+            import pywt
+
+            # Step 1: calculate HH subband of the wavelet transformation
+            # Generate digital wavelet filter
+            hi_filt = np.array(pywt.Wavelet("coif1").dec_hi)
+
+            # Calculate HH subband image
+            response_map = ndi.convolve1d(self.get_voxel_grid(), weights=hi_filt, axis=1)
+            response_map = ndi.convolve1d(response_map, weights=hi_filt, axis=2)
+
+            # Step 2: calculate median noise
+            estimated_noise = np.median(np.abs(response_map)) / 0.6754
+
+        elif method == "immerkaer":
+            """ Noise estimation based on laplacian filtering, described in Immerkaer, Fast noise variance estimation.
+            Comput Vis Image Underst (1995) 64:300-302"""
+
+            # Step 1: construct filter and filter voxel volume
+            # Create filter
+            noise_filt = np.array([[1.0, -2.0, 1.0], [-2.0, 4.0, -2.0], [1.0, -2.0, 1.0]], ndmin=3)
+
+            # Apply filter
+            response_map = ndi.convolve(self.get_voxel_grid(), weights=noise_filt)
+
+            # Step 2: calculate noise level
+            estimated_noise = np.sqrt(np.mean(np.power(response_map, 2.0))) / 36.0
+
+        elif method == "zwanenburg":
+            """ Noise estimation based on blob detection for weighting immerkaer filtering """
+
+            # Step 1: construct laplacian filter and filter voxel volume
+            # Create filter
+            noise_filt = np.array([[1.0, -2.0, 1.0], [-2.0, 4.0, -2.0], [1.0, -2.0, 1.0]], ndmin=3)
+
+            # Apply filter
+            response_map = ndi.convolve(self.get_voxel_grid(), weights=noise_filt)
+            response_map = np.power(response_map, 2.0)
+
+            # Step 2: construct blob weighting
+            # Spacing for gaussian
+            gauss_filt_spacing = np.full(shape=(3), fill_value=np.min(self.image_spacing))
+            gauss_filt_spacing = np.divide(gauss_filt_spacing, np.array(self.image_spacing))
+
+            # Difference of gaussians
+            weight_vox = ndi.gaussian_filter(
+                self.get_voxel_grid(),
+                sigma=1.0 * gauss_filt_spacing
+            ) - ndi.gaussian_filter(
+                self.get_voxel_grid(),
+                sigma=4.0 * gauss_filt_spacing
+            )
+
+            # Smooth edge detection
+            weight_vox = ndi.gaussian_filter(np.abs(weight_vox), sigma=2.0 * gauss_filt_spacing)
+
+            # Convert to weighting scale
+            weight_vox = 1.0 - weight_vox / np.max(weight_vox)
+
+            # Decrease weight of edge voxels
+            weight_vox = np.power(weight_vox, 2.0)
+
+            # Step 3: estimate noise level
+            estimated_noise = np.sqrt(np.sum(np.multiply(response_map, weight_vox)) / (36.0 * np.sum(weight_vox)))
+
+        else:
+            raise ValueError(
+                "The provided noise estimation method is not implemented. Use one of \"chang\" (default), "
+                "\"rank\", \"ikeda\", \"immerkaer\" or \"zwanenburg\"."
+            )
+
+        return estimated_noise
+
     def saturate(self, intensity_range, fill_value=None):
         """
         Saturate image intensities using an intensity range

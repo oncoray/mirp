@@ -37,6 +37,14 @@ class BaseImage:
         slice_positions = [0.0] + [slice_distance] * (self.image_dimension[0] - 1)
         return np.cumsum(slice_positions)
 
+    def is_isotropic(self, by_slice: bool) -> bool:
+        if by_slice:
+            spacing = np.array(self.image_spacing)[1, 2]
+        else:
+            spacing = np.array(self.image_spacing)
+
+        return all(spacing == spacing[0])
+
     def world_coordinates(self):
 
         # Create grid.
