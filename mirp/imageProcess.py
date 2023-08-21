@@ -1,13 +1,153 @@
-import logging
+from typing import Union, List, Tuple, Optional, Any
 from copy import deepcopy
 
 from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
-from typing import Union, List
+from mirp.images.genericImage import GenericImage
+from mirp.images.maskImage import MaskImage
+from mirp.masks.baseMask import BaseMask
+
 
 import numpy as np
 import pandas as pd
+
+
+def set_intensity_range(
+        image: GenericImage,
+        mask: Optional[MaskImage] = None,
+        intensity_range: Optional[Tuple[Any]] = None
+) -> Tuple[float]:
+    if intensity_range is not None and not np.any(np.isnan(intensity_range)):
+        return intensity_range
+
+    if mask is None or mask.is_empty() or mask.is_empty_mask():
+        mask_data = np.ones(image.image_dimension, dtype=bool)
+    else:
+        mask_data = mask.get_voxel_grid()
+
+    # Make intensity range mutable.
+    if intensity_range is None:
+        intensity_range = [np.nan, np.nan]
+    else:
+        intensity_range = list(intensity_range)
+
+    if np.isnan(intensity_range[0]):
+        intensity_range[0] = np.min(image.get_voxel_grid()[mask_data])
+    if np.isnan(intensity_range[1]):
+        intensity_range[1] = np.max(image.get_voxel_grid()[mask_data])
+
+    return tuple(intensity_range)
+
+
+def extend_intensity_range(
+        intensity_range: Tuple[Any],
+        extend_fraction=0.1
+) -> Optional[Tuple[Any]]:
+    if intensity_range is None or np.any(np.isnan(intensity_range)):
+        return intensity_range
+
+    if extend_fraction <= 0.0:
+        return intensity_range
+
+    # Add 10% range outside of the grey level range
+    extension = 0.1 * (intensity_range[1] - intensity_range[0])
+    intensity_range = list(intensity_range)
+    intensity_range[0] -= extension
+    intensity_range[1] += extension
+
+    return tuple(intensity_range)
+
+
+def crop(
+        image,
+        masks: Union[BaseMask, MaskImage, List[BaseMask]],
+        boundary: float = 0.0,
+        z_only: bool = False,
+        in_place: bool = False
+):
+    """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
+     memory and computational requirements. """
+
+    if masks is None:
+        return image, None
+    if len(masks) == 0:
+        return image, None
+
+    return_list = False
+    if isinstance(masks, list):
+        return_list = True
+        masks = [mask.roi for mask in masks]
+    elif isinstance(masks, BaseMask):
+        masks = [masks.roi]
+    elif isinstance(masks, MaskImage):
+        masks = [masks]
+    else:
+        raise TypeError("The masks argument is expected to be a BaseMask, a MaskImage or list of BaseMask objects.")
+
+    mask_boundary
+    for mask in masks:
+
+    roi_ext_x = [];  roi_ext_y = []; roi_ext_z = []
+
+    # Determine extent of all rois
+    for roi_obj in roi_list:
+
+        # Skip if the ROI is missing
+        if roi_obj.roi is None:
+            continue
+
+        z_ind, y_ind, x_ind = np.where(roi_obj.roi.get_voxel_grid() > 0.0)
+
+        # Skip if the ROI is empty
+        if len(z_ind) == 0 or len(y_ind) == 0 or len(x_ind) == 0:
+            continue
+
+        roi_ext_z += [np.min(z_ind), np.max(z_ind)]
+        roi_ext_y += [np.min(y_ind), np.max(y_ind)]
+        roi_ext_x += [np.min(x_ind), np.max(x_ind)]
+
+    # Check if the combined ROIs are empty
+    if not (len(roi_ext_z) == 0 or len(roi_ext_y) == 0 or len(roi_ext_x) == 0):
+
+        # Express boundary in voxels.
+        boundary = np.ceil(boundary / img_obj.spacing).astype(int)
+
+        # Concatenate extents for rois and add boundary to generate map extent
+        ind_ext_z = np.array([np.min(roi_ext_z) - boundary[0], np.max(roi_ext_z) + boundary[0]])
+        ind_ext_y = np.array([np.min(roi_ext_y) - boundary[1], np.max(roi_ext_y) + boundary[1]])
+        ind_ext_x = np.array([np.min(roi_ext_x) - boundary[2], np.max(roi_ext_x) + boundary[2]])
+
+        ####################################################################################################################
+        # Resect image based on roi extent
+        ####################################################################################################################
+
+        img_res = img_obj.copy()
+        img_res.crop(ind_ext_z=ind_ext_z, ind_ext_y=ind_ext_y, ind_ext_x=ind_ext_x, z_only=z_only)
+
+        ####################################################################################################################
+        # Resect rois based on roi extent
+        ####################################################################################################################
+
+        # Copy roi objects before resection
+        roi_res_list = [roi_res_obj.copy() for roi_res_obj in roi_list]
+
+        # Resect in place
+        [roi_res_obj.crop(ind_ext_z=ind_ext_z, ind_ext_y=ind_ext_y, ind_ext_x=ind_ext_x, z_only=z_only) for roi_res_obj in roi_res_list]
+
+    else:
+        # This happens if all rois are empty - only copies of the original image object and the roi are returned
+        img_res = img_obj.copy()
+        roi_res_list = [roi_res_obj.copy() for roi_res_obj in roi_list]
+
+    ####################################################################################################################
+    # Return to calling function
+    ####################################################################################################################
+
+    if return_roi_obj:
+        return img_res, roi_res_list[0]
+    else:
+        return img_res, roi_res_list
 
 
 def saturate_image(img_obj, intensity_range, fill_value):
@@ -262,7 +402,10 @@ def estimate_image_noise(img_obj, settings, method="chang"):
     return est_noise
 
 
-def get_supervoxels(
+
+
+
+def get_supervoxels_deprecated(
         img_obj: ImageClass,
         roi_obj: RoiClass,
         settings: SettingsClass):
@@ -325,7 +468,7 @@ def get_supervoxels(
     return img_segments
 
 
-def get_supervoxel_overlap(roi_obj, img_segments, mask=None):
+def get_supervoxel_overlap_deprecated(roi_obj, img_segments, mask=None):
     """Determines overlap of supervoxels with other the region of interest"""
 
     # Return None in case image segments and/or ROI are missing
@@ -443,7 +586,7 @@ def transform_images(
     return feature_list, response_map_list
 
 
-def crop_image(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False):
+def crop_image_deprecated(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_only=False):
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
 
@@ -860,9 +1003,9 @@ def calculate_features(img_obj: ImageClass,
 
         if settings.has_local_intensity_family():
             # Cut roi and image with 10 mm boundary
-            img_cut, roi_cut = crop_image(img_obj=img_obj,
-                                          roi_obj=roi_obj,
-                                          boundary=10.0)
+            img_cut, roi_cut = crop_image_deprecated(img_obj=img_obj,
+                                                     roi_obj=roi_obj,
+                                                     boundary=10.0)
 
             # Decode roi voxel grid
             roi_cut.decode_voxel_grid()
@@ -879,9 +1022,9 @@ def calculate_features(img_obj: ImageClass,
         ################################################################################################################
 
         # Cut roi and image to image
-        img_cut, roi_cut = crop_image(img_obj=img_obj,
-                                      roi_obj=roi_obj,
-                                      boundary=0.0)
+        img_cut, roi_cut = crop_image_deprecated(img_obj=img_obj,
+                                                 roi_obj=roi_obj,
+                                                 boundary=0.0)
 
         # Decode roi voxel grid
         roi_cut.decode_voxel_grid()

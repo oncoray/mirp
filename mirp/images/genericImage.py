@@ -830,3 +830,57 @@ class GenericImage(BaseImage):
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_image)
+
+    def get_supervoxels(
+            self,
+            intensity_range: Tuple[float]):
+        """Extracts supervoxels from an image"""
+
+        from skimage.segmentation import slic
+        from mirp.imageProcess import set_intensity_range, extend_intensity_range
+
+        if self.is_empty():
+            return None
+
+        # Update or set intensity range, and extend it by around 10% on either side.
+        intensity_range = set_intensity_range(image=self)
+        intensity_range = extend_intensity_range(intensity_range=intensity_range, extend_fraction=0.1)
+
+        # Get image data
+        image_data = copy.deepcopy(self.get_voxel_grid())
+
+        # Apply threshold
+        image_data[image_data < intensity_range[0]] = intensity_range[0]
+        image_data[image_data > intensity_range[1]] = intensity_range[1]
+
+        # Slic constants - sigma
+        sigma = 1.0 * np.min(self.image_spacing)
+
+        # Slic constants - number of segments.
+        min_n_voxels = np.max([20.0, 500.0 / np.prod(self.image_spacing)])
+        n_segments = int(np.prod(self.image_dimension) / min_n_voxels)
+
+        # Convert to float with range [0.0, 1.0]
+        image_data -= intensity_range[0]
+        image_data *= 1.0 / (intensity_range[1] - intensity_range[0])
+
+        if image_data.dtype not in ["float", "float64"]:
+            image_data = image_data.astype(float)
+
+        # Create a slic segmentation of the image stack
+        image_segments = slic(
+            image=image_data,
+            n_segments=n_segments,
+            sigma=sigma,
+            spacing=self.image_spacing,
+            compactness=0.05,
+            convert2lab=False,
+            enforce_connectivity=True,
+            channel_axis=None)
+
+        image_segments += 1
+
+        # Release image_data
+        del image_data
+
+        return image_segments

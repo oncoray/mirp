@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 
-from mirp.imageProcess import crop_image, get_supervoxels, get_supervoxel_overlap
+from mirp.imageProcess import crop_image_deprecated, get_supervoxels_deprecated, get_supervoxel_overlap_deprecated
 from mirp.utilities import extract_roi_names
 from mirp.importSettings import SettingsClass
 from mirp.imageClass import ImageClass
@@ -28,7 +28,7 @@ def randomise_roi_contours(
     for roi_ind in np.arange(0, len(roi_list)):
 
         # Resect image to speed up segmentation process
-        res_img_obj, res_roi_obj = crop_image(
+        res_img_obj, res_roi_obj = crop_image_deprecated(
             img_obj=img_obj,
             roi_obj=roi_list[roi_ind],
             boundary=25.0,
@@ -46,13 +46,13 @@ def randomise_roi_contours(
             continue
 
         # Get supervoxels
-        img_segments = get_supervoxels(
+        img_segments = get_supervoxels_deprecated(
             img_obj=res_img_obj,
             roi_obj=res_roi_obj,
             settings=settings)
 
         # Determine overlap of supervoxels with contour
-        overlap_indices, overlap_fract, overlap_size = get_supervoxel_overlap(
+        overlap_indices, overlap_fract, overlap_size = get_supervoxel_overlap_deprecated(
             roi_obj=res_roi_obj,
             img_segments=img_segments)
 

@@ -289,7 +289,7 @@ class ExperimentClass:
         import os
         import logging
         from mirp.imageRead import load_image
-        from mirp.imageProcess import crop_image, estimate_image_noise, interpolate_image,\
+        from mirp.imageProcess import crop_image_deprecated, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
             create_tissue_mask, bias_field_correction, normalise_image, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
@@ -362,7 +362,7 @@ class ExperimentClass:
 
             # Crop slice stack
             if self.settings.perturbation.crop_around_roi:
-                img_obj, roi_list = crop_image(img_obj=img_obj, roi_list=roi_list, boundary=self.settings.perturbation.crop_distance)
+                img_obj, roi_list = crop_image_deprecated(img_obj=img_obj, roi_list=roi_list, boundary=self.settings.perturbation.crop_distance)
 
             # Extract diagnostic features from initial image and rois
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
@@ -420,7 +420,7 @@ class ExperimentClass:
 
             # Crop image to a box extending at most 15 cm around the combined ROI
             if curr_setting.perturbation.crop_around_roi:
-                img_obj, roi_list = crop_image(
+                img_obj, roi_list = crop_image_deprecated(
                     img_obj=img_obj,
                     roi_list=roi_list,
                     boundary=curr_setting.perturbation.crop_distance,
