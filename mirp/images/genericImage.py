@@ -55,6 +55,24 @@ class GenericImage(BaseImage):
     def update_image_data(self):
         pass
 
+    def show(self, mask=None):
+        if self.is_empty():
+            return
+
+        import matplotlib.pyplot as plt
+        from mirp.images.utilities import InteractivePlot
+
+        figure, axes = plt.subplots()
+
+        # Create an index tracked object
+        tracker = InteractivePlot(
+            axes=axes,
+            image=self,
+            mask=mask)
+
+        figure.canvas.mpl_connect('scroll_event', tracker.onscroll)
+        plt.show()
+
     def interpolate(
             self,
             settings: SettingsClass):
