@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import copy
-from typing import Optional, List, Tuple, Any
+from typing import Optional, List, Tuple, Any, Union
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
@@ -25,7 +25,7 @@ class BaseMask:
         self.roi_morphology: Optional[MaskImage] = None
 
         # Set name of the mask.
-        self.roi_name = roi_name
+        self.roi_name: Union[str, List[str]] = roi_name
 
         # Set intensity range.
         self.intensity_range: Tuple[Any] = tuple([np.nan, np.nan])
@@ -50,6 +50,17 @@ class BaseMask:
             return True
 
         return self.roi.is_empty()
+
+    def append_name(self, x):
+        if isinstance(self.roi_name, str):
+            self.roi_name = [self.roi_name]
+
+        if isinstance(x, str):
+            self.roi_name += [x]
+        elif isinstance(x, list):
+            self.roi_name += x
+        else:
+            raise TypeError("The x attribute is expected to be a string or list of strings.")
 
     def interpolate(
             self,
@@ -123,15 +134,6 @@ class BaseMask:
                 self.roi_intensity = self.roi.copy()
             if self.roi_morphology is None:
                 self.roi_morphology = self.roi.copy()
-
-    # def update_roi(self):
-    #     """Update region of interest based on intensity and morphological masks"""
-    #
-    #     if self.roi is None or self.roi_intensity is None or self.roi_morphology is None:
-    #         return
-    #
-    #     self.roi.set_voxel_grid(
-    #         voxel_grid=np.logical_or(self.roi_intensity.get_voxel_grid(), self.roi_morphology.get_voxel_grid()))
 
     def decimate(self, by_slice):
         """
@@ -397,6 +399,9 @@ class BaseMask:
 
         return df_img
 
+    def get_bounding_box(self):
+        return self.roi.get_bounding_box()
+
     def compute_diagnostic_features(self, img_obj, append_str=""):
         """ Creates diagnostic features for the ROI """
 
@@ -473,15 +478,6 @@ class BaseMask:
         del roi_copy
 
         self.diagnostic_list += [df]
-
-    def get_bounding_box(self, roi_voxel_grid):
-        # Calculates coordinates of ROI bounding box
-        z_ind, y_ind, x_ind = np.where(roi_voxel_grid)
-        max_ind = np.array((np.max(z_ind), np.max(y_ind), np.max(x_ind)))
-        min_ind = np.array((np.min(z_ind), np.min(y_ind), np.min(x_ind)))
-        del z_ind, y_ind, x_ind
-
-        return min_ind, max_ind
 
     def get_center_slice(self):
         """ Identify location of the central slice in the roi """

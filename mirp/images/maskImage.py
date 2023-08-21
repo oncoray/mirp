@@ -453,113 +453,131 @@ class MaskImage(GenericImage):
     def randomise_mask(
             self,
             image: GenericImage,
-            randomise_roi: bool = True,
+            boundary: float = 25.0,
             repetitions: int = 1,
             intensity_range: Tuple[Any] = tuple([np.nan, np.nan]),
-            settings: SettingsClass):
+            by_slice: bool = False):
         """Use SLIC to randomise the roi based on supervoxels"""
         from scipy.ndimage import binary_closing
-        from mirp.imageProcess import crop_image_deprecated
+        from mirp.imageProcess import crop, set_intensity_range
 
         # Skip if no randomisation is required.
-        if not randomise_roi or repetitions < 1:
-            return
+        if repetitions < 1:
+            return None
 
         # Skip if the roi or image do not exist
         if self.is_empty() or image.is_empty():
-            return
+            return None
 
         # Skip if there is no mask to change.
         if self.is_empty_mask():
-            return
+            return None
 
-        # Resect image and mask to accelerate segmentation process.
-        cropped_image, cropped_mask = crop_image_deprecated(
-            img_obj=image,
-            roi_list=self,
-            boundary=25.0,
-            z_only=False
+        # Crop image and mask to accelerate segmentation process.
+        cropped_image, cropped_mask = crop(
+            image=image,
+            masks=self,
+            boundary=boundary,
+            xy_only=False,
+            z_only=False,
+            by_slice=by_slice,
+            in_place=False
         )
 
-        # Get supervoxels
-        img_segments = cropped_image.  (
-            img_obj=res_img_obj,
-            roi_obj=res_roi_obj,
-            settings=settings)
+        # Type hinting.
+        cropped_mask: MaskImage = cropped_mask
 
-        # Determine overlap of supervoxels with contour
-        overlap_indices, overlap_fract, overlap_size = get_supervoxel_overlap(
-            roi_obj=res_roi_obj,
-            img_segments=img_segments)
+        # Get supervoxels.
+        intensity_range = set_intensity_range(image=image, mask=self, intensity_range=intensity_range)
+        image_segments = cropped_image.get_supervoxels(intensity_range=intensity_range)
+        overlap_indices, overlap_fractions, overlap_size = cropped_mask.get_supervoxel_overlap(
+            image_segments=image_segments
+        )
 
-        # Iterate over roi objects
-        for roi_ind in np.arange(0, len(roi_list)):
+        # Skip if there are no overlapping supervoxels.
+        if overlap_indices is None:
+            return None
 
-            # Resect image to speed up segmentation process
-            res_img_obj, res_roi_obj = crop_image_deprecated(
-                img_obj=img_obj,
-                roi_obj=roi_list[roi_ind],
-                boundary=25.0,
-                z_only=False)
+        # Set the highest overlap to 1.0 to ensure selection of at least 1 supervoxel.
+        overlap_fractions[np.argmax(overlap_fractions)] = 1.0
 
-            # Check if the roi is empty. If so, add the number of required empty rois
-            if res_roi_obj.is_empty():
-                for ii in np.arange(settings.perturbation.roi_random_rep):
-                    repl_roi = roi_list[roi_ind].copy()
-                    repl_roi.name += "_svx_" + str(ii)  # Adapt roi name
-                    repl_roi.svx_randomisation_id = ii + 1  # Update randomisation id
-                    new_roi_list.append(repl_roi)
+        # Always include supervoxels with 90% coverage and always exclude those with less than 20% coverage.
+        overlap_fractions[overlap_fractions >= 0.90] = 1.0
+        overlap_fractions[overlap_fractions < 0.20] = 0.0
 
-                # Go on to the next roi in the roi list
-                continue
+        # Determine grid indices of the resected grid with respect to the original image grid.
+        grid_origin = image.to_voxel_coordinates(x=cropped_image.image_origin)
+        grid_origin = grid_origin.astype(int)
 
-            # Get supervoxels
-            img_segments = get_supervoxels(
-                img_obj=res_img_obj,
-                roi_obj=res_roi_obj,
-                settings=settings)
+        # Initialise list of randomised masks.
+        randomised_masks = []
 
-            # Determine overlap of supervoxels with contour
-            overlap_indices, overlap_fract, overlap_size = get_supervoxel_overlap(
-                roi_obj=res_roi_obj,
-                img_segments=img_segments)
+        for ii in range(repetitions):
+            # Draw random numbers between 0.0 and 1.0.
+            random_inclusion = np.random.random(size=len(overlap_fractions))
 
-            # Set the highest overlap to 1.0 to ensure selection of at least 1 supervoxel
-            overlap_fract[np.argmax(overlap_fract)] = 1.0
+            # Select those segments where the random number is less than the overlap fraction - i.e. the fraction is the
+            # probability of selecting the supervoxel.
+            included_segments = overlap_indices[np.less(random_inclusion, overlap_fractions)]
 
-            # Include supervoxels with 90% coverage and exclude those with less then 20% coverage
-            overlap_fract[overlap_fract >= 0.90] = 1.0
-            overlap_fract[overlap_fract < 0.20] = 0.0
+            # Replace randomised contour in original roi voxel space.
+            new_mask_data = np.zeros(shape=self.image_dimension, dtype=bool)
+            new_mask_data[
+                grid_origin[0]: grid_origin[0] + cropped_mask.image_dimension[0],
+                grid_origin[1]: grid_origin[1] + cropped_mask.image_dimension[1],
+                grid_origin[2]: grid_origin[2] + cropped_mask.image_dimension[2]
+            ] = np.reshape(np.in1d(np.ravel(image_segments), included_segments), cropped_mask.image_dimension)
 
-            # Determine grid indices of the resected grid with respect to the original image grid
-            grid_origin = img_obj.to_voxel_coordinates(x=res_img_obj.origin)
-            grid_origin = grid_origin.astype(int)
+            # Apply binary closing to close gaps.
+            new_mask_data = binary_closing(input=new_mask_data)
 
-            # Iteratively create randomised regions of interest
-            for ii in np.arange(settings.perturbation.roi_random_rep):
-                # Draw random numbers between 0.0 and 1.0
-                random_incl = np.random.random(size=len(overlap_fract))
+            # Set mask.
+            randomised_mask = self.copy(drop_image=True)
+            randomised_mask.set_voxel_grid(new_mask_data)
+            randomised_masks += [randomised_mask]
 
-                # Select those segments where the random number is less than the overlap fraction - i.e. the fraction is the
-                # probability of selecting the supervoxel
-                incl_segments = overlap_indices[np.less(random_incl, overlap_fract)]
+        if len(randomised_masks) == 0:
+            return None
 
-                # Replace randomised contour in original roi voxel space
-                roi_vox = np.zeros(shape=roi_list[roi_ind].roi.size, dtype=bool)
-                roi_vox[grid_origin[0]: grid_origin[0] + res_roi_obj.roi.size[0],
-                grid_origin[1]: grid_origin[1] + res_roi_obj.roi.size[1],
-                grid_origin[2]: grid_origin[2] + res_roi_obj.roi.size[2], ] = \
-                    np.reshape(np.in1d(np.ravel(img_segments), incl_segments), res_roi_obj.roi.size)
+        return randomised_masks
 
-                # Apply binary closing to close gaps
-                roi_vox = binary_closing(input=roi_vox)
+    def get_supervoxel_overlap(
+            self,
+            image_segments: Optional[np.ndarray]
+    ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
+        """Determines overlap of supervoxels with other the region of interest"""
 
-                # Update voxels in original roi, adapt name and set randomisation id
-                repl_roi = roi_list[roi_ind].copy()
-                repl_roi.roi.set_voxel_grid(
-                    voxel_grid=roi_vox)  # Replace copied original contour with randomised contour
-                repl_roi.name += "_svx_" + str(ii)  # Adapt roi name
-                repl_roi.svx_randomisation_id = ii + 1  # Update randomisation id
-                new_roi_list += [repl_roi]
+        # Return None in case image segments and/or mask are missing
+        if image_segments is None or self.is_empty() or self.is_empty_mask():
+            return None, None, None
 
-        return new_roi_list
+        # Determine labels and the voxel count of the masked image.
+        overlap_segment_labels, overlap_size = np.unique(
+            np.multiply(image_segments, self.get_voxel_grid()),
+            return_counts=True
+        )
+
+        # Find supervoxels with any overlap with the mask.
+        overlap_size = overlap_size[overlap_segment_labels > 0]
+        overlap_segment_labels = overlap_segment_labels[overlap_segment_labels > 0]
+
+        if len(overlap_size) == 0:
+            return None, None, None
+
+        # Check the actual size of the segments overlapping with the current contour
+        full_segment_size = list(map(lambda x: np.sum([image_segments == x]), overlap_segment_labels))
+
+        # Calculate the fraction of overlap
+        overlap_fraction = overlap_size / full_segment_size
+
+        return overlap_segment_labels, overlap_fraction, overlap_size
+
+    def get_bounding_box(self):
+        if self.is_empty() or self.is_empty_mask():
+            return None, None, None
+
+        z_ind, y_ind, x_ind = np.where(self.get_voxel_grid())
+
+        return tuple([np.min(z_ind), np.max(z_ind)]),\
+               tuple([np.min(y_ind), np.max(y_ind)]),\
+               tuple([np.min(x_ind), np.max(x_ind)])

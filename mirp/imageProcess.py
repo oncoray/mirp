@@ -60,95 +60,145 @@ def extend_intensity_range(
 
 
 def crop(
-        image,
+        image: GenericImage,
         masks: Union[BaseMask, MaskImage, List[BaseMask]],
         boundary: float = 0.0,
+        xy_only: bool = False,
         z_only: bool = False,
-        in_place: bool = False
-):
+        in_place: bool = False,
+        by_slice: bool = False
+) -> Tuple[GenericImage, Optional[BaseMask, MaskImage, List[BaseMask]]]:
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
 
     if masks is None:
         return image, None
-    if len(masks) == 0:
+    if isinstance(masks, list) and len(masks) == 0:
         return image, None
 
+    # Determine the return format.
     return_list = False
     if isinstance(masks, list):
         return_list = True
-        masks = [mask.roi for mask in masks]
-    elif isinstance(masks, BaseMask):
-        masks = [masks.roi]
-    elif isinstance(masks, MaskImage):
+    else:
         masks = [masks]
-    else:
-        raise TypeError("The masks argument is expected to be a BaseMask, a MaskImage or list of BaseMask objects.")
 
-    mask_boundary
+    bounds_z: Optional[List[int]] = None
+    bounds_y: Optional[List[int]] = None
+    bounds_x: Optional[List[int]] = None
+
     for mask in masks:
-
-    roi_ext_x = [];  roi_ext_y = []; roi_ext_z = []
-
-    # Determine extent of all rois
-    for roi_obj in roi_list:
-
-        # Skip if the ROI is missing
-        if roi_obj.roi is None:
+        current_bounds_z, current_bounds_y, current_bounds_x = mask.get_bounding_box()
+        if current_bounds_z is None or current_bounds_y is None or current_bounds_x is None:
             continue
 
-        z_ind, y_ind, x_ind = np.where(roi_obj.roi.get_voxel_grid() > 0.0)
+        if bounds_z is None:
+            bounds_z = list(current_bounds_z)
+        else:
+            bounds_z = [min(bounds_z[0], current_bounds_z[0]), max(bounds_z[1], current_bounds_z[1])]
 
-        # Skip if the ROI is empty
-        if len(z_ind) == 0 or len(y_ind) == 0 or len(x_ind) == 0:
-            continue
+        if bounds_y is None:
+            bounds_y = list(current_bounds_y)
+        else:
+            bounds_y = [min(bounds_y[0], current_bounds_y[0]), max(bounds_y[1], current_bounds_y[1])]
 
-        roi_ext_z += [np.min(z_ind), np.max(z_ind)]
-        roi_ext_y += [np.min(y_ind), np.max(y_ind)]
-        roi_ext_x += [np.min(x_ind), np.max(x_ind)]
+        if bounds_x is None:
+            bounds_x = list(current_bounds_x)
+        else:
+            bounds_x = [min(bounds_x[0], current_bounds_x[0]), max(bounds_x[1], current_bounds_x[1])]
 
-    # Check if the combined ROIs are empty
-    if not (len(roi_ext_z) == 0 or len(roi_ext_y) == 0 or len(roi_ext_x) == 0):
+    # Check if bounds were determined.
+    if bounds_x is None or bounds_y is None or bounds_z is None:
+        if return_list:
+            return image, masks
+        else:
+            return image, masks[0]
 
-        # Express boundary in voxels.
-        boundary = np.ceil(boundary / img_obj.spacing).astype(int)
+    # Compute boundary and add to bounding box.
+    boundary = np.ceil(boundary / image.image_spacing).astype(int)
 
-        # Concatenate extents for rois and add boundary to generate map extent
-        ind_ext_z = np.array([np.min(roi_ext_z) - boundary[0], np.max(roi_ext_z) + boundary[0]])
-        ind_ext_y = np.array([np.min(roi_ext_y) - boundary[1], np.max(roi_ext_y) + boundary[1]])
-        ind_ext_x = np.array([np.min(roi_ext_x) - boundary[2], np.max(roi_ext_x) + boundary[2]])
+    if not by_slice:
+        bounds_z = [bounds_z[0] - boundary[0], bounds_z[1] + boundary[0]]
+    bounds_y = [bounds_y[0] - boundary[1], bounds_y[1] + boundary[1]]
+    bounds_x = [bounds_x[0] - boundary[2], bounds_x[1] + boundary[2]]
 
-        ####################################################################################################################
-        # Resect image based on roi extent
-        ####################################################################################################################
+    if not in_place:
+        image = image.copy()
+        masks = [mask.copy() for mask in masks]
 
-        img_res = img_obj.copy()
-        img_res.crop(ind_ext_z=ind_ext_z, ind_ext_y=ind_ext_y, ind_ext_x=ind_ext_x, z_only=z_only)
+    # Crop images and masks.
+    image = image.crop(
+        ind_ext_z=bounds_z,
+        ind_ext_y=bounds_y,
+        ind_ext_x=bounds_x,
+        xy_only=xy_only,
+        z_only=z_only
+    )
 
-        ####################################################################################################################
-        # Resect rois based on roi extent
-        ####################################################################################################################
+    masks = [
+        mask.crop(
+            ind_ext_z=bounds_z,
+            ind_ext_y=bounds_y,
+            ind_ext_x=bounds_x,
+            xy_only=xy_only,
+            z_only=z_only
+        ) for mask in masks
+    ]
 
-        # Copy roi objects before resection
-        roi_res_list = [roi_res_obj.copy() for roi_res_obj in roi_list]
-
-        # Resect in place
-        [roi_res_obj.crop(ind_ext_z=ind_ext_z, ind_ext_y=ind_ext_y, ind_ext_x=ind_ext_x, z_only=z_only) for roi_res_obj in roi_res_list]
-
+    if return_list:
+        return image, masks
     else:
-        # This happens if all rois are empty - only copies of the original image object and the roi are returned
-        img_res = img_obj.copy()
-        roi_res_list = [roi_res_obj.copy() for roi_res_obj in roi_list]
+        return image, masks[0]
 
-    ####################################################################################################################
-    # Return to calling function
-    ####################################################################################################################
 
-    if return_roi_obj:
-        return img_res, roi_res_list[0]
+def randomise_mask(
+        image: GenericImage,
+        masks: Union[BaseMask, MaskImage, List[BaseMask]],
+        boundary: float = 25.0,
+        repetitions: int = 1,
+        by_slice: bool = False
+):
+    if masks is None:
+        return image, None
+    if isinstance(masks, list) and len(masks) == 0:
+        return image, None
+
+    # Determine the return format.
+    return_list = False
+    if isinstance(masks, list):
+        return_list = True
     else:
-        return img_res, roi_res_list
+        masks = [masks]
 
+    for mask in masks:
+        if isinstance(mask, MaskImage):
+            randomised_masks = mask.randomise_mask(
+                image=image,
+                boundary=boundary,
+                repetitions=repetitions,
+                by_slice=by_slice
+            )
+            ...
+        elif isinstance(mask, BaseMask):
+            randomised_masks = mask.roi.randomise_mask(
+                image=image,
+                boundary=boundary,
+                repetitions=repetitions,
+                intensity_range=mask.intensity_range,
+                by_slice=by_slice
+            )
+
+            for ii, randomised_mask in enumerate(randomised_masks):
+                if randomised_mask is None:
+                    continue
+                new_mask = mask.copy(drop_image=True)
+                new_mask.roi = randomised_mask
+                new_mask.append_name("svx", str(ii))
+
+        else:
+            raise TypeError("The masks attribute is expected to be MaskImage and BaseMask")
+
+    return flatten_to_list...
 
 def saturate_image(img_obj, intensity_range, fill_value):
 

@@ -861,7 +861,7 @@ class GenericImage(BaseImage):
             return None
 
         # Update or set intensity range, and extend it by around 10% on either side.
-        intensity_range = set_intensity_range(image=self)
+        intensity_range = set_intensity_range(image=self, intensity_range=intensity_range)
         intensity_range = extend_intensity_range(intensity_range=intensity_range, extend_fraction=0.1)
 
         # Get image data
@@ -894,7 +894,8 @@ class GenericImage(BaseImage):
             compactness=0.05,
             convert2lab=False,
             enforce_connectivity=True,
-            channel_axis=None)
+            channel_axis=None
+        )
 
         image_segments += 1
 
