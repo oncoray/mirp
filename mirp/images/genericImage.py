@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from typing import Optional, Union, Tuple, List
+from typing import Optional, Union, Tuple, List, Any
 
 from mirp.images.baseImage import BaseImage
 from mirp.importSettings import SettingsClass
@@ -562,10 +562,10 @@ class GenericImage(BaseImage):
 
     def normalise_intensities(
             self,
-            normalisation_method="none",
-            intensity_range=None,
-            saturation_range=None,
-            mask=None):
+            normalisation_method: Optional[str] = "none",
+            intensity_range: Optional[Tuple[Any, Any]] = None,
+            saturation_range: Optional[Tuple[Any, Any]] = None,
+            mask: Optional[np.ndarray] = None):
         """
         Normalises image intensities
         :param normalisation_method: string defining the normalisation method. Should be one of "none", "range",
@@ -594,7 +594,7 @@ class GenericImage(BaseImage):
         if saturation_range is None:
             saturation_range = [np.nan, np.nan]
 
-        if normalisation_method == "none":
+        if normalisation_method is None or normalisation_method == "none":
             return
 
         elif normalisation_method == "range":

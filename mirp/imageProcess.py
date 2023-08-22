@@ -229,13 +229,40 @@ def saturate_image(
         image: GenericImage,
         intensity_range: Optional[Tuple[Any, Any]],
         fill_value: Optional[Tuple[float, float]],
-        in_place=True
+        in_place: bool = True
 ):
     if in_place:
         image = image.copy()
 
     # Saturate image
     image.saturate(intensity_range=intensity_range, fill_value=fill_value)
+
+    return image
+
+
+def normalise_image(
+        image: GenericImage,
+        normalisation_method: Optional[str] = None,
+        intensity_range: Optional[Tuple[Any, Any]] = None,
+        saturation_range: Optional[Tuple[Any, Any]] = None,
+        mask: Optional[np.ndarray] = None,
+        in_place: bool = True
+):
+    if intensity_range is None:
+        intensity_range = [np.nan, np.nan]
+
+    if saturation_range is None:
+        saturation_range = [np.nan, np.nan]
+
+    if in_place:
+        image = image.copy()
+
+    image.normalise_intensities(
+        normalisation_method=normalisation_method,
+        intensity_range=intensity_range,
+        saturation_range=saturation_range,
+        mask=mask
+    )
 
     return image
 
@@ -248,7 +275,7 @@ def saturate_image_deprecated(img_obj, intensity_range, fill_value):
     return img_obj
 
 
-def normalise_image(img_obj, norm_method, intensity_range=None, saturation_range=None, mask=None):
+def normalise_image_deprecated(img_obj, norm_method, intensity_range=None, saturation_range=None, mask=None):
 
     if intensity_range is None:
         intensity_range = [np.nan, np.nan]

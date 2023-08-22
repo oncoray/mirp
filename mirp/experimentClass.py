@@ -291,7 +291,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image_deprecated, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
-            create_tissue_mask, bias_field_correction, normalise_image, select_largest_slice
+            create_tissue_mask, bias_field_correction, normalise_image_deprecated, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
         import copy
 
@@ -394,11 +394,11 @@ class ExperimentClass:
                     img_obj = bias_field_correction(img_obj=img_obj, settings=curr_setting, mask=tissue_mask)
 
                 # Normalise image
-                img_obj = normalise_image(img_obj=img_obj,
-                                          norm_method=curr_setting.post_process.intensity_normalisation,
-                                          intensity_range=curr_setting.post_process.intensity_normalisation_range,
-                                          saturation_range=curr_setting.post_process.intensity_normalisation_saturation,
-                                          mask=tissue_mask)
+                img_obj = normalise_image_deprecated(img_obj=img_obj,
+                                                     norm_method=curr_setting.post_process.intensity_normalisation,
+                                                     intensity_range=curr_setting.post_process.intensity_normalisation_range,
+                                                     saturation_range=curr_setting.post_process.intensity_normalisation_saturation,
+                                                     mask=tissue_mask)
 
             ########################################################################################################
             # Determine image noise levels (optional)
@@ -561,7 +561,7 @@ class ExperimentClass:
         import logging
         from mirp.imageRead import load_image
         from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
-            saturate_image_deprecated, normalise_image, select_largest_slice
+            saturate_image_deprecated, normalise_image_deprecated, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
@@ -725,7 +725,7 @@ class ExperimentClass:
             img_obj = saturate_image_deprecated(img_obj=img_obj, intensity_range=intensity_range, fill_value=None)
 
             # Normalise the image to a standard range
-            img_obj = normalise_image(img_obj=img_obj, norm_method=normalisation, intensity_range=intensity_range)
+            img_obj = normalise_image_deprecated(img_obj=img_obj, norm_method=normalisation, intensity_range=intensity_range)
 
             ########################################################################################################
             # Collect output
