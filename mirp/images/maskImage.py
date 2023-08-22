@@ -15,6 +15,7 @@ class MaskImage(GenericImage):
         super().__init__(**kwargs)
 
         self.image_encoded = False
+        self.slic_randomisation_id: Optional[int] = None
 
     def is_empty(self):
         if self.image_encoded:
@@ -531,9 +532,10 @@ class MaskImage(GenericImage):
             # Apply binary closing to close gaps.
             new_mask_data = binary_closing(input=new_mask_data)
 
-            # Set mask.
+            # Set mask and randomisation ID.
             randomised_mask = self.copy(drop_image=True)
             randomised_mask.set_voxel_grid(new_mask_data)
+            randomised_mask.slic_randomisation_id = ii
             randomised_masks += [randomised_mask]
 
         if len(randomised_masks) == 0:

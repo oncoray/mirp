@@ -4,13 +4,41 @@ from copy import deepcopy
 from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
+
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
 from mirp.masks.baseMask import BaseMask
-
+from mirp.importData.utilities import flatten_list
 
 import numpy as np
 import pandas as pd
+
+
+def _standard_checks(
+        image: GenericImage,
+        masks: Optional[BaseMask, MaskImage, List[BaseMask]]
+):
+    if masks is None:
+        return image, None, None
+    if isinstance(masks, list) and len(masks) == 0:
+        return image, None, None
+
+    # Determine the return format.
+    return_list = False
+    if isinstance(masks, list):
+        return_list = True
+    else:
+        masks = [masks]
+
+    if not isinstance(image, GenericImage):
+        raise TypeError(
+            f"The image argument is expected to be a GenericImage object, or inherit from it. Found: {type(image)}")
+
+    if not all(isinstance(mask, BaseMask) or isinstance(mask, MaskImage) for mask in masks):
+        raise TypeError(
+            f"The masks argument is expected to be a BaseMask or MaskImage object, or a list thereof.")
+
+    return image, masks, return_list
 
 
 def set_intensity_range(
@@ -71,17 +99,9 @@ def crop(
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
 
-    if masks is None:
+    image, masks, return_list = _standard_checks(image=image, masks=masks)
+    if return_list is None:
         return image, None
-    if isinstance(masks, list) and len(masks) == 0:
-        return image, None
-
-    # Determine the return format.
-    return_list = False
-    if isinstance(masks, list):
-        return_list = True
-    else:
-        masks = [masks]
 
     bounds_z: Optional[List[int]] = None
     bounds_y: Optional[List[int]] = None
@@ -158,18 +178,11 @@ def randomise_mask(
         repetitions: int = 1,
         by_slice: bool = False
 ):
-    if masks is None:
-        return image, None
-    if isinstance(masks, list) and len(masks) == 0:
+    image, masks, return_list = _standard_checks(image=image, masks=masks)
+    if return_list is None:
         return image, None
 
-    # Determine the return format.
-    return_list = False
-    if isinstance(masks, list):
-        return_list = True
-    else:
-        masks = [masks]
-
+    new_masks = []
     for mask in masks:
         if isinstance(mask, MaskImage):
             randomised_masks = mask.randomise_mask(
@@ -178,7 +191,12 @@ def randomise_mask(
                 repetitions=repetitions,
                 by_slice=by_slice
             )
-            ...
+
+            for randomised_mask in randomised_masks:
+                if randomised_mask is None:
+                    continue
+                new_masks += [randomised_mask]
+
         elif isinstance(mask, BaseMask):
             randomised_masks = mask.roi.randomise_mask(
                 image=image,
@@ -188,17 +206,24 @@ def randomise_mask(
                 by_slice=by_slice
             )
 
-            for ii, randomised_mask in enumerate(randomised_masks):
+            for randomised_mask in randomised_masks:
                 if randomised_mask is None:
                     continue
                 new_mask = mask.copy(drop_image=True)
                 new_mask.roi = randomised_mask
-                new_mask.append_name("svx", str(ii))
-
+                new_masks += [new_mask]
         else:
             raise TypeError("The masks attribute is expected to be MaskImage and BaseMask")
 
-    return flatten_to_list...
+    new_masks = flatten_list(new_masks)
+    if len(new_masks) == 0:
+        return image, None
+
+    if not return_list and repetitions == 1:
+        return image, new_masks[0]
+    else:
+        return image, new_masks
+
 
 def saturate_image(img_obj, intensity_range, fill_value):
 
