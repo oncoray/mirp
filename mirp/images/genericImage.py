@@ -31,6 +31,9 @@ class GenericImage(BaseImage):
         # Normalisation-related settings
         self.normalised = False
 
+        # Discretisation-related settings
+        self.discretisation_method: str = "none"
+
     def copy(self, drop_image=False):
         image = copy.deepcopy(self)
 
@@ -72,6 +75,10 @@ class GenericImage(BaseImage):
 
         figure.canvas.mpl_connect('scroll_event', tracker.onscroll)
         plt.show()
+
+    @staticmethod
+    def get_default_lowest_intensity():
+        return None
 
     def interpolate(
             self,
