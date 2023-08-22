@@ -195,9 +195,15 @@ class BaseMask:
     def resegmentise_mask(
             self,
             image: GenericImage,
-            resegmentation_method: List[str],
-            settings: SettingsClass):
+            resegmentation_method: Optional[str, List[str]] = None,
+            intensity_range: Optional[Tuple[Any, Any]] = None,
+            sigma: Optional[float] = None
+        ):
         # Resegmentation of the mask based on image intensities.
+
+        # Set intensity range because this is used elsewhere.
+        if intensity_range is not None:
+            self.intensity_range = tuple(intensity_range)
 
         if image.is_empty() or self.is_empty():
             return
@@ -205,14 +211,17 @@ class BaseMask:
         # Ensure that masks are generated.
         self.generate_masks()
 
-        # Initialise range
+        if resegmentation_method is None or "none" in resegmentation_method:
+            return
+
+        # Initialise range.
         updated_range = [np.nan, np.nan]
 
         if any(method in ["threshold", "range"] for method in resegmentation_method):
             # Filter out voxels with intensity outside prescribed range
 
-            # Local constant
-            intensity_range = settings.roi_resegment.intensity_range
+            if intensity_range is None:
+                raise ValueError("Intensity range is not provided, but required for resegmentation.")
 
             # Upper threshold
             if not np.isnan(intensity_range[1]):
@@ -222,14 +231,10 @@ class BaseMask:
             if not np.isnan(intensity_range[0]):
                 updated_range[0] = copy.deepcopy(intensity_range[0])
 
-            # Set the threshold values for the mask.
-            self.intensity_range = tuple(intensity_range)
-
         if any(method in ["sigma", "outlier"] for method in resegmentation_method):
             # Remove voxels with outlier intensities
 
             # Local constant
-            sigma = settings.roi_resegment.sigma
             image_data = image.get_voxel_grid()
             mask_data = self.roi.get_voxel_grid()
 

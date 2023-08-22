@@ -290,9 +290,9 @@ class ExperimentClass:
         import logging
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image_deprecated, estimate_image_noise, interpolate_image,\
-            interpolate_roi, divide_tumour_regions, resegmentise, calculate_features, transform_images, \
+            interpolate_roi, divide_tumour_regions, resegmentise_deprecated, calculate_features, transform_images, \
             create_tissue_mask, bias_field_correction, normalise_image_deprecated, select_largest_slice
-        from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
+        from mirp.imagePerturbations import adapt_roi_size_deprecated, randomise_roi_contours
         import copy
 
         # Configure logger
@@ -446,7 +446,7 @@ class ExperimentClass:
             ########################################################################################################
 
             # Adapt roi sizes by dilation and erosion
-            roi_list = adapt_roi_size(roi_list=roi_list, settings=curr_setting)
+            roi_list = adapt_roi_size_deprecated(roi_list=roi_list, settings=curr_setting)
 
             # Update roi using SLIC
             roi_list = randomise_roi_contours(roi_list=roi_list, img_obj=img_obj, settings=curr_setting)
@@ -455,7 +455,7 @@ class ExperimentClass:
             roi_list = divide_tumour_regions(roi_list=roi_list, settings=curr_setting)
 
             # Resegmentise ROI based on intensities in the base images
-            roi_list = resegmentise(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
+            roi_list = resegmentise_deprecated(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
             self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
             ########################################################################################################
@@ -562,7 +562,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
             saturate_image_deprecated, normalise_image_deprecated, select_largest_slice
-        from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
+        from mirp.imagePerturbations import adapt_roi_size_deprecated, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
 
@@ -712,7 +712,7 @@ class ExperimentClass:
             ########################################################################################################
 
             # Adapt roi sizes by dilation and erosion
-            roi_list = adapt_roi_size(roi_list=roi_list, settings=curr_setting)
+            roi_list = adapt_roi_size_deprecated(roi_list=roi_list, settings=curr_setting)
 
             # Update roi using SLIC
             roi_list = randomise_roi_contours(roi_list=roi_list, img_obj=img_obj, settings=curr_setting)

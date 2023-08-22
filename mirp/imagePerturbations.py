@@ -97,7 +97,7 @@ def randomise_roi_contours(
     return new_roi_list
 
 
-def adapt_roi_size(roi_list, settings: SettingsClass):
+def adapt_roi_size_deprecated(roi_list, settings: SettingsClass):
     """ Adapt roi size by growing or shrinking the roi """
 
     # Adapt roi size by shrinking or increasing the roi

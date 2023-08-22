@@ -171,6 +171,34 @@ def crop(
         return image, masks[0]
 
 
+def resegmentise_mask(
+        image: GenericImage,
+        masks: Optional[BaseMask, List[BaseMask]],
+        resegmentation_method: Optional[str, List[str]] = None,
+        intensity_range: Optional[Tuple[Any, Any]] = None,
+        sigma: Optional[float] = None
+):
+    # Resegmentises mask based on the selected method.
+    image, masks, return_list = _standard_checks(image, masks)
+    if return_list is None:
+        return masks
+
+    masks: List[BaseMask] = masks
+
+    for mask in masks:
+        mask.resegmentise_mask(
+            image=image,
+            resegmentation_method=resegmentation_method,
+            intensity_range=intensity_range,
+            sigma=sigma
+        )
+
+    if return_list:
+        return masks
+    else:
+        return masks[0]
+
+
 def randomise_mask(
         image: GenericImage,
         masks: Union[BaseMask, MaskImage, List[BaseMask]],
@@ -267,6 +295,9 @@ def normalise_image(
     return image
 
 
+
+
+
 def saturate_image_deprecated(img_obj, intensity_range, fill_value):
 
     # Sature image
@@ -292,9 +323,9 @@ def normalise_image_deprecated(img_obj, norm_method, intensity_range=None, satur
     return img_obj
 
 
-def resegmentise(img_obj: ImageClass,
-                 roi_list: List[RoiClass],
-                 settings: SettingsClass):
+def resegmentise_deprecated(img_obj: ImageClass,
+                            roi_list: List[RoiClass],
+                            settings: SettingsClass):
     # Resegmentises segmentation map based on selected method
 
     if roi_list is not None:
