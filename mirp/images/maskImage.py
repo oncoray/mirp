@@ -15,6 +15,7 @@ class MaskImage(GenericImage):
         super().__init__(**kwargs)
 
         self.image_encoded = False
+        self.alteration_size: float = 0.0
         self.slic_randomisation_id: Optional[int] = None
 
     def is_empty(self):
@@ -306,6 +307,8 @@ class MaskImage(GenericImage):
             iterations=1)
         )
 
+        self.alteration_size = distance
+
     def erode(
             self,
             by_slice: bool,
@@ -383,6 +386,8 @@ class MaskImage(GenericImage):
         # Set updated voxels.
         self.set_voxel_grid(voxel_grid=current_mask)
 
+        self.alteration_size = distance
+
     def fractional_volume_change(
             self,
             by_slice: bool,
@@ -450,6 +455,8 @@ class MaskImage(GenericImage):
 
         # Set the new roi
         self.set_voxel_grid(voxel_grid=previous_mask)
+
+        self.alteration_size = fractional_change
 
     def randomise_mask(
             self,
