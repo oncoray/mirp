@@ -106,63 +106,9 @@ class MaskImage(GenericImage):
         self.image_data = np.around(self.image_data, 6) >= np.around(0.5, 6)
         self.encode_voxel_grid()
 
-    def interpolate(
-            self,
-            settings: SettingsClass):
-
-        # Set spacing
-        if settings.img_interpolate.new_spacing is None or not settings.img_interpolate.interpolate:
-            # Use original spacing.
-            new_spacing = self.image_spacing
-
-        elif settings.general.by_slice:
-            # Use provided spacing, in 2D. Spacing for interpolation across slices is set to the original spacing in
-            # case interpolation is only conducted within the slice.
-            new_spacing = list(settings.img_interpolate.new_spacing)
-            new_spacing[0] = self.image_spacing[0]
-
-        else:
-            # Use provided spacing, in 3D
-            new_spacing = settings.img_interpolate.new_spacing
-
-        # Set translation
-        translation: List[float] = [
-            settings.perturbation.translate_z,
-            settings.perturbation.translate_y,
-            settings.perturbation.translate_x
-        ]
-        for ii in range(len(translation)):
-            if translation[ii] is None:
-                translation[ii] = 0.0
-
-        if settings.general.by_slice:
-            translation[0] = 0.0
-
-        # Set rotation.
-        rotation = settings.perturbation.rotation_angles[0]
-
-        return self._interpolate(
-            by_slice=settings.general.by_slice,
-            interpolate=settings.img_interpolate.interpolate,
-            new_spacing=tuple(new_spacing),
-            translation=tuple(translation),
-            rotation=rotation,
-            spline_order=settings.roi_interpolate.spline_order,
-            anti_aliasing=settings.img_interpolate.anti_aliasing,
-            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
-        )
-
-    def register(
-            self,
-            image,
-            settings: SettingsClass
-    ):
-        return self._register(
-            image=image,
-            spline_order=settings.roi_interpolate.spline_order,
-            anti_aliasing=settings.img_interpolate.anti_aliasing,
-            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
-        )
+    @staticmethod
+    def _interpolation_spline_order(settings: SettingsClass):
+        return settings.roi_interpolate.spline_order
 
     def add_noise(self, **kwargs):
         pass

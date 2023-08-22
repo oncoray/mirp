@@ -82,56 +82,95 @@ class GenericImage(BaseImage):
 
     def interpolate(
             self,
-            settings: SettingsClass):
+            by_slice: Optional[bool] = None,
+            interpolate: Optional[bool] = None,
+            new_spacing: Optional[Tuple[float, ...]] = None,
+            translation: Optional[float, Tuple[float, ...]] = (0.0, 0.0, 0.0),
+            rotation: Optional[float] = 0.0,
+            spline_order: Optional[int] = None,
+            anti_aliasing: Optional[bool] = None,
+            anti_aliasing_smoothing_beta: Optional[float] = None,
+            settings: Optional[SettingsClass] = None):
+
+        if (by_slice is None or interpolate is None or spline_order is None or anti_aliasing is
+                None or anti_aliasing_smoothing_beta is None) and settings is None:
+            raise ValueError("None of the parameters for interpolation can be set.")
+
+        if by_slice is None:
+            by_slice = settings.general.by_slice
+        if interpolate is None:
+            interpolate = settings.img_interpolate.interpolate
+        if new_spacing is None and settings is not None:
+            new_spacing = settings.img_interpolate.new_spacing
+        if translation is None:
+            if settings is not None:
+                translation_x = settings.perturbation.translate_x if settings.perturbation.translate_x is not None else 0.0
+                translation_y = settings.perturbation.translate_y if settings.perturbation.translate_y is not None else 0.0
+                translation_z = settings.perturbation.translate_z if settings.perturbation.translate_z is not None else 0.0
+                translation = tuple([translation_z, translation_y, translation_x])
+            else:
+                translation = (0.0, 0.0, 0.0)
+        elif isinstance(translation, float):
+            translation = tuple([translation] * 3)
+
+        if rotation is None and settings is not None:
+            rotation = settings.perturbation.rotation_angles[0]
+        if spline_order is None:
+            spline_order = self._interpolation_spline_order(settings=settings)
+        if anti_aliasing is None:
+            anti_aliasing = settings.img_interpolate.anti_aliasing
+        if anti_aliasing_smoothing_beta is None:
+            anti_aliasing_smoothing_beta = settings.img_interpolate.smoothing_beta
 
         # Set spacing
-        if settings.img_interpolate.new_spacing is None or not settings.img_interpolate.interpolate:
+        if new_spacing is None or not interpolate:
             # Use original spacing.
             new_spacing = self.image_spacing
 
-        elif settings.general.by_slice:
+        elif by_slice:
             # Use provided spacing, in 2D. Spacing for interpolation across slices is set to the original spacing in
             # case interpolation is only conducted within the slice.
-            new_spacing = list(settings.img_interpolate.new_spacing)
+            new_spacing = list(new_spacing)
             new_spacing[0] = self.image_spacing[0]
 
         else:
             # Use provided spacing, in 3D
-            new_spacing = settings.img_interpolate.new_spacing
+            new_spacing = list(new_spacing)
 
-        # Set translation
-        translation: List[float] = [
-            settings.perturbation.translate_z,
-            settings.perturbation.translate_y,
-            settings.perturbation.translate_x
-        ]
+        # Set translation. Check that translation is specified for every direction.
+        translation = list(translation)
+        if len(translation) == 1:
+            translation *= 3
         for ii in range(len(translation)):
             if translation[ii] is None:
                 translation[ii] = 0.0
 
-        if settings.general.by_slice:
+        if by_slice:
             translation[0] = 0.0
 
-        # Set rotation.
-        rotation = settings.perturbation.rotation_angles[0]
+        translation: Tuple[float, ...] = tuple(translation)
 
         return self._interpolate(
-            by_slice=settings.general.by_slice,
-            interpolate=settings.img_interpolate.interpolate,
+            by_slice=by_slice,
+            interpolate=interpolate,
             new_spacing=tuple(new_spacing),
-            translation=tuple(translation),
+            translation=translation,
             rotation=rotation,
-            spline_order=settings.img_interpolate.spline_order,
-            anti_aliasing=settings.img_interpolate.anti_aliasing,
-            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
+            spline_order=spline_order,
+            anti_aliasing=anti_aliasing,
+            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
         )
+
+    @staticmethod
+    def _interpolation_spline_order(settings: SettingsClass):
+        return settings.img_interpolate.spline_order
 
     def _interpolate(
             self,
             by_slice: bool,
             interpolate: bool,
-            new_spacing: Tuple[float],
-            translation: Tuple[float],
+            new_spacing: Tuple[float, ...],
+            translation: Tuple[float, ...],
             rotation: float,
             spline_order: int,
             anti_aliasing: bool,
@@ -280,13 +319,26 @@ class GenericImage(BaseImage):
     def register(
             self,
             image,
-            settings: SettingsClass
+            spline_order: Optional[int] = None,
+            anti_aliasing: Optional[bool] = None,
+            anti_aliasing_smoothing_beta: Optional[float] = None,
+            settings: Optional[SettingsClass] = None
     ):
+        if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
+            raise ValueError("None of the parameters for registration can be set.")
+
+        if spline_order is None:
+            spline_order = self._interpolation_spline_order(settings=settings)
+        if anti_aliasing is None:
+            anti_aliasing = settings.img_interpolate.anti_aliasing
+        if anti_aliasing_smoothing_beta is None:
+            anti_aliasing_smoothing_beta = settings.img_interpolate.smoothing_beta
+
         return self._register(
             image=image,
-            spline_order=settings.img_interpolate.spline_order,
-            anti_aliasing=settings.img_interpolate.anti_aliasing,
-            anti_aliasing_smoothing_beta=settings.img_interpolate.smoothing_beta
+            spline_order=spline_order,
+            anti_aliasing=anti_aliasing,
+            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
         )
 
     def _register(

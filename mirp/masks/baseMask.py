@@ -407,26 +407,34 @@ class BaseMask:
     def get_bounding_box(self):
         return self.roi.get_bounding_box()
 
-    def compute_diagnostic_features(self, img_obj, append_str=""):
+    def compute_diagnostic_features(
+            self,
+            image: GenericImage,
+            append_str: str = ""):
         """ Creates diagnostic features for the ROI """
 
         # Set feature names
-        feat_names = ["int_map_dim_x", "int_map_dim_y", "int_map_dim_z", "int_bb_dim_x", "int_bb_dim_y", "int_bb_dim_z",
-                      "int_vox_dim_x", "int_vox_dim_y", "int_vox_dim_z", "int_vox_count", "int_mean_int", "int_min_int",
-                      "int_max_int",
-                      "mrp_map_dim_x", "mrp_map_dim_y", "mrp_map_dim_z", "mrp_bb_dim_x", "mrp_bb_dim_y", "mrp_bb_dim_z",
-                      "mrp_vox_dim_x", "mrp_vox_dim_y", "mrp_vox_dim_z", "mrp_vox_count", "mrp_mean_int", "mrp_min_int",
-                      "mrp_max_int"]
+        feature_names = [
+            "int_map_dim_x", "int_map_dim_y", "int_map_dim_z", "int_bb_dim_x", "int_bb_dim_y", "int_bb_dim_z",
+            "int_vox_dim_x", "int_vox_dim_y", "int_vox_dim_z", "int_vox_count", "int_mean_int", "int_min_int",
+            "int_max_int",
+            "mrp_map_dim_x", "mrp_map_dim_y", "mrp_map_dim_z", "mrp_bb_dim_x", "mrp_bb_dim_y", "mrp_bb_dim_z",
+            "mrp_vox_dim_x", "mrp_vox_dim_y", "mrp_vox_dim_z", "mrp_vox_count", "mrp_mean_int", "mrp_min_int",
+            "mrp_max_int"
+        ]
 
         # Create pandas dataframe with one row and feature columns
-        df = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
-        df.columns = feat_names
+        df = pd.DataFrame(np.full(shape=(1, len(feature_names)), fill_value=np.nan))
+        df.columns = feature_names
 
         # Skip further analysis if the image and/or roi are missing
-        if img_obj.is_missing or self.roi is None:
+        if image is None or image.is_empty() or self.is_empty():
             return df
 
         # Register with image on function call
+        mask_copy = self.register(
+            image=image,)
+
         roi_copy = self.register(img_obj, apply_to_self=False)
 
         # Binarise (if required)
