@@ -561,7 +561,7 @@ class ExperimentClass:
         import logging
         from mirp.imageRead import load_image
         from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
-            saturate_image, normalise_image, select_largest_slice
+            saturate_image_deprecated, normalise_image, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
         import copy
@@ -722,7 +722,7 @@ class ExperimentClass:
             ########################################################################################################
 
             # Set intensity range
-            img_obj = saturate_image(img_obj=img_obj, intensity_range=intensity_range, fill_value=None)
+            img_obj = saturate_image_deprecated(img_obj=img_obj, intensity_range=intensity_range, fill_value=None)
 
             # Normalise the image to a standard range
             img_obj = normalise_image(img_obj=img_obj, norm_method=normalisation, intensity_range=intensity_range)

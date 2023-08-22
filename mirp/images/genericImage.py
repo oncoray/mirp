@@ -533,7 +533,7 @@ class GenericImage(BaseImage):
         :return:
         """
         # Skip for missing images
-        if self.image_data is None:
+        if self.image_data is None or intensity_range is None:
             return
 
         intensity_range = np.array(copy.deepcopy(intensity_range))

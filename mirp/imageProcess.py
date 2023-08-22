@@ -225,7 +225,22 @@ def randomise_mask(
         return image, new_masks
 
 
-def saturate_image(img_obj, intensity_range, fill_value):
+def saturate_image(
+        image: GenericImage,
+        intensity_range: Optional[Tuple[Any, Any]],
+        fill_value: Optional[Tuple[float, float]],
+        in_place=True
+):
+    if in_place:
+        image = image.copy()
+
+    # Saturate image
+    image.saturate(intensity_range=intensity_range, fill_value=fill_value)
+
+    return image
+
+
+def saturate_image_deprecated(img_obj, intensity_range, fill_value):
 
     # Sature image
     img_obj.saturate(intensity_range=intensity_range, fill_value=fill_value)
