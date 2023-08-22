@@ -910,3 +910,7 @@ class GenericImage(BaseImage):
         del image_data
 
         return image_segments
+
+    def bias_field_correction(self, in_place=True, **kwargs):
+        if not in_place:
+            return self.copy()

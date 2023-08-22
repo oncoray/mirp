@@ -291,7 +291,7 @@ class ExperimentClass:
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image_deprecated, estimate_image_noise, interpolate_image,\
             interpolate_roi, divide_tumour_regions, resegmentise_deprecated, calculate_features, transform_images, \
-            create_tissue_mask, bias_field_correction, normalise_image_deprecated, select_largest_slice
+            create_tissue_mask, bias_field_correction_deprecated, normalise_image_deprecated, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size_deprecated, randomise_roi_contours
         import copy
 
@@ -391,7 +391,7 @@ class ExperimentClass:
 
                 if curr_setting.post_process.bias_field_correction:
                     # Perform bias field correction
-                    img_obj = bias_field_correction(img_obj=img_obj, settings=curr_setting, mask=tissue_mask)
+                    img_obj = bias_field_correction_deprecated(img_obj=img_obj, settings=curr_setting, mask=tissue_mask)
 
                 # Normalise image
                 img_obj = normalise_image_deprecated(img_obj=img_obj,

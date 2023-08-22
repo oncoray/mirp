@@ -368,20 +368,20 @@ def discretise_image(
         bin_number: Optional[int] = None,
         in_place: bool = False
 ):
-    if image.image_data is None:
-        return None
+    if image.is_empty():
+        return None, None
 
     if not in_place:
         image = image.copy()
         mask = mask.copy()
 
     if discretisation_method is None or discretisation_method == "none":
-        return image
+        return image, mask
 
     if mask is None:
         mask_data = np.ones(image.image_dimension, dtype=bool)
     elif mask.roi_intensity is None or mask.roi_intensity.is_empty() or mask.roi_intensity.is_empty_mask():
-        return None
+        return None, None
     else:
         mask_data = mask.roi_intensity.get_voxel_grid()
         intensity_range = mask.intensity_range
@@ -398,9 +398,6 @@ def discretise_image(
 
         discretised_voxels[discretised_voxels < 1.0] = 1.0
         discretised_voxels[discretised_voxels >= bin_number * 1.0] = bin_number * 1.0
-
-        # Set the number of bins.
-        n_bins = bin_number
 
     elif discretisation_method == "fixed_bin_size":
         if intensity_range is None or np.isnan(intensity_range[0]):
@@ -1586,7 +1583,7 @@ def create_tissue_mask(img_obj: ImageClass, settings: SettingsClass):
     return mask
 
 
-def bias_field_correction(img_obj: ImageClass, settings: SettingsClass, mask=None):
+def bias_field_correction_deprecated(img_obj: ImageClass, settings: SettingsClass, mask=None):
     import itk
 
     if not settings.post_process.bias_field_correction:
