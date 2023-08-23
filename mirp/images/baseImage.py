@@ -6,6 +6,7 @@ class BaseImage:
 
     def __init__(
             self,
+            sample_name: Optional[str] = None,
             image_modality: Optional[str] = None,
             image_origin: Optional[Tuple[float]] = None,
             image_orientation: Optional[np.ndarray] = None,
@@ -26,6 +27,9 @@ class BaseImage:
         self.image_orientation = image_orientation
         self.image_spacing = image_spacing
         self.image_dimension = image_dimensions
+
+        # Set sample name.
+        self.sample_name = sample_name
 
     def get_slice_position(self) -> np.ndarray:
         if self.image_spacing is None:
