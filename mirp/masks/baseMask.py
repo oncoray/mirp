@@ -573,10 +573,6 @@ class BaseMask:
             write_all=False,
             with_attributes=True
     ) -> Optional[np.ndarray, List[np.ndarray], Dict[Any]]:
-        """
-        Export mask to numpy array,
-        :return:
-        """
         if self.is_empty():
             return None
 
@@ -595,13 +591,9 @@ class BaseMask:
             morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
             attributes = self.get_export_attributes()
             attributes.update({"intensity_mask": intensity_mask, "morphology_mask": morphology_mask})
+            return attributes
 
     def get_export_attributes(self) -> Dict[Any]:
-        """
-        Generates an export string for identifying a file
-        :return: export string
-        """
-
         attributes = dict([("roi_name", self.roi_name)])
         attributes.update(self.roi.get_export_descriptor())
 

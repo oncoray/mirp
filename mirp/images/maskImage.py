@@ -3,7 +3,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from typing import Optional, Union, List, Tuple, Any
+from typing import Optional, Union, List, Dict, Tuple, Any
 
 from mirp.images.genericImage import GenericImage
 from mirp.importSettings import SettingsClass
@@ -536,3 +536,29 @@ class MaskImage(GenericImage):
         return tuple([np.min(z_ind), np.max(z_ind)]),\
                tuple([np.min(y_ind), np.max(y_ind)]),\
                tuple([np.min(x_ind), np.max(x_ind)])
+
+    def get_file_name_descriptor(self) -> List[str]:
+        descriptors = super().get_file_name_descriptor()
+        
+        # Alteration size.
+        if self.alteration_size is not None and not self.alteration_size == 0.0:
+            descriptors += ["vol", str(self.alteration_size)]
+
+        # Supervoxel randomisation id
+        if self.slic_randomisation_id is not None:
+            descriptors += ["svx", str(self.slic_randomisation_id)]
+
+        return descriptors
+
+    def get_export_attributes(self) -> Dict[Any]:
+        attributes = super().get_export_attributes()
+
+        # Alteration size.
+        if self.alteration_size is not None and not self.alteration_size == 0.0:
+            attributes.update({"mask_alteration_size": self.alteration_size})
+
+        # Supervoxel randomisation id
+        if self.slic_randomisation_id is not None:
+            attributes.update({"mask_randomisation_id": self.slic_randomisation_id})
+
+        return attributes

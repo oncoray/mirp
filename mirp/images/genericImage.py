@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from typing import Optional, Union, Tuple, List, Any
+from typing import Optional, Union, Tuple, List, Dict, Any
 
 from mirp.images.baseImage import BaseImage
 from mirp.importSettings import SettingsClass
@@ -1025,11 +1025,6 @@ class GenericImage(BaseImage):
             np.save(file_path, image_data)
 
     def get_file_name_descriptor(self) -> List[str]:
-        """
-        Generates an image descriptor based on parameters of the image
-        :return:
-        """
-
         descriptors = []
 
         # Sample name
@@ -1063,3 +1058,53 @@ class GenericImage(BaseImage):
             descriptors += ["noise", str(self.noise_level)[:5], "id", str(self.noise_iteration_id)]
 
         return descriptors
+
+    def export(
+            self,
+            with_attributes=True
+    ) -> Optional[np.ndarray, Dict[Any]]:
+
+        if self.is_empty():
+            return None
+
+        if with_attributes:
+            attributes = self.get_export_attributes()
+            attributes.update({"image": self.get_voxel_grid()})
+        else:
+            return self.get_voxel_grid()
+
+    def get_export_attributes(self) -> Dict[Any]:
+        attributes = []
+
+        # Sample name
+        if self.sample_name is not None:
+            attributes += [("sample_name", self.sample_name)]
+
+        # Modality
+        if self.modality is not None:
+            attributes += [("modality", self.modality)]
+
+        # Rotation
+        if self.rotation_angle is None:
+            attributes += [("rotation", 0.0)]
+        else:
+            attributes += [("rotation", self.rotation_angle)]
+
+        # Translation
+        if self.translation is None:
+            attributes += [("translation", (0.0, 0.0, 0.0))]
+        else:
+            attributes += [("translation", self.translation)]
+
+        # Noise
+        if self.noise_level is not None and self.noise_level > 0.0:
+            attributes += [("noise_level", self.noise_level), ("noise_id", self.noise_iteration_id)]
+
+        # Image spacing, origin and orientation.
+        attributes += [
+            ("image_spacing", self.image_spacing),
+            ("image_origin", self.image_origin),
+            ("image_orientation", self.image_orientation)
+        ]
+
+        return dict(attributes)
