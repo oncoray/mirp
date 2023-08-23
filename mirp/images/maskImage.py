@@ -107,7 +107,7 @@ class MaskImage(GenericImage):
         self.encode_voxel_grid()
 
     @staticmethod
-    def _interpolation_spline_order(settings: SettingsClass):
+    def get_interpolation_spline_order(settings: SettingsClass):
         return settings.roi_interpolate.spline_order
 
     def add_noise(self, **kwargs):

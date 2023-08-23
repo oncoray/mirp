@@ -13,7 +13,6 @@ class GenericImage(BaseImage):
             image_data: Optional[np.ndarray],
             **kwargs
     ):
-
         super().__init__(**kwargs)
 
         self.image_data = image_data
@@ -116,7 +115,7 @@ class GenericImage(BaseImage):
         if rotation is None and settings is not None:
             rotation = settings.perturbation.rotation_angles[0]
         if spline_order is None:
-            spline_order = self._interpolation_spline_order(settings=settings)
+            spline_order = self.get_interpolation_spline_order(settings=settings)
         if anti_aliasing is None:
             anti_aliasing = settings.img_interpolate.anti_aliasing
         if anti_aliasing_smoothing_beta is None:
@@ -162,7 +161,7 @@ class GenericImage(BaseImage):
         )
 
     @staticmethod
-    def _interpolation_spline_order(settings: SettingsClass):
+    def get_interpolation_spline_order(settings: SettingsClass):
         return settings.img_interpolate.spline_order
 
     def _interpolate(
@@ -328,7 +327,7 @@ class GenericImage(BaseImage):
             raise ValueError("None of the parameters for registration can be set.")
 
         if spline_order is None:
-            spline_order = self._interpolation_spline_order(settings=settings)
+            spline_order = self.get_interpolation_spline_order(settings=settings)
         if anti_aliasing is None:
             anti_aliasing = settings.img_interpolate.anti_aliasing
         if anti_aliasing_smoothing_beta is None:
