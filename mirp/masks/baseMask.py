@@ -226,7 +226,7 @@ class BaseMask:
             resegmentation_method: Optional[str, List[str]] = None,
             intensity_range: Optional[Tuple[Any, Any]] = None,
             sigma: Optional[float] = None
-        ):
+    ):
         # Resegmentation of the mask based on image intensities.
 
         # Set intensity range because this is used elsewhere.
@@ -438,7 +438,9 @@ class BaseMask:
     def compute_diagnostic_features(
             self,
             image: GenericImage,
-            append_str: str = ""):
+            settings: SettingsClass,
+            append_str: str = ""
+    ) -> pd.DataFrame:
         """ Creates diagnostic features for the ROI """
 
         # Set feature names
@@ -459,55 +461,50 @@ class BaseMask:
         if image is None or image.is_empty() or self.is_empty():
             return df
 
-        # Register with image on function call
-        mask_copy = self.register(
-            image=image,)
-
-        roi_copy = self.register(img_obj, apply_to_self=False)
-
-        # Binarise (if required)
-        roi_copy.binarise_mask()
+        # Register with image on function call to ensure that mask and image correspond to the same space.
+        mask_copy = self.copy()
+        mask_copy.register(
+            image=image,
+            settings=settings
+        )
 
         # Make copies of intensity and morphological masks (if required)
-        if roi_copy.roi_intensity is None:
-            roi_copy.roi_intensity = roi_copy.roi
-        if roi_copy.roi_morphology is None:
-            roi_copy.roi_morphology = roi_copy.roi
+        mask_copy.generate_masks()
 
         # Get image and roi voxel grids
-        img_voxel_grid = img_obj.get_voxel_grid()
-        int_voxel_grid = roi_copy.roi_intensity.get_voxel_grid()
-        mrp_voxel_grid = roi_copy.roi_morphology.get_voxel_grid()
+        img_voxel_grid = image.get_voxel_grid()
+        int_voxel_grid = mask_copy.roi_intensity.get_voxel_grid()
+        mrp_voxel_grid = mask_copy.roi_morphology.get_voxel_grid()
 
         # Compute bounding boxes
-        int_bounding_box_dim = np.squeeze(np.diff(roi_copy.get_bounding_box(roi_voxel_grid=int_voxel_grid), axis=0) + 1)
-        mrp_bounding_box_dim = np.squeeze(np.diff(roi_copy.get_bounding_box(roi_voxel_grid=mrp_voxel_grid), axis=0) + 1)
+        int_bounding_box_dim = np.squeeze(np.diff(mask_copy.get_bounding_box(), axis=0) + 1)
+        mrp_bounding_box_dim = np.squeeze(np.diff(mask_copy.get_bounding_box(), axis=0) + 1)
 
         # Set intensity mask features
-        df["int_map_dim_x"] = roi_copy.roi_intensity.size[2]
-        df["int_map_dim_y"] = roi_copy.roi_intensity.size[1]
-        df["int_map_dim_z"] = roi_copy.roi_intensity.size[0]
+        df["int_map_dim_x"] = mask_copy.roi_intensity.image_dimension[2]
+        df["int_map_dim_y"] = mask_copy.roi_intensity.image_dimension[1]
+        df["int_map_dim_z"] = mask_copy.roi_intensity.image_dimension[0]
         df["int_bb_dim_x"] = int_bounding_box_dim[2]
         df["int_bb_dim_y"] = int_bounding_box_dim[1]
         df["int_bb_dim_z"] = int_bounding_box_dim[0]
-        df["int_vox_dim_x"] = roi_copy.roi_intensity.spacing[2]
-        df["int_vox_dim_y"] = roi_copy.roi_intensity.spacing[1]
-        df["int_vox_dim_z"] = roi_copy.roi_intensity.spacing[0]
+        df["int_vox_dim_x"] = mask_copy.roi_intensity.image_spacing[2]
+        df["int_vox_dim_y"] = mask_copy.roi_intensity.image_spacing[1]
+        df["int_vox_dim_z"] = mask_copy.roi_intensity.image_spacing[0]
         df["int_vox_count"] = np.sum(int_voxel_grid)
         df["int_mean_int"] = np.mean(img_voxel_grid[int_voxel_grid])
         df["int_min_int"] = np.min(img_voxel_grid[int_voxel_grid])
         df["int_max_int"] = np.max(img_voxel_grid[int_voxel_grid])
 
         # Set morphological mask features
-        df["mrp_map_dim_x"] = roi_copy.roi_morphology.size[2]
-        df["mrp_map_dim_y"] = roi_copy.roi_morphology.size[1]
-        df["mrp_map_dim_z"] = roi_copy.roi_morphology.size[0]
+        df["mrp_map_dim_x"] = mask_copy.roi_morphology.image_dimension[2]
+        df["mrp_map_dim_y"] = mask_copy.roi_morphology.image_dimension[1]
+        df["mrp_map_dim_z"] = mask_copy.roi_morphology.image_dimension[0]
         df["mrp_bb_dim_x"] = mrp_bounding_box_dim[2]
         df["mrp_bb_dim_y"] = mrp_bounding_box_dim[1]
         df["mrp_bb_dim_z"] = mrp_bounding_box_dim[0]
-        df["mrp_vox_dim_x"] = roi_copy.roi_morphology.spacing[2]
-        df["mrp_vox_dim_y"] = roi_copy.roi_morphology.spacing[1]
-        df["mrp_vox_dim_z"] = roi_copy.roi_morphology.spacing[0]
+        df["mrp_vox_dim_x"] = mask_copy.roi_morphology.image_spacing[2]
+        df["mrp_vox_dim_y"] = mask_copy.roi_morphology.image_spacing[1]
+        df["mrp_vox_dim_z"] = mask_copy.roi_morphology.image_spacing[0]
         df["mrp_vox_count"] = np.sum(mrp_voxel_grid)
         df["mrp_mean_int"] = np.mean(img_voxel_grid[mrp_voxel_grid])
         df["mrp_min_int"] = np.min(img_voxel_grid[mrp_voxel_grid])
@@ -516,9 +513,9 @@ class BaseMask:
         # Update column names
         df.columns = ["_".join(["diag", feature, append_str]).strip("_") for feature in df.columns]
 
-        del roi_copy
+        del mask_copy
 
-        self.diagnostic_list += [df]
+        return df
 
     def get_center_slice(self):
         """ Identify location of the central slice in the roi """
