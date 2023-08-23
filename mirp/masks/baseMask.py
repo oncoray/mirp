@@ -529,3 +529,41 @@ class BaseMask:
         z_center = (np.max(z_ind) + np.min(z_ind)) // 2
 
         return z_center
+
+    def write(
+            self,
+            dir_path: str,
+            write_all: bool = False,
+            file_format: str = "nifti"
+    ):
+        """
+        Write masks to file
+        :param dir_path: Path to directory where the image should be written.
+        :param write_all: If true, creates NIfTI files from both intensity and morphology (original) masks.
+        :param file_format: File format for image file. Can be nifti or numpy.
+        :return: Nothing.
+        """
+
+        roi_str_components = self.get_file_name_descriptor()
+
+        if write_all:
+            self.roi_morphology.write(
+                dir_path=dir_path,
+                file_name="_".join(roi_str_components + ["morph"]),
+                file_format=file_format
+            )
+            self.roi_intensity.write(
+                dir_path=dir_path,
+                file_name="_".join(roi_str_components + ["int"]),
+                file_format=file_format
+            )
+        else:
+            self.roi.write(
+                dir_path=dir_path,
+                file_name="_".join(roi_str_components),
+                file_format=file_format
+            )
+
+    def get_file_name_descriptor(self) -> List[str]:
+
+        return self.roi.get_file_name_descriptor() + [self.roi_name]
