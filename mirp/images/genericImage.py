@@ -971,3 +971,95 @@ class GenericImage(BaseImage):
     def bias_field_correction(self, in_place=True, **kwargs):
         if not in_place:
             return self.copy()
+
+    def write(
+            self,
+            dir_path: str,
+            file_name: Optional[str] = None,
+            file_format: str = "nifti"
+    ):
+        """ Writes the image to a file """
+        import os
+        import itk
+
+        if self.is_empty():
+            return
+
+        # Check if path exists
+        dir_path = os.path.normpath(dir_path)
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+
+        # Generate filename, if necessary.
+        if file_name is None:
+            file_name = "_".join(self.get_file_name_descriptor())
+
+        # Add extension.
+        if file_format == "nifti":
+            file_name += ".nii.gz"
+        elif file_format == "numpy":
+            file_name += ".npy"
+        else:
+            raise ValueError(f"The provided file format {file_format} is not available. Return ")
+
+        # Add file and file name
+        file_path = os.path.join(dir_path, file_name)
+
+        if file_format == "nifti":
+            image_data = self.get_voxel_grid()
+            if np.issubdtype(self.image_data.dtype, bool):
+                cast_type = np.uint8
+            elif np.issubdtype(self.image_data.dtype, float):
+                cast_type = float
+            else:
+                cast_type = self.image_data.dtype
+            image_data = itk.GetImageFromArray(image_data.astype(cast_type))
+            image_data.SetOrigin(np.array(self.image_origin)[::-1])
+            image_data.SetSpacing(np.array(self.image_spacing)[::-1])
+            image_data.SetDirection(itk.matrix_from_array(np.reshape(np.ravel(self.image_orientation)[::-1], [3, 3])))
+
+            itk.imwrite(image_data, file_path)
+
+        elif file_format == "numpy":
+            image_data = self.get_voxel_grid()
+            np.save(file_path, image_data)
+
+    def get_file_name_descriptor(self) -> List[str]:
+        """
+        Generates an image descriptor based on parameters of the image
+        :return:
+        """
+
+        descriptors = []
+
+        # Sample name
+        if self.sample_name is not None:
+            descriptors += [self.sample_name]
+
+        # Interpolation
+        if self.interpolated:
+            descriptors += [
+                self.interpolation_algorithm,
+                "x", str(self.image_spacing[2])[:5],
+                "y", str(self.image_spacing[1])[:5],
+                "z", str(self.image_spacing[0])[:5]
+            ]
+
+        # Rotation
+        if self.rotation_angle is not None and self.rotation_angle != 0.0:
+            descriptors += ["rot", str(self.rotation_angle)[:5]]
+
+        # Translation
+        if self.translation is not None and not np.all(np.array(self.translation) == 0.0):
+            descriptors += [
+                "trans",
+                "x", str(self.translation[2])[:5],
+                "y", str(self.translation[1])[:5],
+                "z", str(self.translation[0])[:5]
+            ]
+
+        # Noise
+        if self.noise_level is not None and self.noise_level > 0.0:
+            descriptors += ["noise", str(self.noise_level)[:5], "id", str(self.noise_iteration_id)]
+
+        return descriptors
