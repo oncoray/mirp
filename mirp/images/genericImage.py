@@ -17,8 +17,8 @@ class GenericImage(BaseImage):
 
         self.image_data = image_data
 
-        # These are set elsewhere.
-        self.translation = 0.0
+        # Perturbation-related settings that are set during interpolate.
+        self.translation = (0.0, 0.0, 0.0)
         self.rotation_angle = 0.0
         self.noise_iteration_id: Optional[int] = None
         self.noise_level = 0.0
@@ -415,6 +415,12 @@ class GenericImage(BaseImage):
         self.image_orientation = copy.deepcopy(image.image_orientation)
         self.image_origin = copy.deepcopy(image.image_origin)
         self.image_spacing = copy.deepcopy(image.image_spacing)
+
+        # Update translation and rotation using the image object.
+        self.translation = image.translation
+        self.rotation_angle = image.rotation_angle
+
+        # Set and update image after registration.
         self.set_voxel_grid(voxel_grid=new_mask)
         self.update_image_data()
 
