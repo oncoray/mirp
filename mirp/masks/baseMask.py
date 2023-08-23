@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import copy
-from typing import Optional, List, Tuple, Any, Union
+from typing import Optional, List, Tuple, Dict, Any, Union
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
@@ -567,3 +567,42 @@ class BaseMask:
     def get_file_name_descriptor(self) -> List[str]:
 
         return self.roi.get_file_name_descriptor() + [self.roi_name]
+
+    def export(
+            self,
+            write_all=False,
+            with_attributes=True
+    ) -> Optional[np.ndarray, List[np.ndarray], Dict[Any]]:
+        """
+        Export mask to numpy array,
+        :return:
+        """
+        if self.is_empty():
+            return None
+
+        if not write_all and not with_attributes:
+            return self.roi.get_voxel_grid()
+        elif not write_all and with_attributes:
+            attributes = self.get_export_attributes()
+            attributes.update({"mask": self.roi.get_voxel_grid()})
+            return attributes
+        elif write_all and not with_attributes:
+            intensity_mask = None if self.roi_intensity is None else self.roi_intensity.get_voxel_grid()
+            morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
+            return [intensity_mask, morphology_mask]
+        else:
+            intensity_mask = None if self.roi_intensity is None else self.roi_intensity.get_voxel_grid()
+            morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
+            attributes = self.get_export_attributes()
+            attributes.update({"intensity_mask": intensity_mask, "morphology_mask": morphology_mask})
+
+    def get_export_attributes(self) -> Dict[Any]:
+        """
+        Generates an export string for identifying a file
+        :return: export string
+        """
+
+        attributes = dict([("roi_name", self.roi_name)])
+        attributes.update(self.roi.get_export_descriptor())
+
+        return attributes
