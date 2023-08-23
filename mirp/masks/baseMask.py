@@ -82,16 +82,44 @@ class BaseMask:
     def register(
             self,
             image: GenericImage,
-            settings: SettingsClass
+            spline_order: Optional[int] = None,
+            anti_aliasing: Optional[bool] = None,
+            anti_aliasing_smoothing_beta: Optional[float] = None,
+            settings: Optional[SettingsClass] = None
     ):
+        if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
+            raise ValueError("None of the parameters for registration can be set.")
+
         if self.is_empty():
             return
 
-        self.roi.register(image=image, settings=settings)
+        if spline_order is None:
+            spline_order = self.roi.get_interpolation_spline_order(settings=settings)
+        if anti_aliasing is None:
+            anti_aliasing = settings.img_interpolate.anti_aliasing
+        if anti_aliasing_smoothing_beta is None:
+            anti_aliasing_smoothing_beta = settings.img_interpolate.smoothing_beta
+
+        self.roi.register(
+            image=image,
+            spline_order=spline_order,
+            anti_aliasing=anti_aliasing,
+            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+        )
         if self.roi_intensity is not None:
-            self.roi_intensity.register(image=image, settings=settings)
+            self.roi_intensity.register(
+                image=image,
+                spline_order=spline_order,
+                anti_aliasing=anti_aliasing,
+                anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+            )
         if self.roi_morphology is not None:
-            self.roi_morphology.register(image=image, settings=settings)
+            self.roi_morphology.register(
+                image=image,
+                spline_order=spline_order,
+                anti_aliasing=anti_aliasing,
+                anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+            )
 
     def select_largest_slice(self):
         """Crops to the largest slice."""
