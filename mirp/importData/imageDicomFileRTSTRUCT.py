@@ -2,13 +2,14 @@ import warnings
 
 import numpy as np
 
-from typing import Union, List
+from typing import Union, List, Optional
 
 import pydicom
 
 from mirp.contourClass import ContourClass
 from mirp.importData.importImage import ImageFile
 from mirp.importData.imageDicomFile import MaskDicomFile
+from mirp.masks.baseMask import BaseMask
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 
 
@@ -102,10 +103,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             self,
             image: Union[None, ImageFile],
             disconnected_segments: str = "keep_as_is",
-            **kwargs):
+            **kwargs) -> Optional[List[BaseMask]]:
 
-        from mirp.imageClass import ImageClass
-        from mirp.roiClass import RoiClass
         if image is None:
             raise TypeError(
                 f"Converting an RT-structure to a segmentation mask requires that the corresponding image is set. "
@@ -118,7 +117,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if not self.check_mask():
             return None
 
-        roi_list = []
+        mask_list = []
 
         # Find which roi numbers (3006,0022) are associated with which roi names (3004,0024).
         roi_name_present = [
@@ -192,21 +191,23 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if isinstance(self.roi_name, dict):
                 current_roi_name = self.roi_name.get(current_roi_name)
 
-            roi_list += [RoiClass(
-                name=current_roi_name,
-                roi_mask=ImageClass(
-                    voxel_grid=temp_mask_object.image_data,
-                    origin=temp_mask_object.image_origin,
-                    spacing=temp_mask_object.image_spacing,
-                    orientation=temp_mask_object.image_orientation,
-                    modality=temp_mask_object.modality
+            mask_list += [
+                BaseMask(
+                    roi_name=current_roi_name,
+                    sample_name=self.sample_name,
+                    image_modality=self.modality,
+                    image_data=temp_mask_object.image_data,
+                    image_spacing=temp_mask_object.image_spacing,
+                    image_origin=temp_mask_object.image_origin,
+                    image_orientation=temp_mask_object.image_orientation,
+                    image_dimensions=temp_mask_object.image_dimension
                 )
-            )]
+            ]
 
-        if len(roi_list) == 0:
+        if len(mask_list) == 0:
             return None
 
-        return roi_list
+        return mask_list
 
     def convert_contour_to_mask(
             self,

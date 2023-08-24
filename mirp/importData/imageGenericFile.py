@@ -9,11 +9,11 @@ import warnings
 
 import numpy as np
 
-from typing import Union, List, Tuple, Dict, Set
+from typing import Union, List, Tuple, Dict, Set, Optional
 
 from mirp.images.baseImage import BaseImage
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
 from mirp.importData.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance
 
 
@@ -29,10 +29,10 @@ class ImageFile(BaseImage):
             image_modality: Union[None, str] = None,
             image_file_type: Union[None, str] = None,
             image_data: Union[None, np.ndarray] = None,
-            image_origin: Union[None, Tuple[float]] = None,
+            image_origin: Union[None, Tuple[float, ...]] = None,
             image_orientation: Union[None, np.ndarray] = None,
-            image_spacing: Union[None, Tuple[float]] = None,
-            image_dimensions: Union[None, Tuple[int]] = None,
+            image_spacing: Union[None, Tuple[float, ...]] = None,
+            image_dimensions: Union[None, Tuple[int, ...]] = None,
             **kwargs):
 
         super().__init__(
@@ -727,19 +727,21 @@ class ImageFile(BaseImage):
             if dims_to_add == 1:
                 image_spacing.insert(0, 1.0)
 
-    def to_object(self, **kwargs) -> ImageClass:
+    def to_object(self, **kwargs) -> GenericImage:
 
         self.load_data()
         self.complete()
         self.stack_slices()
         self.update_image_data()
 
-        return ImageClass(
-            voxel_grid=self.image_data,
-            origin=self.image_origin,
-            spacing=self.image_spacing,
-            orientation=self.image_orientation,
-            modality=self.modality
+        return GenericImage(
+            sample_name=self.sample_name,
+            image_modality=self.modality,
+            image_data=self.image_data,
+            image_spacing=self.image_spacing,
+            image_origin=self.image_origin,
+            image_orientation=self.image_orientation,
+            image_dimensions=self.image_dimension
         )
 
 
@@ -906,7 +908,7 @@ class MaskFile(ImageFile):
 
         return True
 
-    def to_object(self, **kwargs) -> Union[None, List[RoiClass]]:
+    def to_object(self, **kwargs) -> Optional[List[BaseMask]]:
 
         self.load_data()
         self.complete()
@@ -914,7 +916,7 @@ class MaskFile(ImageFile):
         self.update_image_data()
         self.check_mask(raise_error=True)
 
-        roi_list = []
+        mask_list = []
         if np.issubdtype(self.image_data.dtype, bool):
             if not np.any(self.image_data):
                 return None
@@ -946,17 +948,18 @@ class MaskFile(ImageFile):
             else:
                 roi_name = "region_1"
 
-            roi_list += [RoiClass(
-                name=roi_name,
-                contour=None,
-                roi_mask=ImageClass(
-                    voxel_grid=self.image_data,
-                    origin=self.image_origin,
-                    spacing=self.image_spacing,
-                    orientation=self.image_orientation,
-                    modality=self.modality
+            mask_list += [
+                BaseMask(
+                    roi_name=roi_name,
+                    sample_name=self.sample_name,
+                    image_modality=self.modality,
+                    image_data=self.image_data,
+                    image_spacing=self.image_spacing,
+                    image_origin=self.image_origin,
+                    image_orientation=self.image_orientation,
+                    image_dimensions=self.image_dimension
                 )
-            )]
+            ]
 
         else:
 
@@ -1004,19 +1007,20 @@ class MaskFile(ImageFile):
                 else:
                     roi_name = "region_" + str(current_label)
 
-                roi_list += [RoiClass(
-                    name=roi_name,
-                    contour=None,
-                    roi_mask=ImageClass(
-                        voxel_grid=self.image_data == current_label,
-                        origin=self.image_origin,
-                        spacing=self.image_spacing,
-                        orientation=self.image_orientation,
-                        modality=self.modality
+                mask_list += [
+                    BaseMask(
+                        roi_name=roi_name,
+                        sample_name=self.sample_name,
+                        image_modality=self.modality,
+                        image_data=self.image_data == current_label,
+                        image_spacing=self.image_spacing,
+                        image_origin=self.image_origin,
+                        image_orientation=self.image_orientation,
+                        image_dimensions=self.image_dimension
                     )
-                )]
+                ]
 
-        return roi_list
+        return mask_list
 
     def export_roi_labels(self):
 

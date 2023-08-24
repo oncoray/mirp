@@ -539,7 +539,7 @@ class MaskImage(GenericImage):
 
     def get_file_name_descriptor(self) -> List[str]:
         descriptors = super().get_file_name_descriptor()
-        
+
         # Alteration size.
         if self.alteration_size is not None and not self.alteration_size == 0.0:
             descriptors += ["vol", str(self.alteration_size)]
