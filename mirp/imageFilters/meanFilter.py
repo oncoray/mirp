@@ -22,7 +22,7 @@ class MeanFilter(GenericFilter):
         # Set the filter mode
         self.mode = settings.img_transform.mean_filter_boundary_condition
 
-    def _generate_object(self):
+    def generate_object(self):
         # Generator for transformation objects.
         filter_size = copy.deepcopy(self.filter_size)
         if not isinstance(filter_size, list):

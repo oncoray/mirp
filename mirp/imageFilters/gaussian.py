@@ -31,7 +31,7 @@ class GaussianFilter(GenericFilter):
                 self.riesz_steered = True
                 self.riesz_sigma = settings.img_transform.riesz_filter_tensor_sigma
 
-    def _generate_object(self):
+    def generate_object(self):
         # Generator for transformation objects.
         sigma = copy.deepcopy(self.sigma)
         if not isinstance(sigma, list):

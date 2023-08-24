@@ -40,7 +40,7 @@ class StandardWorkflow(BaseWorkflow):
         self.new_image_spacing = new_image_spacing
 
     def standard_image_processing(self) -> Optional[Tuple[GenericImage, BaseMask]]:
-        from mirp.imageProcess import crop, alter_mask
+        from mirp.imageProcess import crop, alter_mask, randomise_mask, split_masks
 
         # Configure logger
         logging.basicConfig(
@@ -135,8 +135,7 @@ class StandardWorkflow(BaseWorkflow):
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
 
         ########################################################################################################
-        # ROI-based operations
-        # These operations only affect the regions of interest
+        # Mask-based operations
         ########################################################################################################
 
         # Adapt roi sizes by dilation and erosion.
@@ -147,106 +146,104 @@ class StandardWorkflow(BaseWorkflow):
             max_erosion=self.settings.perturbation.max_volume_erosion,
             by_slice=self.settings.general.by_slice
         )
-        
-        roi_list = adapt_roi_size_deprecated(roi_list=roi_list, settings=curr_setting)
 
         # Update roi using SLIC
-        roi_list = randomise_roi_contours(roi_list=roi_list, img_obj=img_obj, settings=curr_setting)
+        if self.settings.perturbation.randomise_roi:
+            masks = randomise_mask(
+                image=image,
+                masks=masks,
+                repetitions=self.settings.perturbation.roi_random_rep,
+                by_slice=self.settings.general.by_slice
+            )
 
         # Extract boundaries and tumour bulk
-        roi_list = divide_tumour_regions(roi_list=roi_list, settings=curr_setting)
+        masks = split_masks(
+            masks=masks,
+            boundary_sizes=self.settings.perturbation.roi_boundary_size,
+            max_erosion=self.settings.perturbation.max_volume_erosion,
+            by_slice=self.settings.general.by_slice
+        )
 
-        # Resegmentise ROI based on intensities in the base images
-        roi_list = resegmentise_deprecated(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
-        self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
+        # Resegmentise masks.
+        [mask.resegmentise_mask(
+            image=image,
+            resegmentation_method=self.settings.roi_resegment.resegmentation_method,
+            intensity_range=self.settings.roi_resegment.intensity_range,
+            sigma=self.settings.roi_resegment.sigma
+        ) for mask in masks]
 
-        ########################################################################################################
-        # Base image computations and exports
-        ########################################################################################################
-
-        iter_image_object_list = [img_obj]
-        if self.extract_images:
-            img_obj.export(file_path=self.write_path)
-            for roi_obj in roi_list:
-                roi_obj.export(img_obj=img_obj, file_path=self.write_path)
-
-        iter_feat_list = []
-        if self.compute_features:
-            iter_feat_list.append(calculate_features(img_obj=img_obj, roi_list=roi_list, settings=curr_setting))
+        # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
         ########################################################################################################
-        # Image transformations
+        # Base image
+        ########################################################################################################
+
+        for mask in masks:
+            yield image, mask
+
+        ########################################################################################################
+        # Response maps
         ########################################################################################################
 
         if self.settings.img_transform.spatial_filters is not None:
-            # Get image features from transformed images (may be empty if no features are computed)
-            current_feature_list, current_response_map_list = transform_images(
-                img_obj=img_obj,
-                roi_list=roi_list,
-                settings=curr_setting,
-                compute_features=self.compute_features,
-                extract_images=self.extract_images,
-                file_path=self.write_path
-            )
+            for transformed_image in self.transform_images(image=image):
+                for mask in masks:
+                    yield transformed_image, mask
 
-            iter_feat_list += current_feature_list
-            iter_image_object_list += current_response_map_list
+    def transform_images(self, image: GenericImage):
+        # Check if image transformation is required
+        if self.settings.img_transform.spatial_filters is None:
+            return
 
-        ########################################################################################################
-        # Collect and combine features for current iteration
-        ########################################################################################################
+        # Get spatial filters to apply
+        spatial_filter = self.settings.img_transform.spatial_filters
 
-        if self.compute_features:
-            feat_list.append(self.collect_features(
-                img_obj=img_obj,
-                roi_list=roi_list,
-                feat_list=iter_feat_list,
-                settings=curr_setting)
-            )
+        # Iterate over spatial filters
+        for current_filter in spatial_filter:
 
-        if self.extract_images and self.write_path is None:
-            image_object_list += [iter_image_object_list]
-            roi_object_list += [roi_list]
-        else:
-            del img_obj, roi_list, iter_image_object_list
+            if self.settings.img_transform.has_separable_wavelet_filter(x=current_filter):
+                # Separable wavelet filters
+                from mirp.imageFilters.separableWaveletFilter import SeparableWaveletFilter
+                filter_obj = SeparableWaveletFilter(settings=self.settings, name=current_filter)
 
-    ########################################################################################################
-    # Feature aggregation over settings
-    ########################################################################################################
+            elif self.settings.img_transform.has_nonseparable_wavelet_filter(x=current_filter):
+                # Non-separable wavelet filters
+                from mirp.imageFilters.nonseparableWaveletFilter import NonseparableWaveletFilter
+                filter_obj = NonseparableWaveletFilter(settings=self.settings, name=current_filter)
 
-    feature_table = None
-    if self.compute_features:
+            elif self.settings.img_transform.has_gaussian_filter(x=current_filter):
+                # Gaussian filters
+                from mirp.imageFilters.gaussian import GaussianFilter
+                filter_obj = GaussianFilter(settings=self.settings, name=current_filter)
 
-        # Strip empty entries
-        feat_list = [list_entry for list_entry in feat_list if list_entry is not None]
+            elif self.settings.img_transform.has_laplacian_of_gaussian_filter(x=current_filter):
+                # Laplacian of Gaussian filters
+                from mirp.imageFilters.laplacianOfGaussian import LaplacianOfGaussianFilter
+                filter_obj = LaplacianOfGaussianFilter(settings=self.settings, name=current_filter)
 
-        # Check if features were extracted
-        if len(feat_list) == 0:
-            logging.warning(self._message_warning_no_features_extracted())
-            return None
+            elif self.settings.img_transform.has_laws_filter(x=current_filter):
+                # Laws' kernels
+                from mirp.imageFilters.lawsFilter import LawsFilter
+                filter_obj = LawsFilter(settings=self.settings, name=current_filter)
 
-        # Concatenate feat list
-        feature_table = pd.concat(feat_list, axis=0)
+            elif self.settings.img_transform.has_gabor_filter(x=current_filter):
+                # Gabor kernels
+                from mirp.imageFilters.gaborFilter import GaborFilter
+                filter_obj = GaborFilter(settings=self.settings, name=current_filter)
 
-        # Write to file
-        file_name = self._create_base_file_name() + "_features.csv"
+            elif self.settings.img_transform.has_mean_filter(x=current_filter):
+                # Mean / uniform filter
+                from mirp.imageFilters.meanFilter import MeanFilter
+                filter_obj = MeanFilter(settings=self.settings, name=current_filter)
 
-        # Write successful completion to console or log
-        logging.info(self._message_feature_extraction_finished())
+            else:
+                raise ValueError(
+                    f"{current_filter} is not implemented as a spatial filter. Please use one of ",
+                    ", ".join(self.settings.img_transform.get_available_image_filters())
+                )
 
-        if self.write_path is not None:
-            feature_table.to_csv(
-                path_or_buf=os.path.join(self.write_path, file_name),
-                sep=";",
-                na_rep="NA",
-                index=False,
-                decimal=".")
+            for current_filter_object in filter_obj.generate_object():
+                # Create a response map.
+                response_map = current_filter_object.transform(img_obj=img_obj)
 
-    if self.compute_features and self.extract_images and self.write_path is None:
-        return feature_table, image_object_list, roi_object_list
-
-    elif self.compute_features and self.write_path is None:
-        return feature_table
-
-    elif self.extract_images and self.write_path is None:
-        return image_object_list, roi_object_list
+                yield response_map

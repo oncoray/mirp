@@ -6,13 +6,13 @@ from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 
 
-class GenericFilter():
+class GenericFilter:
 
     def __init__(self, settings: SettingsClass, name: str):
         # In-slice (2D) or 3D filtering
         self.by_slice = settings.img_transform.by_slice
 
-    def _generate_object(self):
+    def generate_object(self):
         raise NotImplementedError("_generate_object method should be defined in the subclasses")
 
     def apply_transformation(
@@ -29,7 +29,7 @@ class GenericFilter():
         response_map_list = []
 
         # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object():
+        for filter_object in self.generate_object():
 
             # Create a response map.
             response_map = filter_object.transform(img_obj=img_obj)

@@ -200,6 +200,58 @@ def resegmentise_mask(
         return masks[0]
 
 
+def split_masks(
+        masks: Optional[BaseMask, List[BaseMask]],
+        boundary_sizes: Optional[List[float]] = None,
+        max_erosion: Optional[float] = 0.8,
+        by_slice: bool = False
+):
+    if boundary_sizes is None or len(boundary_sizes) == 0 or \
+            all(boundary_size == 0.0 for boundary_size in boundary_sizes):
+        return masks
+
+    if masks is None:
+        return None
+
+    # Determine the return format.
+    if not isinstance(masks, list):
+        masks = [masks]
+
+    masks: List[BaseMask] = masks
+    new_masks = []
+
+    # Iterate over masks.
+    for mask in masks:
+        # Store original.
+        new_masks += [mask]
+
+        for boundary_size in boundary_sizes:
+            if boundary_size == 0.0:
+                continue
+
+            bulk_mask = mask.copy()
+            bulk_mask.roi_name += "_bulk_" + str(boundary_size)
+
+            boundary_mask = mask.copy()
+            boundary_mask.roi_name += "_boundary_" + str(boundary_size)
+
+            bulk_mask.erode(
+                by_slice=by_slice,
+                distance=boundary_size,
+                max_eroded_volume_fraction=max_erosion
+            )
+
+            boundary_mask.roi.set_voxel_grid(voxel_grid=np.logical_xor(
+                mask.roi.get_voxel_grid(), bulk_mask.roi.get_voxel_grid()))
+
+            if bulk_mask.roi.is_empty_mask() or boundary_mask.roi.is_empty_mask():
+                continue
+
+            new_masks += [bulk_mask, boundary_mask]
+
+    return new_masks
+
+
 def randomise_mask(
         image: GenericImage,
         masks: Union[BaseMask, MaskImage, List[BaseMask]],
@@ -844,7 +896,7 @@ def get_supervoxel_overlap_deprecated(roi_obj, img_segments, mask=None):
     return overlap_segment_labels, overlap_frac, overlap_size
 
 
-def transform_images(
+def transform_images_default(
         img_obj: ImageClass,
         roi_list: List[RoiClass],
         settings: SettingsClass,
@@ -1261,7 +1313,7 @@ def gaussian_preprocess_filter(orig_vox, orig_spacing, sample_spacing=None, para
     return new_vox
 
 
-def divide_tumour_regions(roi_list: List[RoiClass], settings: SettingsClass):
+def divide_tumour_regions_deprecated(roi_list: List[RoiClass], settings: SettingsClass):
 
     # Create new list for storing roi boundaries and bulk
     new_roi_list = []

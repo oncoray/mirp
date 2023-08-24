@@ -61,7 +61,7 @@ class GaborFilter(GenericFilter):
         else:
             self.stack_axis: Union[int, List[int]] = [0, 1, 2]
 
-    def _generate_object(self, allow_pooling: bool = True):
+    def generate_object(self, allow_pooling: bool = True):
         # Generator for transformation objects.
         sigma = copy.deepcopy(self.sigma)
         if not isinstance(sigma, list):
@@ -158,7 +158,7 @@ class GaborFilter(GenericFilter):
 
         # Initialise iterator ii to avoid IDE warnings.
         ii = 0
-        for ii, pooled_filter_object in enumerate(self._generate_object(allow_pooling=False)):
+        for ii, pooled_filter_object in enumerate(self.generate_object(allow_pooling=False)):
             # Generate transformed voxel grid.
             pooled_voxel_grid = pooled_filter_object.transform_grid(
                 voxel_grid=img_obj.get_voxel_grid(),

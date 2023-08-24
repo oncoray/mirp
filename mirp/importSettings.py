@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import sys
 
-from typing import Union, List
+from typing import Union, List, Tuple, Any, Optional
 
 
 class GeneralSettingsClass:
@@ -779,7 +779,8 @@ class ResegmentationSettingsClass:
                 f"The resegmentation_intensity_range parameter should be a list with exactly two "
                 f"values. Found: one or more values that are not floating point values.")
 
-        self.intensity_range: List[float] = resegmentation_intensity_range
+        self.intensity_range: Optional[Tuple[Any, Any]] = tuple(resegmentation_intensity_range) if \
+            resegmentation_intensity_range is not None else None
 
         # Check that sigma is not negative.
         if resegmentation_sigma < 0.0:

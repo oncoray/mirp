@@ -38,7 +38,7 @@ class SeparableWaveletFilter(GenericFilter):
         # Set boundary condition
         self.mode = settings.img_transform.separable_wavelet_boundary_condition
 
-    def _generate_object(self):
+    def generate_object(self):
         # Generator for transformation objects.
         wavelet_family = copy.deepcopy(self.wavelet_family)
         if not isinstance(wavelet_family, list):

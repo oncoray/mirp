@@ -290,7 +290,7 @@ class ExperimentClass:
         import logging
         from mirp.imageRead import load_image
         from mirp.imageProcess import crop_image_deprecated, estimate_image_noise, interpolate_image,\
-            interpolate_roi, divide_tumour_regions, resegmentise_deprecated, calculate_features, transform_images, \
+            interpolate_roi, divide_tumour_regions_deprecated, resegmentise_deprecated, calculate_features, transform_images_default, \
             create_tissue_mask, bias_field_correction_deprecated, normalise_image_deprecated, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size_deprecated, randomise_roi_contours
         import copy
@@ -452,7 +452,7 @@ class ExperimentClass:
             roi_list = randomise_roi_contours(roi_list=roi_list, img_obj=img_obj, settings=curr_setting)
 
             # Extract boundaries and tumour bulk
-            roi_list = divide_tumour_regions(roi_list=roi_list, settings=curr_setting)
+            roi_list = divide_tumour_regions_deprecated(roi_list=roi_list, settings=curr_setting)
 
             # Resegmentise ROI based on intensities in the base images
             roi_list = resegmentise_deprecated(img_obj=img_obj, roi_list=roi_list, settings=curr_setting)
@@ -478,7 +478,7 @@ class ExperimentClass:
 
             if self.settings.img_transform.spatial_filters is not None:
                 # Get image features from transformed images (may be empty if no features are computed)
-                current_feature_list, current_response_map_list = transform_images(
+                current_feature_list, current_response_map_list = transform_images_default(
                     img_obj=img_obj,
                     roi_list=roi_list,
                     settings=curr_setting,

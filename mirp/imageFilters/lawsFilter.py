@@ -38,7 +38,7 @@ class LawsFilter(GenericFilter):
         # Set boundary condition
         self.mode = settings.img_transform.laws_boundary_condition
 
-    def _generate_object(self):
+    def generate_object(self):
         # Generator for transformation objects.
         laws_kernel = copy.deepcopy(self.laws_kernel)
         if not isinstance(laws_kernel, list):
