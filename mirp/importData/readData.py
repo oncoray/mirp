@@ -1,5 +1,10 @@
+import numpy as np
+from typing import Union, List, Tuple
+
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.utilities import flatten_list
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
 
 
 def read_image(
@@ -17,7 +22,7 @@ def read_image(
 def read_image_and_masks(
         image: ImageFile,
         to_numpy=False
-):
+) -> Tuple[Union[np.ndarray, GenericImage], Union[List[np.ndarray], List[BaseMask]]]:
     mask_list = []
     if image.associated_masks is not None:
         mask_list = image.associated_masks
