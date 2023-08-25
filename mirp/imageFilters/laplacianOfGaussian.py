@@ -3,6 +3,8 @@ import copy
 
 from typing import List, Union
 from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import LaplacianOfGaussianTransformedImage
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
 from mirp.importSettings import SettingsClass
 from mirp.imageFilters.genericFilter import GenericFilter
@@ -65,6 +67,51 @@ class LaplacianOfGaussianFilter(GenericFilter):
                     filter_object.riesz_sigma = current_riesz_sigma
 
                     yield filter_object
+
+    def transform(self, image: GenericImage) -> LaplacianOfGaussianTransformedImage:
+        # Create placeholder Laplacian-of-Gaussian response map.
+        response_map = LaplacianOfGaussianTransformedImage(
+            image_data=None,
+            sigma_parameter=self.sigma,
+            sigma_cutoff_parameter=self.sigma_cutoff,
+            pooling_method=self.pooling_method,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
+
+        if image.is_empty():
+            return response_map
+
+        # Set response voxel grid.
+        response_voxel_grid = None
+
+        # Initialise iterator ii to avoid IDE warnings.
+        ii = 0
+        for ii, pooled_filter_object in enumerate(self.generate_object(allow_pooling=False)):
+            # Generate transformed voxel grid.
+            pooled_voxel_grid = pooled_filter_object.transform_grid(
+                voxel_grid=image.get_voxel_grid(),
+                spacing=image.image_spacing
+            )
+
+            # Pool voxel grids.
+            response_voxel_grid = pool_voxel_grids(
+                x1=response_voxel_grid,
+                x2=pooled_voxel_grid,
+                pooling_method=self.pooling_method
+            )
+
+        if self.pooling_method == "mean":
+            # Perform final pooling step for mean pooling.
+            response_voxel_grid = np.divide(response_voxel_grid, ii + 1)
+
+        # Set voxel grid.
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
+
+        return response_map
 
     def transform_deprecated(self, img_obj: ImageClass):
         """
