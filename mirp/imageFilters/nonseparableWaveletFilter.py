@@ -5,6 +5,8 @@ import scipy.fft as fft
 
 from typing import List, Union
 from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import NonSeparableWaveletTransformedImage
 from mirp.importSettings import SettingsClass
 from mirp.imageFilters.genericFilter import GenericFilter
 
@@ -75,6 +77,31 @@ class NonseparableWaveletFilter(GenericFilter):
                         filter_object.riesz_sigma = current_riesz_sigma
 
                         yield filter_object
+
+    def transform(self, image: GenericImage) -> NonSeparableWaveletTransformedImage:
+        # Create placeholder Gabor response map.
+        response_map = NonSeparableWaveletTransformedImage(
+            image_data=None,
+            wavelet_family=self.wavelet_family,
+            decomposition_level=self.decomposition_level,
+            response_type=self.response,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
+
+        if image.is_empty():
+            return response_map
+
+        # Create voxel grid
+        response_voxel_grid = self.convolve(voxel_grid=image.get_voxel_grid())
+
+        # Store the voxel grid in the ImageObject.
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
+
+        return response_map
 
     def transform_deprecated(
             self,

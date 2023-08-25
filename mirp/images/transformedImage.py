@@ -342,3 +342,64 @@ class MeanTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+
+class NonSeparableWaveletTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            wavelet_family: Optional[str] = None,
+            decomposition_level: Optional[int] = None,
+            response_type: Optional[str] = None,
+            boundary_condition: Optional[str] = None,
+            riesz_order: Optional[int, List[int]] = None,
+            riesz_steering: Optional[bool] = None,
+            riesz_sigma_parameter: Optional[float] = None,
+            template: Optional[GenericImage] = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.wavelet_family = wavelet_family
+        self.decomposition_level = decomposition_level
+        self.response_type = response_type
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> List[str]:
+        descriptors = super().get_file_name_descriptor()
+
+        descriptors += [
+            "wavelet", self.wavelet_family,
+            "level", str(self.decomposition_level)
+        ]
+
+        return descriptors
+
+    def get_export_attributes(self) -> Dict[Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "non_separable_wavelet"),
+            ("wavelet_family", self.wavelet_family),
+            ("decomposition_level", self.decomposition_level),
+            ("response_type", self.response_type),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
