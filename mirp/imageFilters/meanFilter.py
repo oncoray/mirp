@@ -2,6 +2,8 @@ import copy
 import numpy as np
 
 from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import MeanTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import SeparableFilterSet
 from mirp.importSettings import SettingsClass
@@ -35,6 +37,45 @@ class MeanFilter(GenericFilter):
             filter_object.filter_size = current_filter_size
 
             yield filter_object
+
+    def transform(self, image: GenericImage) -> MeanTransformedImage:
+        # Create placeholder Laws kernel response map.
+        response_map = MeanTransformedImage(
+            image_data=None,
+            filter_size=self.filter_size,
+            boundary_condition=self.mode,
+            riesz_order=None,
+            riesz_steering=None,
+            riesz_sigma_parameter=None,
+            template=image
+        )
+
+        if image.is_empty():
+            return response_map
+
+        # Set up the filter kernel.
+        filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size
+
+        # Create a filter set.
+        if self.by_slice:
+            filter_set = SeparableFilterSet(
+                filter_x=filter_kernel,
+                filter_y=filter_kernel
+            )
+        else:
+            filter_set = SeparableFilterSet(
+                filter_x=filter_kernel,
+                filter_y=filter_kernel,
+                filter_z=filter_kernel
+            )
+
+        # Apply the filter.
+        response_map.set_voxel_grid(voxel_grid=filter_set.convolve(
+            voxel_grid=image.get_voxel_grid(),
+            mode=self.mode)
+        )
+
+        return response_map
 
     def transform_deprecated(self, img_obj: ImageClass):
         """

@@ -269,7 +269,7 @@ class LawsTransformedImage(TransformedImage):
         parent_attributes = super().get_export_attributes()
 
         attributes = [
-            ("filter_type", "laplacian_of_gaussian"),
+            ("filter_type", "laws"),
             ("laws_kernel", self.laws_kernel),
             ("energy_map", self.energy_map),
             ("rotation_invariance", self.rotation_invariance),
@@ -281,6 +281,57 @@ class LawsTransformedImage(TransformedImage):
 
         if self.pooling_method is not None:
             attributes += [("pooling_method", self.pooling_method)]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+
+class MeanTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            filter_size: Optional[int] = None,
+            boundary_condition: Optional[str] = None,
+            riesz_order: Optional[int, List[int]] = None,
+            riesz_steering: Optional[bool] = None,
+            riesz_sigma_parameter: Optional[float] = None,
+            template: Optional[GenericImage] = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.filter_size = filter_size
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> List[str]:
+        descriptors = super().get_file_name_descriptor()
+        descriptors += ["mean", "d", str(self.filter_size)]
+
+        return descriptors
+
+    def get_export_attributes(self) -> Dict[Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "mean"),
+            ("filter_size", self.filter_size),
+            ("boundary_condition", self.boundary_condition)
+        ]
 
         if self.riesz_transformed:
             attributes += [("riesz_order", self.riesz_order)]
