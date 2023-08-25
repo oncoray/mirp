@@ -79,7 +79,7 @@ class NonseparableWaveletFilter(GenericFilter):
                         yield filter_object
 
     def transform(self, image: GenericImage) -> NonSeparableWaveletTransformedImage:
-        # Create placeholder Gabor response map.
+        # Create placeholder non-separable wavelet response map.
         response_map = NonSeparableWaveletTransformedImage(
             image_data=None,
             wavelet_family=self.wavelet_family,
