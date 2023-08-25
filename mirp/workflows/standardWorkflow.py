@@ -4,6 +4,8 @@ import warnings
 
 from typing import Optional, Tuple, List, Generator
 
+import pandas as pd
+
 from mirp.importSettings import SettingsClass
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.readData import read_image_and_masks
@@ -229,3 +231,11 @@ class StandardWorkflow(BaseWorkflow):
                 # Create a response map.
                 for response_map in current_filter_object.transform(image=image):
                     yield response_map
+
+    def compute_radiomics_features(self):
+
+        for image, mask in self.standard_image_processing():
+            feature_list = [self._compute_radiomics_features(image=image, mask=mask)]
+
+    def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
+        ...
