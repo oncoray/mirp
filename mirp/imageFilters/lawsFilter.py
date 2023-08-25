@@ -3,6 +3,8 @@ import copy
 
 from typing import List, Union
 from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import LawsTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import SeparableFilterSet, pool_voxel_grids
 from mirp.importSettings import SettingsClass
@@ -60,6 +62,62 @@ class LawsFilter(GenericFilter):
                 filter_object.delta = current_delta
 
                 yield filter_object
+
+    def transform(self, image: GenericImage) -> LawsTransformedImage:
+        # Create placeholder Laws kernel response map.
+        response_map = LawsTransformedImage(
+            image_data=None,
+            laws_kernel=self.laws_kernel,
+            delta_parameter=self.delta,
+            energy_map=self.calculate_energy,
+            rotation_invariance=self.rotation_invariance,
+            pooling_method=self.pooling_method,
+            boundary_condition=self.mode,
+            riesz_order=None,
+            riesz_steering=None,
+            riesz_sigma_parameter=None,
+            template=image
+        )
+
+        if image.is_empty():
+            return response_map
+
+        # Initialise voxel grid.
+        response_voxel_grid = None
+
+        # Get filter list.
+        filter_set_list: List[SeparableFilterSet] = self.get_filter_set().permute_filters(
+            rotational_invariance=self.rotation_invariance)
+
+        for ii, filter_set in enumerate(filter_set_list):
+            # Convolve and compute response map.
+            pooled_voxel_grid = filter_set.convolve(
+                voxel_grid=image.get_voxel_grid(),
+                mode=self.mode
+            )
+
+            # Pool grids.
+            response_voxel_grid = pool_voxel_grids(
+                x1=response_voxel_grid,
+                x2=pooled_voxel_grid,
+                pooling_method=self.pooling_method
+            )
+
+            # Remove img_laws_grid to explicitly release memory when collecting garbage.
+            del pooled_voxel_grid
+
+        if self.pooling_method == "mean":
+            # Perform final pooling step for mean pooling.
+            response_voxel_grid = np.divide(response_voxel_grid, len(filter_set_list))
+
+        # Compute energy map from the response map.
+        if self.calculate_energy:
+            response_voxel_grid = self.response_to_energy(voxel_grid=response_voxel_grid)
+
+        # Set voxel grid.
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
+
+        return response_map
 
     def transform_deprecated(self, img_obj: ImageClass):
 
