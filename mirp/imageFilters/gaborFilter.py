@@ -125,7 +125,7 @@ class GaborFilter(GenericFilter):
                                     yield filter_object
 
     def transform(self, image: GenericImage) -> GaborTransformedImage:
-        # Create Gabor response map image.
+        # Create placeholder Gabor response map.
         response_map = GaborTransformedImage(
             image_data=None,
             sigma_parameter=self.sigma,

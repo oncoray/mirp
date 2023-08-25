@@ -3,6 +3,8 @@ import copy
 
 from typing import Union, List
 from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import GaussianTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
 from mirp.importSettings import SettingsClass
@@ -58,6 +60,35 @@ class GaussianFilter(GenericFilter):
                     filter_object.riesz_sigma = current_riesz_sigma
 
                     yield filter_object
+
+    def transform(self, image: GenericImage) -> GaussianTransformedImage:
+        # Create placeholder Gaussian response map.
+        response_map = GaussianTransformedImage(
+            image_data=None,
+            sigma_parameter=self.sigma,
+            sigma_cutoff_parameter=self.sigma_cutoff,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
+
+        if image.is_empty():
+            return response_map
+
+        # Calculate sigma for current image
+        voxel_sigma = np.divide(
+            np.full(shape=3, fill_value=self.sigma),
+            image.image_spacing)
+
+        # Apply filters
+        response_map.set_voxel_grid(voxel_grid=self.transform_grid(
+            voxel_grid=image.get_voxel_grid(),
+            sigma=voxel_sigma)
+        )
+
+        return response_map
 
     def transform_deprecated(self, img_obj: ImageClass):
         """

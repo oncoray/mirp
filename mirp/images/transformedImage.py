@@ -98,3 +98,60 @@ class GaborTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+
+class GaussianTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            sigma_parameter: Optional[float] = None,
+            sigma_cutoff_parameter: Optional[float] = None,
+            boundary_condition: Optional[str] = None,
+            riesz_order: Optional[int, List[int]] = None,
+            riesz_steering: Optional[bool] = None,
+            riesz_sigma_parameter: Optional[float] = None,
+            template: Optional[GenericImage] = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.sigma_parameter = sigma_parameter
+        self.sigma_cutoff_parameter = sigma_cutoff_parameter
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> List[str]:
+        descriptors = super().get_file_name_descriptor()
+
+        descriptors += [
+            "gabor",
+            "s", str(self.sigma_parameter)
+        ]
+
+        return descriptors
+
+    def get_export_attributes(self) -> Dict[Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "gaussian"),
+            ("sigma_parameter", self.sigma_parameter),
+            ("sigma_cutoff_parameter", self.sigma_cutoff_parameter)
+        ]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
