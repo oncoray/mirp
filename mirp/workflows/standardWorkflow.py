@@ -2,13 +2,15 @@ import logging
 import sys
 import warnings
 
-from typing import Optional, Tuple, List
+from typing import Optional, Tuple, List, Generator
 
 from mirp.importSettings import SettingsClass
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import TransformedImage
 from mirp.masks.baseMask import BaseMask
+
 
 class BaseWorkflow:
     def __init__(
@@ -63,6 +65,9 @@ class StandardWorkflow(BaseWorkflow):
             warnings.warn("No segmentation masks were read.")
             return
 
+        # Set 2D or 3D processing.
+        image.separate_slices = self.settings.general.by_slice
+
         # Select the axial slice with the largest portion of the ROI.
         if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
             [mask.select_largest_slice() for mask in masks]
@@ -73,10 +78,6 @@ class StandardWorkflow(BaseWorkflow):
 
         # Extract diagnostic features from initial image and rois
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
-
-        ########################################################################################################
-        # Bias field correction and normalisation
-        ########################################################################################################
 
         # Create a tissue mask
         if self.settings.post_process.bias_field_correction or \
@@ -99,10 +100,6 @@ class StandardWorkflow(BaseWorkflow):
                 saturation_range=self.settings.post_process.intensity_normalisation_saturation,
                 mask=tissue_mask)
 
-        ########################################################################################################
-        # Determine image noise levels
-        ########################################################################################################
-
         # Estimate noise level.
         estimated_noise_level = self.settings.perturbation.noise_level
         if self.settings.perturbation.add_noise and estimated_noise_level is None:
@@ -110,10 +107,6 @@ class StandardWorkflow(BaseWorkflow):
 
         if self.settings.perturbation.add_noise:
             image.add_noise(noise_level=estimated_noise_level, noise_iteration_id=self.noise_iteration_id)
-
-        ########################################################################################################
-        # Interpolation of base image
-        ########################################################################################################
 
         # Translate, rotate and interpolate image
         image.interpolate(
@@ -133,10 +126,6 @@ class StandardWorkflow(BaseWorkflow):
             ) for mask in masks]
 
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
-
-        ########################################################################################################
-        # Mask-based operations
-        ########################################################################################################
 
         # Adapt roi sizes by dilation and erosion.
         masks = alter_mask(
@@ -174,23 +163,17 @@ class StandardWorkflow(BaseWorkflow):
 
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
-        ########################################################################################################
-        # Base image
-        ########################################################################################################
-
+        # Yield base image
         for mask in masks:
             yield image, mask
 
-        ########################################################################################################
-        # Response maps
-        ########################################################################################################
-
+        # Create response maps
         if self.settings.img_transform.spatial_filters is not None:
             for transformed_image in self.transform_images(image=image):
                 for mask in masks:
                     yield transformed_image, mask
 
-    def transform_images(self, image: GenericImage):
+    def transform_images(self, image: GenericImage) -> Generator[TransformedImage]:
         # Check if image transformation is required
         if self.settings.img_transform.spatial_filters is None:
             return
@@ -244,6 +227,5 @@ class StandardWorkflow(BaseWorkflow):
 
             for current_filter_object in filter_obj.generate_object():
                 # Create a response map.
-                response_map = current_filter_object.transform(img_obj=img_obj)
-
-                yield response_map
+                for response_map in current_filter_object.transform(image=image):
+                    yield response_map

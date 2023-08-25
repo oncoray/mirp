@@ -4,6 +4,7 @@ from mirp.imageProcess import calculate_features
 from mirp.importSettings import SettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
+from mirp.images.genericImage import GenericImage
 
 
 class GenericFilter:
@@ -32,7 +33,7 @@ class GenericFilter:
         for filter_object in self.generate_object():
 
             # Create a response map.
-            response_map = filter_object.transform(img_obj=img_obj)
+            response_map = filter_object.transform_deprecated(img_obj=img_obj)
 
             # Compute features.
             if compute_features:
@@ -54,6 +55,8 @@ class GenericFilter:
 
         return feature_list, response_map_list
 
-    def transform(self, img_obj: ImageClass):
-        raise NotImplementedError("transform method should be defined in the subclasses")
+    def transform(self, image: GenericImage):
+        raise NotImplementedError("transform method should be defined in the subclasses.")
 
+    def transform_deprecated(self, img_obj: ImageClass):
+        raise NotImplementedError("transform method should be defined in the subclasses")

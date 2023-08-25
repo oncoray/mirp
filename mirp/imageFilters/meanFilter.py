@@ -36,7 +36,7 @@ class MeanFilter(GenericFilter):
 
             yield filter_object
 
-    def transform(self, img_obj: ImageClass):
+    def transform_deprecated(self, img_obj: ImageClass):
         """
         Transform image by calculating the mean
         :param img_obj: image object

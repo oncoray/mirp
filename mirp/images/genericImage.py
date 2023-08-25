@@ -11,27 +11,43 @@ class GenericImage(BaseImage):
     def __init__(
             self,
             image_data: Optional[np.ndarray],
+            separate_slices: Optional[bool] = None,
+            translation: Optional[Tuple[float, ...]] = None,
+            rotation_angle: Optional[float] = None,
+            noise_iteration_id: Optional[int] = None,
+            noise_level: Optional[float] = None,
+            interpolated: bool = False,
+            interpolation_algorithm: Optional[str] = None,
+            normalised: bool = False,
+            discretisation_method: str = None,
             **kwargs
     ):
         super().__init__(**kwargs)
 
-        self.image_data = image_data
+        # Image data --> Note that we explicitly copy image_data because otherwise we may end up changing objects by
+        # reference, which is not the expected behaviour.
+        self.image_data = self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
+
+        # Determines whether slices in the stack should be treated separately.
+        self.separate_slices = separate_slices
 
         # Perturbation-related settings that are set during interpolate.
-        self.translation = (0.0, 0.0, 0.0)
-        self.rotation_angle = 0.0
-        self.noise_iteration_id: Optional[int] = None
-        self.noise_level = 0.0
+        self.translation = translation
+        self.rotation_angle = rotation_angle
+        self.noise_iteration_id = noise_iteration_id
+        self.noise_level = noise_level
 
         # Interpolation-related settings
-        self.interpolated = False
-        self.interpolation_algorithm: Optional[str] = None
+        self.interpolated = interpolated
+        self.interpolation_algorithm = interpolation_algorithm
 
         # Normalisation-related settings
-        self.normalised = False
+        # TODO: remove normalised, because normalisation should turn specific image classes (CT, PET) into generic
+        #  objects instead.
+        self.normalised = normalised
 
         # Discretisation-related settings
-        self.discretisation_method: str = "none"
+        self.discretisation_method = discretisation_method
 
     def copy(self, drop_image=False):
         image = copy.deepcopy(self)
@@ -40,6 +56,36 @@ class GenericImage(BaseImage):
             image.drop_image()
 
         return image
+
+    def update_from_template(self, template):
+        if not isinstance(template, GenericImage):
+            raise TypeError(
+                f"The new class object should inherit from the template provided by the \"image\" object, which is "
+                f"expected to inherit from GenericImage. Found: {type(template)}")
+
+        # NOTE: image_data is not set automatically.
+
+        # Attributes from BaseImage
+        self.modality = template.modality
+        self.image_origin = copy.deepcopy(template.image_origin)
+        self.image_orientation = copy.deepcopy(template.image_orientation)
+        self.image_spacing = copy.deepcopy(template.image_spacing)
+        self.image_dimension = copy.deepcopy(template.image_dimension)
+        self.sample_name = copy.deepcopy(template.sample_name)
+
+        # Attributes from GenericImage
+        self.separate_slices = template.separate_slices
+        self.translation = copy.deepcopy(template.translation)
+        self.rotation_angle = copy.deepcopy(template.rotation_angle)
+        self.noise_iteration_id = template.noise_iteration_id
+        self.noise_level = template.noise_level
+        self.interpolated = template.interpolated
+        self.interpolation_algorithm = template.interpolation_algorithm
+        self.discretisation_method = template.discretisation_method
+
+        # TODO: remove normalised, because normalisation should turn specific image classes (CT, PET) into generic
+        #  objects instead.
+        self.normalised = template.normalised
 
     def drop_image(self):
         self.image_data = None
@@ -90,6 +136,9 @@ class GenericImage(BaseImage):
             anti_aliasing: Optional[bool] = None,
             anti_aliasing_smoothing_beta: Optional[float] = None,
             settings: Optional[SettingsClass] = None):
+
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
 
         if (by_slice is None or interpolate is None or spline_order is None or anti_aliasing is
                 None or anti_aliasing_smoothing_beta is None) and settings is None:
@@ -182,6 +231,9 @@ class GenericImage(BaseImage):
         # Skip for missing images.
         if self.is_empty() is None:
             return
+
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
 
         # Translate tuples to np.array
         new_spacing = np.array(new_spacing).astype(float)
@@ -770,7 +822,7 @@ class GenericImage(BaseImage):
 
         self.saturate(intensity_range=saturation_range)
 
-    def decimate(self, by_slice):
+    def decimate(self, by_slice: bool):
         """
         Decimates image by removing every second element
         :param by_slice: Whether the analysis is conducted in 2D or 3D.
@@ -778,8 +830,11 @@ class GenericImage(BaseImage):
         """
 
         # Skip for missing images
-        if self.image_data is None:
+        if self.is_empty():
             return
+
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
 
         # Get the voxel grid
         image_data = self.get_voxel_grid()

@@ -61,7 +61,7 @@ class LawsFilter(GenericFilter):
 
                 yield filter_object
 
-    def transform(self, img_obj: ImageClass):
+    def transform_deprecated(self, img_obj: ImageClass):
 
         # Copy base image
         response_map = img_obj.copy(drop_image=True)

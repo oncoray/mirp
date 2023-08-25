@@ -1,8 +1,10 @@
 import numpy as np
 import copy
 
-from typing import Union, List
+from typing import Union, List, Generator
 from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import GaborTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import pool_voxel_grids, FilterSet2D
 from mirp.importSettings import SettingsClass
@@ -122,7 +124,55 @@ class GaborFilter(GenericFilter):
 
                                     yield filter_object
 
-    def transform(self, img_obj: ImageClass):
+    def transform(self, image: GenericImage) -> GaborTransformedImage:
+        # Create Gabor response map image.
+        response_map = GaborTransformedImage(
+            image_data=None,
+            sigma_parameter=self.sigma,
+            gamma_parameter=self.gamma,
+            lambda_parameter=self.lambda_parameter,
+            theta_parameter=self.theta,
+            pool_theta=self.pool_theta,
+            response_type=self.response_type,
+            rotation_invariance=self.rotation_invariance,
+            pooling_method=self.pooling_method,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
+
+        if image.is_empty():
+            return response_map
+
+        # Set response voxel grid.
+        response_voxel_grid = None
+
+        # Initialise iterator ii to avoid IDE warnings.
+        ii = 0
+        for ii, pooled_filter_object in enumerate(self.generate_object(allow_pooling=False)):
+            # Generate transformed voxel grid.
+            pooled_voxel_grid = pooled_filter_object.transform_grid(
+                voxel_grid=image.get_voxel_grid(),
+                spacing=image.image_spacing)
+
+            # Pool voxel grids.
+            response_voxel_grid = pool_voxel_grids(
+                x1=response_voxel_grid,
+                x2=pooled_voxel_grid,
+                pooling_method=self.pooling_method)
+
+        if self.pooling_method == "mean":
+            # Perform final pooling step for mean pooling.
+            response_voxel_grid = np.divide(response_voxel_grid, ii + 1)
+
+        # Set voxel grid.
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
+
+        return response_map
+
+    def transform_deprecated(self, img_obj: ImageClass):
         """
         Transform image by calculating the laplacian of the gaussian second derivatives
         :param img_obj: image object

@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from typing import Union, Optional, List, Tuple
 
@@ -23,10 +25,10 @@ class BaseImage:
         self.modality: Union[None, str] = image_modality
 
         # Set affine-transformation related values.
-        self.image_origin = image_origin
-        self.image_orientation = image_orientation
-        self.image_spacing = image_spacing
-        self.image_dimension = image_dimensions
+        self.image_origin = copy.deepcopy(image_origin)
+        self.image_orientation = copy.deepcopy(image_orientation)
+        self.image_spacing = copy.deepcopy(image_spacing)
+        self.image_dimension = copy.deepcopy(image_dimensions)
 
         # Set sample name.
         self.sample_name = sample_name

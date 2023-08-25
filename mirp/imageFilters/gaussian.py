@@ -59,7 +59,7 @@ class GaussianFilter(GenericFilter):
 
                     yield filter_object
 
-    def transform(self, img_obj: ImageClass):
+    def transform_deprecated(self, img_obj: ImageClass):
         """
         Transform image by calculating the laplacian of the gaussian second derivatives
         :param img_obj: image object

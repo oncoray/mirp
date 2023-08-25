@@ -76,7 +76,7 @@ class NonseparableWaveletFilter(GenericFilter):
 
                         yield filter_object
 
-    def transform(
+    def transform_deprecated(
             self,
             img_obj: ImageClass):
 

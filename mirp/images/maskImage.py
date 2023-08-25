@@ -179,6 +179,9 @@ class MaskImage(GenericImage):
         if voxel_distance is None and distance is None:
             return
 
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
+
         # Check whether voxel are isotropic.
         if not self.is_isotropic(by_slice=by_slice):
             warnings.warn(
@@ -272,6 +275,9 @@ class MaskImage(GenericImage):
         if voxel_distance is None and distance is None:
             return
 
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
+
         # Check whether voxel are isotropic.
         if not self.is_isotropic(by_slice=by_slice):
             warnings.warn(
@@ -347,6 +353,9 @@ class MaskImage(GenericImage):
 
         if fractional_change is None or np.around(fractional_change, 6) == 0.0:
             return
+
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
 
         # Check whether voxel are isotropic.
         if not self.is_isotropic(by_slice=by_slice):
@@ -426,6 +435,9 @@ class MaskImage(GenericImage):
         # Skip if there is no mask to change.
         if self.is_empty_mask():
             return None
+
+        if self.separate_slices is not None:
+            by_slice = self.separate_slices
 
         # Crop image and mask to accelerate segmentation process.
         cropped_image, cropped_mask = crop(
