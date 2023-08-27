@@ -43,7 +43,7 @@ class StandardWorkflow(BaseWorkflow):
         self.translation = translation
         self.new_image_spacing = new_image_spacing
 
-    def standard_image_processing(self) -> Optional[Tuple[GenericImage, BaseMask]]:
+    def standard_image_processing(self) -> Tuple[GenericImage, List[BaseMask]]:
         from mirp.imageProcess import crop, alter_mask, randomise_mask, split_masks
 
         # Configure logger
@@ -165,15 +165,13 @@ class StandardWorkflow(BaseWorkflow):
 
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
-        # Yield base image
-        for mask in masks:
-            yield image, mask
+        # Yield base image and masks
+        yield image, masks
 
         # Create response maps
         if self.settings.img_transform.spatial_filters is not None:
             for transformed_image in self.transform_images(image=image):
-                for mask in masks:
-                    yield transformed_image, mask
+                yield transformed_image, masks
 
     def transform_images(self, image: GenericImage) -> Generator[TransformedImage]:
         # Check if image transformation is required
@@ -232,10 +230,26 @@ class StandardWorkflow(BaseWorkflow):
                 for response_map in current_filter_object.transform(image=image):
                     yield response_map
 
-    def compute_radiomics_features(self):
+    def standard_extraction(
+            self,
+            write_features: bool,
+            export_features: bool,
+            write_images: bool,
+            extract_images: bool
+    ):
+        # Indicator to prevent the same masks from being written multiple times.
+        masks_written = False
 
-        for image, mask in self.standard_image_processing():
-            feature_list = [self._compute_radiomics_features(image=image, mask=mask)]
+        for image, masks in self.standard_image_processing():
+            if image is None:
+                continue
+
+            if write_features or export_features:
+                for mask in masks:
+                    feature_list = [self._compute_radiomics_features(image=image, mask=mask)]
+
+            if write_images:
+                image
 
     def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
         ...
