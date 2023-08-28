@@ -315,3 +315,7 @@ class StandardWorkflow(BaseWorkflow):
             in_place=False
         )
 
+        # Extract statistical features.
+        if feature_settings.has_stats_family():
+            yield get_intensity_statistics_features(image=cropped_image, mask=cropped_mask)
+
