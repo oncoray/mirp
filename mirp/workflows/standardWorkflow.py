@@ -371,13 +371,45 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask
                 )
 
-            # Grey level co-occurrence matrix
+            # Grey level co-occurrence matrix (GLCM)
             if feature_settings.has_glcm_family():
                 yield get_cm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+
+            # Grey level run length matrix (GLRLM)
+            if feature_settings.has_glrlm_family():
+                yield get_rlm_features(
+                    image=image,
+                    mask=mask,
+                    settings=feature_settings
+                )
+
+            # Grey level size zone matrix (GLSZM).
+            if settings.has_glszm_family():
+                feat_list += [get_szm_features(img_obj=img_discr,
+                                               roi_obj=roi_discr,
+                                               settings=settings)]
+
+            # Grey level distance zone matrix
+            if settings.has_gldzm_family():
+                feat_list += [get_dzm_features(img_obj=img_discr,
+                                               roi_obj=roi_discr,
+                                               settings=settings)]
+
+            # Neighbourhood grey tone difference matrix
+            if settings.has_ngtdm_family():
+                feat_list += [get_ngtdm_features(img_obj=img_discr,
+                                                 roi_obj=roi_discr,
+                                                 settings=settings)]
+
+            # Neighbouring grey level dependence matrix
+            if settings.has_ngldm_family():
+                feat_list += [get_ngldm_features(img_obj=img_discr,
+                                                 roi_obj=roi_discr,
+                                                 settings=settings)]
 
     def _discretise_image(
             self,

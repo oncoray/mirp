@@ -6,16 +6,20 @@ import pandas as pd
 from mirp.featureSets.utilities import get_neighbour_directions, is_list_all_none, coord2Index
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
 from mirp.importSettings import FeatureExtractionSettingsClass
 
 
-def get_rlm_features(img_obj: ImageClass,
-                     roi_obj: RoiClass,
-                     settings: FeatureExtractionSettingsClass):
+def get_rlm_features(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass
+) -> pd.DataFrame:
     """Extract run length matrix-based features from the intensity roi"""
 
     # Get a table of the roi intensity mask
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+    df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     if df_img is None:
         # In case the input image or ROI are missing.
@@ -23,8 +27,8 @@ def get_rlm_features(img_obj: ImageClass,
         img_dims = None
     else:
         # Default case with input image and ROI available
-        n_slices = img_obj.size[0]
-        img_dims = np.array(img_obj.size)
+        n_slices = image.image_dimension[0]
+        img_dims = np.array(image.image_dimension)
 
     # Generate an empty feature list
     feat_list = []
@@ -42,26 +46,40 @@ def get_rlm_features(img_obj: ImageClass,
             for ii_slice in np.arange(0, n_slices):
 
                 # Get neighbour direction and iterate over neighbours
-                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=False)
+                nbrs = get_neighbour_directions(
+                    d=1,
+                    distance="chebyshev",
+                    centre=False,
+                    complete=False,
+                    dim3=False
+                )
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
 
                     # Add rlm matrices to list
-                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
-                                                 direction_id=ii_direction,
-                                                 spatial_method=ii_spatial.lower(),
-                                                 slice_id=ii_slice)]
+                    rlm_list += [RunLengthMatrix(
+                        direction=nbrs[:, ii_direction],
+                        direction_id=ii_direction,
+                        spatial_method=ii_spatial.lower(),
+                        slice_id=ii_slice)]
 
         # Perform 3D analysis
         elif ii_spatial.lower() in ["3d_average", "3d_volume_merge"]:
 
             # Get neighbour direction and iterate over neighbours
-            nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=True)
+            nbrs = get_neighbour_directions(
+                d=1,
+                distance="chebyshev",
+                centre=False,
+                complete=False,
+                dim3=True
+            )
             for ii_direction in np.arange(0, np.shape(nbrs)[1]):
 
                 # Add rlm matrices to list
-                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
-                                             direction_id=ii_direction,
-                                             spatial_method=ii_spatial.lower())]
+                rlm_list += [RunLengthMatrix(
+                    direction=nbrs[:, ii_direction],
+                    direction_id=ii_direction,
+                    spatial_method=ii_spatial.lower())]
 
         else:
             raise ValueError(f"Unknown spatial glrlm method: {ii_spatial}")
@@ -71,8 +89,9 @@ def get_rlm_features(img_obj: ImageClass,
             rlm.calculate_matrix(df_img=df_img, img_dims=img_dims)
 
         # Merge matrices according to the given method
-        upd_list = combine_matrices(rlm_list=rlm_list,
-                                    spatial_method=ii_spatial.lower())
+        upd_list = combine_matrices(
+            rlm_list=rlm_list,
+            spatial_method=ii_spatial.lower())
 
         # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
         if upd_list is None:
@@ -81,15 +100,15 @@ def get_rlm_features(img_obj: ImageClass,
         # Calculate features
         feat_run_list = []
         for rlm in upd_list:
-            feat_run_list += [rlm.compute_features(g_range=roi_obj.g_range)]
+            feat_run_list += [rlm.compute_features(g_range=mask.intensity_range)]
 
         # Average feature values
         feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
 
     # Merge feature tables into a single table
-    df_feat = pd.concat(feat_list, axis=1)
+    feature_data = pd.concat(feat_list, axis=1)
 
-    return df_feat
+    return feature_data
 
 
 def combine_matrices(rlm_list, spatial_method):
@@ -125,12 +144,13 @@ def combine_matrices(rlm_list, spatial_method):
             # Check if any matrix has been created for the currently selected slice
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [RunLengthMatrix(direction=None,
-                                             direction_id=None,
-                                             spatial_method=spatial_method,
-                                             slice_id=ii_slice,
-                                             matrix=None,
-                                             n_v=0.0)]
+                use_list += [RunLengthMatrix(
+                    direction=None,
+                    direction_id=None,
+                    spatial_method=spatial_method,
+                    slice_id=ii_slice,
+                    matrix=None,
+                    n_v=0.0)]
             else:
                 # Merge matrices within the slice
                 merge_rlm = pd.concat(sel_matrix_list, axis=0)
@@ -142,12 +162,13 @@ def combine_matrices(rlm_list, spatial_method):
                     merge_n_v += rlm_list[rlm_id].n_v
 
                 # Create new run length matrix
-                use_list += [RunLengthMatrix(direction=None,
-                                             direction_id=None,
-                                             spatial_method=spatial_method,
-                                             slice_id=ii_slice,
-                                             matrix=merge_rlm,
-                                             n_v=merge_n_v)]
+                use_list += [RunLengthMatrix(
+                    direction=None,
+                    direction_id=None,
+                    spatial_method=spatial_method,
+                    slice_id=ii_slice,
+                    matrix=merge_rlm,
+                    n_v=merge_n_v)]
 
     elif spatial_method == "2.5d_direction_merge":
         # Merge rlms within each slice
@@ -169,12 +190,13 @@ def combine_matrices(rlm_list, spatial_method):
             # Check if any matrix has been created for the currently selected direction
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction,
-                                             direction_id=ii_dir,
-                                             spatial_method=spatial_method,
-                                             slice_id=None,
-                                             matrix=None,
-                                             n_v=0.0)]
+                use_list += [RunLengthMatrix(
+                    direction=rlm_list[dir_rlm_id[0]].direction,
+                    direction_id=ii_dir,
+                    spatial_method=spatial_method,
+                    slice_id=None,
+                    matrix=None,
+                    n_v=0.0)]
             else:
                 # Merge matrices with the same direction
                 merge_rlm = pd.concat(sel_matrix_list, axis=0)
@@ -186,12 +208,13 @@ def combine_matrices(rlm_list, spatial_method):
                     merge_n_v += rlm_list[rlm_id].n_v
 
                 # Create new run length matrix
-                use_list += [RunLengthMatrix(direction=rlm_list[dir_rlm_id[0]].direction,
-                                             direction_id=ii_dir,
-                                             spatial_method=spatial_method,
-                                             slice_id=None,
-                                             matrix=merge_rlm,
-                                             n_v=merge_n_v)]
+                use_list += [RunLengthMatrix(
+                    direction=rlm_list[dir_rlm_id[0]].direction,
+                    direction_id=ii_dir,
+                    spatial_method=spatial_method,
+                    slice_id=None,
+                    matrix=merge_rlm,
+                    n_v=merge_n_v)]
 
     elif spatial_method in ["2.5d_volume_merge", "3d_volume_merge"]:
         # Merge all rlms into a single representation
@@ -204,12 +227,13 @@ def combine_matrices(rlm_list, spatial_method):
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [RunLengthMatrix(direction=None,
-                                         direction_id=None,
-                                         spatial_method=spatial_method,
-                                         slice_id=None,
-                                         matrix=None,
-                                         n_v=0.0)]
+            use_list += [RunLengthMatrix(
+                direction=None,
+                direction_id=None,
+                spatial_method=spatial_method,
+                slice_id=None,
+                matrix=None,
+                n_v=0.0)]
         else:
             # Merge run length matrices
             merge_rlm = pd.concat(sel_matrix_list, axis=0)
@@ -221,12 +245,13 @@ def combine_matrices(rlm_list, spatial_method):
                 merge_n_v += rlm_list[rlm_id].n_v
 
             # Create new run length matrix
-            use_list += [RunLengthMatrix(direction=None,
-                                         direction_id=None,
-                                         spatial_method=spatial_method,
-                                         slice_id=None,
-                                         matrix=merge_rlm,
-                                         n_v=merge_n_v)]
+            use_list += [RunLengthMatrix(
+                direction=None,
+                direction_id=None,
+                spatial_method=spatial_method,
+                slice_id=None,
+                matrix=merge_rlm,
+                n_v=merge_n_v)]
 
     else:
         raise ValueError(f"Unknown spatial glrlm method: {spatial_method}")
@@ -237,7 +262,15 @@ def combine_matrices(rlm_list, spatial_method):
 
 class RunLengthMatrix:
 
-    def __init__(self, direction, direction_id, spatial_method, slice_id=None, merge_method=None, matrix=None, n_v=None):
+    def __init__(
+            self,
+            direction,
+            direction_id,
+            spatial_method,
+            slice_id=None,
+            merge_method=None,
+            matrix=None,
+            n_v=None):
 
         # Direction and slice for which the current matrix is extracted
         self.direction = direction
@@ -309,20 +342,30 @@ class RunLengthMatrix:
             self.set_empty()
             return
 
-        seg_len = (len(df_rlm) - 1) // ind_update + 1  # Nominal segment length
-        trans_seg_len = np.tile([seg_len - 1], reps=n_seg)  # Initial segment length for transitions (nominal length - 1)
-        full_len_trans = n_seg - n_seg * seg_len + len(df_rlm)  # Number of full segments
-        trans_seg_len[0:full_len_trans] += 1  # Update full segments
+        # Nominal segment length
+        seg_len = (len(df_rlm) - 1) // ind_update + 1
+
+        # Initial segment length for transitions (nominal length - 1)
+        trans_seg_len = np.tile([seg_len - 1], reps=n_seg)
+
+        # Number of full segments
+        full_len_trans = n_seg - n_seg * seg_len + len(df_rlm)
+
+        # Update full segments
+        trans_seg_len[0:full_len_trans] += 1
 
         # Create transition vector
-        trans_vec = np.tile(np.arange(start=0, stop=len(df_rlm), step=ind_update), reps=ind_update) + np.repeat(np.arange(start=0, stop=n_seg), repeats=seg_len)
+        trans_vec = np.tile(
+            np.arange(start=0, stop=len(df_rlm), step=ind_update), reps=ind_update
+        ) + np.repeat(np.arange(start=0, stop=n_seg), repeats=seg_len)
         trans_vec = trans_vec[trans_vec < len(df_rlm)]
 
         # Determine valid transitions
-        to_index = coord2Index(x=df_rlm.x.values + curr_dir[2],
-                               y=df_rlm.y.values + curr_dir[1],
-                               z=df_rlm.z.values + curr_dir[0],
-                               dims=img_dims)
+        to_index = coord2Index(
+            x=df_rlm.x.values + curr_dir[2],
+            y=df_rlm.y.values + curr_dir[1],
+            z=df_rlm.z.values + curr_dir[0],
+            dims=img_dims)
 
         # Determine which transitions are valid
         end_ind = np.nonzero(to_index[trans_vec] < 0)[0]  # Find transitions that form an endpoints
@@ -335,8 +378,9 @@ class RunLengthMatrix:
         rle_start = np.cumsum(np.append(0, np.diff(np.append(-1, rle_end))))[:-1]
 
         # Generate dataframe
-        df_rltable = pd.DataFrame({"i": intensities[rle_start],
-                                   "r": rle_end - rle_start + 1})
+        df_rltable = pd.DataFrame({
+            "i": intensities[rle_start],
+            "r": rle_end - rle_start + 1})
         df_rltable = df_rltable.loc[~np.isnan(df_rltable.i), :]
         df_rltable = df_rltable.groupby(by=["i", "r"]).size().reset_index(name="n")
 
@@ -346,9 +390,10 @@ class RunLengthMatrix:
     def compute_features(self, g_range):
 
         # Create feature table
-        feat_names = ["rlm_sre", "rlm_lre", "rlm_lgre", "rlm_hgre", "rlm_srlge", "rlm_srhge", "rlm_lrlge", "rlm_lrhge",
-                      "rlm_glnu", "rlm_glnu_norm", "rlm_rlnu", "rlm_rlnu_norm", "rlm_r_perc",
-                      "rlm_gl_var", "rlm_rl_var", "rlm_rl_entr"]
+        feat_names = [
+            "rlm_sre", "rlm_lre", "rlm_lgre", "rlm_hgre", "rlm_srlge", "rlm_srhge", "rlm_lrlge", "rlm_lrhge",
+            "rlm_glnu", "rlm_glnu_norm", "rlm_rlnu", "rlm_rlnu_norm", "rlm_r_perc",
+            "rlm_gl_var", "rlm_rl_var", "rlm_rl_entr"]
         df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
         df_feat.columns = feat_names
 
@@ -457,3 +502,86 @@ class RunLengthMatrix:
                 raise ValueError(f"Unknown spatial glrlm method: {self.spatial_method}")
 
         return "_".join(parse_str).rstrip("_")
+
+
+def get_rlm_features_deprecated(img_obj: ImageClass,
+                                roi_obj: RoiClass,
+                                settings: FeatureExtractionSettingsClass):
+    """Extract run length matrix-based features from the intensity roi"""
+
+    # Get a table of the roi intensity mask
+    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+
+    if df_img is None:
+        # In case the input image or ROI are missing.
+        n_slices = 1
+        img_dims = None
+    else:
+        # Default case with input image and ROI available
+        n_slices = img_obj.size[0]
+        img_dims = np.array(img_obj.size)
+
+    # Generate an empty feature list
+    feat_list = []
+
+    # Iterate over spatial arrangements
+    for ii_spatial in settings.glrlm_spatial_method:
+
+        # Initiate list of rlm objects
+        rlm_list = []
+
+        # Perform 2D analysis
+        if ii_spatial.lower() in ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"]:
+
+            # Iterate over slices
+            for ii_slice in np.arange(0, n_slices):
+
+                # Get neighbour direction and iterate over neighbours
+                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=False)
+                for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+
+                    # Add rlm matrices to list
+                    rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
+                                                 direction_id=ii_direction,
+                                                 spatial_method=ii_spatial.lower(),
+                                                 slice_id=ii_slice)]
+
+        # Perform 3D analysis
+        elif ii_spatial.lower() in ["3d_average", "3d_volume_merge"]:
+
+            # Get neighbour direction and iterate over neighbours
+            nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=True)
+            for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+
+                # Add rlm matrices to list
+                rlm_list += [RunLengthMatrix(direction=nbrs[:, ii_direction],
+                                             direction_id=ii_direction,
+                                             spatial_method=ii_spatial.lower())]
+
+        else:
+            raise ValueError(f"Unknown spatial glrlm method: {ii_spatial}")
+
+        # Calculate run length matrices
+        for rlm in rlm_list:
+            rlm.calculate_matrix(df_img=df_img, img_dims=img_dims)
+
+        # Merge matrices according to the given method
+        upd_list = combine_matrices(rlm_list=rlm_list,
+                                    spatial_method=ii_spatial.lower())
+
+        # Skip if no matrices are available (due to illegal combinations of merge and spatial methods
+        if upd_list is None:
+            continue
+
+        # Calculate features
+        feat_run_list = []
+        for rlm in upd_list:
+            feat_run_list += [rlm.compute_features(g_range=roi_obj.g_range)]
+
+        # Average feature values
+        feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
+
+    # Merge feature tables into a single table
+    df_feat = pd.concat(feat_list, axis=1)
+
+    return df_feat

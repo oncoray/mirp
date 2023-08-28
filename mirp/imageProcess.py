@@ -1511,7 +1511,7 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
 
     from mirp.featureSets.intensityHistogram import get_intensity_histogram_features_deprecated
     from mirp.featureSets.cooccurrenceMatrix import get_cm_features_deprecated
-    from mirp.featureSets.runLengthMatrix import get_rlm_features
+    from mirp.featureSets.runLengthMatrix import get_rlm_features_deprecated
     from mirp.featureSets.sizeZoneMatrix import get_szm_features
     from mirp.featureSets.distanceZoneMatrix import get_dzm_features
     from mirp.featureSets.neighbourhoodGreyToneDifferenceMatrix import get_ngtdm_features
@@ -1543,9 +1543,9 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
 
     # Grey level run length matrix
     if settings.has_glrlm_family():
-        feat_list += [get_rlm_features(img_obj=img_discr,
-                                       roi_obj=roi_discr,
-                                       settings=settings)]
+        feat_list += [get_rlm_features_deprecated(img_obj=img_discr,
+                                                  roi_obj=roi_discr,
+                                                  settings=settings)]
 
     # Grey level size zone matrix
     if settings.has_glszm_family():
