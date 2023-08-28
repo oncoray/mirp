@@ -1380,7 +1380,7 @@ def calculate_features(img_obj: ImageClass,
 
     from mirp.featureSets.localIntensity import get_local_intensity_features_deprecated
     from mirp.featureSets.statistics import get_intensity_statistics_features_deprecated
-    from mirp.featureSets.intensityVolumeHistogram import get_intensity_volume_histogram_features
+    from mirp.featureSets.intensityVolumeHistogram import get_intensity_volume_histogram_features_deprecated
     from mirp.featureSets.volumeMorphology import get_volumetric_morphological_features
 
     feat_list = []
@@ -1436,9 +1436,9 @@ def calculate_features(img_obj: ImageClass,
 
         # Calculate intensity volume histogram features
         if settings.has_ivh_family():
-            roi_feat_list += [get_intensity_volume_histogram_features(img_obj=img_cut,
-                                                                      roi_obj=roi_cut,
-                                                                      settings=settings)]
+            roi_feat_list += [get_intensity_volume_histogram_features_deprecated(img_obj=img_cut,
+                                                                                 roi_obj=roi_cut,
+                                                                                 settings=settings)]
 
         # Calculate morphological features
         if settings.has_morphology_family():

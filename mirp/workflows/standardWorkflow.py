@@ -306,7 +306,10 @@ class StandardWorkflow(BaseWorkflow):
         )
 
         if feature_settings.has_local_intensity_family():
-            yield get_local_intensity_features(image=cropped_image, mask=cropped_mask)
+            yield get_local_intensity_features(
+                image=cropped_image,
+                mask=cropped_mask
+            )
 
         cropped_image, cropped_mask = crop(
             image=image,
@@ -317,5 +320,17 @@ class StandardWorkflow(BaseWorkflow):
 
         # Extract statistical features.
         if feature_settings.has_stats_family():
-            yield get_intensity_statistics_features(image=cropped_image, mask=cropped_mask)
+            yield get_intensity_statistics_features(
+                image=cropped_image,
+                mask=cropped_mask
+            )
+
+        # Extract intensity-volume histogram features.
+        if feature_settings.has_ivh_family():
+            yield get_intensity_volume_histogram_features(
+                image=cropped_image,
+                mask=cropped_mask,
+                settings=feature_settings
+            )
+
 

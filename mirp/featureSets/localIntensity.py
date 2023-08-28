@@ -7,25 +7,19 @@ from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask
 
 
-def get_local_intensity_features(image: GenericImage, mask: BaseMask):
+def get_local_intensity_features(image: GenericImage, mask: BaseMask) -> pd.DataFrame:
     """Calculate local intensity features"""
 
     # Determine the number of voxels in the mask
     if mask.roi_intensity is not None and not image.is_empty():
-
-        # Get number of voxels
         n_voxels = np.sum(mask.roi_intensity.get_voxel_grid())
 
     elif mask.roi_intensity is None and mask.roi is not None and not image.is_empty():
-
         # Copy roi mask into the roi intensity mask
         mask.roi_intensity = mask.roi
-
-        # Get number of voxels
         n_voxels = np.sum(mask.roi_intensity.get_voxel_grid())
 
     else:
-        # Set the number of voxels to 0 if the input image and/or input roi are missing.
         n_voxels = 0
 
     if n_voxels > 300:
@@ -43,6 +37,7 @@ def get_local_intensity_features(image: GenericImage, mask: BaseMask):
 
 def compute_local_mean_intensity_filter(image: GenericImage, mask: BaseMask):
     """Use a filter to calculate the local mean intensity"""
+    from mirp.images.petImage import PETImage
 
     # Determine distance
     distance = (3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 10.0
@@ -90,7 +85,7 @@ def compute_local_mean_intensity_filter(image: GenericImage, mask: BaseMask):
     conv_filter[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.weight
 
     # Filter image using mean filter
-    if image.modality == "PT":
+    if isinstance(image, PETImage):
         # Use 0.0 constant for PET data
         img_avg = ndi.convolve(
             image.get_voxel_grid(),
