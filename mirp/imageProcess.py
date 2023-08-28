@@ -1514,7 +1514,7 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
     from mirp.featureSets.runLengthMatrix import get_rlm_features_deprecated
     from mirp.featureSets.sizeZoneMatrix import get_szm_features_deprecated
     from mirp.featureSets.distanceZoneMatrix import get_dzm_features_deprecated
-    from mirp.featureSets.neighbourhoodGreyToneDifferenceMatrix import get_ngtdm_features
+    from mirp.featureSets.neighbourhoodGreyToneDifferenceMatrix import get_ngtdm_features_deprecated
     from mirp.featureSets.neighbouringGreyLevelDifferenceMatrix import get_ngldm_features
 
     # Apply image discretisation
@@ -1561,9 +1561,9 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
 
     # Neighbourhood grey tone difference matrix
     if settings.has_ngtdm_family():
-        feat_list += [get_ngtdm_features(img_obj=img_discr,
-                                         roi_obj=roi_discr,
-                                         settings=settings)]
+        feat_list += [get_ngtdm_features_deprecated(img_obj=img_discr,
+                                                    roi_obj=roi_discr,
+                                                    settings=settings)]
 
     # Neighbouring grey level dependence matrix
     if settings.has_ngldm_family():

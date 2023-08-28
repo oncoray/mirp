@@ -405,11 +405,13 @@ class StandardWorkflow(BaseWorkflow):
                     settings=feature_settings
                 )
 
-            # Neighbourhood grey tone difference matrix
-            if settings.has_ngtdm_family():
-                feat_list += [get_ngtdm_features(img_obj=img_discr,
-                                                 roi_obj=roi_discr,
-                                                 settings=settings)]
+            # Neighbourhood grey tone difference matrix (NGTDM).
+            if feature_settings.has_ngtdm_family():
+                yield get_ngtdm_features(
+                    image=image,
+                    mask=mask,
+                    settings=feature_settings
+                )
 
             # Neighbouring grey level dependence matrix
             if settings.has_ngldm_family():
