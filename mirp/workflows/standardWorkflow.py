@@ -333,4 +333,12 @@ class StandardWorkflow(BaseWorkflow):
                 settings=feature_settings
             )
 
+        # Extract morphological features.
+        if feature_settings.has_morphology_family():
+            yield get_volumetric_morphological_features(
+                image=cropped_image,
+                mask=mask,
+                settings=feature_settings
+            )
+
 
