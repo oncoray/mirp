@@ -6,7 +6,7 @@ from typing import Optional, Union, Tuple, List, Generator
 
 import pandas as pd
 
-from mirp.importSettings import SettingsClass
+from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage
@@ -284,6 +284,13 @@ class StandardWorkflow(BaseWorkflow):
         from mirp.featureSets.statistics import get_intensity_statistics_features
         from mirp.featureSets.intensityVolumeHistogram import get_intensity_volume_histogram_features
         from mirp.featureSets.volumeMorphology import get_volumetric_morphological_features
+        from mirp.featureSets.intensityHistogram import get_intensity_histogram_features
+        from mirp.featureSets.cooccurrenceMatrix import get_cm_features
+        from mirp.featureSets.runLengthMatrix import get_rlm_features
+        from mirp.featureSets.sizeZoneMatrix import get_szm_features
+        from mirp.featureSets.distanceZoneMatrix import get_dzm_features
+        from mirp.featureSets.neighbourhoodGreyToneDifferenceMatrix import get_ngtdm_features
+        from mirp.featureSets.neighbouringGreyLevelDifferenceMatrix import get_ngldm_features
 
         if isinstance(image, TransformedImage):
             feature_settings = self.settings.img_transform.feature_settings
@@ -317,6 +324,7 @@ class StandardWorkflow(BaseWorkflow):
             boundary=0.0,
             in_place=False
         )
+        cropped_mask.decode_voxel_grid()
 
         # Extract statistical features.
         if feature_settings.has_stats_family():
@@ -341,4 +349,61 @@ class StandardWorkflow(BaseWorkflow):
                 settings=feature_settings
             )
 
+        if not feature_settings.has_discretised_family():
+            return
 
+        for discretised_image, discretised_mask in self._discretise_image(
+                image=image,
+                mask=mask,
+                settings=feature_settings
+        ):
+            # Intensity histogram
+            if feature_settings.has_ih_family():
+                yield get_intensity_histogram_features(
+                    image=discretised_image,
+                    mask=discretised_mask
+                )
+
+    def _discretise_image(
+            self,
+            image: GenericImage,
+            mask: BaseMask,
+            settings: Optional[Union[SettingsClass, FeatureExtractionSettingsClass]] = None
+    ) -> Tuple[GenericImage, BaseMask]:
+        from mirp.imageProcess import discretise_image
+
+        if settings is None:
+            settings = self.settings
+        if isinstance(settings, SettingsClass) and isinstance(image, TransformedImage):
+            settings = settings.img_transform.feature_settings
+        elif isinstance(settings, SettingsClass) and isinstance(image, GenericImage):
+            settings = settings.feature_extr
+
+        for discretisation_method in settings.discretisation_method:
+            if discretisation_method in ["fixed_bin_size", "fixed_bin_size_pyradiomics"]:
+                bin_width = settings.discretisation_bin_width
+                for current_bin_width in bin_width:
+                    yield discretise_image(
+                        image=image,
+                        mask=mask,
+                        discretisation_method=discretisation_method,
+                        bin_width=current_bin_width,
+                        in_place=False
+                    )
+            elif discretisation_method in ["fixed_bin_number"]:
+                bin_number = settings.discretisation_n_bins
+                for current_bin_number in bin_number:
+                    yield discretise_image(
+                        image=image,
+                        mask=mask,
+                        discretisation_method=discretisation_method,
+                        bin_number=current_bin_number,
+                        in_place=False
+                    )
+            else:
+                yield discretise_image(
+                    image=image,
+                    mask=mask,
+                    discretisation_method=discretisation_method,
+                    in_place=False
+                )
