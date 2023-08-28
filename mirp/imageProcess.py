@@ -1378,7 +1378,7 @@ def calculate_features(img_obj: ImageClass,
     :return:
     """
 
-    from mirp.featureSets.localIntensity import get_local_intensity_features
+    from mirp.featureSets.localIntensity import get_local_intensity_features_deprecated
     from mirp.featureSets.statistics import get_intensity_statistics_features
     from mirp.featureSets.intensityVolumeHistogram import get_intensity_volume_histogram_features
     from mirp.featureSets.volumeMorphology import get_volumetric_morphological_features
@@ -1411,8 +1411,8 @@ def calculate_features(img_obj: ImageClass,
             roi_cut.decode_voxel_grid()
 
             # Calculate local intensities
-            roi_feat_list += [get_local_intensity_features(img_obj=img_cut,
-                                                           roi_obj=roi_cut)]
+            roi_feat_list += [get_local_intensity_features_deprecated(img_obj=img_cut,
+                                                                      roi_obj=roi_cut)]
 
             # Clean up
             del img_cut, roi_cut

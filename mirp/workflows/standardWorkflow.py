@@ -2,7 +2,7 @@ import logging
 import sys
 import warnings
 
-from typing import Optional, Tuple, List, Generator
+from typing import Optional, Union, Tuple, List, Generator
 
 import pandas as pd
 
@@ -12,30 +12,32 @@ from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import TransformedImage
 from mirp.masks.baseMask import BaseMask
+from mirp.imageProcess import crop
 
 
 class BaseWorkflow:
     def __init__(
             self,
-            image_file: ImageFile
+            image_file: ImageFile,
+            write_dir: Optional[str] = None,
+            **kwargs
     ):
+        super().__init__()
         self.image_file = image_file
+        self.write_dir = write_dir
 
 
 class StandardWorkflow(BaseWorkflow):
     def __init__(
             self,
-            image_file: ImageFile,
             settings: SettingsClass,
             noise_iteration_id: Optional[int] = None,
             rotation: Optional[float] = None,
             translation: Optional[Tuple[float, ...]] = None,
-            new_image_spacing: Optional[Tuple[float, ...]] = None
+            new_image_spacing: Optional[Tuple[float, ...]] = None,
+            **kwargs
     ):
-
-        super().__init__(
-            image_file=image_file
-        )
+        super().__init__(**kwargs)
 
         self.settings = settings
         self.noise_iteration_id = noise_iteration_id
@@ -235,21 +237,81 @@ class StandardWorkflow(BaseWorkflow):
             write_features: bool,
             export_features: bool,
             write_images: bool,
-            extract_images: bool
+            extract_images: bool,
+            write_file_format: str = "nifti",
+            write_all_masks: bool = False
     ):
         # Indicator to prevent the same masks from being written multiple times.
         masks_written = False
+
+        # Placeholders
+        feature_list = []
+        image_list = []
 
         for image, masks in self.standard_image_processing():
             if image is None:
                 continue
 
+            # Type hinting
+            image: Union[GenericImage, TransformedImage] = image
+            masks: List[Optional[BaseMask]] = masks
+
             if write_features or export_features:
+                current_feature_list = []
                 for mask in masks:
-                    feature_list = [self._compute_radiomics_features(image=image, mask=mask)]
+                    if mask is None:
+                        continue
+
+                    current_feature_list += [self._compute_radiomics_features(image=image, mask=mask)]
 
             if write_images:
-                image
+                image.write(dir_path=self.write_dir, file_format=write_file_format)
+                if not masks_written:
+                    for mask in masks:
+                        if mask is None:
+                            continue
+                        mask.write(dir_path=self.write_dir, file_format=write_file_format, write_all=write_all_masks)
+
+                    # The standard_image_processing workflow only generates one set of masks - that which may change is
+                    # image.
+                    masks_written = True
+
+            if extract_images:
+                ...
 
     def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
-        ...
+        from mirp.featureSets.localIntensity import get_local_intensity_features
+        from mirp.featureSets.statistics import get_intensity_statistics_features
+        from mirp.featureSets.intensityVolumeHistogram import get_intensity_volume_histogram_features
+        from mirp.featureSets.volumeMorphology import get_volumetric_morphological_features
+
+        if isinstance(image, TransformedImage):
+            feature_settings = self.settings.img_transform.feature_settings
+        elif isinstance(image, GenericImage):
+            feature_settings = self.settings.feature_extr
+        else:
+            raise TypeError(
+                f"image is not a TransformedImage, GenericImage or a subclass thereof. Found: {type(image)}")
+
+        # Skip if no feature families are specified.
+        if not feature_settings.has_any_feature_family():
+            return
+
+        # Local mapping features.
+        cropped_image, cropped_mask = crop(
+            image=image,
+            masks=mask,
+            boundary=10.0,
+            in_place=False
+        )
+
+        if feature_settings.has_local_intensity_family():
+            yield get_local_intensity_features(image=cropped_image, mask=cropped_mask)
+
+        cropped_image, cropped_mask = crop(
+            image=image,
+            masks=mask,
+            boundary=0.0,
+            in_place=False
+        )
+
