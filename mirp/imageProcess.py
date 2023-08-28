@@ -1510,7 +1510,7 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
     """Function to process and calculate discretised image features"""
 
     from mirp.featureSets.intensityHistogram import get_intensity_histogram_features_deprecated
-    from mirp.featureSets.cooccurrenceMatrix import get_cm_features
+    from mirp.featureSets.cooccurrenceMatrix import get_cm_features_deprecated
     from mirp.featureSets.runLengthMatrix import get_rlm_features
     from mirp.featureSets.sizeZoneMatrix import get_szm_features
     from mirp.featureSets.distanceZoneMatrix import get_dzm_features
@@ -1537,9 +1537,9 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
 
     # Grey level cooccurrence matrix
     if settings.has_glcm_family():
-        feat_list += [get_cm_features(img_obj=img_discr,
-                                      roi_obj=roi_discr,
-                                      settings=settings)]
+        feat_list += [get_cm_features_deprecated(img_obj=img_discr,
+                                                 roi_obj=roi_discr,
+                                                 settings=settings)]
 
     # Grey level run length matrix
     if settings.has_glrlm_family():

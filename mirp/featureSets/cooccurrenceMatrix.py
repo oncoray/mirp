@@ -6,15 +6,19 @@ from mirp.featureSets.utilities import get_neighbour_directions, is_list_all_non
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from mirp.importSettings import FeatureExtractionSettingsClass
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
 
 
-def get_cm_features(img_obj: ImageClass,
-                    roi_obj: RoiClass,
-                    settings: FeatureExtractionSettingsClass):
-    """Extract cooccurrence matrix-based features from the intensity roi"""
+def get_cm_features(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass
+) -> pd.DataFrame:
+    """Extract co-occurrence matrix-based features from the intensity roi"""
 
     # Get a table of the roi intensity mask
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+    df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     if df_img is None:
         # In case the input image or ROI are missing.
@@ -22,8 +26,8 @@ def get_cm_features(img_obj: ImageClass,
         img_dims = None
     else:
         # Default case with input image and ROI available
-        n_slices = img_obj.size[0]
-        img_dims = np.array(img_obj.size)
+        n_slices = image.image_dimension[0]
+        img_dims = np.array(image.image_dimension)
 
     # Generate an empty feature list
     feat_list = []
@@ -41,7 +45,13 @@ def get_cm_features(img_obj: ImageClass,
             if ii_spatial.lower() in ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"]:
 
                 # Get neighbour directions
-                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=False) * int(ii_dist)
+                nbrs = get_neighbour_directions(
+                    d=1,
+                    distance="chebyshev",
+                    centre=False,
+                    complete=False,
+                    dim3=False
+                ) * int(ii_dist)
 
                 # Iterate over slices
                 for ii_slice in np.arange(0, n_slices):
@@ -50,23 +60,33 @@ def get_cm_features(img_obj: ImageClass,
                     for ii_direction in np.arange(0, np.shape(nbrs)[1]):
 
                         # Add glcm matrices to list
-                        glcm_list += [CooccurrenceMatrix(distance=int(ii_dist),
-                                                         direction=nbrs[:, ii_direction],
-                                                         direction_id=ii_direction,
-                                                         spatial_method=ii_spatial.lower(),
-                                                         slice_id=ii_slice)]
+                        glcm_list += [CooccurrenceMatrix(
+                            distance=int(ii_dist),
+                            direction=nbrs[:, ii_direction],
+                            direction_id=ii_direction,
+                            spatial_method=ii_spatial.lower(),
+                            slice_id=ii_slice)]
+
             # Perform 3D analysis
             elif ii_spatial.lower() in ["3d_average", "3d_volume_merge"]:
 
                 # Get neighbour direction and iterate over neighbours
-                nbrs = get_neighbour_directions(d=1, distance="chebyshev", centre=False, complete=False, dim3=True) * int(ii_dist)
+                nbrs = get_neighbour_directions(
+                    d=1,
+                    distance="chebyshev",
+                    centre=False,
+                    complete=False,
+                    dim3=True
+                ) * int(ii_dist)
+
                 for ii_direction in np.arange(0, np.shape(nbrs)[1]):
 
                     # Add glcm matrices to list
-                    glcm_list += [CooccurrenceMatrix(distance=int(ii_dist),
-                                                     direction=nbrs[:, ii_direction],
-                                                     direction_id=ii_direction,
-                                                     spatial_method=ii_spatial.lower())]
+                    glcm_list += [CooccurrenceMatrix(
+                        distance=int(ii_dist),
+                        direction=nbrs[:, ii_direction],
+                        direction_id=ii_direction,
+                        spatial_method=ii_spatial.lower())]
 
             else:
                 raise ValueError(f"Unknown spatial glcm method: {ii_spatial}")
@@ -76,21 +96,22 @@ def get_cm_features(img_obj: ImageClass,
                 glcm.calculate_matrix(df_img=df_img, img_dims=img_dims)
 
             # Merge matrices according to the given method
-            upd_list = combine_matrices(glcm_list=glcm_list,
-                                        spatial_method=ii_spatial.lower())
+            upd_list = combine_matrices(
+                glcm_list=glcm_list,
+                spatial_method=ii_spatial.lower())
 
             # Calculate features
             feat_run_list = []
             for glcm in upd_list:
-                feat_run_list += [glcm.compute_features(g_range=roi_obj.g_range)]
+                feat_run_list += [glcm.compute_features(g_range=mask.intensity_range)]
 
             # Average feature values
             feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
 
     # Merge feature tables into a single table
-    df_feat = pd.concat(feat_list, axis=1)
+    feature_data = pd.concat(feat_list, axis=1)
 
-    return df_feat
+    return feature_data
 
 
 def combine_matrices(glcm_list, spatial_method):
@@ -126,12 +147,14 @@ def combine_matrices(glcm_list, spatial_method):
             # Check if any matrix has been created for the currently selected slice
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [CooccurrenceMatrix(distance=glcm_list[slice_glcm_id[0]].distance,
-                                                direction=None,
-                                                direction_id=None,
-                                                spatial_method=spatial_method,
-                                                slice_id=ii_slice,
-                                                matrix=None, n_v=0.0)]
+                use_list += [CooccurrenceMatrix(
+                    distance=glcm_list[slice_glcm_id[0]].distance,
+                    direction=None,
+                    direction_id=None,
+                    spatial_method=spatial_method,
+                    slice_id=ii_slice,
+                    matrix=None,
+                    n_v=0.0)]
             else:
                 # Merge matrices within the slice
                 merge_cm = pd.concat(sel_matrix_list, axis=0)
@@ -142,14 +165,15 @@ def combine_matrices(glcm_list, spatial_method):
                 for glcm_id in slice_glcm_id:
                     merge_n_v += glcm_list[glcm_id].n_v
 
-                # Create new cooccurrence matrix
-                use_list += [CooccurrenceMatrix(distance=glcm_list[slice_glcm_id[0]].distance,
-                                                direction=None,
-                                                direction_id=None,
-                                                spatial_method=spatial_method,
-                                                slice_id=ii_slice,
-                                                matrix=merge_cm,
-                                                n_v=merge_n_v)]
+                # Create new co-occurrence matrix
+                use_list += [CooccurrenceMatrix(
+                    distance=glcm_list[slice_glcm_id[0]].distance,
+                    direction=None,
+                    direction_id=None,
+                    spatial_method=spatial_method,
+                    slice_id=ii_slice,
+                    matrix=merge_cm,
+                    n_v=merge_n_v)]
 
     elif spatial_method == "2.5d_direction_merge":
         # Merge glcms by direction
@@ -171,13 +195,14 @@ def combine_matrices(glcm_list, spatial_method):
             # Check if any matrix has been created for the currently selected direction
             if is_list_all_none(sel_matrix_list):
                 # No matrix was created
-                use_list += [CooccurrenceMatrix(distance=glcm_list[dir_glcm_id[0]].distance,
-                                                direction=glcm_list[dir_glcm_id[0]].direction,
-                                                direction_id=ii_dir,
-                                                spatial_method=spatial_method,
-                                                slice_id=None,
-                                                matrix=None,
-                                                n_v=0.0)]
+                use_list += [CooccurrenceMatrix(
+                    distance=glcm_list[dir_glcm_id[0]].distance,
+                    direction=glcm_list[dir_glcm_id[0]].direction,
+                    direction_id=ii_dir,
+                    spatial_method=spatial_method,
+                    slice_id=None,
+                    matrix=None,
+                    n_v=0.0)]
             else:
                 # Merge matrices with the same direction
                 merge_cm = pd.concat(sel_matrix_list, axis=0)
@@ -188,13 +213,15 @@ def combine_matrices(glcm_list, spatial_method):
                 for glcm_id in dir_glcm_id:
                     merge_n_v += glcm_list[glcm_id].n_v
 
-                # Create new cooccurrence matrix
-                use_list += [CooccurrenceMatrix(distance=glcm_list[dir_glcm_id[0]].distance,
-                                                direction=glcm_list[dir_glcm_id[0]].direction,
-                                                direction_id=ii_dir,
-                                                spatial_method=spatial_method,
-                                                slice_id=None,
-                                                matrix=merge_cm, n_v=merge_n_v)]
+                # Create new co-occurrence matrix
+                use_list += [CooccurrenceMatrix(
+                    distance=glcm_list[dir_glcm_id[0]].distance,
+                    direction=glcm_list[dir_glcm_id[0]].direction,
+                    direction_id=ii_dir,
+                    spatial_method=spatial_method,
+                    slice_id=None,
+                    matrix=merge_cm,
+                    n_v=merge_n_v)]
 
     elif spatial_method in ["2.5d_volume_merge", "3d_volume_merge"]:
         # Merge all glcms into a single representation
@@ -207,15 +234,16 @@ def combine_matrices(glcm_list, spatial_method):
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [CooccurrenceMatrix(distance=glcm_list[0].distance,
-                                            direction=None,
-                                            direction_id=None,
-                                            spatial_method=spatial_method,
-                                            slice_id=None,
-                                            matrix=None,
-                                            n_v=0.0)]
+            use_list += [CooccurrenceMatrix(
+                distance=glcm_list[0].distance,
+                direction=None,
+                direction_id=None,
+                spatial_method=spatial_method,
+                slice_id=None,
+                matrix=None,
+                n_v=0.0)]
         else:
-            # Merge cooccurrence matrices
+            # Merge co-occurrence matrices
             merge_cm = pd.concat(sel_matrix_list, axis=0)
             merge_cm = merge_cm.groupby(by=["i", "j"]).sum().reset_index()
 
@@ -224,14 +252,15 @@ def combine_matrices(glcm_list, spatial_method):
             for glcm_id in np.arange(len(glcm_list)):
                 merge_n_v += glcm_list[glcm_id].n_v
 
-            # Create new cooccurrence matrix
-            use_list += [CooccurrenceMatrix(distance=glcm_list[0].distance,
-                                            direction=None,
-                                            direction_id=None,
-                                            spatial_method=spatial_method,
-                                            slice_id=None,
-                                            matrix=merge_cm,
-                                            n_v=merge_n_v)]
+            # Create new co-occurrence matrix
+            use_list += [CooccurrenceMatrix(
+                distance=glcm_list[0].distance,
+                direction=None,
+                direction_id=None,
+                spatial_method=spatial_method,
+                slice_id=None,
+                matrix=merge_cm,
+                n_v=merge_n_v)]
     else:
         raise ValueError(f"Unknown spatial glcm method: {spatial_method}")
 
@@ -288,18 +317,20 @@ class CooccurrenceMatrix:
             df_cm = df_cm.reset_index(drop=True)
 
         else:
-            raise ValueError(f"The spatial method attribute expects one or more of the following values: "
-                             f"`2d_average`, `2d_slice_merge`, '2.5d_direction_merge', '2.5d_volume_merge', "
-                             f"'3d_average', and `3d_volume_merge`. Found: {self.spatial_method}")
+            raise ValueError(
+                f"The spatial method attribute expects one or more of the following values: "
+                f"`2d_average`, `2d_slice_merge`, '2.5d_direction_merge', '2.5d_volume_merge', "
+                f"'3d_average', and `3d_volume_merge`. Found: {self.spatial_method}")
 
         # Set grey level of voxels outside ROI to NaN
         df_cm.loc[df_cm.roi_int_mask == False, "g"] = np.nan
 
         # Determine potential transitions
-        df_cm["to_index"] = coord2Index(x=df_cm.x.values + self.direction[2],
-                                        y=df_cm.y.values + self.direction[1],
-                                        z=df_cm.z.values + self.direction[0],
-                                        dims=img_dims)
+        df_cm["to_index"] = coord2Index(
+            x=df_cm.x.values + self.direction[2],
+            y=df_cm.y.values + self.direction[1],
+            z=df_cm.z.values + self.direction[0],
+            dims=img_dims)
 
         # Get grey levels from transitions
         df_cm["to_g"] = get_intensity_value(x=df_cm.g.values, index=df_cm.to_index.values)
@@ -314,8 +345,7 @@ class CooccurrenceMatrix:
 
         # Append grey level transitions in opposite direction
         df_cm_inv = pd.DataFrame({"g": df_cm.to_g, "to_g": df_cm.g, "n": df_cm.n})
-        df_cm = pd.concat([df_cm, df_cm_inv],
-                          ignore_index=True)
+        df_cm = pd.concat([df_cm, df_cm_inv], ignore_index=True)
 
         # Sum occurrences of grey level transitions
         df_cm = df_cm.groupby(by=["g", "to_g"]).sum().reset_index()
@@ -332,13 +362,15 @@ class CooccurrenceMatrix:
     def compute_features(self, g_range):
 
         # Create feature table
-        feat_names = ["cm_joint_max", "cm_joint_avg", "cm_joint_var", "cm_joint_entr",
-                      "cm_diff_avg", "cm_diff_var", "cm_diff_entr",
-                      "cm_sum_avg", "cm_sum_var", "cm_sum_entr",
-                      "cm_energy", "cm_contrast", "cm_dissimilarity",
-                      "cm_inv_diff", "cm_inv_diff_norm", "cm_inv_diff_mom", "cm_inv_diff_mom_norm",
-                      "cm_inv_var", "cm_corr", "cm_auto_corr",
-                      "cm_clust_tend", "cm_clust_shade", "cm_clust_prom", "cm_info_corr1", "cm_info_corr2"]
+        feat_names = [
+            "cm_joint_max", "cm_joint_avg", "cm_joint_var", "cm_joint_entr",
+            "cm_diff_avg", "cm_diff_var", "cm_diff_entr",
+            "cm_sum_avg", "cm_sum_var", "cm_sum_entr",
+            "cm_energy", "cm_contrast", "cm_dissimilarity",
+            "cm_inv_diff", "cm_inv_diff_norm", "cm_inv_diff_mom", "cm_inv_diff_mom_norm",
+            "cm_inv_var", "cm_corr", "cm_auto_corr",
+            "cm_clust_tend", "cm_clust_shade", "cm_clust_prom", "cm_info_corr1", "cm_info_corr2"
+        ]
         df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
         df_feat.columns = feat_names
 
@@ -358,7 +390,7 @@ class CooccurrenceMatrix:
         df_pi = df_pij.groupby(by="i")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pi"})
         df_pj = df_pij.groupby(by="j")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pj"})
 
-        # Diagonal probilities p(i-j)
+        # Diagonal probabilities p(i-j)
         df_pimj = copy.deepcopy(df_pij)
         df_pimj["k"] = np.abs(df_pimj.i - df_pimj.j)
         df_pimj = df_pimj.groupby(by="k")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pimj"})
@@ -526,3 +558,102 @@ class CooccurrenceMatrix:
                 raise ValueError(f"Unknown spatial glcm method: {self.spatial_method}")
 
         return "_".join(parse_str).rstrip("_")
+
+
+def get_cm_features_deprecated(img_obj: ImageClass,
+                               roi_obj: RoiClass,
+                               settings: FeatureExtractionSettingsClass):
+    """Extract cooccurrence matrix-based features from the intensity roi"""
+
+    # Get a table of the roi intensity mask
+    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+
+    if df_img is None:
+        # In case the input image or ROI are missing.
+        n_slices = 1
+        img_dims = None
+    else:
+        # Default case with input image and ROI available
+        n_slices = img_obj.size[0]
+        img_dims = np.array(img_obj.size)
+
+    # Generate an empty feature list
+    feat_list = []
+
+    # Iterate over spatial arrangements
+    for ii_spatial in settings.glcm_spatial_method:
+
+        # Iterate over distances
+        for ii_dist in settings.glcm_distance:
+
+            # Initiate list of glcm objects
+            glcm_list = []
+
+            # Perform 2D analysis
+            if ii_spatial.lower() in ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"]:
+
+                # Get neighbour directions
+                nbrs = get_neighbour_directions(
+                    d=1,
+                    distance="chebyshev",
+                    centre=False,
+                    complete=False,
+                    dim3=False
+                ) * int(ii_dist)
+
+                # Iterate over slices
+                for ii_slice in np.arange(0, n_slices):
+
+                    # Iterate over neighbours
+                    for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+
+                        # Add glcm matrices to list
+                        glcm_list += [CooccurrenceMatrix(
+                            distance=int(ii_dist),
+                            direction=nbrs[:, ii_direction],
+                            direction_id=ii_direction,
+                            spatial_method=ii_spatial.lower(),
+                            slice_id=ii_slice)]
+
+            # Perform 3D analysis
+            elif ii_spatial.lower() in ["3d_average", "3d_volume_merge"]:
+
+                # Get neighbour direction and iterate over neighbours
+                nbrs = get_neighbour_directions(
+                    d=1,
+                    distance="chebyshev",
+                    centre=False,
+                    complete=False,
+                    dim3=True
+                ) * int(ii_dist)
+                for ii_direction in np.arange(0, np.shape(nbrs)[1]):
+
+                    # Add glcm matrices to list
+                    glcm_list += [CooccurrenceMatrix(
+                        distance=int(ii_dist),
+                        direction=nbrs[:, ii_direction],
+                        direction_id=ii_direction,
+                        spatial_method=ii_spatial.lower())]
+
+            else:
+                raise ValueError(f"Unknown spatial glcm method: {ii_spatial}")
+
+            # Calculate glcm matrices
+            for glcm in glcm_list:
+                glcm.calculate_matrix(df_img=df_img, img_dims=img_dims)
+
+            # Merge matrices according to the given method
+            upd_list = combine_matrices(glcm_list=glcm_list, spatial_method=ii_spatial.lower())
+
+            # Calculate features
+            feat_run_list = []
+            for glcm in upd_list:
+                feat_run_list += [glcm.compute_features(g_range=roi_obj.g_range)]
+
+            # Average feature values
+            feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
+
+    # Merge feature tables into a single table
+    df_feat = pd.concat(feat_list, axis=1)
+
+    return df_feat

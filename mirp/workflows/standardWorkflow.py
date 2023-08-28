@@ -324,6 +324,7 @@ class StandardWorkflow(BaseWorkflow):
             boundary=0.0,
             in_place=False
         )
+        # Decode voxel grid.
         cropped_mask.decode_voxel_grid()
 
         # Extract statistical features.
@@ -352,16 +353,30 @@ class StandardWorkflow(BaseWorkflow):
         if not feature_settings.has_discretised_family():
             return
 
-        for discretised_image, discretised_mask in self._discretise_image(
+        for discrete_image, discrete_mask in self._discretise_image(
                 image=image,
                 mask=mask,
                 settings=feature_settings
         ):
+            if discrete_image is None or discrete_mask is None:
+                continue
+
+            # Decode voxel grid.
+            discrete_mask.decode_voxel_grid()
+
             # Intensity histogram
             if feature_settings.has_ih_family():
                 yield get_intensity_histogram_features(
-                    image=discretised_image,
-                    mask=discretised_mask
+                    image=discrete_image,
+                    mask=discrete_mask
+                )
+
+            # Grey level co-occurrence matrix
+            if feature_settings.has_glcm_family():
+                yield get_cm_features(
+                    image=image,
+                    mask=mask,
+                    settings=feature_settings
                 )
 
     def _discretise_image(
