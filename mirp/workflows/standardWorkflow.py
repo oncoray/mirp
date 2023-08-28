@@ -304,7 +304,7 @@ class StandardWorkflow(BaseWorkflow):
         if not feature_settings.has_any_feature_family():
             return
 
-        # Local mapping features.
+        # Local mapping features ---------------------------------------------------------------------------------------
         cropped_image, cropped_mask = crop(
             image=image,
             masks=mask,
@@ -318,6 +318,7 @@ class StandardWorkflow(BaseWorkflow):
                 mask=cropped_mask
             )
 
+        # Normal image features ----------------------------------------------------------------------------------------
         cropped_image, cropped_mask = crop(
             image=image,
             masks=mask,
@@ -350,6 +351,7 @@ class StandardWorkflow(BaseWorkflow):
                 settings=feature_settings
             )
 
+        # Discrete image features --------------------------------------------------------------------------------------
         if not feature_settings.has_discretised_family():
             return
 
@@ -388,10 +390,12 @@ class StandardWorkflow(BaseWorkflow):
                 )
 
             # Grey level size zone matrix (GLSZM).
-            if settings.has_glszm_family():
-                feat_list += [get_szm_features(img_obj=img_discr,
-                                               roi_obj=roi_discr,
-                                               settings=settings)]
+            if feature_settings.has_glszm_family():
+                yield get_szm_features(
+                    image=image,
+                    mask=mask,
+                    settings=feature_settings
+                )
 
             # Grey level distance zone matrix
             if settings.has_gldzm_family():
