@@ -1171,3 +1171,26 @@ class GenericImage(BaseImage):
         ]
 
         return dict(attributes)
+
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        feature_name_suffix = []
+        if self.discretisation_method is not None:
+            if self.discretisation_method == "none":
+                feature_name_suffix += ["none"]
+            elif self.discretisation_method == "fixed_bin_number":
+                feature_name_suffix += ["fbn"]
+                feature_name_suffix += ["n" + str(self.discretisation_bin_number)]
+            elif self.discretisation_method == "fixed_bin_size":
+                feature_name_suffix += ["fbs"]
+                feature_name_suffix += ["w" + str(self.discretisation_bin_width)]
+            elif self.discretisation_method == "fixed_bin_size_pyradiomics":
+                feature_name_suffix += ["fbsp"]
+                feature_name_suffix += ["w" + str(self.discretisation_bin_width)]
+
+        if len(feature_name_suffix) > 0:
+            feature_name_suffix = "_".join(feature_name_suffix)
+            feature_name_suffix = "_" + feature_name_suffix
+            x.columns += feature_name_suffix
+
+        return x
+    
