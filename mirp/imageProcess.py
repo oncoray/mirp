@@ -1515,7 +1515,7 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
     from mirp.featureSets.sizeZoneMatrix import get_szm_features_deprecated
     from mirp.featureSets.distanceZoneMatrix import get_dzm_features_deprecated
     from mirp.featureSets.neighbourhoodGreyToneDifferenceMatrix import get_ngtdm_features_deprecated
-    from mirp.featureSets.neighbouringGreyLevelDifferenceMatrix import get_ngldm_features
+    from mirp.featureSets.neighbouringGreyLevelDifferenceMatrix import get_ngldm_features_deprecated
 
     # Apply image discretisation
     img_discr, roi_discr = discretise_image_intensities(img_obj=img_obj,
@@ -1567,9 +1567,9 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
 
     # Neighbouring grey level dependence matrix
     if settings.has_ngldm_family():
-        feat_list += [get_ngldm_features(img_obj=img_discr,
-                                         roi_obj=roi_discr,
-                                         settings=settings)]
+        feat_list += [get_ngldm_features_deprecated(img_obj=img_discr,
+                                                    roi_obj=roi_discr,
+                                                    settings=settings)]
 
     # Check if any features were added to the feature list; otherwise return to main function
     if len(feat_list) == 0:

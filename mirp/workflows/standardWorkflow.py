@@ -413,11 +413,13 @@ class StandardWorkflow(BaseWorkflow):
                     settings=feature_settings
                 )
 
-            # Neighbouring grey level dependence matrix
-            if settings.has_ngldm_family():
-                feat_list += [get_ngldm_features(img_obj=img_discr,
-                                                 roi_obj=roi_discr,
-                                                 settings=settings)]
+            # Neighbouring grey level dependence matrix (NGLDM).
+            if feature_settings.has_ngldm_family():
+                yield get_ngldm_features(
+                    image=image,
+                    mask=mask,
+                    settings=feature_settings
+                )
 
     def _discretise_image(
             self,
