@@ -313,10 +313,12 @@ class StandardWorkflow(BaseWorkflow):
         )
 
         if feature_settings.has_local_intensity_family():
-            yield get_local_intensity_features(
+            feature_set = get_local_intensity_features(
                 image=cropped_image,
                 mask=cropped_mask
             )
+            feature_set = image.parse_feature_names(feature_set)
+            yield feature_set
 
         # Normal image features ----------------------------------------------------------------------------------------
         cropped_image, cropped_mask = crop(

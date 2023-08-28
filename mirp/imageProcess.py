@@ -451,6 +451,9 @@ def discretise_image(
         discretised_voxels[discretised_voxels < 1.0] = 1.0
         discretised_voxels[discretised_voxels >= bin_number * 1.0] = bin_number * 1.0
 
+        # Set number of bins.
+        image.discretisation_bin_number = bin_number
+
     elif discretisation_method == "fixed_bin_size":
         if intensity_range is None or np.isnan(intensity_range[0]):
             min_intensity = image.get_default_lowest_intensity()
@@ -478,6 +481,9 @@ def discretise_image(
         # Limit to maximum number of bins
         discretised_voxels[discretised_voxels >= bin_number * 1.0] = bin_number * 1.0
 
+        # Set bin width.
+        image.discretisation_bin_width = bin_width
+
     elif discretisation_method == "fixed_bin_size_pyradiomics":
         min_intensity = np.min[image.get_voxel_grid()[mask_data]]
 
@@ -493,6 +499,9 @@ def discretise_image(
 
         # Limit to maximum number of bins
         discretised_voxels[discretised_voxels >= bin_number * 1.0] = bin_number * 1.0
+
+        # Set bin width.
+        image.discretisation_bin_width = bin_width
 
     else:
         raise ValueError(f"The discretisation_method argument was not recognised. Found: {discretisation_method}")

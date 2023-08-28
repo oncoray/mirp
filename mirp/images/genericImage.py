@@ -2,6 +2,8 @@ import copy
 import numpy as np
 from typing import Optional, Union, Tuple, List, Dict, Any
 
+import pandas as pd
+
 from mirp.images.baseImage import BaseImage
 from mirp.importSettings import SettingsClass
 
@@ -19,7 +21,9 @@ class GenericImage(BaseImage):
             interpolated: bool = False,
             interpolation_algorithm: Optional[str] = None,
             normalised: bool = False,
-            discretisation_method: str = None,
+            discretisation_method: Optional[str] = None,
+            discretisation_bin_number: Optional[int] = None,
+            discretisation_bin_width: Optional[float] = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -48,6 +52,8 @@ class GenericImage(BaseImage):
 
         # Discretisation-related settings
         self.discretisation_method = discretisation_method
+        self.discretisation_bin_number = discretisation_bin_number
+        self.discretisation_bin_width = discretisation_bin_width
 
     def copy(self, drop_image=False):
         image = copy.deepcopy(self)
@@ -82,6 +88,8 @@ class GenericImage(BaseImage):
         self.interpolated = template.interpolated
         self.interpolation_algorithm = template.interpolation_algorithm
         self.discretisation_method = template.discretisation_method
+        self.discretisation_bin_number = template.discretisation_bin_number
+        self.discretisation_bin_width = template.discretisation_bin_width
 
         # TODO: remove normalised, because normalisation should turn specific image classes (CT, PET) into generic
         #  objects instead.
@@ -609,7 +617,7 @@ class GenericImage(BaseImage):
 
             # Step 2: construct blob weighting
             # Spacing for gaussian
-            gauss_filt_spacing = np.full(shape=(3), fill_value=np.min(self.image_spacing))
+            gauss_filt_spacing = np.full(shape=3, fill_value=np.min(self.image_spacing))
             gauss_filt_spacing = np.divide(gauss_filt_spacing, np.array(self.image_spacing))
 
             # Difference of gaussians
