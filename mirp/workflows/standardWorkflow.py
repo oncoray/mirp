@@ -366,14 +366,14 @@ class StandardWorkflow(BaseWorkflow):
             # Decode voxel grid.
             discrete_mask.decode_voxel_grid()
 
-            # Intensity histogram
+            # Intensity histogram.
             if feature_settings.has_ih_family():
                 yield get_intensity_histogram_features(
                     image=discrete_image,
                     mask=discrete_mask
                 )
 
-            # Grey level co-occurrence matrix (GLCM)
+            # Grey level co-occurrence matrix (GLCM).
             if feature_settings.has_glcm_family():
                 yield get_cm_features(
                     image=image,
@@ -381,7 +381,7 @@ class StandardWorkflow(BaseWorkflow):
                     settings=feature_settings
                 )
 
-            # Grey level run length matrix (GLRLM)
+            # Grey level run length matrix (GLRLM).
             if feature_settings.has_glrlm_family():
                 yield get_rlm_features(
                     image=image,
@@ -397,11 +397,13 @@ class StandardWorkflow(BaseWorkflow):
                     settings=feature_settings
                 )
 
-            # Grey level distance zone matrix
-            if settings.has_gldzm_family():
-                feat_list += [get_dzm_features(img_obj=img_discr,
-                                               roi_obj=roi_discr,
-                                               settings=settings)]
+            # Grey level distance zone matrix (GLDZM).
+            if feature_settings.has_gldzm_family():
+                yield get_dzm_features(
+                    image=image,
+                    mask=mask,
+                    settings=feature_settings
+                )
 
             # Neighbourhood grey tone difference matrix
             if settings.has_ngtdm_family():
