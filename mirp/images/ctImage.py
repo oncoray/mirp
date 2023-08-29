@@ -1,3 +1,4 @@
+from typing import Optional, Tuple, Any
 import numpy as np
 from mirp.images.genericImage import GenericImage
 
@@ -12,8 +13,37 @@ class CTImage(GenericImage):
         return -1000
 
     def update_image_data(self):
-        if self.image_data is None or self.normalised:
+        if self.image_data is None:
             return
 
         # Ensure that CT values are Hounsfield units.
         self.image_data = np.round(self.image_data)
+
+    def normalise_intensities(
+            self,
+            normalisation_method: Optional[str] = "none",
+            intensity_range: Optional[Tuple[Any, Any]] = None,
+            saturation_range: Optional[Tuple[Any, Any]] = None,
+            mask: Optional[np.ndarray] = None
+    ):
+        """
+        Normalise intensities. NOTE: this changes the class of the object from CTImage to GenericImage as
+        normalisation breaks the one-to-one relationship between intensities and Hounsfield units.
+        """
+        image = super().normalise_intensities(
+            normalisation_method="none",
+            intensity_range=intensity_range,
+            saturation_range=saturation_range,
+            mask=mask
+        )
+
+        if image.image_data is None:
+            return self
+
+        if normalisation_method is None or normalisation_method == "none":
+            return self
+
+        new_image = GenericImage(image_data=image.image_data)
+        new_image.update_from_template(template=image)
+
+        return new_image

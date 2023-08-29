@@ -122,7 +122,7 @@ class StandardWorkflow(BaseWorkflow):
                     in_place=True
                 )
 
-            image.normalise_intensities(
+            image = image.normalise_intensities(
                 normalisation_method=self.settings.post_process.intensity_normalisation,
                 intensity_range=self.settings.post_process.intensity_normalisation_range,
                 saturation_range=self.settings.post_process.intensity_normalisation_saturation,

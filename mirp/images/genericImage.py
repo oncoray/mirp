@@ -45,11 +45,6 @@ class GenericImage(BaseImage):
         self.interpolated = interpolated
         self.interpolation_algorithm = interpolation_algorithm
 
-        # Normalisation-related settings
-        # TODO: remove normalised, because normalisation should turn specific image classes (CT, PET) into generic
-        #  objects instead.
-        self.normalised = normalised
-
         # Discretisation-related settings
         self.discretisation_method = discretisation_method
         self.discretisation_bin_number = discretisation_bin_number
@@ -689,7 +684,8 @@ class GenericImage(BaseImage):
             normalisation_method: Optional[str] = "none",
             intensity_range: Optional[Tuple[Any, Any]] = None,
             saturation_range: Optional[Tuple[Any, Any]] = None,
-            mask: Optional[np.ndarray] = None):
+            mask: Optional[np.ndarray] = None
+    ):
         """
         Normalises image intensities
         :param normalisation_method: string defining the normalisation method. Should be one of "none", "range",
@@ -702,7 +698,7 @@ class GenericImage(BaseImage):
 
         # Skip for missing images
         if self.image_data is None:
-            return
+            return self
 
         if intensity_range is None:
             intensity_range = [np.nan, np.nan]
@@ -719,7 +715,7 @@ class GenericImage(BaseImage):
             saturation_range = [np.nan, np.nan]
 
         if normalisation_method is None or normalisation_method == "none":
-            return
+            return self
 
         elif normalisation_method == "range":
             # Normalisation to [0, 1] range using fixed intensities.
@@ -746,7 +742,6 @@ class GenericImage(BaseImage):
 
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
-            self.normalised = True
 
         elif normalisation_method == "relative_range":
             # Normalisation to [0, 1]-ish range using relative intensities.
@@ -775,7 +770,6 @@ class GenericImage(BaseImage):
 
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
-            self.normalised = True
 
         elif normalisation_method == "quantile_range":
             # Normalisation to [0, 1]-ish range based on quantiles.
@@ -803,7 +797,6 @@ class GenericImage(BaseImage):
 
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
-            self.normalised = True
 
         elif normalisation_method == "standardisation":
             # Normalisation to mean 0 and standard deviation 1.
@@ -824,11 +817,12 @@ class GenericImage(BaseImage):
 
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
-            self.normalised = True
         else:
             raise ValueError(f"{normalisation_method} is not a valid method for normalising intensity values.")
 
         self.saturate(intensity_range=saturation_range)
+
+        return self
 
     def decimate(self, by_slice: bool):
         """
