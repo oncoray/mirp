@@ -31,6 +31,11 @@ class StandardWorkflow(BaseWorkflow):
     def __init__(
             self,
             settings: SettingsClass,
+            settings_name: Optional[str] = None,
+            write_features: bool = False,
+            export_features: bool = False,
+            write_images: bool = False,
+            extract_images: bool = False,
             noise_iteration_id: Optional[int] = None,
             rotation: Optional[float] = None,
             translation: Optional[Tuple[float, ...]] = None,
@@ -40,13 +45,40 @@ class StandardWorkflow(BaseWorkflow):
         super().__init__(**kwargs)
 
         self.settings = settings
+
+        self.write_features = write_features
+        self.export_features = export_features
+        self.write_images = write_images
+        self.extract_images = extract_images
         self.noise_iteration_id = noise_iteration_id
         self.rotation = rotation
         self.translation = translation
         self.new_image_spacing = new_image_spacing
 
+    def _message_start(self):
+        image_descriptor = "_".join([self.image_file.sample_name, self.image_file.modality])
+
+        message_str = ["Initialising"]
+        if (self.write_features or self.export_features) and (self.write_images or self.extract_images):
+            message_str += ["feature computation and image extraction"]
+        elif self.write_features or self.export_features:
+            message_str += ["feature computation"]
+        elif self.write_images or self.extract_images:
+            message_str += ["image extraction"]
+        else:
+            raise ValueError("The workflow is not specified to do anything.")
+
+        message_str += [f"using {self.image_file.modality} images"]
+
+        if self.settings.general.config_str is not None and self.settings.general.config_str != "":
+            message_str += [f"and configuration \"{self.settings.general.config_str}\""]
+
+        message_str += [f"for {self.image_file.sample_name}."]
+
+        return " ".join(message_str)
+
     def standard_image_processing(self) -> Tuple[GenericImage, List[BaseMask]]:
-        from mirp.imageProcess import crop, alter_mask, randomise_mask, split_masks
+        from mirp.imageProcess import crop, alter_mask, randomise_mask, split_masks, create_tissue_mask
 
         # Configure logger
         logging.basicConfig(
@@ -54,7 +86,7 @@ class StandardWorkflow(BaseWorkflow):
             level=logging.INFO, stream=sys.stdout)
 
         # Notify
-        logging.info(self._message_computation_initialisation())
+        logging.info(self._message_start())
 
         # Read image and masks.
         image, masks = read_image_and_masks(self.image_file, to_numpy=False)
@@ -86,7 +118,11 @@ class StandardWorkflow(BaseWorkflow):
         # Create a tissue mask
         if self.settings.post_process.bias_field_correction or \
                 not self.settings.post_process.intensity_normalisation == "none":
-            tissue_mask = create_tissue_mask(img_obj=img_obj, settings=curr_setting)
+            tissue_mask = create_tissue_mask(
+                image=image,
+                mask_type=self.settings.post_process.tissue_mask_type,
+                mask_intensity_range=self.settings.post_process.tissue_mask_range
+            )
 
             # Perform bias field correction
             if self.settings.post_process.bias_field_correction:
@@ -234,10 +270,7 @@ class StandardWorkflow(BaseWorkflow):
 
     def standard_extraction(
             self,
-            write_features: bool,
-            export_features: bool,
-            write_images: bool,
-            extract_images: bool,
+
             write_file_format: str = "nifti",
             write_all_masks: bool = False
     ):

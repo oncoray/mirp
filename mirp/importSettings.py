@@ -519,7 +519,7 @@ class ImagePostProcessingClass:
                         "The tissue_mask_range parameter should consist of two values between 0.0 and 1.0.")
 
         # Set tissue_mask_range.
-        self.tissue_mask_range: List[float] = tissue_mask_range
+        self.tissue_mask_range: Tuple[Any, Any] = tuple(tissue_mask_range)
 
 
 class ImagePerturbationSettingsClass:

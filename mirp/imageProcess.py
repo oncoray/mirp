@@ -556,7 +556,59 @@ def normalise_image(
     return image
 
 
+def create_tissue_mask(
+        image: GenericImage,
+        mask_type: Optional[str] = None,
+        mask_intensity_range: Optional[Tuple[Any, Any]] = None
+) -> np.ndarray:
 
+    if mask_type is None or mask_type == "none":
+        # The entire image is the tissue mask.
+        mask = np.ones(image.image_dimension, dtype=np.uint8)
+
+    elif mask_type == "range":
+        if mask_intensity_range is None:
+            mask_intensity_range = [np.nan, np.nan]
+        else:
+            mask_intensity_range = list(mask_intensity_range)
+
+        # The intensity range provided forms the mask range.
+        if np.isnan(mask_intensity_range[0]):
+            mask_intensity_range[1] = np.min(image.get_voxel_grid())
+        if np.isnan(mask_intensity_range[1]):
+            mask_intensity_range[2] = np.max(image.get_voxel_grid())
+
+        voxel_grid = image.get_voxel_grid()
+        mask = np.logical_and(voxel_grid >= mask_intensity_range[0], voxel_grid <= mask_intensity_range[1])
+
+    elif mask_type == "relative_range":
+        # The relative intensity range provided forms the mask range. This means that we need to convert the relative
+        # range to the range present in the image.
+        if mask_intensity_range is None:
+            mask_intensity_range = [np.nan, np.nan]
+        else:
+            mask_intensity_range = list(mask_intensity_range)
+
+        if np.isnan(mask_intensity_range[0]):
+            mask_intensity_range[0] = 0.0
+        if np.isnan(mask_intensity_range[1]):
+            mask_intensity_range[1] = 1.0
+
+        voxel_grid = image.get_voxel_grid()
+        intensity_range = [np.min(voxel_grid), np.max(voxel_grid)]
+
+        # Convert relative range to the image intensities
+        tissue_range = [
+            intensity_range[0] + mask_intensity_range[0] * (intensity_range[1] - intensity_range[0]),
+            intensity_range[0] + mask_intensity_range[1] * (intensity_range[1] - intensity_range[0])
+        ]
+
+        mask = np.logical_and(voxel_grid >= tissue_range[0], voxel_grid <= tissue_range[1])
+    else:
+        raise ValueError(f"The tissue_mask_type configuration parameter is expected to be one of none, range, "
+                         f"or relative_range. Encountered: {mask_type}")
+
+    return mask
 
 
 def saturate_image_deprecated(img_obj, intensity_range, fill_value):
@@ -1607,7 +1659,7 @@ def compute_discretised_features_deprecated(img_obj: ImageClass,
     return df_feat
 
 
-def create_tissue_mask(img_obj: ImageClass, settings: SettingsClass):
+def create_tissue_mask_deprecated(img_obj: ImageClass, settings: SettingsClass):
 
     if settings.post_process.tissue_mask_type == "none":
         # The entire image is the tissue mask.
