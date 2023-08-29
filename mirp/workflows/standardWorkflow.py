@@ -263,7 +263,6 @@ class StandardWorkflow(BaseWorkflow):
     ):
         from mirp.utilities import random_string
         import os
-        import os.path
 
         # Indicators to prevent the same masks from being written or exported multiple times.
         masks_written = False
@@ -587,3 +586,6 @@ class StandardWorkflow(BaseWorkflow):
             else np.nan,
             "image_mask_adapt_size": mask.roi.alteration_size if mask.roi.alteration_size is not None else 0.0
         }, index=[0])
+
+    def deep_learning_conversion(self):
+        ...
