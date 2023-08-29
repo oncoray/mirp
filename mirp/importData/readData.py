@@ -11,7 +11,7 @@ def read_image(
         image: ImageFile,
         to_numpy=False
 ):
-    image = image.to_object()
+    image = image.to_object().promote()
 
     if to_numpy:
         image = image.get_voxel_grid()
@@ -36,7 +36,7 @@ def read_image_and_masks(
     mask_list = [mask for mask in mask_list if mask is not None]
 
     # Read image from file.
-    image = image.to_object()
+    image = image.to_object().promote()
 
     if to_numpy:
         image = image.get_voxel_grid()

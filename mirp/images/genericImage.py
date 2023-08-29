@@ -20,7 +20,6 @@ class GenericImage(BaseImage):
             noise_level: Optional[float] = None,
             interpolated: bool = False,
             interpolation_algorithm: Optional[str] = None,
-            normalised: bool = False,
             discretisation_method: Optional[str] = None,
             discretisation_bin_number: Optional[int] = None,
             discretisation_bin_width: Optional[float] = None,
@@ -86,9 +85,26 @@ class GenericImage(BaseImage):
         self.discretisation_bin_number = template.discretisation_bin_number
         self.discretisation_bin_width = template.discretisation_bin_width
 
-        # TODO: remove normalised, because normalisation should turn specific image classes (CT, PET) into generic
-        #  objects instead.
-        self.normalised = template.normalised
+    def promote(self):
+        from mirp.images.ctImage import CTImage
+        from mirp.images.petImage import PETImage
+        from mirp.images.mrImage import MRImage
+
+        if self.modality == "ct":
+            image = CTImage(image_data=self.image_data)
+        elif self.modality == "pet":
+            image = PETImage(image_data=self.image_data)
+        elif self.modality == "mr":
+            image = MRImage(image_data=self.image_data)
+        elif self.modality == "generic":
+            return self
+        else:
+            raise ValueError(f"The imaging modality was not recognised: {self.modality}")
+
+        # Set remaining attributes.
+        image.update_from_template(template=self)
+
+        return image
 
     def drop_image(self):
         self.image_data = None
