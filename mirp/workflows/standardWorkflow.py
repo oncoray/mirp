@@ -8,24 +8,12 @@ import pandas as pd
 import numpy as np
 
 from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
-from mirp.importData.imageGenericFile import ImageFile
+from mirp.workflows.baseWorkflow import BaseWorkflow
 from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import TransformedImage
 from mirp.masks.baseMask import BaseMask
 from mirp.imageProcess import crop
-
-
-class BaseWorkflow:
-    def __init__(
-            self,
-            image_file: ImageFile,
-            write_dir: Optional[str] = None,
-            **kwargs
-    ):
-        super().__init__()
-        self.image_file = image_file
-        self.write_dir = write_dir
 
 
 class StandardWorkflow(BaseWorkflow):
