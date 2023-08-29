@@ -132,3 +132,11 @@ def real_ndim(x: np.ndarray):
         number_dims = 1
 
     return number_dims
+
+
+def random_string(k: int) -> str:
+    import string
+    from random import choices
+
+    character_list = list(string.ascii_uppercase + string.digits)
+    return "".join(choices(character_list, k=k))

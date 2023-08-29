@@ -1094,6 +1094,10 @@ class GenericImage(BaseImage):
         if self.sample_name is not None:
             descriptors += [self.sample_name]
 
+        # Modality
+        if self.modality is not None:
+            descriptors += [self.modality]
+
         # Interpolation
         if self.interpolated:
             descriptors += [

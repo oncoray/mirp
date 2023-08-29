@@ -5,6 +5,7 @@ import warnings
 from typing import Optional, Union, Tuple, List, Generator
 
 import pandas as pd
+import numpy as np
 
 from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
 from mirp.importData.imageGenericFile import ImageFile
@@ -55,8 +56,6 @@ class StandardWorkflow(BaseWorkflow):
         self.new_image_spacing = new_image_spacing
 
     def _message_start(self):
-        image_descriptor = "_".join([self.image_file.sample_name, self.image_file.modality])
-
         message_str = ["Initialising"]
         if (self.write_features or self.export_features) and (self.write_images or self.export_images):
             message_str += ["feature computation and image extraction"]
@@ -269,24 +268,19 @@ class StandardWorkflow(BaseWorkflow):
 
     def standard_extraction(
             self,
-            write_features: bool,
-            export_features: bool,
-            write_images: bool,
-            export_images: bool,
             write_file_format: str = "nifti",
             write_all_masks: bool = False
     ):
-        # Set attributes.
-        self.write_features = write_features
-        self.export_features = export_features
-        self.write_images = write_images
-        self.export_images = export_images
+        from mirp.utilities import random_string
+        import os
+        import os.path
 
         # Indicators to prevent the same masks from being written or exported multiple times.
         masks_written = False
         masks_exported = False
 
         # Placeholders
+        feature_set_details = None
         feature_list: List[pd.DataFrame] = []
         image_list = []
 
@@ -308,8 +302,8 @@ class StandardWorkflow(BaseWorkflow):
                     mask_feature_list = list(self._compute_radiomics_features(image=image, mask=mask))
                     if len(mask_feature_list) == 0:
                         continue
-                    mask_feature_set = pd.concat(mask_feature_list, axis="column")
-                    mask_feature_set["roi_name"] = mask.roi_name
+                    feature_set_details = self._get_feature_set_details(image=image, mask=mask)
+                    mask_feature_set = pd.concat([feature_set_details] + mask_feature_list, axis="column")
                     image_feature_list += [mask_feature_set]
 
                 feature_list += [pd.concat(image_feature_list, axis="index", ignore_index=True)]
@@ -329,19 +323,44 @@ class StandardWorkflow(BaseWorkflow):
             if self.export_images:
                 ...
 
+        feature_set = None
         if (self.write_features or self.export_features) and len(feature_list) > 0:
             if len(feature_list) == 1:
                 feature_set = feature_list[0]
             else:
                 feature_set = feature_list[0]
+                if feature_set_details is None:
+                    raise ValueError("DEV: The feature_set_details variable has not been set.")
+
+                shared_features = list(feature_set_details.columns)
                 for ii in range(1, len(feature_list)):
                     feature_set = feature_set.merge(
                         feature_list[ii],
                         how="outer",
-                        on="roi_name",
-                        suffixes=(False, False))
+                        on=shared_features,
+                        suffixes=(None, None)
+                    )
 
-            # Complete the feature set.
+        if self.write_features and isinstance(feature_set, pd.DataFrame):
+            file_name = "_".join([image.sample_name, image.modality, random_string(k=16)]) + ".csv"
+            # Check if the directory exists, and create otherwise.
+            if not os.path.exists(self.write_dir):
+                os.makedirs(self.write_dir)
+
+            feature_set.to_csv(
+                os.path.join(self.write_dir, file_name),
+                sep=";",
+                na_rep="",
+                index=False
+            )
+
+        if self.export_features and self.export_images:
+            ...
+        elif self.export_features:
+            return feature_set
+        elif self.export_images:
+            ...
+
 
     def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
         from mirp.featureSets.localIntensity import get_local_intensity_features
@@ -415,7 +434,7 @@ class StandardWorkflow(BaseWorkflow):
 
         # Extract morphological features.
         if feature_settings.has_morphology_family():
-            feature_set =  get_volumetric_morphological_features(
+            feature_set = get_volumetric_morphological_features(
                 image=cropped_image,
                 mask=mask,
                 settings=feature_settings
@@ -550,3 +569,31 @@ class StandardWorkflow(BaseWorkflow):
                     discretisation_method=discretisation_method,
                     in_place=False
                 )
+
+    def _get_feature_set_details(
+            self,
+            image: GenericImage,
+            mask: BaseMask
+    ) -> pd.DataFrame:
+
+        if image.separate_slices:
+            voxel_size = np.max(np.array(image.image_spacing)[[1, 2]])
+        else:
+            voxel_size = np.max(np.array(image.image_spacing))
+
+        return pd.DataFrame({
+            "sample_name": image.sample_name,
+            "image_settings_id": self.settings.general.config_str,
+            "image_modality": image.modality,
+            "image_voxel_size": voxel_size,
+            "image_noise_level": image.noise_level if image.noise_level is not None else 0.0,
+            "image_noise_iteration_id": image.noise_iteration_id if image.noise_iteration_id is not None else np.nan,
+            "image_rotation_angle": image.rotation_angle if image.rotation_angle is not None else 0.0,
+            "image_translation_x": image.translation[2] if image.translation is not None else 0.0,
+            "image_translation_y": image.translation[1] if image.translation is not None else 0.0,
+            "image_translation_z": image.translation[0] if image.translation is not None else 0.0,
+            "image_mask_name": mask.roi_name,
+            "image_mask_randomise_id": mask.roi.slic_randomisation_id if mask.roi.slic_randomisation_id is not None
+            else np.nan,
+            "image_mask_adapt_size": mask.roi.alteration_size if mask.roi.alteration_size is not None else 0.0
+        }, index=[0])
