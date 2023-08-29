@@ -31,11 +31,10 @@ class StandardWorkflow(BaseWorkflow):
     def __init__(
             self,
             settings: SettingsClass,
-            settings_name: Optional[str] = None,
             write_features: bool = False,
             export_features: bool = False,
             write_images: bool = False,
-            extract_images: bool = False,
+            export_images: bool = False,
             noise_iteration_id: Optional[int] = None,
             rotation: Optional[float] = None,
             translation: Optional[Tuple[float, ...]] = None,
@@ -49,7 +48,7 @@ class StandardWorkflow(BaseWorkflow):
         self.write_features = write_features
         self.export_features = export_features
         self.write_images = write_images
-        self.extract_images = extract_images
+        self.export_images = export_images
         self.noise_iteration_id = noise_iteration_id
         self.rotation = rotation
         self.translation = translation
@@ -59,11 +58,11 @@ class StandardWorkflow(BaseWorkflow):
         image_descriptor = "_".join([self.image_file.sample_name, self.image_file.modality])
 
         message_str = ["Initialising"]
-        if (self.write_features or self.export_features) and (self.write_images or self.extract_images):
+        if (self.write_features or self.export_features) and (self.write_images or self.export_images):
             message_str += ["feature computation and image extraction"]
         elif self.write_features or self.export_features:
             message_str += ["feature computation"]
-        elif self.write_images or self.extract_images:
+        elif self.write_images or self.export_images:
             message_str += ["image extraction"]
         else:
             raise ValueError("The workflow is not specified to do anything.")
@@ -270,15 +269,25 @@ class StandardWorkflow(BaseWorkflow):
 
     def standard_extraction(
             self,
-
+            write_features: bool,
+            export_features: bool,
+            write_images: bool,
+            export_images: bool,
             write_file_format: str = "nifti",
             write_all_masks: bool = False
     ):
-        # Indicator to prevent the same masks from being written multiple times.
+        # Set attributes.
+        self.write_features = write_features
+        self.export_features = export_features
+        self.write_images = write_images
+        self.export_images = export_images
+
+        # Indicators to prevent the same masks from being written or exported multiple times.
         masks_written = False
+        masks_exported = False
 
         # Placeholders
-        feature_list = []
+        feature_list: List[pd.DataFrame] = []
         image_list = []
 
         for image, masks in self.standard_image_processing():
@@ -289,15 +298,23 @@ class StandardWorkflow(BaseWorkflow):
             image: Union[GenericImage, TransformedImage] = image
             masks: List[Optional[BaseMask]] = masks
 
-            if write_features or export_features:
-                current_feature_list = []
+            if self.write_features or self.export_features:
+                image_feature_list = []
                 for mask in masks:
                     if mask is None:
                         continue
 
-                    current_feature_list += [self._compute_radiomics_features(image=image, mask=mask)]
+                    # Extract features, combine to a single DataFrame, and then add a roi_name for joining afterwards.
+                    mask_feature_list = list(self._compute_radiomics_features(image=image, mask=mask))
+                    if len(mask_feature_list) == 0:
+                        continue
+                    mask_feature_set = pd.concat(mask_feature_list, axis="column")
+                    mask_feature_set["roi_name"] = mask.roi_name
+                    image_feature_list += [mask_feature_set]
 
-            if write_images:
+                feature_list += [pd.concat(image_feature_list, axis="index", ignore_index=True)]
+
+            if self.write_images:
                 image.write(dir_path=self.write_dir, file_format=write_file_format)
                 if not masks_written:
                     for mask in masks:
@@ -309,8 +326,22 @@ class StandardWorkflow(BaseWorkflow):
                     # image.
                     masks_written = True
 
-            if extract_images:
+            if self.export_images:
                 ...
+
+        if (self.write_features or self.export_features) and len(feature_list) > 0:
+            if len(feature_list) == 1:
+                feature_set = feature_list[0]
+            else:
+                feature_set = feature_list[0]
+                for ii in range(1, len(feature_list)):
+                    feature_set = feature_set.merge(
+                        feature_list[ii],
+                        how="outer",
+                        on="roi_name",
+                        suffixes=(False, False))
+
+            # Complete the feature set.
 
     def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
         from mirp.featureSets.localIntensity import get_local_intensity_features
