@@ -20,6 +20,7 @@ class StandardWorkflow(BaseWorkflow):
     def __init__(
             self,
             settings: SettingsClass,
+            settings_name: Optional[bool] = None,
             write_features: bool = False,
             export_features: bool = False,
             write_images: bool = False,
@@ -33,6 +34,7 @@ class StandardWorkflow(BaseWorkflow):
         super().__init__(**kwargs)
 
         self.settings = settings
+        self.settings_name = settings_name
 
         self.write_features = write_features
         self.export_features = export_features
@@ -56,8 +58,8 @@ class StandardWorkflow(BaseWorkflow):
 
         message_str += [f"using {self.image_file.modality} images"]
 
-        if self.settings.general.config_str is not None and self.settings.general.config_str != "":
-            message_str += [f"and configuration \"{self.settings.general.config_str}\""]
+        if self.settings_name is not None and self.settings_name != "":
+            message_str += [f"and configuration \"{self.settings_name}\""]
 
         message_str += [f"for {self.image_file.sample_name}."]
 
@@ -571,7 +573,7 @@ class StandardWorkflow(BaseWorkflow):
 
         return pd.DataFrame({
             "sample_name": image.sample_name,
-            "image_settings_id": self.settings.general.config_str,
+            "image_settings_id": self.settings_name if self.settings_name is not None else np.nan,
             "image_modality": image.modality,
             "image_voxel_size": voxel_size,
             "image_noise_level": image.noise_level if image.noise_level is not None else 0.0,
