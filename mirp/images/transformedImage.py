@@ -1,4 +1,5 @@
 import copy
+import pandas as pd
 from typing import Optional, List, Dict, Any
 
 from mirp.images.genericImage import GenericImage
@@ -99,6 +100,31 @@ class GaborTransformedImage(TransformedImage):
 
         return parent_attributes
 
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "gabor",
+            "s", str(self.sigma_parameter),
+            "g", str(self.gamma_parameter),
+            "l", str(self.lambda_parameter)
+        ]
+
+        if not self.pool_theta:
+            feature_name_prefix += ["t", str(self.theta_parameter)]
+
+        feature_name_prefix += ["2D" if self.separate_slices else "3D"]
+
+        if self.rotation_invariance and not self.separate_slices:
+            feature_name_prefix += ["invar"]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
 
 class GaussianTransformedImage(TransformedImage):
     def __init__(
@@ -156,6 +182,21 @@ class GaussianTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "gaussian",
+            "s", str(self.sigma_parameter)
+        ]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class LaplacianOfGaussianTransformedImage(TransformedImage):
@@ -219,6 +260,21 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "log",
+            "s", str(self.sigma_parameter)
+        ]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class LawsTransformedImage(TransformedImage):
@@ -292,6 +348,22 @@ class LawsTransformedImage(TransformedImage):
 
         return parent_attributes
 
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = ["laws", self.laws_kernel]
+        if self.energy_map:
+            feature_name_prefix += ["energy", "delta", str(self.delta_parameter)]
+        if self.rotation_invariance:
+            feature_name_prefix += ["invar"]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
 
 class MeanTransformedImage(TransformedImage):
     def __init__(
@@ -342,6 +414,18 @@ class MeanTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = ["mean", "d", str(self.filter_size)]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class NonSeparableWaveletTransformedImage(TransformedImage):
@@ -403,6 +487,21 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "wavelet", self.wavelet_family,
+            "level", str(self.decomposition_level)
+        ]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class SeparableWaveletTransformedImage(TransformedImage):
@@ -480,3 +579,23 @@ class SeparableWaveletTransformedImage(TransformedImage):
         parent_attributes.update(dict(attributes))
 
         return parent_attributes
+
+    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "wavelet", self.wavelet_family, self.filter_kernel_set,
+            "level", str(self.decomposition_level)
+        ]
+
+        if not self.stationary_wavelet:
+            feature_name_prefix += ["decimated"]
+        if self.rotation_invariance:
+            feature_name_prefix += ["invar"]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x

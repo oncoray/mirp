@@ -1193,4 +1193,3 @@ class GenericImage(BaseImage):
             x.columns += feature_name_suffix
 
         return x
-    
