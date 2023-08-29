@@ -332,26 +332,32 @@ class StandardWorkflow(BaseWorkflow):
 
         # Extract statistical features.
         if feature_settings.has_stats_family():
-            yield get_intensity_statistics_features(
+            feature_set = get_intensity_statistics_features(
                 image=cropped_image,
                 mask=cropped_mask
             )
+            feature_set = image.parse_feature_names(feature_set)
+            yield feature_set
 
         # Extract intensity-volume histogram features.
         if feature_settings.has_ivh_family():
-            yield get_intensity_volume_histogram_features(
+            feature_set = get_intensity_volume_histogram_features(
                 image=cropped_image,
                 mask=cropped_mask,
                 settings=feature_settings
             )
+            feature_set = image.parse_feature_names(feature_set)
+            yield feature_set
 
         # Extract morphological features.
         if feature_settings.has_morphology_family():
-            yield get_volumetric_morphological_features(
+            feature_set =  get_volumetric_morphological_features(
                 image=cropped_image,
                 mask=mask,
                 settings=feature_settings
             )
+            feature_set = image.parse_feature_names(feature_set)
+            yield feature_set
 
         # Discrete image features --------------------------------------------------------------------------------------
         if not feature_settings.has_discretised_family():
@@ -370,58 +376,72 @@ class StandardWorkflow(BaseWorkflow):
 
             # Intensity histogram.
             if feature_settings.has_ih_family():
-                yield get_intensity_histogram_features(
+                feature_set = get_intensity_histogram_features(
                     image=discrete_image,
                     mask=discrete_mask
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
             # Grey level co-occurrence matrix (GLCM).
             if feature_settings.has_glcm_family():
-                yield get_cm_features(
+                feature_set = get_cm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
             # Grey level run length matrix (GLRLM).
             if feature_settings.has_glrlm_family():
-                yield get_rlm_features(
+                feature_set = get_rlm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
             # Grey level size zone matrix (GLSZM).
             if feature_settings.has_glszm_family():
-                yield get_szm_features(
+                feature_set = get_szm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
             # Grey level distance zone matrix (GLDZM).
             if feature_settings.has_gldzm_family():
-                yield get_dzm_features(
+                feature_set = get_dzm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
             # Neighbourhood grey tone difference matrix (NGTDM).
             if feature_settings.has_ngtdm_family():
-                yield get_ngtdm_features(
+                feature_set = get_ngtdm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
             # Neighbouring grey level dependence matrix (NGLDM).
             if feature_settings.has_ngldm_family():
-                yield get_ngldm_features(
+                feature_set = get_ngldm_features(
                     image=image,
                     mask=mask,
                     settings=feature_settings
                 )
+                feature_set = image.parse_feature_names(feature_set)
+                yield feature_set
 
     def _discretise_image(
             self,
