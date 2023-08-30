@@ -7,7 +7,7 @@ from typing import Optional, Union, Tuple, List, Generator
 import pandas as pd
 import numpy as np
 
-from mirp.importSettings import SettingsClass, FeatureExtractionSettingsClass
+from mirp.settings.importSettings import SettingsClass, FeatureExtractionSettingsClass
 from mirp.workflows.baseWorkflow import BaseWorkflow
 from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage

@@ -1,13 +1,11 @@
-import logging
-
 import numpy as np
 
 from mirp.imageProcess import crop_image_deprecated, get_supervoxels_deprecated, get_supervoxel_overlap_deprecated
 from mirp.utilities import extract_roi_names
-from mirp.importSettings import SettingsClass
+from mirp.settings.importSettings import SettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
-from typing import Union, List
+from typing import List
 
 
 def randomise_roi_contours(

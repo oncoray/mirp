@@ -8,7 +8,7 @@ from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask
-from mirp.importSettings import FeatureExtractionSettingsClass
+from mirp.settings.importSettings import FeatureExtractionSettingsClass
 from mirp.utilities import real_ndim
 
 

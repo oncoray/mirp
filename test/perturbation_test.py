@@ -3,7 +3,7 @@ import os
 import numpy as np
 
 from mirp.experimentClass import ExperimentClass
-from mirp.importSettings import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass, \
+from mirp.settings.importSettings import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass, \
     ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass, \
     ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
 

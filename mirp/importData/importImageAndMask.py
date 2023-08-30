@@ -21,7 +21,8 @@ def import_image_and_mask(
         roi_name: Union[None, str, List[str], Dict[str, str]] = None,
         association_strategy: Union[None, str, List[str]] = None,
         stack_masks: str = "auto",
-        stack_images: str = "auto"):
+        stack_images: str = "auto"
+) -> List[ImageFile]:
 
     if mask is None:
         mask = image

@@ -6,13 +6,13 @@ import multiprocessing as mp
 import os
 import time
 from inspect import stack, getmodule
-from typing import Union, Optional, List
+from typing import Optional, List
 
 import numpy as np
 import pandas as pd
 
 from mirp.importData.importMask import import_mask
-from mirp.importSettings import import_configuration_settings, import_data_settings
+from mirp.settings.importSettings import import_configuration_settings, import_data_settings
 from mirp.experimentClass import ExperimentClass
 
 

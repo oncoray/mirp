@@ -8,7 +8,7 @@ from typing import Union, List
 
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
-from mirp.importSettings import SettingsClass
+from mirp.settings.importSettings import SettingsClass
 
 
 class RoiClass:

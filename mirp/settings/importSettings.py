@@ -2363,7 +2363,8 @@ def str2type(strx, data_type, default=None):
 def import_configuration_settings(
         compute_features: bool,
         path: Union[None, str] = None,
-        **kwargs):
+        **kwargs
+):
     import os.path
 
     # Make a copy of the kwargs argument to avoid updating by reference.
