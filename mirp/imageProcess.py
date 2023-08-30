@@ -2,7 +2,7 @@ import warnings
 from typing import Union, List, Tuple, Optional, Any
 from copy import deepcopy
 
-from mirp.settings.importSettings import SettingsClass, FeatureExtractionSettingsClass
+from mirp.settings.settingsClass import SettingsClass, FeatureExtractionSettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 

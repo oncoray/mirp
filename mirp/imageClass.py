@@ -10,7 +10,7 @@ from pydicom import FileDataset, Sequence, Dataset
 
 from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag, create_new_uid
 from mirp.utilities import get_version
-from mirp.settings.importSettings import SettingsClass
+from mirp.settings.settingsClass import SettingsClass
 
 
 class ImageClass:

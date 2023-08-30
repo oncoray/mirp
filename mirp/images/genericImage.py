@@ -5,7 +5,7 @@ from typing import Optional, Union, Tuple, List, Dict, Any
 import pandas as pd
 
 from mirp.images.baseImage import BaseImage
-from mirp.settings.importSettings import SettingsClass
+from mirp.settings.settingsClass import SettingsClass
 
 
 class GenericImage(BaseImage):

@@ -6,7 +6,7 @@ import pandas as pd
 from typing import Optional, Union, List, Dict, Tuple, Any
 
 from mirp.images.genericImage import GenericImage
-from mirp.settings.importSettings import SettingsClass
+from mirp.settings.settingsClass import SettingsClass
 
 
 class MaskImage(GenericImage):
