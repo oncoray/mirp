@@ -12,7 +12,8 @@ import numpy as np
 import pandas as pd
 
 from mirp.importData.importMask import import_mask
-from mirp.settings.settingsClass import import_configuration_settings, import_data_settings
+from mirp.settings.importDataSettings import import_data_settings
+from mirp.settings.importConfigurationSettings import import_configuration_settings
 from mirp.experimentClass import ExperimentClass
 
 

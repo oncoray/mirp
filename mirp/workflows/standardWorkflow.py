@@ -7,7 +7,7 @@ from typing import Optional, Union, Tuple, List, Generator
 import pandas as pd
 import numpy as np
 
-from mirp.settings.importSettings import SettingsClass, FeatureExtractionSettingsClass
+from mirp.settings.settingsClass import SettingsClass, FeatureExtractionSettingsClass
 from mirp.workflows.baseWorkflow import BaseWorkflow
 from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage
@@ -20,7 +20,7 @@ class StandardWorkflow(BaseWorkflow):
     def __init__(
             self,
             settings: SettingsClass,
-            settings_name: Optional[bool] = None,
+            settings_name: Optional[str] = None,
             write_features: bool = False,
             export_features: bool = False,
             write_images: bool = False,

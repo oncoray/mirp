@@ -5,7 +5,7 @@ from typing import Optional, List, Tuple, Dict, Any, Union
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
-from mirp.settings.importSettings import SettingsClass
+from mirp.settings.settingsClass import SettingsClass
 
 
 class BaseMask:

@@ -10,7 +10,7 @@ from typing import Union
 from mirp.dicomImport import read_dicom_image_series, read_dicom_rt_struct, read_roi_names, get_all_dicom_headers
 from mirp.imageClass import ImageClass
 from mirp.imageMetaData import get_itk_dicom_meta_tag
-from mirp.settings.importSettings import SettingsClass
+from mirp.settings.settingsClass import SettingsClass
 from mirp.itkImport import read_itk_image, read_itk_segmentations
 
 

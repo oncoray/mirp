@@ -5,7 +5,7 @@ from typing import Union, List
 from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import SeparableWaveletTransformedImage
-from mirp.settings.importSettings import SettingsClass
+from mirp.settings.settingsClass import SettingsClass
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import pool_voxel_grids, SeparableFilterSet
 
