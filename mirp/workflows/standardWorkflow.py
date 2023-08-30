@@ -272,6 +272,7 @@ class StandardWorkflow(BaseWorkflow):
         feature_set_details = None
         feature_list: List[pd.DataFrame] = []
         image_list = []
+        mask_list = []
 
         for image, masks in self.standard_image_processing():
             if image is None:
@@ -310,7 +311,15 @@ class StandardWorkflow(BaseWorkflow):
                     masks_written = True
 
             if self.export_images:
-                ...
+                image_list += [image.export(with_attributes=True)]
+                if not masks_exported:
+                    for mask in masks:
+                        if mask is None:
+                            continue
+                        mask_list += [mask.export(write_all=write_all_masks, with_attributes=True)]
+                        # The standard_image_processing workflow only generates one set of masks - that which may change is
+                        # image. It is not necessary to export masks more than once.
+                        masks_exported = True
 
         feature_set = None
         if (self.write_features or self.export_features) and len(feature_list) > 0:
@@ -344,12 +353,11 @@ class StandardWorkflow(BaseWorkflow):
             )
 
         if self.export_features and self.export_images:
-            ...
+            return feature_set, image_list, mask_list
         elif self.export_features:
             return feature_set
         elif self.export_images:
-            ...
-
+            return image_list, mask_list
 
     def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
         from mirp.featureSets.localIntensity import get_local_intensity_features
