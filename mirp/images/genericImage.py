@@ -886,7 +886,7 @@ class GenericImage(BaseImage):
         """Crop image to the provided map extent."""
 
         # Skip for missing images
-        if self.image_data is None:
+        if self.is_empty():
             return
 
         # Determine corresponding voxel indices
