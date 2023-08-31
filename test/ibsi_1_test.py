@@ -1,4 +1,5 @@
 import os
+import sys
 from math import log10, floor
 from mirp.experimentClass import ExperimentClass
 from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass,\
@@ -21,7 +22,7 @@ def within_tolerance(ref, tol, x):
     if x != 0.0:
         x = round(x, 3 - int(floor(log10(abs(x)))) - 1)
 
-    if abs(x - ref) <= tol:
+    if abs(x - ref) - tol <= sys.float_info.epsilon:
         return True
     else:
         return False
