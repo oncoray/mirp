@@ -63,11 +63,14 @@ def extract_images_generator(
 
 
 def extract_features_and_images(**kwargs):
-    return list(_base_extract_features_and_images(**kwargs))
+    workflows = list(_base_extract_features_and_images(**kwargs))
+    return [workflow.standard_extraction() for workflow in workflows]
 
 
 def extract_features_and_images_generator(**kwargs):
-    yield from _base_extract_features_and_images(**kwargs)
+    workflows = list(_base_extract_features_and_images(**kwargs))
+    for workflow in workflows:
+        yield workflow.standard_extraction()
 
 
 def _base_extract_features_and_images(
