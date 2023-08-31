@@ -148,7 +148,7 @@ def crop(
         masks = [mask.copy() for mask in masks]
 
     # Crop images and masks.
-    image = image.crop(
+    image.crop(
         ind_ext_z=bounds_z,
         ind_ext_y=bounds_y,
         ind_ext_x=bounds_x,
@@ -156,15 +156,14 @@ def crop(
         z_only=z_only
     )
 
-    masks = [
+    for mask in masks:
         mask.crop(
             ind_ext_z=bounds_z,
             ind_ext_y=bounds_y,
             ind_ext_x=bounds_x,
             xy_only=xy_only,
             z_only=z_only
-        ) for mask in masks
-    ]
+        )
 
     if return_list:
         return image, masks
