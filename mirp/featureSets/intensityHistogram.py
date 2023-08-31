@@ -16,7 +16,7 @@ def get_intensity_histogram_features(image: GenericImage, mask: BaseMask) -> pd.
     df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     # Extract features
-    df_feat = compute_intensity_histogram_features(df_img=df_img, g_range=mask.intensity_range)
+    df_feat = compute_intensity_histogram_features(df_img=df_img, g_range=np.array(mask.intensity_range))
 
     return df_feat
 

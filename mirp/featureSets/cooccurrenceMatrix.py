@@ -103,7 +103,7 @@ def get_cm_features(
             # Calculate features
             feat_run_list = []
             for glcm in upd_list:
-                feat_run_list += [glcm.compute_features(g_range=mask.intensity_range)]
+                feat_run_list += [glcm.compute_features(g_range=np.array(mask.intensity_range))]
 
             # Average feature values
             feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
