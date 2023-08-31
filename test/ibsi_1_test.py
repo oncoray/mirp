@@ -13,6 +13,10 @@ def within_tolerance(ref, tol, x):
     # Read from pandas Series
     x = x.values[0]
 
+    # Prevent issues due to rounding errors.
+    x = float(x)
+    tol = float(tol)
+
     # Round correctly
     if x != 0.0:
         x = round(x, 3 - int(floor(log10(abs(x)))) - 1)
