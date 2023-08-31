@@ -136,7 +136,7 @@ def crop(
             return image, masks[0]
 
     # Compute boundary and add to bounding box.
-    boundary = np.ceil(boundary / image.image_spacing).astype(int)
+    boundary = np.ceil(boundary / np.array(image.image_spacing)).astype(int)
 
     if not by_slice:
         bounds_z = [bounds_z[0] - boundary[0], bounds_z[1] + boundary[0]]

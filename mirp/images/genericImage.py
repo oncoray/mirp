@@ -27,9 +27,11 @@ class GenericImage(BaseImage):
     ):
         super().__init__(**kwargs)
 
-        # Image data --> Note that we explicitly copy image_data because otherwise we may end up changing objects by
-        # reference, which is not the expected behaviour.
-        self.image_data = self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
+        # Image data. Note that image_data is explicitly defined as this prevents IDE warnings. However,
+        # the attribute itself is set using set_voxel_grid. Also, note that we explicitly copy image_data because
+        # otherwise we may end up changing objects by reference, which is not the expected behaviour.
+        self.image_data = None
+        self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
 
         # Determines whether slices in the stack should be treated separately.
         self.separate_slices = separate_slices
@@ -884,7 +886,7 @@ class GenericImage(BaseImage):
         """Crop image to the provided map extent."""
 
         # Skip for missing images
-        if self.image_data:
+        if self.image_data is None:
             return
 
         # Determine corresponding voxel indices

@@ -12,11 +12,12 @@ from mirp.settings.settingsClass import SettingsClass
 class MaskImage(GenericImage):
 
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
+        # Declare local attributes first because these may be updated in super()__init__.
         self.image_encoded = False
         self.alteration_size: float = 0.0
         self.slic_randomisation_id: Optional[int] = None
+
+        super().__init__(**kwargs)
 
     def is_empty(self):
         if self.image_encoded:
