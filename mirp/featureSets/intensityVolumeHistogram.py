@@ -81,11 +81,15 @@ def get_intensity_volume_histogram(
     # Set missing discretisation methods based on modality
     if ivh_discr_method == "none":
         if isinstance(image, CTImage):
-            ivh_discr_method = "none"
+            pass
         elif isinstance(image, PETImage):
             ivh_discr_method = "fixed_bin_size"
         else:
-            ivh_discr_method = "fixed_bin_number"
+            levels = np.unique(df_his.g)
+            if np.all(np.fmod(levels, 1.0) == 0.0):
+                ivh_discr_method = "none"
+            else:
+                ivh_discr_method = "fixed_bin_number"
 
     if ivh_discr_method == "none":
         # Calculation without transformation
