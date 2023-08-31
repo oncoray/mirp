@@ -562,7 +562,7 @@ class MaskImage(GenericImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         attributes = super().get_export_attributes()
 
         # Alteration size.

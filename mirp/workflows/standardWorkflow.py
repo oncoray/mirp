@@ -199,7 +199,7 @@ class StandardWorkflow(BaseWorkflow):
             for transformed_image in self.transform_images(image=image):
                 yield transformed_image, masks
 
-    def transform_images(self, image: GenericImage) -> Generator[TransformedImage]:
+    def transform_images(self, image: GenericImage) -> Generator[TransformedImage, None, None]:
         # Check if image transformation is required
         if self.settings.img_transform.spatial_filters is None:
             return
@@ -359,7 +359,7 @@ class StandardWorkflow(BaseWorkflow):
         elif self.export_images:
             return image_list, mask_list
 
-    def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame]:
+    def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
         from mirp.featureSets.localIntensity import get_local_intensity_features
         from mirp.featureSets.statistics import get_intensity_statistics_features
         from mirp.featureSets.intensityVolumeHistogram import get_intensity_volume_histogram_features

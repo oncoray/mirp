@@ -149,7 +149,7 @@ class GenericImage(BaseImage):
             by_slice: Optional[bool] = None,
             interpolate: Optional[bool] = None,
             new_spacing: Optional[Tuple[float, ...]] = None,
-            translation: Optional[float, Tuple[float, ...]] = (0.0, 0.0, 0.0),
+            translation: Optional[Union[float, Tuple[float, ...]]] = (0.0, 0.0, 0.0),
             rotation: Optional[float] = 0.0,
             spline_order: Optional[int] = None,
             anti_aliasing: Optional[bool] = None,
@@ -1139,7 +1139,7 @@ class GenericImage(BaseImage):
     def export(
             self,
             with_attributes=True
-    ) -> Optional[np.ndarray, Dict[Any]]:
+    ) -> Optional[Union[np.ndarray, Dict[str, Any]]]:
 
         if self.is_empty():
             return None
@@ -1150,7 +1150,7 @@ class GenericImage(BaseImage):
         else:
             return self.get_voxel_grid()
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         attributes = []
 
         # Sample name

@@ -1,5 +1,4 @@
-
-from typing import Union, List, Dict, Optional, Generator
+from typing import Union, List, Dict, Optional, Generator, Iterable
 import copy
 
 from mirp.importData.imageGenericFile import ImageFile
@@ -85,9 +84,9 @@ def _base_extract_features_and_images(
         mask_sub_folder: Union[None, str] = None,
         roi_name: Union[None, str, List[str], Dict[str, str]] = None,
         association_strategy: Union[None, str, List[str]] = None,
+        settings: Union[None, str, SettingsClass, List[SettingsClass]] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto",
-        settings_file_path: Optional[str] = None,
         write_features: bool = False,
         export_features: bool = False,
         write_images: bool = False,
@@ -99,10 +98,23 @@ def _base_extract_features_and_images(
     from mirp.settings.importConfigurationSettings import import_configuration_settings
 
     # Import settings (to provide immediate feedback if something is amiss).
-    settings = import_configuration_settings(
-        compute_features=write_features or export_features,
-        path=settings_file_path
-    )
+    if isinstance(settings, str):
+        settings = import_configuration_settings(
+            compute_features=write_features or export_features,
+            path=settings
+        )
+    elif isinstance(settings, SettingsClass):
+        settings = [settings]
+    elif isinstance(settings, Iterable) and all(isinstance(x, SettingsClass) for x in settings):
+        settings = list(settings)
+    elif settings is None:
+        settings = import_configuration_settings(
+            compute_features=write_features or export_features,
+            **kwargs
+        )
+    else:
+        raise TypeError(f"The 'settings' argument is expected to be a path to a configuration xml file, "
+                        f"a SettingsClass object, or a list thereof. Found: {type(settings)}.")
 
     if not write_images and not write_features:
         write_dir = None
@@ -144,7 +156,7 @@ def _generate_feature_and_image_extraction_workflows(
         export_features: bool,
         write_images: bool,
         export_images: bool
-) -> Generator[StandardWorkflow]:
+) -> Generator[StandardWorkflow, None, None]:
 
     for image_file in image_list:
         for current_settings in settings:

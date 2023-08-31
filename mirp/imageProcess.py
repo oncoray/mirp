@@ -17,7 +17,7 @@ import pandas as pd
 
 def _standard_checks(
         image: GenericImage,
-        masks: Optional[BaseMask, MaskImage, List[BaseMask]]
+        masks: Optional[Union[BaseMask, MaskImage, List[BaseMask]]]
 ):
     if masks is None:
         return image, None, None
@@ -96,7 +96,7 @@ def crop(
         z_only: bool = False,
         in_place: bool = False,
         by_slice: bool = False
-) -> Tuple[GenericImage, Optional[BaseMask, MaskImage, List[BaseMask]]]:
+) -> Tuple[GenericImage, Optional[Union[BaseMask, MaskImage, List[BaseMask]]]]:
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
 
@@ -174,8 +174,8 @@ def crop(
 
 def resegmentise_mask(
         image: GenericImage,
-        masks: Optional[BaseMask, List[BaseMask]],
-        resegmentation_method: Optional[str, List[str]] = None,
+        masks: Optional[Union[BaseMask, List[BaseMask]]],
+        resegmentation_method: Optional[Union[str, List[str]]] = None,
         intensity_range: Optional[Tuple[Any, Any]] = None,
         sigma: Optional[float] = None
 ):
@@ -201,7 +201,7 @@ def resegmentise_mask(
 
 
 def split_masks(
-        masks: Optional[BaseMask, List[BaseMask]],
+        masks: Optional[Union[BaseMask, List[BaseMask]]],
         boundary_sizes: Optional[List[float]] = None,
         max_erosion: Optional[float] = 0.8,
         by_slice: bool = False

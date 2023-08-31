@@ -223,7 +223,7 @@ class BaseMask:
     def resegmentise_mask(
             self,
             image: GenericImage,
-            resegmentation_method: Optional[str, List[str]] = None,
+            resegmentation_method: Optional[Union[str, List[str]]] = None,
             intensity_range: Optional[Tuple[Any, Any]] = None,
             sigma: Optional[float] = None
     ):
@@ -572,7 +572,7 @@ class BaseMask:
             self,
             write_all=False,
             with_attributes=True
-    ) -> Optional[np.ndarray, List[np.ndarray], Dict[Any]]:
+    ) -> Optional[Union[np.ndarray, List[np.ndarray], Dict[str, Any]]]:
         if self.is_empty():
             return None
 
@@ -593,7 +593,7 @@ class BaseMask:
             attributes.update({"intensity_mask": intensity_mask, "morphology_mask": morphology_mask})
             return attributes
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         attributes = dict([("roi_name", self.roi_name)])
         attributes.update(self.roi.get_export_descriptor())
 

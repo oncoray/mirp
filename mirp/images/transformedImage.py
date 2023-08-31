@@ -1,6 +1,6 @@
 import copy
 import pandas as pd
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 
 from mirp.images.genericImage import GenericImage
 
@@ -25,7 +25,7 @@ class GaborTransformedImage(TransformedImage):
             rotation_invariance: Optional[bool] = None,
             pooling_method: Optional[str] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -72,7 +72,7 @@ class GaborTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -132,7 +132,7 @@ class GaussianTransformedImage(TransformedImage):
             sigma_parameter: Optional[float] = None,
             sigma_cutoff_parameter: Optional[float] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -163,7 +163,7 @@ class GaussianTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -206,7 +206,7 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
             sigma_cutoff_parameter: Optional[float] = None,
             pooling_method: Optional[str] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -238,7 +238,7 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -280,13 +280,13 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
 class LawsTransformedImage(TransformedImage):
     def __init__(
             self,
-            laws_kernel: Optional[str, List[str]] = None,
+            laws_kernel: Optional[Union[str, List[str]]] = None,
             delta_parameter: Optional[int] = None,
             energy_map: Optional[bool] = None,
             rotation_invariance: Optional[bool] = None,
             pooling_method: Optional[str] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -321,7 +321,7 @@ class LawsTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -370,7 +370,7 @@ class MeanTransformedImage(TransformedImage):
             self,
             filter_size: Optional[int] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -396,7 +396,7 @@ class MeanTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -435,7 +435,7 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
             decomposition_level: Optional[int] = None,
             response_type: Optional[str] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -467,7 +467,7 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -514,7 +514,7 @@ class SeparableWaveletTransformedImage(TransformedImage):
             rotation_invariance: Optional[bool] = None,
             pooling_method: Optional[str] = None,
             boundary_condition: Optional[str] = None,
-            riesz_order: Optional[int, List[int]] = None,
+            riesz_order: Optional[Union[int, List[int]]] = None,
             riesz_steering: Optional[bool] = None,
             riesz_sigma_parameter: Optional[float] = None,
             template: Optional[GenericImage] = None,
@@ -554,7 +554,7 @@ class SeparableWaveletTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[Any]:
+    def get_export_attributes(self) -> Dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
