@@ -13,7 +13,7 @@ class MRImage(GenericImage):
     def bias_field_correction(
             self,
             n_fitting_levels: int = 3,
-            n_max_iterations: Optional[int, List[int]] = None,
+            n_max_iterations: Union[None, int, List[int]] = None,
             convergence_threshold: float = 0.001,
             mask: Optional[np.ndarray] = None,
             in_place: bool = True
