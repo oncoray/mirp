@@ -167,7 +167,7 @@ class ImageDicomFileStack(ImageFileStack):
             "position_z": image_position_z,
             "position_y": image_position_y,
             "position_x": image_position_x
-        }).sort_values(by=["position_z", "position_y", "position_x"])
+        }).sort_values(by=["position_z", "position_y", "position_x"], ignore_index=True)
 
 
 class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):
