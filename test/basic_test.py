@@ -1,5 +1,3 @@
-# The aim of this test-set is to test basic functionality in the presence of edge-cases.
-
 import os
 import pytest
 
@@ -21,31 +19,34 @@ def test_orientation():
     Test internal representation of image objects using the orientation phantom.
     """
 
-    from mirp.imageRead import load_image
-    image_object, roi_list = load_image(
-        image_folder=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image"),
-        modality="CT",
-        roi_folder=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "mask"),
-        roi_names="mask")
+    from mirp.importData.readData import read_image
+    from mirp.importData.importImage import import_image
+
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image", "orientation.nii.gz")
+    )
+
+    image = read_image(image=image_list[0])
 
     # Assert minimum and maximum values in the voxel grid.
-    assert np.min(image_object.get_voxel_grid()) == 0.0
-    assert np.max(image_object.get_voxel_grid()) == 141.0
+    assert np.min(image.get_voxel_grid()) == 0.0
+    assert np.max(image.get_voxel_grid()) == 141.0
 
     # Check dimensions. MIRP expects a (z, y, x) orientation.
-    assert np.array_equal(image_object.size, np.array([64, 48, 32]))
+    assert np.array_equal(image.image_dimension, (64, 48, 32))
 
     # Check orientation. The minimum value should be in the origin, and the maximum value in the most distal voxel.
-    assert image_object.get_voxel_grid()[0, 0, 0] == 0.0
-    assert image_object.get_voxel_grid()[-1, -1, -1] == 141.0
+    assert image.get_voxel_grid()[0, 0, 0] == 0.0
+    assert image.get_voxel_grid()[-1, -1, -1] == 141.0
 
     # Check if origin and spacing match initial values.
-    assert np.array_equal(image_object.origin, np.array([0.0, 1.0, 2.0]))
-    assert np.array_equal(image_object.spacing, np.array([0.5, 1.0, 1.5]))
+    assert np.array_equal(image.image_origin, (0.0, 1.0, 2.0))
+    assert np.array_equal(image.image_spacing, (0.5, 1.0, 1.5))
 
     # Check if the affine matrix is correct.
-    assert np.array_equal(image_object.orientation,
-                          np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.array_equal(
+        image.image_orientation, np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    )
 
 
 def _setup_experiment(image, roi, **kwargs):
