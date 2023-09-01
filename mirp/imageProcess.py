@@ -426,9 +426,6 @@ def discretise_image(
         image = image.copy()
         mask = mask.copy()
 
-    if discretisation_method is None or discretisation_method == "none":
-        return image, mask
-
     if mask is None:
         mask_data = np.ones(image.image_dimension, dtype=bool)
     elif mask.roi_intensity is None or mask.roi_intensity.is_empty() or mask.roi_intensity.is_empty_mask():
@@ -437,7 +434,24 @@ def discretise_image(
         mask_data = mask.roi_intensity.get_voxel_grid()
         intensity_range = mask.intensity_range
 
-    if discretisation_method == "fixed_bin_number":
+    if discretisation_method is None or discretisation_method == "none":
+        levels = np.unique(image.get_voxel_grid()[mask_data])
+
+        # Check if voxels are discretised.
+        if not np.all(np.fmod(levels, 1.0) == 0.0):
+            raise ValueError(f"The 'none' transformation method can only be used for data that resemble bins.")
+
+        if not np.min(levels) >= 1.0:
+            raise ValueError(
+                f"The 'none' transformation method requires integer (i.e. 1.0, 2.0, etc.) values with a minimum value "
+                f"of 1."
+            )
+
+        discretisation_method = "none"
+        discretised_voxels = image.get_voxel_grid()
+        bin_number = np.max(levels)
+
+    elif discretisation_method == "fixed_bin_number":
         min_intensity = np.min[image.get_voxel_grid()[mask_data]]
         max_intensity = np.max[image.get_voxel_grid()[mask_data]]
 
