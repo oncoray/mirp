@@ -296,7 +296,8 @@ class StandardWorkflow(BaseWorkflow):
                     mask_feature_set = pd.concat([feature_set_details] + mask_feature_list, axis=1)
                     image_feature_list += [mask_feature_set]
 
-                feature_list += [pd.concat(image_feature_list, axis=0, ignore_index=True)]
+                if len(image_feature_list) > 0:
+                    feature_list += [pd.concat(image_feature_list, axis=0, ignore_index=True)]
 
             if self.write_images:
                 image.write(dir_path=self.write_dir, file_format=write_file_format)
