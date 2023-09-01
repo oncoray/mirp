@@ -1192,7 +1192,7 @@ class GenericImage(BaseImage):
         feature_name_suffix = []
         if self.discretisation_method is not None:
             if self.discretisation_method == "none":
-                feature_name_suffix += ["none"]
+                pass
             elif self.discretisation_method == "fixed_bin_number":
                 feature_name_suffix += ["fbn"]
                 feature_name_suffix += ["n" + str(self.discretisation_bin_number)]
@@ -1202,6 +1202,8 @@ class GenericImage(BaseImage):
             elif self.discretisation_method == "fixed_bin_size_pyradiomics":
                 feature_name_suffix += ["fbsp"]
                 feature_name_suffix += ["w" + str(self.discretisation_bin_width)]
+            else:
+                raise ValueError(f"Unknown discretisation method: {self.discretisation_method}")
 
         if len(feature_name_suffix) > 0:
             feature_name_suffix = "_".join(feature_name_suffix)
