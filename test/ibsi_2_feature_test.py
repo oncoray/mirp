@@ -1,6 +1,6 @@
 import os
 
-from mirp.experimentClass import ExperimentClass
+from mirp.extractFeaturesAndImages import extract_features
 from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass, \
     ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass, \
     ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
@@ -22,9 +22,10 @@ def within_tolerance(ref, tol, x):
         return False
 
 
-def _get_default_settings(by_slice: bool,
-                          configuration_id: str,
-                          base_feature_families="none"):
+def _get_default_settings(
+        by_slice: bool,
+        configuration_id: str,
+        base_feature_families="none"):
     """Set default settings for response map tests."""
 
     general_settings = GeneralSettingsClass(
@@ -90,7 +91,7 @@ def _process_experiment(
 
     # Get default settings.
     general_settings, image_interpolation_settings, feature_computation_parameters, resegmentation_settings, \
-        perturbation_settings = _get_default_settings(
+    perturbation_settings = _get_default_settings(
         by_slice=by_slice,
         configuration_id=configuration_id,
         base_feature_families=base_feature_families)
@@ -106,27 +107,16 @@ def _process_experiment(
         feature_extr_settings=feature_computation_parameters
     )
 
-    main_experiment = ExperimentClass(
-        modality="CT",
-        subject="phantom",
-        cohort=None,
-        write_path=None,
-        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
-        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_reg_img_folder=None,
-        image_file_name_pattern=None,
-        registration_image_file_name_pattern=None,
-        roi_names=["GTV-1"],
-        data_str=[configuration_id],
-        provide_diagnostics=True,
-        settings=settings,
-        compute_features=True,
-        extract_images=False,
-        plot_images=False,
-        keep_images_in_memory=False
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        settings=settings
     )
 
-    data = main_experiment.process()
+    data = data[0]
 
     if WRITE_TEMP_FILES:
         file_name = [configuration_id, "perturb", "features.csv"] if PERTURB_IMAGES else [configuration_id, "features.csv"]
@@ -586,7 +576,7 @@ def test_ibsi_2_config_daubechies_filter():
         image_transformation_settings=image_transformation_settings
     )
 
-    data.columns = [column_name.replace("wavelet_db3_lh_invar_level_1_", "") for column_name in data.columns]
+    data.columns = [column_name.replace("wavelet_db3_lh_level_1_invar_", "") for column_name in data.columns]
 
     assert (within_tolerance(7.72, 0.24, data["stat_kurt"]))
     assert (within_tolerance(-18.8, 0.4, data["stat_p10"]))
@@ -627,7 +617,7 @@ def test_ibsi_2_config_daubechies_filter():
         image_transformation_settings=image_transformation_settings
     )
 
-    data.columns = [column_name.replace("wavelet_db3_llh_invar_level_1_", "") for column_name in data.columns]
+    data.columns = [column_name.replace("wavelet_db3_llh_level_1_invar_", "") for column_name in data.columns]
 
     assert (within_tolerance(8.98, 0.35, data["stat_kurt"]))
     assert (within_tolerance(-13.8, 0.5, data["stat_p10"]))
@@ -668,7 +658,7 @@ def test_ibsi_2_config_daubechies_filter():
         image_transformation_settings=image_transformation_settings
     )
 
-    data.columns = [column_name.replace("wavelet_db3_hh_invar_level_2_", "") for column_name in data.columns]
+    data.columns = [column_name.replace("wavelet_db3_hh_level_2_invar_", "") for column_name in data.columns]
 
     assert (within_tolerance(6.22, 0.16, data["stat_kurt"]))
     assert (within_tolerance(-39.6, 1, data["stat_p10"]))
@@ -709,7 +699,7 @@ def test_ibsi_2_config_daubechies_filter():
         image_transformation_settings=image_transformation_settings
     )
 
-    data.columns = [column_name.replace("wavelet_db3_hhh_invar_level_2_", "") for column_name in data.columns]
+    data.columns = [column_name.replace("wavelet_db3_hhh_level_2_invar_", "") for column_name in data.columns]
 
     assert (within_tolerance(5.45, 0.09, data["stat_kurt"]))
     assert (within_tolerance(-20.6, 0.4, data["stat_p10"]))
