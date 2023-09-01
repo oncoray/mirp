@@ -467,8 +467,8 @@ class StandardWorkflow(BaseWorkflow):
             # Grey level co-occurrence matrix (GLCM).
             if feature_settings.has_glcm_family():
                 feature_set = get_cm_features(
-                    image=image,
-                    mask=mask,
+                    image=discrete_image,
+                    mask=discrete_mask,
                     settings=feature_settings
                 )
                 feature_set = image.parse_feature_names(feature_set)
@@ -477,8 +477,8 @@ class StandardWorkflow(BaseWorkflow):
             # Grey level run length matrix (GLRLM).
             if feature_settings.has_glrlm_family():
                 feature_set = get_rlm_features(
-                    image=image,
-                    mask=mask,
+                    image=discrete_image,
+                    mask=discrete_mask,
                     settings=feature_settings
                 )
                 feature_set = image.parse_feature_names(feature_set)
@@ -487,8 +487,8 @@ class StandardWorkflow(BaseWorkflow):
             # Grey level size zone matrix (GLSZM).
             if feature_settings.has_glszm_family():
                 feature_set = get_szm_features(
-                    image=image,
-                    mask=mask,
+                    image=discrete_image,
+                    mask=discrete_mask,
                     settings=feature_settings
                 )
                 feature_set = image.parse_feature_names(feature_set)
@@ -497,8 +497,8 @@ class StandardWorkflow(BaseWorkflow):
             # Grey level distance zone matrix (GLDZM).
             if feature_settings.has_gldzm_family():
                 feature_set = get_dzm_features(
-                    image=image,
-                    mask=mask,
+                    image=discrete_image,
+                    mask=discrete_mask,
                     settings=feature_settings
                 )
                 feature_set = image.parse_feature_names(feature_set)
@@ -507,8 +507,8 @@ class StandardWorkflow(BaseWorkflow):
             # Neighbourhood grey tone difference matrix (NGTDM).
             if feature_settings.has_ngtdm_family():
                 feature_set = get_ngtdm_features(
-                    image=image,
-                    mask=mask,
+                    image=discrete_image,
+                    mask=discrete_mask,
                     settings=feature_settings
                 )
                 feature_set = image.parse_feature_names(feature_set)
@@ -517,8 +517,8 @@ class StandardWorkflow(BaseWorkflow):
             # Neighbouring grey level dependence matrix (NGLDM).
             if feature_settings.has_ngldm_family():
                 feature_set = get_ngldm_features(
-                    image=image,
-                    mask=mask,
+                    image=discrete_image,
+                    mask=discrete_mask,
                     settings=feature_settings
                 )
                 feature_set = image.parse_feature_names(feature_set)
