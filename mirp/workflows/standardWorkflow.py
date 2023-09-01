@@ -434,7 +434,7 @@ class StandardWorkflow(BaseWorkflow):
         if feature_settings.has_morphology_family():
             feature_set = get_volumetric_morphological_features(
                 image=cropped_image,
-                mask=mask,
+                mask=cropped_mask,
                 settings=feature_settings
             )
             feature_set = image.parse_feature_names(feature_set)
