@@ -3,16 +3,14 @@ import warnings
 import itk
 import numpy as np
 import os
-from shutil import rmtree
 
-from mirp.experimentClass import ExperimentClass
+from mirp.extractFeaturesAndImages import extract_images
 from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass,\
     ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass,\
     ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-REMOVE_TEMP_RESPONSE_MAPS = False
 
 
 def _get_default_settings(by_slice: bool = False):
@@ -38,15 +36,9 @@ def _get_default_settings(by_slice: bool = False):
 
 
 def _setup_experiment(
-        configuration_id: str,
         by_slice: bool,
         phantom: str,
-        test_dir: str,
         image_transformation_settings: ImageTransformationSettingsClass):
-
-    # Check if the temporary directory still exists.
-    if os.path.isdir(test_dir) and REMOVE_TEMP_RESPONSE_MAPS:
-        rmtree(test_dir)
 
     # Get default settings.
     general_settings, image_interpolation_settings, feature_computation_parameters = _get_default_settings(by_slice=by_slice)
@@ -62,26 +54,18 @@ def _setup_experiment(
         feature_extr_settings=feature_computation_parameters
     )
 
-    main_experiment = ExperimentClass(
-        modality="CT",
-        subject=phantom,
-        cohort=None,
-        write_path=test_dir,
-        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_2_digital_phantom", phantom, "image"),
-        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_2_digital_phantom", phantom, "mask"),
-        roi_reg_img_folder=None,
-        image_file_name_pattern=None,
-        registration_image_file_name_pattern=None,
-        roi_names=["mask"],
-        data_str=[configuration_id],
-        provide_diagnostics=False,
-        settings=settings,
-        compute_features=False,
-        extract_images=True,
-        plot_images=False,
-        keep_images_in_memory=False)
+    images = extract_images(
+        write_images=False,
+        export_images=True,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_2_digital_phantom", phantom, "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_2_digital_phantom", phantom, "mask"),
+        settings=settings
+    )
 
-    return main_experiment
+    # Return the transformed image.
+    images, mask = images[0]
+
+    return images[1]
 
 
 def _test_filter_configuration(
@@ -90,33 +74,16 @@ def _test_filter_configuration(
         image_transformation_settings: ImageTransformationSettingsClass,
         filter_kernel=None):
 
-    test_dir = os.path.join(CURRENT_DIR, "data", "temp")
     reference_dir = os.path.join(CURRENT_DIR, "data", "ibsi_2_reference_response_maps")
 
     # Retrieve filter kernel.
     if filter_kernel is None:
         filter_kernel = image_transformation_settings.spatial_filters[0]
 
-    experiment = _setup_experiment(
-        configuration_id=configuration_id,
+    image = _setup_experiment(
         by_slice=image_transformation_settings.by_slice,
         phantom=phantom,
-        test_dir=test_dir,
         image_transformation_settings=image_transformation_settings)
-
-    # Generate data
-    _ = experiment.process()
-
-    # List files in temp_dir
-    dir_files = os.listdir(test_dir)
-    dir_files = [file for file in dir_files if configuration_id in file]
-    dir_files = [file for file in dir_files if filter_kernel in file]
-    if len(dir_files) > 1:
-        raise ValueError("More than one viable test response map was found.")
-
-    # Read generated test file
-    test_response_map = itk.imread(filename=os.path.join(test_dir, dir_files[0]))
-    test_response_map_voxels = itk.GetArrayFromImage(test_response_map)
 
     # Read reference file
     dir_files = os.listdir(reference_dir)
@@ -133,7 +100,7 @@ def _test_filter_configuration(
     reference_response_map = itk.imread(filename=os.path.join(reference_dir, dir_files[0]))
     reference_response_map_voxels = itk.GetArrayFromImage(reference_response_map)
 
-    assert(np.allclose(test_response_map_voxels, reference_response_map_voxels, atol=0.001))
+    assert(np.allclose(image["image"], reference_response_map_voxels, atol=0.001))
 
 
 def test_ibsi_2_mean_filter():
@@ -194,9 +161,11 @@ def test_ibsi_2_mean_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="checkerboard",
-                                   image_transformation_settings=image_transformation_settings)
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="checkerboard",
+            image_transformation_settings=image_transformation_settings
+        )
 
     # Test 1B1
     image_transformation_settings_1b1 = ImageTransformationSettingsClass(
@@ -208,9 +177,11 @@ def test_ibsi_2_mean_filter():
         mean_filter_boundary_condition="constant"
     )
 
-    _test_filter_configuration(configuration_id="1B1",
-                               phantom="impulse",
-                               image_transformation_settings=image_transformation_settings_1b1)
+    _test_filter_configuration(
+        configuration_id="1B1",
+        phantom="impulse",
+        image_transformation_settings=image_transformation_settings_1b1
+    )
 
 
 def test_ibsi_2_log_filter():
@@ -232,10 +203,12 @@ def test_ibsi_2_log_filter():
         laplacian_of_gaussian_boundary_condition="constant"
     )
 
-    _test_filter_configuration(configuration_id="2A",
-                               phantom="impulse",
-                               image_transformation_settings=image_transformation_settings_2a,
-                               filter_kernel="log")
+    _test_filter_configuration(
+        configuration_id="2A",
+        phantom="impulse",
+        image_transformation_settings=image_transformation_settings_2a,
+        filter_kernel="log"
+    )
 
     # Test 2B
     image_transformation_settings_2b = ImageTransformationSettingsClass(
@@ -248,10 +221,12 @@ def test_ibsi_2_log_filter():
         laplacian_of_gaussian_boundary_condition="reflect"
     )
 
-    _test_filter_configuration(configuration_id="2B",
-                               phantom="checkerboard",
-                               image_transformation_settings=image_transformation_settings_2b,
-                               filter_kernel="log")
+    _test_filter_configuration(
+        configuration_id="2B",
+        phantom="checkerboard",
+        image_transformation_settings=image_transformation_settings_2b,
+        filter_kernel="log"
+    )
 
     # Test 2C
     image_transformation_settings_2c = ImageTransformationSettingsClass(
@@ -264,10 +239,12 @@ def test_ibsi_2_log_filter():
         laplacian_of_gaussian_boundary_condition="reflect"
     )
 
-    _test_filter_configuration(configuration_id="2C",
-                               phantom="checkerboard",
-                               image_transformation_settings=image_transformation_settings_2c,
-                               filter_kernel="log")
+    _test_filter_configuration(
+        configuration_id="2C",
+        phantom="checkerboard",
+        image_transformation_settings=image_transformation_settings_2c,
+        filter_kernel="log"
+    )
 
 
 def test_ibsi_2_laws_filter():
@@ -326,9 +303,11 @@ def test_ibsi_2_laws_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="impulse",
-                                   image_transformation_settings=image_transformation_settings)
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="impulse",
+            image_transformation_settings=image_transformation_settings
+        )
 
     # Test 3B1
     image_transformation_settings_3b1 = ImageTransformationSettingsClass(
@@ -409,18 +388,22 @@ def test_ibsi_2_laws_filter():
     )
 
     # Add to settings.
-    settings_list = [image_transformation_settings_3b1, image_transformation_settings_3b2,
-                     image_transformation_settings_3b3, image_transformation_settings_3c1,
-                     image_transformation_settings_3c2, image_transformation_settings_3c3]
+    settings_list = [
+        image_transformation_settings_3b1, image_transformation_settings_3b2,
+        image_transformation_settings_3b3, image_transformation_settings_3c1,
+        image_transformation_settings_3c2, image_transformation_settings_3c3
+    ]
 
     # Set configuration identifiers.
     configuration_ids = ["3B1", "3B2", "3B3", "3C1", "3C2", "3C3"]
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="checkerboard",
-                                   image_transformation_settings=image_transformation_settings)
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="checkerboard",
+            image_transformation_settings=image_transformation_settings
+        )
 
 
 def test_ibsi_2_gabor_filter():
@@ -471,9 +454,11 @@ def test_ibsi_2_gabor_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="impulse",
-                                   image_transformation_settings=image_transformation_settings)
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="impulse",
+            image_transformation_settings=image_transformation_settings
+        )
 
     # Test 4B1
     image_transformation_settings_4b1 = ImageTransformationSettingsClass(
@@ -515,9 +500,11 @@ def test_ibsi_2_gabor_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="sphere",
-                                   image_transformation_settings=image_transformation_settings)
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="sphere",
+            image_transformation_settings=image_transformation_settings
+        )
 
 
 def test_ibsi_2_daubechies_filter():
@@ -561,10 +548,12 @@ def test_ibsi_2_daubechies_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="impulse",
-                                   image_transformation_settings=image_transformation_settings,
-                                   filter_kernel="wavelet_db2")
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="impulse",
+            image_transformation_settings=image_transformation_settings,
+            filter_kernel="wavelet_db2"
+        )
 
 
 def test_ibsi_2_coifflet_filter():
@@ -608,10 +597,12 @@ def test_ibsi_2_coifflet_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="sphere",
-                                   image_transformation_settings=image_transformation_settings,
-                                   filter_kernel="wavelet_coif1")
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="sphere",
+            image_transformation_settings=image_transformation_settings,
+            filter_kernel="wavelet_coif1"
+        )
 
 
 def test_ibsi_2_haar_filter():
@@ -658,10 +649,12 @@ def test_ibsi_2_haar_filter():
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="checkerboard",
-                                   image_transformation_settings=image_transformation_settings,
-                                   filter_kernel="wavelet_haar")
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="checkerboard",
+            image_transformation_settings=image_transformation_settings,
+            filter_kernel="wavelet_haar"
+        )
 
 
 def test_ibsi_2_simoncelli_filter():
@@ -706,15 +699,20 @@ def test_ibsi_2_simoncelli_filter():
     )
 
     # Add to settings.
-    settings_list = [image_transformation_settings_8a1, image_transformation_settings_8a2,
-                     image_transformation_settings_8a3]
+    settings_list = [
+        image_transformation_settings_8a1,
+        image_transformation_settings_8a2,
+        image_transformation_settings_8a3
+    ]
 
     # Set configuration identifiers.
     configuration_ids = ["8A1", "8A2", "8A3"]
 
     # Iterate over configurations.
     for ii, image_transformation_settings in enumerate(settings_list):
-        _test_filter_configuration(configuration_id=configuration_ids[ii],
-                                   phantom="checkerboard",
-                                   image_transformation_settings=image_transformation_settings,
-                                   filter_kernel="wavelet_simoncelli")
+        _test_filter_configuration(
+            configuration_id=configuration_ids[ii],
+            phantom="checkerboard",
+            image_transformation_settings=image_transformation_settings,
+            filter_kernel="wavelet_simoncelli"
+        )
