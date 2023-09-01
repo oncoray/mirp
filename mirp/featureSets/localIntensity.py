@@ -43,7 +43,7 @@ def compute_local_mean_intensity_filter(image: GenericImage, mask: BaseMask):
     distance = (3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 10.0
 
     # Get maximal extension in cubic space
-    base_ext = np.floor(distance / image.image_spacing)
+    base_ext = np.floor(distance / np.array(image.image_spacing))
 
     # Create displacement map
     df_base = pd.DataFrame({
