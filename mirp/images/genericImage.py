@@ -1149,6 +1149,8 @@ class GenericImage(BaseImage):
         if with_attributes:
             attributes = self.get_export_attributes()
             attributes.update({"image": self.get_voxel_grid()})
+
+            return attributes
         else:
             return self.get_voxel_grid()
 
