@@ -457,7 +457,7 @@ def discretise_image(
 
         if min_intensity < max_intensity:
             discretised_voxels = np.floor(
-                bin_number * 1.0 * (image.get_voxel_grid() - min_intensity) / (max_intensity - min_intensity))
+                bin_number * 1.0 * (image.get_voxel_grid() - min_intensity) / (max_intensity - min_intensity)) + 1.0
         else:
             discretised_voxels = np.zeros(image.image_dimension, dtype=float) + np.ceil(bin_number / 2.0)
 
