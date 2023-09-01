@@ -398,7 +398,7 @@ class StandardWorkflow(BaseWorkflow):
                 image=cropped_image,
                 mask=cropped_mask
             )
-            feature_set = image.parse_feature_names(feature_set)
+            feature_set = cropped_image.parse_feature_names(feature_set)
             yield feature_set
 
         # Normal image features ----------------------------------------------------------------------------------------
@@ -417,7 +417,7 @@ class StandardWorkflow(BaseWorkflow):
                 image=cropped_image,
                 mask=cropped_mask
             )
-            feature_set = image.parse_feature_names(feature_set)
+            feature_set = cropped_image.parse_feature_names(feature_set)
             yield feature_set
 
         # Extract intensity-volume histogram features.
@@ -427,7 +427,7 @@ class StandardWorkflow(BaseWorkflow):
                 mask=cropped_mask,
                 settings=feature_settings
             )
-            feature_set = image.parse_feature_names(feature_set)
+            feature_set = cropped_image.parse_feature_names(feature_set)
             yield feature_set
 
         # Extract morphological features.
@@ -437,7 +437,7 @@ class StandardWorkflow(BaseWorkflow):
                 mask=cropped_mask,
                 settings=feature_settings
             )
-            feature_set = image.parse_feature_names(feature_set)
+            feature_set = cropped_image.parse_feature_names(feature_set)
             yield feature_set
 
         # Discrete image features --------------------------------------------------------------------------------------
@@ -461,7 +461,7 @@ class StandardWorkflow(BaseWorkflow):
                     image=discrete_image,
                     mask=discrete_mask
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
             # Grey level co-occurrence matrix (GLCM).
@@ -471,7 +471,7 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask,
                     settings=feature_settings
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
             # Grey level run length matrix (GLRLM).
@@ -481,7 +481,7 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask,
                     settings=feature_settings
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
             # Grey level size zone matrix (GLSZM).
@@ -491,7 +491,7 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask,
                     settings=feature_settings
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
             # Grey level distance zone matrix (GLDZM).
@@ -501,7 +501,7 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask,
                     settings=feature_settings
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
             # Neighbourhood grey tone difference matrix (NGTDM).
@@ -511,7 +511,7 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask,
                     settings=feature_settings
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
             # Neighbouring grey level dependence matrix (NGLDM).
@@ -521,7 +521,7 @@ class StandardWorkflow(BaseWorkflow):
                     mask=discrete_mask,
                     settings=feature_settings
                 )
-                feature_set = image.parse_feature_names(feature_set)
+                feature_set = discrete_image.parse_feature_names(feature_set)
                 yield feature_set
 
     def _discretise_image(
