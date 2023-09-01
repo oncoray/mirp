@@ -254,8 +254,7 @@ class StandardWorkflow(BaseWorkflow):
 
             for current_filter_object in filter_obj.generate_object():
                 # Create a response map.
-                for response_map in current_filter_object.transform(image=image):
-                    yield response_map
+                yield current_filter_object.transform(image=image)
 
     def standard_extraction(
             self,
