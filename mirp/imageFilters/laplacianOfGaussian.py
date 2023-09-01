@@ -94,7 +94,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
             # Generate transformed voxel grid.
             pooled_voxel_grid = pooled_filter_object.transform_grid(
                 voxel_grid=image.get_voxel_grid(),
-                spacing=image.image_spacing
+                spacing=np.array(image.image_spacing)
             )
 
             # Pool voxel grids.

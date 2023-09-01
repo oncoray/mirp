@@ -80,7 +80,7 @@ class GaussianFilter(GenericFilter):
         # Calculate sigma for current image
         voxel_sigma = np.divide(
             np.full(shape=3, fill_value=self.sigma),
-            image.image_spacing)
+            np.array(image.image_spacing))
 
         # Apply filters
         response_map.set_voxel_grid(voxel_grid=self.transform_grid(
