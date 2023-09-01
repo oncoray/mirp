@@ -1,7 +1,7 @@
 import os
 import sys
 from math import log10, floor
-from mirp.experimentClass import ExperimentClass
+
 from mirp.extractFeaturesAndImages import extract_features
 from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass,\
     ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass,\
