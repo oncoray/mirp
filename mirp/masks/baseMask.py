@@ -595,6 +595,6 @@ class BaseMask:
 
     def get_export_attributes(self) -> Dict[str, Any]:
         attributes = dict([("roi_name", self.roi_name)])
-        attributes.update(self.roi.get_export_descriptor())
+        attributes.update(self.roi.get_export_attributes())
 
         return attributes
