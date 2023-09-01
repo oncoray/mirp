@@ -632,27 +632,16 @@ def test_ibsi_1_chest_config_a():
         feature_extr_settings=feature_computation_parameters
     )
 
-    main_experiment = ExperimentClass(
-        modality="CT",
-        subject="phantom",
-        cohort=None,
-        write_path=None,
-        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
-        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_reg_img_folder=None,
-        image_file_name_pattern=None,
-        registration_image_file_name_pattern=None,
-        roi_names=["GTV-1"],
-        data_str=None,
-        provide_diagnostics=True,
-        settings=settings,
-        compute_features=True,
-        extract_images=False,
-        plot_images=False,
-        keep_images_in_memory=False
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        settings=settings
     )
 
-    data = main_experiment.process()
+    data = data[0]
 
     assert(within_tolerance(358000, 5000, data["morph_volume"]))
     assert(within_tolerance(359000, 5000, data["morph_vol_approx"]))
