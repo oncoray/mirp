@@ -18,7 +18,6 @@ def test_orientation():
     """
     Test internal representation of image objects using the orientation phantom.
     """
-
     from mirp.importData.readData import read_image
     from mirp.importData.importImage import import_image
 
@@ -49,7 +48,9 @@ def test_orientation():
     )
 
 
-def _setup_experiment(image, roi, **kwargs):
+def run_experiment(image, roi, **kwargs):
+    from mirp.extractFeaturesAndImages import extract_features
+
     by_slice = False
 
     # Configure settings.
@@ -71,10 +72,16 @@ def _setup_experiment(image, roi, **kwargs):
         base_discretisation_bin_width=25.0,
         ivh_discretisation_method="fixed_bin_number",
         glcm_distance=[1.0],
-        glcm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
-                             "3d_average", "3d_volume_merge"],
-        glrlm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
-                              "3d_average", "3d_volume_merge"],
+        glcm_spatial_method=[
+            "2d_average", "2d_slice_merge",
+            "2.5d_direction_merge", "2.5d_volume_merge",
+            "3d_average", "3d_volume_merge"
+        ],
+        glrlm_spatial_method=[
+            "2d_average", "2d_slice_merge",
+            "2.5d_direction_merge", "2.5d_volume_merge",
+            "3d_average", "3d_volume_merge"
+        ],
         glszm_spatial_method=["2d", "2.5d", "3d"],
         gldzm_spatial_method=["2d", "2.5d", "3d"],
         ngtdm_spatial_method=["2d", "2.5d", "3d"],
@@ -99,27 +106,18 @@ def _setup_experiment(image, roi, **kwargs):
         feature_extr_settings=feature_computation_parameters
     )
 
-    experiment = ExperimentClass(
-        modality="CT",
-        subject="_".join([image, roi]),
-        cohort=None,
-        write_path=None,
-        image_folder=os.path.join(CURRENT_DIR, "data", "misc_images", image, "image"),
-        roi_folder=os.path.join(CURRENT_DIR, "data", "misc_images", image, "mask"),
-        roi_reg_img_folder=None,
-        image_file_name_pattern=None,
-        registration_image_file_name_pattern=None,
-        roi_names=[roi],
-        data_str=None,
-        provide_diagnostics=False,
-        settings=settings,
-        compute_features=True,
-        extract_images=False,
-        plot_images=False,
-        keep_images_in_memory=False
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "misc_images", image, "image"),
+        image_modality="CT",
+        mask=os.path.join(CURRENT_DIR, "data", "misc_images", image, "mask"),
+        mask_name=roi,
+        settings=settings
     )
 
-    return experiment
+    data = data[0]
+    return data
 
 
 def test_edge_cases_basic_pipeline():
@@ -143,23 +141,19 @@ def test_edge_cases_basic_pipeline():
     for image in images:
         for roi in rois:
             # Setup experiment.
-            experiment = _setup_experiment(image=image, roi=roi)
+            data = run_experiment(image=image, roi=roi)
 
             # Test
             if roi == "empty_mask":
-                with pytest.raises(ValueError) as excinfo:
-                    experiment.process()
-
-                assert "is not a mask consisting of 0s and 1s" in str(excinfo.value)
+                assert data is None
 
             else:
-                data = experiment.process()
                 assert isinstance(data, pd.DataFrame)
 
     # Test ROI that becomes empty after re-segmentation
     for image in images:
         # Resegmentation
-        experiment = _setup_experiment(
+        data = run_experiment(
             image=image,
             roi="full_mask",
             resegmentation_method="range",
@@ -167,5 +161,4 @@ def test_edge_cases_basic_pipeline():
         )
 
         # Setup experiment.
-        data = experiment.process()
         assert isinstance(data, pd.DataFrame)
