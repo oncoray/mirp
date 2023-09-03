@@ -285,7 +285,7 @@ def test_perturbation_roi_randomisation_rotation():
 
 
 def generate_experiments(perturbation_settings):
-
+    from mirp.extractFeaturesAndImages import extract_images
     modality = "CT"
 
     # Get settings.
@@ -303,25 +303,16 @@ def generate_experiments(perturbation_settings):
     else:
         write_path = None
 
-    experiment = ExperimentClass(
-        modality=modality,
-        subject="test_subject",
-        cohort=None,
-        write_path=write_path,
-        image_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
-        roi_folder=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_reg_img_folder=None,
-        image_file_name_pattern=None,
-        registration_image_file_name_pattern=None,
-        roi_names=["GTV-1"],
-        data_str=[modality],
-        provide_diagnostics=False,
-        settings=settings,
-        compute_features=True,
-        extract_images=True,
-        plot_images=False,
-        keep_images_in_memory=False
+    images = extract_images(
+        write_images=False,
+        export_images=True,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        settings=settings
     )
+
+    # Return the transformed image.
+    images, mask = images[0]
 
     return experiment
 
