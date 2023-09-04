@@ -278,27 +278,28 @@ def test_perturbation_distance_grow():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=2.0
     )
+    from mirp.importData.utilities import flatten_list
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = flatten_list([x[1] for x in data])
+    mask = flatten_list([x[2] for x in data])
 
     # Origin remains the same.
-    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume should grow.
     assert 420000.0 < feature_table["morph_volume"][0] < 421000.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def test_perturbation_distance_shrink():
@@ -307,27 +308,28 @@ def test_perturbation_distance_shrink():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=-2.0
     )
+    from mirp.importData.utilities import flatten_list
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = flatten_list([x[1] for x in data])
+    mask = flatten_list([x[2] for x in data])
 
     # Origin remains the same.
-    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume should grow.
     assert 300000.0 < feature_table["morph_volume"][0] < 301000.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def test_perturbation_roi_randomisation():
