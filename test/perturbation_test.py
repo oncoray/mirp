@@ -362,6 +362,17 @@ def test_pertubation_distance_change_multiple():
 
     assert np.array_equal(feature_table["image_mask_adapt_size"].values, np.array([-2.0, 0.0, 2.0]))
 
+    bounding_box_0 = get_bounding_box(mask[0]["mask"])
+    bounding_box_1 = get_bounding_box(mask[1]["mask"])
+    bounding_box_2 = get_bounding_box(mask[2]["mask"])
+
+    assert bounding_box_0[0][0] >= bounding_box_1[0][0] >= bounding_box_2[0][0]
+    assert bounding_box_0[0][1] <= bounding_box_1[0][1] <= bounding_box_2[0][1]
+    assert bounding_box_0[1][0] >= bounding_box_1[1][0] >= bounding_box_2[1][0]
+    assert bounding_box_0[1][1] <= bounding_box_1[1][1] <= bounding_box_2[1][1]
+    assert bounding_box_0[2][0] >= bounding_box_1[2][0] >= bounding_box_2[2][0]
+    assert bounding_box_0[2][1] <= bounding_box_1[2][1] <= bounding_box_2[2][1]
+
 
 def test_perturbation_roi_randomisation():
     perturbation_settings = ImagePerturbationSettingsClass(
