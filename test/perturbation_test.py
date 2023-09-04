@@ -260,7 +260,7 @@ def test_pertubation_fraction_change_multiple():
     )
     from mirp.importData.utilities import flatten_list
 
-    # Run experiment.
+    # Run experiment (3D)
     data = run_experiment(perturbation_settings=perturbation_settings)
     feature_table = pd.concat([x[0] for x in data])
     mask = flatten_list([x[2] for x in data])
@@ -270,6 +270,17 @@ def test_pertubation_fraction_change_multiple():
     assert mask[2]["mask_alteration_size"] == 0.2
 
     assert np.array_equal(feature_table["image_mask_adapt_size"].values, np.array([-0.2, 0.0, 0.2]))
+
+    bounding_box_0 = get_bounding_box(mask[0]["mask"])
+    bounding_box_1 = get_bounding_box(mask[1]["mask"])
+    bounding_box_2 = get_bounding_box(mask[2]["mask"])
+
+    assert bounding_box_0[0][0] >= bounding_box_1[0][0] >= bounding_box_2[0][0]
+    assert bounding_box_0[0][1] <= bounding_box_1[0][1] <= bounding_box_2[0][1]
+    assert bounding_box_0[1][0] >= bounding_box_1[1][0] >= bounding_box_2[1][0]
+    assert bounding_box_0[1][1] <= bounding_box_1[1][1] <= bounding_box_2[1][1]
+    assert bounding_box_0[2][0] >= bounding_box_1[2][0] >= bounding_box_2[2][0]
+    assert bounding_box_0[2][1] <= bounding_box_1[2][1] <= bounding_box_2[2][1]
 
 
 def test_perturbation_distance_grow():
@@ -330,6 +341,26 @@ def test_perturbation_distance_shrink():
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
     assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_pertubation_distance_change_multiple():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_roi_adapt_type="distance",
+        perturbation_roi_adapt_size=[-2.0, 0.0, 2.0]
+    )
+    from mirp.importData.utilities import flatten_list
+
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    mask = flatten_list([x[2] for x in data])
+
+    assert mask[0]["mask_alteration_size"] == -2.0
+    assert "mask_alteration_size" not in mask[1]
+    assert mask[2]["mask_alteration_size"] == 2.0
+
+    assert np.array_equal(feature_table["image_mask_adapt_size"].values, np.array([-2.0, 0.0, 2.0]))
 
 
 def test_perturbation_roi_randomisation():
@@ -483,3 +514,11 @@ def create_settings(
     )
 
     return settings
+
+
+def get_bounding_box(image):
+    z_ind, y_ind, x_ind = np.where(image)
+
+    return tuple([np.min(z_ind), np.max(z_ind)]), \
+           tuple([np.min(y_ind), np.max(y_ind)]), \
+           tuple([np.min(x_ind), np.max(x_ind)])
