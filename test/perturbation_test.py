@@ -55,28 +55,59 @@ def test_translation_perturbation():
         perturbation_translation_fraction=0.1
     )
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = [x[1][0] for x in data]
+    mask = [x[2][0] for x in data]
 
     # Origin has changed.
-    assert ~np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert ~np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(img_obj.origin, [-101.300, -79.826, -174.629])
-    assert np.allclose(roi_list[0].roi.origin, [-101.300, -79.826, -174.629])
+    assert not np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert not np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.300, -79.826, -174.629])
+    assert np.allclose(mask[0]["image_origin"], [-101.300, -79.826, -174.629])
 
     # Assert that object orientation did not change.
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume should not change that much.
     assert 357500.0 < feature_table["morph_volume"][0] < 358500.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_translation_perturbation_multiple():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_translation_fraction=[0.0, 0.5]
+    )
+
+    # Run 3D experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    image = [x[1][0] for x in data]
+
+    # Check translation
+    assert np.array_equal(image[0]["translation"], np.array([0.0, 0.0, 0.0]))
+    assert np.array_equal(image[1]["translation"], np.array([0.5, 0.0, 0.0]))
+    assert np.array_equal(image[2]["translation"], np.array([0.0, 0.5, 0.0]))
+    assert np.array_equal(image[3]["translation"], np.array([0.5, 0.5, 0.0]))
+    assert np.array_equal(image[4]["translation"], np.array([0.0, 0.0, 0.5]))
+    assert np.array_equal(image[5]["translation"], np.array([0.5, 0.0, 0.5]))
+    assert np.array_equal(image[6]["translation"], np.array([0.0, 0.5, 0.5]))
+    assert np.array_equal(image[7]["translation"], np.array([0.5, 0.5, 0.5]))
+
+    # Run 2D experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings, by_slice=True)
+    image = [x[1][0] for x in data]
+
+    # Check translation
+    assert np.array_equal(image[0]["translation"], np.array([0.0, 0.0, 0.0]))
+    assert np.array_equal(image[1]["translation"], np.array([0.0, 0.5, 0.0]))
+    assert np.array_equal(image[2]["translation"], np.array([0.0, 0.0, 0.5]))
+    assert np.array_equal(image[3]["translation"], np.array([0.0, 0.5, 0.5]))
 
 
 def test_rotation_perturbation():
@@ -296,14 +327,16 @@ def test_perturbation_roi_randomisation_rotation():
     assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
-def run_experiment(perturbation_settings):
+def run_experiment(perturbation_settings, by_slice=False):
     from mirp.extractFeaturesAndImages import extract_features_and_images
     modality = "CT"
 
     # Get settings.
     settings = create_settings(
         modality=modality,
-        perturbation_settings=perturbation_settings)
+        by_slice=by_slice,
+        perturbation_settings=perturbation_settings
+    )
 
     # Set testing directory
     if WRITE_TEMP_FILES:
@@ -330,11 +363,13 @@ def run_experiment(perturbation_settings):
 
 def create_settings(
         modality: str,
-        perturbation_settings: ImagePerturbationSettingsClass):
+        by_slice: bool,
+        perturbation_settings: ImagePerturbationSettingsClass
+):
     """Set default settings for generating response maps and computing feature values."""
 
     general_settings = GeneralSettingsClass(
-        by_slice=False
+        by_slice=by_slice
     )
 
     new_spacing = 1.0
