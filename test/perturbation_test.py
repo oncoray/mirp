@@ -116,27 +116,27 @@ def test_rotation_perturbation():
         perturbation_rotation_angles=45.0
     )
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = [x[1][0] for x in data]
+    mask = [x[2][0] for x in data]
 
     # Origin has changed in x-y plane.
-    assert ~np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert ~np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(img_obj.origin, [-101.400, -121.579, -76.290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.400, -121.579, -76.290])
+    assert not np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert not np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.400, -121.579, -76.290])
+    assert np.allclose(mask[0]["image_origin"], [-101.400, -121.579, -76.290])
 
     # Orientation has changed.
-    assert np.allclose(img_obj.orientation,
-                       [[1.0, 0.0, 0.0],
-                        [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)],
-                        [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]])
-    assert np.allclose(roi_list[0].roi.orientation,
-                       [[1.0, 0.0, 0.0],
-                        [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)],
-                        [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]])
+    assert np.allclose(
+        image[0]["image_orientation"],
+        [[1.0, 0.0, 0.0], [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)], [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]]
+    )
+    assert np.allclose(
+        mask[0]["image_orientation"],
+        [[1.0, 0.0, 0.0], [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)], [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]]
+    )
 
     # Volume should not change that much.
     assert 357500.0 < feature_table["morph_volume"][0] < 358500.0
@@ -144,6 +144,26 @@ def test_rotation_perturbation():
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
     assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_rotation_perturbation_multiple():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_rotation_angles=[0.0, 45.0, 90.0]
+    )
+
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = [x[1][0] for x in data]
+
+    assert image[0]["rotation"] == 0.0
+    assert image[1]["rotation"] == 45.0
+    assert image[2]["rotation"] == 90.0
+
+    assert feature_table["image_rotation_angle"].values[0] == 0.0
+    assert feature_table["image_rotation_angle"].values[1] == 45.0
+    assert feature_table["image_rotation_angle"].values[2] == 90.0
 
 
 def test_perturbation_fraction_growth():
