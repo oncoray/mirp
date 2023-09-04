@@ -473,7 +473,7 @@ class MaskImage(GenericImage):
         overlap_fractions[overlap_fractions < 0.20] = 0.0
 
         # Determine grid indices of the resected grid with respect to the original image grid.
-        grid_origin = image.to_voxel_coordinates(x=cropped_image.image_origin)
+        grid_origin = image.to_voxel_coordinates(x=np.array(cropped_image.image_origin))
         grid_origin = grid_origin.astype(int)
 
         # Initialise list of randomised masks.
