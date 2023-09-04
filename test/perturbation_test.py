@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+import pandas as pd
 
 from mirp.experimentClass import ExperimentClass
 from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass, \
@@ -17,24 +18,35 @@ def test_noise_perturbation():
 
     perturbation_settings = ImagePerturbationSettingsClass(
         crop_around_roi=False,
-        perturbation_noise_repetitions=1
+        perturbation_noise_repetitions=2
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = [x[1][0] for x in data]
+    mask = [x[2][0] for x in data]
 
     # Assert that object location and origin have not changed.
-    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
-    assert np.isclose(feature_table["morph_volume"][0], 357750.3)
-    assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    # Check noise levels and ids.
+    assert image[0]["noise_level"] > 0.0
+    assert image[0]["noise_level"] == image[1]["noise_level"]
+    assert image[0]["noise_id"] == 0
+    assert image[1]["noise_id"] == 1
+
+    # Check feature table.
+    assert np.allclose(feature_table["morph_volume"], 357750.3)
+    assert np.all(40.0 < feature_table["stat_mean"].values[0] < 50.0)
+    assert np.all(40.0 < feature_table["stat_mean"].values[1] < 50.0)
+    assert feature_table["stat_mean"].values[0] != feature_table["stat_mean"].values[1]
+    assert not np.allclose(feature_table["stat_mean"], 43.085083)
+    assert feature_table["image_noise_iteration_id"].values[0] == 0
+    assert feature_table["image_noise_iteration_id"].values[1] == 1
 
 
 def test_translation_perturbation():
@@ -44,7 +56,7 @@ def test_translation_perturbation():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -74,7 +86,7 @@ def test_rotation_perturbation():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -111,7 +123,7 @@ def test_perturbation_fraction_growth():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -140,7 +152,7 @@ def test_perturbation_fraction_shrink():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -169,7 +181,7 @@ def test_perturbation_distance_grow():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -198,7 +210,7 @@ def test_perturbation_distance_shrink():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -226,7 +238,7 @@ def test_perturbation_roi_randomisation():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -255,7 +267,7 @@ def test_perturbation_roi_randomisation_rotation():
     )
 
     # Set up experiment.
-    experiment = generate_experiments(perturbation_settings=perturbation_settings)
+    experiment = run_experiment(perturbation_settings=perturbation_settings)
 
     # Run computations.
     feature_table, img_obj, roi_list = experiment.process()
@@ -284,8 +296,8 @@ def test_perturbation_roi_randomisation_rotation():
     assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
-def generate_experiments(perturbation_settings):
-    from mirp.extractFeaturesAndImages import extract_images
+def run_experiment(perturbation_settings):
+    from mirp.extractFeaturesAndImages import extract_features_and_images
     modality = "CT"
 
     # Get settings.
@@ -303,7 +315,9 @@ def generate_experiments(perturbation_settings):
     else:
         write_path = None
 
-    images = extract_images(
+    data = extract_features_and_images(
+        write_features=False,
+        export_features=True,
         write_images=False,
         export_images=True,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
@@ -311,10 +325,7 @@ def generate_experiments(perturbation_settings):
         settings=settings
     )
 
-    # Return the transformed image.
-    images, mask = images[0]
-
-    return experiment
+    return data
 
 
 def create_settings(
@@ -367,4 +378,3 @@ def create_settings(
     )
 
     return settings
-
