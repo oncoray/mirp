@@ -87,6 +87,7 @@ def test_translation_perturbation_multiple():
 
     # Run 3D experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
     image = [x[1][0] for x in data]
 
     # Check translation
@@ -99,6 +100,19 @@ def test_translation_perturbation_multiple():
     assert np.array_equal(image[6]["translation"], np.array([0.0, 0.5, 0.5]))
     assert np.array_equal(image[7]["translation"], np.array([0.5, 0.5, 0.5]))
 
+    assert np.array_equal(
+        feature_table["image_translation_z"].values,
+        np.array([0.0, 0.5, 0.0, 0.5, 0.0, 0.5, 0.0, 0.5])
+    )
+    assert np.array_equal(
+        feature_table["image_translation_y"].values,
+        np.array([0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.5, 0.5])
+    )
+    assert np.array_equal(
+        feature_table["image_translation_x"].values,
+        np.array([0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5])
+    )
+
     # Run 2D experiment.
     data = run_experiment(perturbation_settings=perturbation_settings, by_slice=True)
     image = [x[1][0] for x in data]
@@ -108,6 +122,19 @@ def test_translation_perturbation_multiple():
     assert np.array_equal(image[1]["translation"], np.array([0.0, 0.5, 0.0]))
     assert np.array_equal(image[2]["translation"], np.array([0.0, 0.0, 0.5]))
     assert np.array_equal(image[3]["translation"], np.array([0.0, 0.5, 0.5]))
+
+    assert np.array_equal(
+        feature_table["image_translation_z"].values,
+        np.array([0.0, 0.0, 0.0, 0.0])
+    )
+    assert np.array_equal(
+        feature_table["image_translation_y"].values,
+        np.array([0.0, 0.5, 0.0, 0.5])
+    )
+    assert np.array_equal(
+        feature_table["image_translation_x"].values,
+        np.array([0.0, 0.0, 0.5, 0.5])
+    )
 
 
 def test_rotation_perturbation():
