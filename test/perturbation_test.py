@@ -201,26 +201,26 @@ def test_perturbation_fraction_growth():
         perturbation_roi_adapt_size=0.2
     )
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = [x[1][0] for x in data]
+    mask = [x[2][0] for x in data]
 
     # Origin remains the same.
-    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume should grow by 20%.
     assert 357500.0 * 1.20 < feature_table["morph_volume"][0] < 358500.0 * 1.20
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def test_perturbation_fraction_shrink():
@@ -230,26 +230,46 @@ def test_perturbation_fraction_shrink():
         perturbation_roi_adapt_size=-0.2
     )
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = [x[1][0] for x in data]
+    mask = [x[2][0] for x in data]
 
     # Origin remains the same.
-    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume should shrink by 20%.
     assert 357500.0 * 0.80 < feature_table["morph_volume"][0] < 358500.0 * 0.80
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+
+def test_pertubation_fraction_change_multiple():
+    perturbation_settings = ImagePerturbationSettingsClass(
+        crop_around_roi=False,
+        perturbation_roi_adapt_type="fraction",
+        perturbation_roi_adapt_size=[-0.2, 0.0, 0.2]
+    )
+    from mirp.importData.utilities import flatten_list
+
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    mask = flatten_list([x[2] for x in data])
+
+    assert mask[0]["mask_alteration_size"] == -0.2
+    assert "mask_alteration_size" not in mask[1]
+    assert mask[2]["mask_alteration_size"] == 0.2
+
+    assert np.array_equal(feature_table["image_mask_adapt_size"].values, np.array([-0.2, 0.0, 0.2]))
 
 
 def test_perturbation_distance_grow():
