@@ -498,7 +498,9 @@ def discretise_image(
         image.discretisation_bin_width = bin_width
 
     elif discretisation_method == "fixed_bin_size_pyradiomics":
+        # PyRadiomics (up to at least version 3.1.0) used a version of fixed bin size that is not IBSI-compliant.
         min_intensity = np.min(image.get_voxel_grid()[mask_data])
+        min_intensity -= min_intensity % bin_width
 
         # Bin voxels.
         discretised_voxels = np.floor((image.get_voxel_grid() - min_intensity) / (bin_width * 1.0)) + 1.0
