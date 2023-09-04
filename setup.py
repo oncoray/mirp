@@ -21,5 +21,5 @@ setup(
         "itk",
         "matplotlib"
     ],
-    python_requires=">=3.7.0",
+    python_requires=">=3.11.0",
 )
