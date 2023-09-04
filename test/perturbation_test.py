@@ -379,7 +379,6 @@ def test_perturbation_roi_randomisation():
         crop_around_roi=False,
         perturbation_randomise_roi_repetitions=2
     )
-
     from mirp.importData.utilities import flatten_list
 
     # Run experiment.
@@ -414,35 +413,40 @@ def test_perturbation_roi_randomisation_rotation():
         perturbation_randomise_roi_repetitions=1,
         perturbation_rotation_angles=45.0
     )
+    from mirp.importData.utilities import flatten_list
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
-
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = flatten_list([x[1] for x in data])
+    mask = flatten_list([x[2] for x in data])
 
     # Origin has changed in x-y plane.
-    assert ~np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert ~np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(img_obj.origin, [-101.400, -121.579, -76.290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.400, -121.579, -76.290])
+    assert not np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert not np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.400, -121.579, -76.290])
+    assert np.allclose(mask[0]["image_origin"], [-101.400, -121.579, -76.290])
 
     # Orientation has changed.
-    assert np.allclose(img_obj.orientation,
-                       [[1.0, 0.0, 0.0],
-                        [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
-                        [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]])
-    assert np.allclose(roi_list[0].roi.orientation,
-                       [[1.0, 0.0, 0.0],
-                        [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
-                        [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]])
+    assert np.allclose(
+        image[0]["image_orientation"],
+        [[1.0, 0.0, 0.0],
+         [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
+         [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]]
+    )
+    assert np.allclose(
+        mask[0]["image_orientation"],
+        [[1.0, 0.0, 0.0],
+         [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
+         [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]]
+    )
 
     # Volume may change slightly.
     assert 350000.0 < feature_table["morph_volume"][0] < 370000.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
 
 
 def run_experiment(perturbation_settings, by_slice=False):
