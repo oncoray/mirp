@@ -377,29 +377,35 @@ def test_pertubation_distance_change_multiple():
 def test_perturbation_roi_randomisation():
     perturbation_settings = ImagePerturbationSettingsClass(
         crop_around_roi=False,
-        perturbation_randomise_roi_repetitions=1
+        perturbation_randomise_roi_repetitions=2
     )
 
-    # Set up experiment.
-    experiment = run_experiment(perturbation_settings=perturbation_settings)
+    from mirp.importData.utilities import flatten_list
 
-    # Run computations.
-    feature_table, img_obj, roi_list = experiment.process()
+    # Run experiment.
+    data = run_experiment(perturbation_settings=perturbation_settings)
+    feature_table = pd.concat([x[0] for x in data])
+    image = flatten_list([x[1] for x in data])
+    mask = flatten_list([x[2] for x in data])
 
     # Origin remains the same.
-    assert np.allclose(img_obj.origin, [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(roi_list[0].roi.origin, [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
+    assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(img_obj.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(roi_list[0].roi.orientation, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
     # Volume may change slightly.
     assert 350000.0 < feature_table["morph_volume"][0] < 370000.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
-    assert ~np.isclose(feature_table["stat_mean"][0], 43.085083)
+    assert not np.isclose(feature_table["stat_mean"][0], 43.085083)
+
+    assert mask[0]["mask_randomisation_id"] == 0
+    assert mask[1]["mask_randomisation_id"] == 1
+    assert not np.array_equal(mask[0]["mask"], mask[1]["mask"])
 
 
 def test_perturbation_roi_randomisation_rotation():
