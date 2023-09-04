@@ -115,6 +115,7 @@ def test_translation_perturbation_multiple():
 
     # Run 2D experiment.
     data = run_experiment(perturbation_settings=perturbation_settings, by_slice=True)
+    feature_table = pd.concat([x[0] for x in data])
     image = [x[1][0] for x in data]
 
     # Check translation
