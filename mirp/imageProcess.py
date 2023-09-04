@@ -260,7 +260,7 @@ def randomise_mask(
 ):
     image, masks, return_list = _standard_checks(image=image, masks=masks)
     if return_list is None:
-        return image, None
+        return None
 
     new_masks = []
     for mask in masks:
@@ -297,12 +297,12 @@ def randomise_mask(
 
     new_masks = flatten_list(new_masks)
     if len(new_masks) == 0:
-        return image, None
+        return None
 
     if not return_list and repetitions == 1:
-        return image, new_masks[0]
+        return new_masks[0]
     else:
-        return image, new_masks
+        return new_masks
 
 
 def alter_mask(
