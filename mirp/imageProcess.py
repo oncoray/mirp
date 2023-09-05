@@ -171,6 +171,107 @@ def crop(
         return image, masks[0]
 
 
+def crop_image_to_size(
+        image: GenericImage,
+        masks: Union[BaseMask, MaskImage, List[BaseMask]],
+        crop_size: List[float],
+        crop_center: Optional[List[float]] = None,
+        xy_only: bool = False,
+        z_only: bool = False,
+        in_place: bool = False,
+        by_slice: bool = False
+) -> Tuple[GenericImage, Optional[Union[BaseMask, MaskImage, List[BaseMask]]]]:
+
+    image, masks, return_list = _standard_checks(image=image, masks=masks)
+    if return_list is None:
+        return image, None
+
+    # Make a local copy of crop size before any alterations are made.
+    crop_size = deepcopy(crop_size)
+
+    # Determine whether cropping is only done in-plane or volumetrically.
+    if len(crop_size) < 3:
+        xy_only = True
+        if len(crop_size) == 1:
+            crop_size = [np.nan, crop_size[0], crop_size[0]]
+        else:
+            crop_size = [np.nan] + crop_size
+    else:
+        xy_only = False
+
+    # Skip processing if all crop sizes are NaN.
+    if not np.all(np.isnan(crop_size)):
+
+        ####################################################################################################################
+        # Determine geometric center
+        ####################################################################################################################
+        roi_m_x = 0; roi_m_y = 0; roi_m_z = 0; roi_n = 0
+
+        # Determine geometric center of all rois
+        for roi_obj in roi_list:
+
+            # Skip if the ROI is missing
+            if roi_obj.roi is None:
+                continue
+
+            # Find mask index coordinates
+            z_ind, y_ind, x_ind = np.where(roi_obj.roi.get_voxel_grid() > 0.0)
+
+            # Skip if the ROI is empty
+            if len(z_ind) == 0 or len(y_ind) == 0 or len(x_ind) == 0:
+                continue
+
+            # Sum over all positions
+            roi_m_x += np.sum(x_ind)
+            roi_m_y += np.sum(y_ind)
+            roi_m_z += np.sum(z_ind)
+            roi_n   += len(x_ind)
+
+        # Check if the combined ROIs are empty
+        if not (roi_n == 0):
+
+            # Calculate the mean roi center
+            roi_m_x = roi_m_x / roi_n
+            roi_m_y = roi_m_y / roi_n
+            roi_m_z = roi_m_z / roi_n
+
+            ####################################################################################################################
+            # Resect image based on roi center
+            ####################################################################################################################
+
+            img_crop = img_obj.copy()
+            img_crop.crop_to_size(center=np.array([roi_m_z, roi_m_y, roi_m_x]), crop_size=crop_size, xy_only=xy_only)
+
+            ####################################################################################################################
+            # Resect rois based on roi extent
+            ####################################################################################################################
+
+            # Copy roi objects before resection
+            roi_crop_list = [roi_crop_obj.copy() for roi_crop_obj in roi_list]
+
+            # Resect in place
+            [roi_crop_obj.crop_to_size(center=np.array([roi_m_z, roi_m_y, roi_m_x]), crop_size=crop_size, xy_only=xy_only) for roi_crop_obj in roi_crop_list]
+
+        else:
+            # This happens if all rois are empty - only copies of the original image object and the roi are returned
+            img_crop = img_obj.copy()
+            roi_crop_list = [roi_crop_obj.copy() for roi_crop_obj in roi_list]
+
+    else:
+        # This happens if cropping is not required - only copies of the original image object and the roi are returned
+        img_crop = img_obj.copy()
+        roi_crop_list = [roi_crop_obj.copy() for roi_crop_obj in roi_list]
+
+    ####################################################################################################################
+    # Return to calling function
+    ####################################################################################################################
+
+    if return_roi_obj:
+        return img_crop, roi_crop_list[0]
+    else:
+        return img_crop, roi_crop_list
+
+
 def resegmentise_mask(
         image: GenericImage,
         masks: Optional[Union[BaseMask, List[BaseMask]]],

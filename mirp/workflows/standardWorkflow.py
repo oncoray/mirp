@@ -2,7 +2,7 @@ import logging
 import sys
 import warnings
 
-from typing import Optional, Union, Tuple, List, Generator
+from typing import Optional, Union, Tuple, List, Generator, Iterable
 
 import pandas as pd
 import numpy as np
@@ -597,5 +597,136 @@ class StandardWorkflow(BaseWorkflow):
             "image_mask_adapt_size": mask.roi.alteration_size if mask.roi.alteration_size is not None else 0.0
         }, index=[0])
 
-    def deep_learning_conversion(self):
-        ...
+    def deep_learning_conversion(
+        self,
+        output_slices: bool = False,
+        crop_size: Optional[List[float]] = None,
+        center_crops_per_slice: bool = True,
+        remove_empty_crops: bool = True,
+        image_export_format: str = "dict",
+        write_file_format: str = "numpy",
+    ):
+        # Indicators to prevent the same masks from being written or exported multiple times.
+        masks_written = False
+        masks_exported = False
+
+        # Placeholders
+        image_list = []
+        mask_list = []
+
+        for image, masks in self._deep_learning_conversion(
+            output_slices=output_slices,
+            crop_size=crop_size
+        ):
+            if image is None:
+                continue
+
+            # Type hinting
+            image: Union[GenericImage] = image
+            masks: List[Optional[BaseMask]] = masks
+
+            if self.write_images:
+                image.write(dir_path=self.write_dir, file_format=write_file_format)
+                if not masks_written:
+                    for mask in masks:
+                        if mask is None:
+                            continue
+                        mask.write(dir_path=self.write_dir, file_format=write_file_format, write_all=False)
+
+                    # The standard_image_processing workflow only generates one set of masks - that which may change is
+                    # image.
+                    masks_written = True
+
+            if self.export_images:
+                image_list += [image.export(export_format=image_export_format)]
+                if not masks_exported:
+                    for mask in masks:
+                        if mask is None:
+                            continue
+                        mask_list += [mask.export(write_all=False, export_format=image_export_format)]
+                        # The standard_image_processing workflow only generates one set of masks - that which may change is
+                        # image. It is not necessary to export masks more than once.
+                        masks_exported = True
+
+        if self.export_images:
+            return image_list, mask_list
+
+    def _deep_learning_conversion(
+            self,
+            output_slices: bool = False,
+            crop_size: Optional[List[float]] = None
+    ) -> Generator[Tuple[GenericImage, BaseMask]]:
+        from mirp.imageProcess import crop_image_to_size
+
+        # Set crop_size.
+        if crop_size is None and output_slices:
+            crop_size = [None, None]
+        elif crop_size is None and not output_slices:
+            crop_size = [None, None, None]
+        elif len(crop_size) == 1 and output_slices:
+            crop_size = [crop_size[0], crop_size[0]]
+        elif len(crop_size) == 1 and not output_slices:
+            crop_size = [crop_size[0], crop_size[0], crop_size[0]]
+        elif len(crop_size) == 2:
+            crop_size = [crop_size[0], crop_size[1]]
+        elif len(crop_size) == 3 and output_slices:
+            crop_size = [crop_size[1], crop_size[2]]
+        elif len(crop_size) == 3 and not output_slices:
+            crop_size = [crop_size[0], crop_size[1], crop_size[2]]
+        else:
+            raise ValueError(f"The crop_size argument is longer than 3: {len(crop_size)}")
+
+        for image, masks in self.standard_image_processing():
+            if image is None:
+                continue
+            for mask in masks:
+                if mask is None:
+                    continue
+
+                # Type hinting
+                image: Union[GenericImage] = image
+                mask: BaseMask = mask
+
+                # Find the overall crop center.
+                crop_center = mask.get_center_slice()
+
+                if len(crop_size) == 2:
+                    # 2D-cropping
+                    image_slices = image.get_slices()
+                    mask_slices = mask.get_slices()
+
+                    # Update crop center.
+                    crop_center = [crop_center[1], crop_center[2]]
+
+                    if image_slices is None or mask_slices is None:
+                        continue
+
+                    image_slices = [
+                        image_slice
+                        for ii, image_slice in enumerate(image_slices)
+                        if not mask_slices[ii].is_empty_mask()
+                    ]
+                    mask_slices = [
+                        mask_slice
+                        for mask_slice in mask_slices
+                        if not mask_slice.is_empty_mask()
+                    ]
+
+                    if len(image_slices) == 0 or len(mask_slices) == 0:
+                        continue
+
+                    for ii, image_slice in enumerate(image_slices):
+                        yield crop_image_to_size(
+                            image=image_slice,
+                            masks=mask_slices[ii],
+                            crop_size=crop_size,
+                            crop_center=crop_center
+                        )
+                else:
+                    # 3D cropping
+                    yield crop_image_to_size(
+                        image=image,
+                        masks=mask,
+                        crop_size=crop_size,
+                        crop_center=crop_center
+                    )
