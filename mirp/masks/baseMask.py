@@ -551,8 +551,19 @@ class BaseMask:
 
         return df
 
+    def get_center_position(self) -> List[Any]:
+        """Identify location of the geometric center of the roi."""
+        # Return a NaN if no roi is present
+        if self.roi is None:
+            return [np.nan, np.nan, np.nan]
+
+        # Determine indices of voxels included in the roi
+        z_ind, y_ind, x_ind = np.where(self.roi.get_voxel_grid())
+
+        return [np.mean(z_ind), np.mean(y_ind), np.mean(x_ind)]
+
     def get_center_slice(self):
-        """ Identify location of the central slice in the roi """
+        """Identify location of the central slice in the roi."""
 
         # Return a NaN if no roi is present
         if self.roi is None:
