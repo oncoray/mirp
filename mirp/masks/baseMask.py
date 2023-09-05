@@ -82,6 +82,9 @@ class BaseMask:
 
         return self.roi.is_empty()
 
+    def is_empty_mask(self):
+        return self.roi.is_empty_mask()
+
     def append_name(self, x):
         if isinstance(self.roi_name, str):
             self.roi_name = [self.roi_name]
