@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import copy
-from typing import Optional, List, Tuple, Dict, Any, Union
+from typing import Optional, List, Tuple, Dict, Any, Union, Self
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
@@ -30,7 +30,7 @@ class BaseMask:
         # Set intensity range.
         self.intensity_range: Tuple[Any] = tuple([np.nan, np.nan])
 
-    def copy(self, drop_image=False):
+    def copy(self, drop_image=False) -> Self:
 
         # Create new mask by copying the current mask.
         mask = copy.deepcopy(self)
@@ -45,7 +45,7 @@ class BaseMask:
         # Creates a new copy of the roi
         return mask
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         if self.roi is None:
             return True
 
@@ -571,27 +571,36 @@ class BaseMask:
     def export(
             self,
             write_all=False,
-            with_attributes=True
-    ) -> Optional[Union[np.ndarray, List[np.ndarray], Dict[str, Any]]]:
+            export_format: str = "dict"
+    ) -> Union[np.ndarray, List[np.ndarray], Dict[str, Any], Self]:
         if self.is_empty():
             return None
 
-        if not write_all and not with_attributes:
-            return self.roi.get_voxel_grid()
-        elif not write_all and with_attributes:
+        if export_format == "dict":
             attributes = self.get_export_attributes()
-            attributes.update({"mask": self.roi.get_voxel_grid()})
+
+            if write_all:
+                intensity_mask = None if self.roi_intensity is None else self.roi_intensity.get_voxel_grid()
+                morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
+                attributes.update({"intensity_mask": intensity_mask, "morphology_mask": morphology_mask})
+            else:
+                attributes.update({"mask": self.roi.get_voxel_grid()})
+
             return attributes
-        elif write_all and not with_attributes:
-            intensity_mask = None if self.roi_intensity is None else self.roi_intensity.get_voxel_grid()
-            morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
-            return [intensity_mask, morphology_mask]
+
+        elif export_format == "numpy":
+            if write_all:
+                intensity_mask = None if self.roi_intensity is None else self.roi_intensity.get_voxel_grid()
+                morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
+                return [intensity_mask, morphology_mask]
+            else:
+                return self.roi.get_voxel_grid()
+
+        elif export_format == "native":
+            return self.copy()
+
         else:
-            intensity_mask = None if self.roi_intensity is None else self.roi_intensity.get_voxel_grid()
-            morphology_mask = None if self.roi_morphology is None else self.roi_morphology.get_voxel_grid()
-            attributes = self.get_export_attributes()
-            attributes.update({"intensity_mask": intensity_mask, "morphology_mask": morphology_mask})
-            return attributes
+            raise ValueError(f"The current value of export_format was not recognised: {export_format}")
 
     def get_export_attributes(self) -> Dict[str, Any]:
         attributes = dict([("roi_name", self.roi_name)])

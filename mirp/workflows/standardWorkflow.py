@@ -258,6 +258,7 @@ class StandardWorkflow(BaseWorkflow):
 
     def standard_extraction(
             self,
+            image_export_format: str = "dict",
             write_file_format: str = "nifti",
             write_all_masks: bool = False
     ):
@@ -312,12 +313,12 @@ class StandardWorkflow(BaseWorkflow):
                     masks_written = True
 
             if self.export_images:
-                image_list += [image.export(with_attributes=True)]
+                image_list += [image.export(export_format=image_export_format)]
                 if not masks_exported:
                     for mask in masks:
                         if mask is None:
                             continue
-                        mask_list += [mask.export(write_all=write_all_masks, with_attributes=True)]
+                        mask_list += [mask.export(write_all=write_all_masks, export_format=image_export_format)]
                         # The standard_image_processing workflow only generates one set of masks - that which may change is
                         # image. It is not necessary to export masks more than once.
                         masks_exported = True

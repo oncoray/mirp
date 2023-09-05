@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from typing import Optional, Union, Tuple, List, Dict, Any
+from typing import Optional, Union, Tuple, List, Dict, Any, Self
 
 import pandas as pd
 
@@ -1140,19 +1140,25 @@ class GenericImage(BaseImage):
 
     def export(
             self,
-            with_attributes=True
-    ) -> Optional[Union[np.ndarray, Dict[str, Any]]]:
+            export_format: str = "dict"
+    ) -> Union[None, np.ndarray, Dict[str, Any], Self]:
 
         if self.is_empty():
             return None
 
-        if with_attributes:
+        if export_format == "dict":
             attributes = self.get_export_attributes()
             attributes.update({"image": self.get_voxel_grid()})
 
             return attributes
-        else:
+        elif export_format == "numpy":
             return self.get_voxel_grid()
+
+        elif export_format == "native":
+            return self.copy()
+
+        else:
+            raise ValueError(f"The current value of export_format was not recognised: {export_format}")
 
     def get_export_attributes(self) -> Dict[str, Any]:
         attributes = []
