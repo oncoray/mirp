@@ -560,7 +560,7 @@ class ExperimentClass:
 
         import logging
         from mirp.imageRead import load_image
-        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size, \
+        from mirp.imageProcess import estimate_image_noise, interpolate_image, interpolate_roi, crop_image_to_size_deprecated, \
             saturate_image_deprecated, normalise_image_deprecated, select_largest_slice
         from mirp.imagePerturbations import adapt_roi_size_deprecated, randomise_roi_contours
         from mirp.roiClass import merge_roi_objects
@@ -737,18 +737,18 @@ class ExperimentClass:
             # Crop slices
             if crop_as_3d:
                 # Create 3D crop.
-                img_obj, roi_obj = crop_image_to_size(img_obj=img_obj,
-                                                      crop_size=crop_size,
-                                                      roi_obj=roi_obj)
+                img_obj, roi_obj = crop_image_to_size_deprecated(img_obj=img_obj,
+                                                                 crop_size=crop_size,
+                                                                 roi_obj=roi_obj)
 
                 img_list = [img_obj]
                 roi_list = [roi_obj]
 
             elif not center_crops_per_slice:
                 # Create 3D crop, then chop into slices.
-                img_obj, roi_obj = crop_image_to_size(img_obj=img_obj,
-                                                      crop_size=crop_size,
-                                                      roi_obj=roi_obj)
+                img_obj, roi_obj = crop_image_to_size_deprecated(img_obj=img_obj,
+                                                                 crop_size=crop_size,
+                                                                 roi_obj=roi_obj)
 
                 img_list = img_obj.get_slices()
                 roi_list = roi_obj.get_slices()
@@ -759,9 +759,9 @@ class ExperimentClass:
                 roi_list = []
 
                 for jj in np.arange(img_obj.size[0]):
-                    slice_img_obj, slice_roi_obj = crop_image_to_size(img_obj=img_obj.get_slices(slice_number=jj)[0],
-                                                                      roi_obj=roi_obj.get_slices(slice_number=jj)[0],
-                                                                      crop_size=crop_size)
+                    slice_img_obj, slice_roi_obj = crop_image_to_size_deprecated(img_obj=img_obj.get_slices(slice_number=jj)[0],
+                                                                                 roi_obj=roi_obj.get_slices(slice_number=jj)[0],
+                                                                                 crop_size=crop_size)
 
                     img_list += [slice_img_obj]
                     roi_list += [slice_roi_obj]

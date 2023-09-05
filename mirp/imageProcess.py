@@ -1142,7 +1142,7 @@ def crop_image_deprecated(img_obj, roi_list=None, roi_obj=None, boundary=0.0, z_
         return img_res, roi_res_list
 
 
-def crop_image_to_size(img_obj, crop_size, roi_list=None, roi_obj=None):
+def crop_image_to_size_deprecated(img_obj, crop_size, roi_list=None, roi_obj=None):
 
     ####################################################################################################################
     # Initial steps
