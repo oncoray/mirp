@@ -28,7 +28,38 @@ class BaseMask:
         self.roi_name: Union[str, List[str]] = roi_name
 
         # Set intensity range.
-        self.intensity_range: Tuple[Any] = tuple([np.nan, np.nan])
+        self.intensity_range: Tuple[Any, ...] = tuple([np.nan, np.nan])
+
+    def get_slices(self, slice_number: Union[None, int, List[int]] = None) -> Union[None, Self, List[Self]]:
+
+        mask_list = []
+        return_list = True
+
+        if slice_number is None:
+            slice_number = list(range(self.roi.image_dimension[0]))
+        elif isinstance(slice_number, int):
+            return_list = False
+            slice_number = [slice_number]
+
+        for current_slice_id in slice_number:
+            slice_mask = self.copy(drop_image=True)
+            slice_mask.roi = self.roi.get_slices(slice_number=current_slice_id)
+            if slice_mask.roi_intensity is not None:
+                slice_mask.roi_intensity = self.roi_intensity.get_slices(slice_number=current_slice_id)
+            if slice_mask.roi_morphology is not None:
+                slice_mask.roi_intensity = self.roi_morphology.get_slices(slice_number=slice_number)
+
+            if slice_mask.is_empty():
+                continue
+
+            mask_list += [slice_mask]
+
+        if len(mask_list) == 0:
+            return None
+        elif return_list:
+            return mask_list
+        else:
+            return mask_list[0]
 
     def copy(self, drop_image=False) -> Self:
 

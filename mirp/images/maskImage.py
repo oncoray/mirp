@@ -420,7 +420,8 @@ class MaskImage(GenericImage):
             boundary: float = 25.0,
             repetitions: int = 1,
             intensity_range: Tuple[Any] = tuple([np.nan, np.nan]),
-            by_slice: bool = False):
+            by_slice: bool = False
+    ):
         """Use SLIC to randomise the roi based on supervoxels"""
         from scipy.ndimage import binary_closing
         from mirp.imageProcess import crop, set_intensity_range

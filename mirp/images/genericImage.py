@@ -51,7 +51,10 @@ class GenericImage(BaseImage):
         self.discretisation_bin_number = discretisation_bin_number
         self.discretisation_bin_width = discretisation_bin_width
 
-    def copy(self, drop_image=False):
+        # Slice identifiers.
+        self.slice_id: Optional[int] = None
+
+    def copy(self, drop_image=False) -> Self:
         image = copy.deepcopy(self)
 
         if drop_image:
@@ -108,10 +111,42 @@ class GenericImage(BaseImage):
 
         return image
 
+    def get_slices(self, slice_number: Union[None, int, List[int]] = None) -> Union[None, Self, List[Self]]:
+
+        image_list = []
+        return_list = True
+
+        if slice_number is None:
+            slice_number = list(range(self.image_dimension[0]))
+        elif isinstance(slice_number, int):
+            return_list = False
+            slice_number = [slice_number]
+
+        for current_slice_id in slice_number:
+            # Check if slice is not empty and falls within the allowed range.
+            if not self.is_empty():
+                continue
+            if not 0 <= current_slice_id < self.image_dimension[0]:
+                continue
+
+            slice_image = self.copy(drop_image=True)
+            slice_image.image_origin = tuple(self.to_world_coordinates(x=np.array([current_slice_id, 0, 0])))
+            slice_image.slice_id = current_slice_id
+            slice_image.set_voxel_grid(voxel_grid=self.get_voxel_grid()[current_slice_id:current_slice_id + 1, :, :])
+
+            image_list += [slice_image]
+
+        if len(image_list) == 0:
+            return None
+        elif return_list:
+            return image_list
+        else:
+            return image_list[0]
+
     def drop_image(self):
         self.image_data = None
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return self.image_data is None
 
     def set_voxel_grid(self, voxel_grid: np.ndarray):
@@ -1075,7 +1110,7 @@ class GenericImage(BaseImage):
         elif file_format == "numpy":
             file_name += ".npy"
         else:
-            raise ValueError(f"The provided file format {file_format} is not available. Return ")
+            raise ValueError(f"The provided file format {file_format} is not available.")
 
         # Add file and file name
         file_path = os.path.join(dir_path, file_name)
@@ -1105,6 +1140,10 @@ class GenericImage(BaseImage):
         # Sample name
         if self.sample_name is not None:
             descriptors += [self.sample_name]
+
+        # Slice id
+        if self.slice_id is not None:
+            descriptors += [self.slice_id]
 
         # Modality
         if self.modality is not None:
@@ -1166,6 +1205,10 @@ class GenericImage(BaseImage):
         # Sample name
         if self.sample_name is not None:
             attributes += [("sample_name", self.sample_name)]
+
+        # Slice id.
+        if self.slice_id is not None:
+            attributes += [("slice_id", self.slice_id)]
 
         # Modality
         if self.modality is not None:
