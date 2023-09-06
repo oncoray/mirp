@@ -152,6 +152,7 @@ def _generate_image_crop_workflows(
             current_settings.feature_extr.families = "none"
             current_settings.img_transform.feature_settings.families = "none"
             current_settings.perturbation.crop_around_roi = False
+            current_settings.roi_resegment.resegmentation_method = "none"
 
             if current_settings.perturbation.noise_repetitions is None or \
                     current_settings.perturbation.noise_repetitions == 0:
