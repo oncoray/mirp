@@ -3,7 +3,6 @@ import os
 import numpy as np
 import pandas as pd
 
-from mirp.experimentClass import ExperimentClass
 from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass, \
     ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass, \
     ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
@@ -29,9 +28,9 @@ def test_noise_perturbation():
 
     # Assert that object location and origin have not changed.
     assert np.allclose(image[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
     assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Check noise levels and ids.
     assert image[0]["noise_level"] > 0.0
@@ -68,8 +67,8 @@ def test_translation_perturbation():
     assert np.allclose(mask[0]["image_origin"], [-101.300, -79.826, -174.629])
 
     # Assert that object orientation did not change.
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Volume should not change that much.
     assert 357500.0 < feature_table["morph_volume"][0] < 358500.0
@@ -159,11 +158,19 @@ def test_rotation_perturbation():
     # Orientation has changed.
     assert np.allclose(
         image[0]["image_orientation"],
-        [[1.0, 0.0, 0.0], [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)], [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]]
+        np.array([
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)],
+            [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]
+        ])
     )
     assert np.allclose(
         mask[0]["image_orientation"],
-        [[1.0, 0.0, 0.0], [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)], [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]]
+        np.array([
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)],
+            [0.0, -1.0/np.sqrt(2.0), 1.0/np.sqrt(2.0)]
+        ])
     )
 
     # Volume should not change that much.
@@ -212,8 +219,8 @@ def test_perturbation_fraction_growth():
     assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Volume should grow by 20%.
     assert 357500.0 * 1.20 < feature_table["morph_volume"][0] < 358500.0 * 1.20
@@ -241,8 +248,8 @@ def test_perturbation_fraction_shrink():
     assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Volume should shrink by 20%.
     assert 357500.0 * 0.80 < feature_table["morph_volume"][0] < 358500.0 * 0.80
@@ -302,8 +309,8 @@ def test_perturbation_distance_grow():
     assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Volume should grow.
     assert 420000.0 < feature_table["morph_volume"][0] < 421000.0
@@ -332,8 +339,8 @@ def test_perturbation_distance_shrink():
     assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Volume should grow.
     assert 300000.0 < feature_table["morph_volume"][0] < 301000.0
@@ -392,8 +399,8 @@ def test_perturbation_roi_randomisation():
     assert np.allclose(mask[0]["image_origin"], [-101.4000, -79.9255, -174.7290])
 
     # Assert that object orientation did not change.
-    assert np.allclose(image[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-    assert np.allclose(mask[0]["image_orientation"], [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    assert np.allclose(image[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
+    assert np.allclose(mask[0]["image_orientation"], np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]))
 
     # Volume may change slightly.
     assert 350000.0 < feature_table["morph_volume"][0] < 370000.0
@@ -430,15 +437,19 @@ def test_perturbation_roi_randomisation_rotation():
     # Orientation has changed.
     assert np.allclose(
         image[0]["image_orientation"],
-        [[1.0, 0.0, 0.0],
-         [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
-         [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]]
+        np.array([
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
+            [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]
+        ])
     )
     assert np.allclose(
         mask[0]["image_orientation"],
-        [[1.0, 0.0, 0.0],
-         [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
-         [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]]
+        np.array([
+            [1.0, 0.0, 0.0],
+            [0.0, 1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)],
+            [0.0, -1.0 / np.sqrt(2.0), 1.0 / np.sqrt(2.0)]
+        ])
     )
 
     # Volume may change slightly.
@@ -540,6 +551,4 @@ def create_settings(
 def get_bounding_box(image):
     z_ind, y_ind, x_ind = np.where(image)
 
-    return tuple([np.min(z_ind), np.max(z_ind)]), \
-           tuple([np.min(y_ind), np.max(y_ind)]), \
-           tuple([np.min(x_ind), np.max(x_ind)])
+    return tuple([np.min(z_ind), np.max(z_ind)]), tuple([np.min(y_ind), np.max(y_ind)]), tuple([np.min(x_ind), np.max(x_ind)])
