@@ -109,3 +109,6 @@ def test_extract_image_crop():
     assert all(image.shape == (1, 50, 50) for image in images)
     assert len(masks) == 26
     assert all(mask.shape == (1, 50, 50) for mask in masks)
+
+def test_normalisation_saturation():
+    ...
