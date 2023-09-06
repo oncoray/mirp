@@ -12,10 +12,13 @@ def extract_image_crop(
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
         export_images: bool = False,
+        write_images: bool = True,
         **kwargs
 ) -> List[Any]:
+
     workflows = list(_base_extract_image_crop(
         export_images=export_images,
+        write_images=write_images,
         **kwargs)
     )
 
@@ -35,9 +38,16 @@ def extract_image_crop_generator(
         crop_size: Optional[List[float]] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
+        export_images: bool = True,
+        write_images: bool = False,
         **kwargs
-) -> Generator[Any]:
-    workflows = list(_base_extract_image_crop(**kwargs))
+) -> Generator[Any, None, None]:
+
+    workflows = list(_base_extract_image_crop(
+        export_images=export_images,
+        write_images=write_images,
+        **kwargs))
+
     for workflow in workflows:
         yield workflow.deep_learning_conversion(
             output_slices=output_slices,
