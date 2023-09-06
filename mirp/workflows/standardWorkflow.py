@@ -601,52 +601,29 @@ class StandardWorkflow(BaseWorkflow):
         self,
         output_slices: bool = False,
         crop_size: Optional[List[float]] = None,
-        center_crops_per_slice: bool = True,
-        remove_empty_crops: bool = True,
         image_export_format: str = "dict",
         write_file_format: str = "numpy",
     ):
-        # Indicators to prevent the same masks from being written or exported multiple times.
-        masks_written = False
-        masks_exported = False
-
         # Placeholders
         image_list = []
         mask_list = []
 
-        for image, masks in self._deep_learning_conversion(
+        for image, mask in self._deep_learning_conversion(
             output_slices=output_slices,
             crop_size=crop_size
         ):
             if image is None:
                 continue
-
-            # Type hinting
-            image: Union[GenericImage] = image
-            masks: List[Optional[BaseMask]] = masks
+            if mask is None:
+                continue
 
             if self.write_images:
                 image.write(dir_path=self.write_dir, file_format=write_file_format)
-                if not masks_written:
-                    for mask in masks:
-                        if mask is None:
-                            continue
-                        mask.write(dir_path=self.write_dir, file_format=write_file_format, write_all=False)
-
-                    # The standard_image_processing workflow only generates one set of masks - that which may change is
-                    # image.
-                    masks_written = True
+                mask.write(dir_path=self.write_dir, file_format=write_file_format, write_all=False)
 
             if self.export_images:
                 image_list += [image.export(export_format=image_export_format)]
-                if not masks_exported:
-                    for mask in masks:
-                        if mask is None:
-                            continue
-                        mask_list += [mask.export(write_all=False, export_format=image_export_format)]
-                        # The standard_image_processing workflow only generates one set of masks - that which may change is
-                        # image. It is not necessary to export masks more than once.
-                        masks_exported = True
+                mask_list += [mask.export(write_all=False, export_format=image_export_format)]
 
         if self.export_images:
             return image_list, mask_list

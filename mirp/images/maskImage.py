@@ -551,6 +551,17 @@ class MaskImage(GenericImage):
                tuple([np.min(y_ind), np.max(y_ind)]),\
                tuple([np.min(x_ind), np.max(x_ind)])
 
+    def get_center_position(self) -> List[Any]:
+        """Identify location of the geometric center of the roi."""
+        # Return a NaN if no roi is present
+        if self.is_empty():
+            return [np.nan, np.nan, np.nan]
+
+        # Determine indices of voxels included in the roi
+        z_ind, y_ind, x_ind = np.where(self.get_voxel_grid())
+
+        return [np.mean(z_ind), np.mean(y_ind), np.mean(x_ind)]
+
     def get_file_name_descriptor(self) -> List[str]:
         descriptors = super().get_file_name_descriptor()
 
