@@ -601,7 +601,7 @@ class StandardWorkflow(BaseWorkflow):
         self,
         output_slices: bool = False,
         crop_size: Optional[List[float]] = None,
-        image_export_format: str = "dict",
+        image_export_format: str = "numpy",
         write_file_format: str = "numpy",
     ):
         # Placeholders
