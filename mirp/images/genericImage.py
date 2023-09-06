@@ -124,7 +124,7 @@ class GenericImage(BaseImage):
 
         for current_slice_id in slice_number:
             # Check if slice is not empty and falls within the allowed range.
-            if not self.is_empty():
+            if self.is_empty():
                 continue
             if not 0 <= current_slice_id < self.image_dimension[0]:
                 continue

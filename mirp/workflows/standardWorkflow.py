@@ -2,7 +2,7 @@ import logging
 import sys
 import warnings
 
-from typing import Optional, Union, Tuple, List, Generator, Iterable
+from typing import Optional, Union, Tuple, List, Generator
 
 import pandas as pd
 import numpy as np
@@ -632,7 +632,7 @@ class StandardWorkflow(BaseWorkflow):
             self,
             output_slices: bool = False,
             crop_size: Optional[List[float]] = None
-    ) -> Generator[Tuple[GenericImage, BaseMask]]:
+    ) -> Generator[Tuple[GenericImage, BaseMask], None, None]:
         from mirp.imageProcess import crop_image_to_size
 
         # Set crop_size.
@@ -644,8 +644,10 @@ class StandardWorkflow(BaseWorkflow):
             crop_size = [crop_size[0], crop_size[0]]
         elif len(crop_size) == 1 and not output_slices:
             crop_size = [crop_size[0], crop_size[0], crop_size[0]]
-        elif len(crop_size) == 2:
+        elif len(crop_size) == 2 and output_slices:
             crop_size = [crop_size[0], crop_size[1]]
+        elif len(crop_size) == 2 and not output_slices:
+            crop_size = [None, crop_size[0], crop_size[1]]
         elif len(crop_size) == 3 and output_slices:
             crop_size = [crop_size[1], crop_size[2]]
         elif len(crop_size) == 3 and not output_slices:
@@ -665,7 +667,7 @@ class StandardWorkflow(BaseWorkflow):
                 mask: BaseMask = mask
 
                 # Find the overall crop center.
-                crop_center = mask.get_center_slice()
+                crop_center = mask.get_center_position()
 
                 if len(crop_size) == 2:
                     # 2D-cropping

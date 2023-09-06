@@ -204,9 +204,9 @@ def crop_image_to_size(
         mask.crop_to_size(center=crop_center, crop_size=crop_size)
 
     if return_list:
-        return image, masks[0]
-    else:
         return image, masks
+    else:
+        return image, masks[0]
 
 
 def resegmentise_mask(
