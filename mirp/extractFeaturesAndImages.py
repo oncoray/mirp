@@ -128,6 +128,11 @@ def _base_extract_features_and_images(
     if not write_images and not write_features:
         write_dir = None
 
+    if write_images and write_dir is None:
+        raise ValueError("write_dir argument should be provided for writing images and masks to.")
+    if write_features and write_dir is None:
+        raise ValueError("write_dir argument should be provided for writing feature tables to.")
+
     image_list = import_image_and_mask(
         image=image,
         mask=mask,

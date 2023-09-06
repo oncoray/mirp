@@ -104,6 +104,9 @@ def _base_extract_image_crop(
     if not write_images:
         write_dir = None
 
+    if write_images and write_dir is None:
+        raise ValueError("write_dir argument should be provided for writing images and masks to.")
+
     if not write_images and not export_images:
         raise ValueError(f"write_images and export_images arguments cannot both be False.")
 
