@@ -670,7 +670,7 @@ class StandardWorkflow(BaseWorkflow):
                 if len(crop_size) == 2:
                     # 2D-cropping
                     image_slices = image.get_slices()
-                    mask_slices = mask.get_slices()
+                    mask_slices = mask.get_slices(primary_mask_only=True)
 
                     # Update crop center.
                     crop_center = [crop_center[1], crop_center[2]]

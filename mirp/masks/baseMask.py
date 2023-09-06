@@ -30,7 +30,11 @@ class BaseMask:
         # Set intensity range.
         self.intensity_range: Tuple[Any, ...] = tuple([np.nan, np.nan])
 
-    def get_slices(self, slice_number: Union[None, int, List[int]] = None) -> Union[None, Self, List[Self]]:
+    def get_slices(
+            self,
+            slice_number: Union[None, int, List[int]] = None,
+            primary_mask_only: bool = False
+    ) -> Union[None, Self, List[Self]]:
 
         mask_list = []
         return_list = True
@@ -44,9 +48,9 @@ class BaseMask:
         for current_slice_id in slice_number:
             slice_mask = self.copy(drop_image=True)
             slice_mask.roi = self.roi.get_slices(slice_number=current_slice_id)
-            if slice_mask.roi_intensity is not None:
+            if slice_mask.roi_intensity is not None and not primary_mask_only:
                 slice_mask.roi_intensity = self.roi_intensity.get_slices(slice_number=current_slice_id)
-            if slice_mask.roi_morphology is not None:
+            if slice_mask.roi_morphology is not None and not primary_mask_only:
                 slice_mask.roi_intensity = self.roi_morphology.get_slices(slice_number=slice_number)
 
             if slice_mask.is_empty():
