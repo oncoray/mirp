@@ -6,7 +6,7 @@ from mirp.settings.settingsClass import SettingsClass
 from mirp.workflows.standardWorkflow import StandardWorkflow
 
 
-def extract_image_crop(
+def deep_learning_preprocessing(
         output_slices: bool = False,
         crop_size: Optional[List[float]] = None,
         image_export_format: str = "numpy",
@@ -16,7 +16,7 @@ def extract_image_crop(
         **kwargs
 ) -> List[Any]:
 
-    workflows = list(_base_extract_image_crop(
+    workflows = list(_base_deep_learning_preprocessing(
         export_images=export_images,
         write_images=write_images,
         **kwargs)
@@ -33,7 +33,7 @@ def extract_image_crop(
     ]
 
 
-def extract_image_crop_generator(
+def deep_learning_preprocessing_generator(
         output_slices: bool = False,
         crop_size: Optional[List[float]] = None,
         image_export_format: str = "numpy",
@@ -43,7 +43,7 @@ def extract_image_crop_generator(
         **kwargs
 ) -> Generator[Any, None, None]:
 
-    workflows = list(_base_extract_image_crop(
+    workflows = list(_base_deep_learning_preprocessing(
         export_images=export_images,
         write_images=write_images,
         **kwargs))
@@ -57,7 +57,7 @@ def extract_image_crop_generator(
         )
 
 
-def _base_extract_image_crop(
+def _base_deep_learning_preprocessing(
         image,
         mask=None,
         sample_name: Union[None, str, List[str]] = None,
@@ -128,7 +128,7 @@ def _base_extract_image_crop(
         stack_masks=stack_masks
     )
 
-    yield from _generate_image_crop_workflows(
+    yield from _generate_dl_preprocessing_workflows(
         image_list=image_list,
         settings=settings,
         write_dir=write_dir,
@@ -137,7 +137,7 @@ def _base_extract_image_crop(
     )
 
 
-def _generate_image_crop_workflows(
+def _generate_dl_preprocessing_workflows(
         image_list: List[ImageFile],
         settings: List[SettingsClass],
         write_dir: Optional[str],
