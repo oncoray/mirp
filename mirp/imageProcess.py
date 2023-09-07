@@ -627,9 +627,9 @@ def create_tissue_mask(
 
         # The intensity range provided forms the mask range.
         if np.isnan(mask_intensity_range[0]):
-            mask_intensity_range[1] = np.min(image.get_voxel_grid())
+            mask_intensity_range[0] = np.min(image.get_voxel_grid())
         if np.isnan(mask_intensity_range[1]):
-            mask_intensity_range[2] = np.max(image.get_voxel_grid())
+            mask_intensity_range[1] = np.max(image.get_voxel_grid())
 
         voxel_grid = image.get_voxel_grid()
         mask = np.logical_and(voxel_grid >= mask_intensity_range[0], voxel_grid <= mask_intensity_range[1])
