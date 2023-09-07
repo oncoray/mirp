@@ -1030,7 +1030,7 @@ class GenericImage(BaseImage):
         cropped_image = cropped_image.astype(self.get_voxel_grid().dtype)
 
         # Update origin
-        self.image_origin = tuple(self.to_world_coordinates(x=np.array(min_index_crop)))
+        self.image_origin = tuple(self.to_world_coordinates(x=np.array(new_grid_index)))
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=cropped_image)
