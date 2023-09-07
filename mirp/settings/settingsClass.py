@@ -493,6 +493,8 @@ class ImagePostProcessingClass:
                 tissue_mask_range = [0.02, 1.00]
             elif tissue_mask_type == "range":
                 tissue_mask_range = [0.0, np.nan]
+            else:
+                tissue_mask_range = [np.nan, np.nan]
 
         # Perform checks on tissue_mask_range.
         if tissue_mask_type != "none":
