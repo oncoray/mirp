@@ -738,7 +738,7 @@ class GenericImage(BaseImage):
             intensity_range: Optional[Tuple[Any, Any]] = None,
             saturation_range: Optional[Tuple[Any, Any]] = None,
             mask: Optional[np.ndarray] = None
-    ):
+    ) -> Self:
         """
         Normalises image intensities
         :param normalisation_method: string defining the normalisation method. Should be one of "none", "range",
@@ -750,7 +750,7 @@ class GenericImage(BaseImage):
         """
 
         # Skip for missing images
-        if self.image_data is None:
+        if self.is_empty():
             return self
 
         if intensity_range is None:
