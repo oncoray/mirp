@@ -2,6 +2,27 @@ from typing import Union
 
 
 class GeneralSettingsClass:
+    """
+    Sets general parameters.
+
+    Parameters
+    ----------
+    by_slice: str or bool, optional, default: False
+        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+        largest slice ("largest").
+
+    config_str: str, optional
+        Sets a configuration string, which can be used to differentiate results obtained using other settings.
+
+    divide_disconnected_roi: {"keep_as_is", "keep_largest", "combine"}, default: "keep_as_is"
+        Defines how masks are treated after being loaded.
+
+    no_approximation: bool, optional, default: False
+        Disables approximation of features, such as Geary's c-measure. Can be True or False (default).
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
 
     def __init__(
             self,
@@ -10,32 +31,6 @@ class GeneralSettingsClass:
             divide_disconnected_roi: str = "keep_as_is",
             no_approximation: bool = False,
             **kwargs):
-        """
-        Sets general parameters.
-
-        Parameters
-        ----------
-        by_slice: str or bool, optional, default: False
-            Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-            largest slice ("largest").
-
-        config_str: str, optional
-            Sets a configuration string, which can be used to differentiate results obtained using other settings.
-
-        divide_disconnected_roi: {"keep_as_is", "keep_largest", "combine"}, default: "keep_as_is"
-            Defines how masks are treated after being loaded.
-
-        no_approximation: bool, optional, default: False
-            Disables approximation of features, such as Geary's c-measure. Can be True or False (default).
-
-        **kwargs: dict, optional
-            Unused keyword arguments.
-
-        Returns
-        -------
-        GeneralSettingsClass
-            An instance of a GeneralSettingsClass object.
-        """
 
         # Parse and check slice information.
         if isinstance(by_slice, str):
