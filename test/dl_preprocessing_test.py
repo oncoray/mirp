@@ -206,6 +206,84 @@ def test_normalisation_standardisation():
     assert np.max(image) <= 4.0
     assert mask.shape == (60, 201, 204)
 
+
+def test_normalisation_range():
+    import numpy as np
+
+    # Intensity range-based normalisation without saturation and without range definition.
+    settings = SettingsClass(
+        base_feature_families="none",
+        response_map_feature_families="none",
+        intensity_normalisation="range",
+        tissue_mask_type="none"
+    )
+
+    data = process_data(settings)
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (60, 201, 204)
+    assert np.min(image) == 0.0
+    assert np.max(image) == 1.0
+    assert mask.shape == (60, 201, 204)
+
+    # Intensity range-based normalisation without saturation.
+    settings = SettingsClass(
+        base_feature_families="none",
+        response_map_feature_families="none",
+        intensity_normalisation="range",
+        intensity_normalisation_range=[-200.0, 200.0],
+        tissue_mask_type="none"
+    )
+
+    data = process_data(settings)
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (60, 201, 204)
+    assert np.min(image) < 0.0
+    assert np.max(image) > 1.0
+    assert mask.shape == (60, 201, 204)
+
+    # Intensity range-based normalisation with saturation
+    settings = SettingsClass(
+        base_feature_families="none",
+        response_map_feature_families="none",
+        intensity_normalisation="range",
+        intensity_normalisation_range=[-200.0, 200.0],
+        intensity_normalisation_saturation=[0.0, 1.0],
+        tissue_mask_type="none"
+    )
+
+    data = process_data(settings)
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (60, 201, 204)
+    assert np.min(image) == 0.0
+    assert np.max(image) == 1.0
+    assert mask.shape == (60, 201, 204)
+
+    # Intensity range-based normalisation with saturation and a rough tissue mask
+    settings = SettingsClass(
+        base_feature_families="none",
+        response_map_feature_families="none",
+        intensity_normalisation="range",
+        intensity_normalisation_range=[-200.0, 200.0],
+        intensity_normalisation_saturation=[0.0, 1.0],
+        tissue_mask_type="relative_range",
+        tissue_mask_range=[0.02, 1.00]
+    )
+
+    data = process_data(settings)
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (60, 201, 204)
+    assert np.min(image) == 0.0
+    assert np.max(image) == 1.0
+    assert mask.shape == (60, 201, 204)
+
     # Intensity z-standardisation without saturation
     settings = SettingsClass(
         base_feature_families="none",
