@@ -31,7 +31,7 @@ class CTImage(GenericImage):
         normalisation breaks the one-to-one relationship between intensities and Hounsfield units.
         """
         image = super().normalise_intensities(
-            normalisation_method="none",
+            normalisation_method=normalisation_method,
             intensity_range=intensity_range,
             saturation_range=saturation_range,
             mask=mask
