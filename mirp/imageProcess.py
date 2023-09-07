@@ -612,7 +612,7 @@ def normalise_image(
 def create_tissue_mask(
         image: GenericImage,
         mask_type: Optional[str] = None,
-        mask_intensity_range: Optional[Tuple[Any, Any]] = None
+        mask_intensity_range: Optional[Tuple[float, ...]] = None
 ) -> np.ndarray:
 
     if mask_type is None or mask_type == "none":
