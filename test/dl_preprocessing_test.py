@@ -1,4 +1,3 @@
-import pytest
 import os.path
 
 from mirp.settings.settingsClass import SettingsClass
@@ -8,8 +7,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_extract_image_crop():
-    import numpy as np
-
     # Configure settings.
     settings = SettingsClass(
         base_feature_families="none",
@@ -109,6 +106,48 @@ def test_extract_image_crop():
     assert all(image.shape == (1, 50, 50) for image in images)
     assert len(masks) == 26
     assert all(mask.shape == (1, 50, 50) for mask in masks)
+
+    # Crop to size with extrapolation.
+    data = deep_learning_preprocessing(
+        output_slices=False,
+        crop_size=[20, 300, 300],
+        export_images=True,
+        write_images=False,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        settings=settings
+    )
+
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (20, 300, 300)
+    assert image[0, 0, 0] == -1000.0
+    assert mask.shape == (20, 300, 300)
+    assert not mask[0, 0, 0]
+
+    # Split into splices (with mask present) and crop
+    data = deep_learning_preprocessing(
+        output_slices=True,
+        crop_size=[300, 300],
+        export_images=True,
+        write_images=False,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        settings=settings
+    )
+
+    images = data[0][0]
+    masks = data[0][1]
+
+    assert len(images) == 26
+    assert all(image.shape == (1, 300, 300) for image in images)
+    assert len(masks) == 26
+    assert all(mask.shape == (1, 300, 300) for mask in masks)
+    assert all(not mask[0, 0, 0] for mask in masks)
+
 
 def test_normalisation_saturation():
     ...
