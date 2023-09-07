@@ -1,3 +1,4 @@
+import copy
 import logging
 import sys
 import warnings
@@ -633,25 +634,45 @@ class StandardWorkflow(BaseWorkflow):
             output_slices: bool = False,
             crop_size: Optional[List[float]] = None
     ) -> Generator[Tuple[GenericImage, BaseMask], None, None]:
-        from mirp.imageProcess import crop_image_to_size
+        from mirp.imageProcess import crop_image_to_size, crop
+
+        # Avoid updating by reference.
+        crop_size = copy.deepcopy(crop_size)
+        pre_crop_size = []
 
         # Set crop_size.
         if crop_size is None and output_slices:
             crop_size = [None, None]
+            remove_empty_slices = False
+
         elif crop_size is None and not output_slices:
             crop_size = [None, None, None]
+            remove_empty_slices = False
+
         elif len(crop_size) == 1 and output_slices:
             crop_size = [crop_size[0], crop_size[0]]
+            remove_empty_slices = True
+
         elif len(crop_size) == 1 and not output_slices:
             crop_size = [crop_size[0], crop_size[0], crop_size[0]]
+            remove_empty_slices = False
+
         elif len(crop_size) == 2 and output_slices:
             crop_size = [crop_size[0], crop_size[1]]
+            remove_empty_slices = True
+
         elif len(crop_size) == 2 and not output_slices:
             crop_size = [None, crop_size[0], crop_size[1]]
+            remove_empty_slices = True
+
         elif len(crop_size) == 3 and output_slices:
+            pre_crop_size = [crop_size[0], None, None]
             crop_size = [crop_size[1], crop_size[2]]
+            remove_empty_slices = False
+
         elif len(crop_size) == 3 and not output_slices:
             crop_size = [crop_size[0], crop_size[1], crop_size[2]]
+            remove_empty_slices = False
         else:
             raise ValueError(f"The crop_size argument is longer than 3: {len(crop_size)}")
 
@@ -665,6 +686,24 @@ class StandardWorkflow(BaseWorkflow):
                 # Type hinting
                 image: Union[GenericImage] = image
                 mask: BaseMask = mask
+
+                # Pre-crop the image
+                if len(pre_crop_size) > 0:
+                    image, mask = crop_image_to_size(
+                        image=image,
+                        masks=mask,
+                        crop_size=pre_crop_size,
+                        crop_center=mask.get_center_position()
+                    )
+
+                # Remove slices where the mask is not present.
+                if remove_empty_slices:
+                    image, mask = crop(
+                        image=image,
+                        masks=mask,
+                        boundary=0.0,
+                        z_only=True
+                    )
 
                 # Find the overall crop center.
                 crop_center = mask.get_center_position()
@@ -680,17 +719,6 @@ class StandardWorkflow(BaseWorkflow):
                     if image_slices is None or mask_slices is None:
                         continue
 
-                    image_slices = [
-                        image_slice
-                        for ii, image_slice in enumerate(image_slices)
-                        if not mask_slices[ii].is_empty_mask()
-                    ]
-                    mask_slices = [
-                        mask_slice
-                        for mask_slice in mask_slices
-                        if not mask_slice.is_empty_mask()
-                    ]
-
                     if len(image_slices) == 0 or len(mask_slices) == 0:
                         continue
 
@@ -702,7 +730,7 @@ class StandardWorkflow(BaseWorkflow):
                             crop_center=crop_center
                         )
                 else:
-                    # 3D cropping
+                    # 3D-cropping.
                     yield crop_image_to_size(
                         image=image,
                         masks=mask,

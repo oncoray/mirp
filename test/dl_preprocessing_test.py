@@ -46,9 +46,9 @@ def test_extract_image_crop():
     images = data[0][0]
     masks = data[0][1]
 
-    assert len(images) == 26
+    assert len(images) == 60
     assert all(image.shape == (1, 201, 204) for image in images)
-    assert len(masks) == 26
+    assert len(masks) == 60
     assert all(mask.shape == (1, 201, 204) for mask in masks)
 
     # Crop to size.
@@ -84,8 +84,8 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 50, 50)
-    assert mask.shape == (60, 50, 50)
+    assert image.shape == (26, 50, 50)
+    assert mask.shape == (26, 50, 50)
 
     # Split into splices (with mask present) and crop
     data = deep_learning_preprocessing(
