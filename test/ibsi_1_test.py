@@ -3,9 +3,10 @@ import sys
 from math import log10, floor
 
 from mirp.extractFeaturesAndImages import extract_features
-from mirp.settings.settingsClass import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass,\
+from mirp.settings.settingsClass import SettingsClass, ImagePostProcessingClass,\
     ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass,\
     ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
+from mirp.settings.generalSettingsClass import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

@@ -3,9 +3,10 @@ import warnings
 from typing import Union, List
 from xml.etree import ElementTree as ElemTree
 
-from mirp.settings.settingsClass import GeneralSettingsClass, ImageInterpolationSettingsClass, \
+from mirp.settings.settingsClass import ImageInterpolationSettingsClass, \
     RoiInterpolationSettingsClass, ImagePostProcessingClass, ImagePerturbationSettingsClass, \
     ResegmentationSettingsClass, FeatureExtractionSettingsClass, ImageTransformationSettingsClass, SettingsClass
+from mirp.settings.generalSettingsClass import GeneralSettingsClass
 from mirp.settings.utilities import str2list, str2type, read_node
 
 
