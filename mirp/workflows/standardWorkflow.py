@@ -716,10 +716,7 @@ class StandardWorkflow(BaseWorkflow):
                     # Update crop center.
                     crop_center = [crop_center[1], crop_center[2]]
 
-                    if image_slices is None or mask_slices is None:
-                        continue
-
-                    if len(image_slices) == 0 or len(mask_slices) == 0:
+                    if image_slices is None or len(image_slices) == 0 or mask_slices is None or len(mask_slices) == 0:
                         continue
 
                     for ii, image_slice in enumerate(image_slices):
