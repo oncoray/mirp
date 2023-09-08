@@ -3,10 +3,14 @@ import warnings
 from typing import Union, List
 from xml.etree import ElementTree as ElemTree
 
-from mirp.settings.settingsClass import ImageInterpolationSettingsClass, \
-    RoiInterpolationSettingsClass, ImagePostProcessingClass, ImagePerturbationSettingsClass, \
-    ResegmentationSettingsClass, FeatureExtractionSettingsClass, ImageTransformationSettingsClass, SettingsClass
-from mirp.settings.generalSettingsClass import GeneralSettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
+from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
+from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
+from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.settingsGeneral import GeneralSettingsClass
 from mirp.settings.utilities import str2list, str2type, read_node
 
 
@@ -42,7 +46,7 @@ def import_configuration_settings(
             **kwargs)
 
         # Set ROI interpolation settings
-        roi_interpolation_settings = RoiInterpolationSettingsClass(**kwargs)
+        roi_interpolation_settings = MaskInterpolationSettingsClass(**kwargs)
 
         # Set post-processing settings
         post_processing_settings = ImagePostProcessingClass(**kwargs)
@@ -133,12 +137,12 @@ def import_configuration_settings(
         roi_interp_branch = branch.find("roi_interpolate")
 
         if roi_interp_branch is not None:
-            roi_interp_settings = RoiInterpolationSettingsClass(
+            roi_interp_settings = MaskInterpolationSettingsClass(
                 roi_spline_order=str2type(roi_interp_branch.find("spline_order"), "int", 1),
                 roi_interpolation_mask_inclusion_threshold=str2type(roi_interp_branch.find("incl_threshold"), "float", 0.5))
 
         else:
-            roi_interp_settings = RoiInterpolationSettingsClass()
+            roi_interp_settings = MaskInterpolationSettingsClass()
 
         # Image post-acquisition processing settings
         post_process_branch = branch.find("post_processing")

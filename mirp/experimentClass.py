@@ -8,7 +8,7 @@ import sys
 
 from warnings import warn
 from typing import List, Optional
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 from mirp.utilities import expand_grid
 
 

@@ -2,7 +2,7 @@ from typing import Union, List, Dict, Optional, Generator, Iterable
 import copy
 
 from mirp.importData.imageGenericFile import ImageFile
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 from mirp.workflows.standardWorkflow import StandardWorkflow
 
 

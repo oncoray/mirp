@@ -7,7 +7,7 @@ from typing import List, Union
 from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import NonSeparableWaveletTransformedImage
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 from mirp.imageFilters.genericFilter import GenericFilter
 
 

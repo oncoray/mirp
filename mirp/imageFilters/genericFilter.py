@@ -1,7 +1,7 @@
 from typing import List, Union
 
 from mirp.imageProcess import calculate_features
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from mirp.images.genericImage import GenericImage

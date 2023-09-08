@@ -6,7 +6,7 @@ from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import MeanTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import SeparableFilterSet
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 
 
 class MeanFilter(GenericFilter):

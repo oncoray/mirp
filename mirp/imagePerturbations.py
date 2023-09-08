@@ -2,7 +2,7 @@ import numpy as np
 
 from mirp.imageProcess import crop_image_deprecated, get_supervoxels_deprecated, get_supervoxel_overlap_deprecated
 from mirp.utilities import extract_roi_names
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 from mirp.imageClass import ImageClass
 from mirp.roiClass import RoiClass
 from typing import List

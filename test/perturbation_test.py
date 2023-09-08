@@ -3,10 +3,14 @@ import os
 import numpy as np
 import pandas as pd
 
-from mirp.settings.settingsClass import SettingsClass, ImagePostProcessingClass, \
-    ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass, \
-    ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
-from mirp.settings.generalSettingsClass import GeneralSettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
+from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
+from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
+from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.settingsGeneral import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -539,7 +543,7 @@ def create_settings(
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=resegmentation_settings,
         perturbation_settings=perturbation_settings,
         img_transform_settings=image_transformation_settings,

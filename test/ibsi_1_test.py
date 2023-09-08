@@ -3,10 +3,14 @@ import sys
 from math import log10, floor
 
 from mirp.extractFeaturesAndImages import extract_features
-from mirp.settings.settingsClass import SettingsClass, ImagePostProcessingClass,\
-    ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass,\
-    ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
-from mirp.settings.generalSettingsClass import GeneralSettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
+from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
+from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
+from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.settingsGeneral import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -77,7 +81,7 @@ def test_ibsi_1_digital_phantom():
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=ResegmentationSettingsClass(),
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
@@ -626,7 +630,7 @@ def test_ibsi_1_chest_config_a():
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=resegmentation_settings,
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
@@ -1042,7 +1046,7 @@ def test_ibsi_1_chest_config_b():
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=resegmentation_settings,
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
@@ -1459,7 +1463,7 @@ def test_ibsi_1_chest_config_c():
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=resegmentation_settings,
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
@@ -1737,7 +1741,7 @@ def test_ibsi_1_chest_config_d():
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=resegmentation_settings,
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
@@ -2018,7 +2022,7 @@ def test_ibsi_1_chest_config_e():
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=resegmentation_settings,
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,

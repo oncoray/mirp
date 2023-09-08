@@ -8,7 +8,8 @@ from typing import Optional, Union, Tuple, List, Generator
 import pandas as pd
 import numpy as np
 
-from mirp.settings.settingsClass import SettingsClass, FeatureExtractionSettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.workflows.baseWorkflow import BaseWorkflow
 from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage

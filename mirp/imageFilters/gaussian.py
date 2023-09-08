@@ -7,7 +7,7 @@ from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import GaussianTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 
 
 class GaussianFilter(GenericFilter):

@@ -7,7 +7,7 @@ from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import LawsTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import SeparableFilterSet, pool_voxel_grids
-from mirp.settings.settingsClass import SettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
 
 
 class LawsFilter(GenericFilter):
