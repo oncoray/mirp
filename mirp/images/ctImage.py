@@ -10,7 +10,7 @@ class CTImage(GenericImage):
 
     @staticmethod
     def get_default_lowest_intensity():
-        return -1000
+        return -1000.0
 
     def update_image_data(self):
         if self.image_data is None:

@@ -2,13 +2,188 @@ from typing import Union, List
 
 
 class FeatureExtractionSettingsClass:
+    """
+    Set of parameters related to feature computation.
+
+    Parameters
+    ----------
+    by_slice: str or bool, optional, default: False
+        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+        largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+
+    no_approximation: bool, optional, default: False
+        Disables approximation of features, such as Geary's c-measure. Can be True or False (default). See
+        :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+
+    base_feature_families: str or list of str, optional, default: "none"
+        Determines the feature families for which features are computed. Radiomics features are implemented as
+        defined in the IBSI reference manual. The following feature families are currently present, and can be added
+        using the following tags:
+
+        * Morphological features: "mrp", "morph", "morphology", and "morphological".
+        * Local intensity features: "li", "loc.int", "loc_int", "local_int", and "local_intensity".
+        * Intensity-based statistical features: "st", "stat", "stats", "statistics", and "statistical".
+        * Intensity histogram features: "ih", "int_hist", "int_histogram", and "intensity_histogram".
+        * Intensity-volume histogram features: "ivh", "int_vol_hist", and "intensity_volume_histogram".
+        * Grey level co-occurrence matrix (GLCM) features: "cm", "glcm", "grey_level_cooccurrence_matrix",
+          and "cooccurrence_matrix".
+        * Grey level run length matrix (GLRLM) features: "rlm", "glrlm", "grey_level_run_length_matrix", and
+          "run_length_matrix".
+        * Grey level size zone matrix (GLSZM) features: "szm", "glszm", "grey_level_size_zone_matrix", and
+          "size_zone_matrix".
+        * Grey level distance zone matrix (GLDZM) features: "dzm", "gldzm", "grey_level_distance_zone_matrix", and
+          "distance_zone_matrix".
+        * Neighbourhood grey tone difference matrix (NGTDM) features: "tdm", "ngtdm",
+          "neighbourhood_grey_tone_difference_matrix", and "grey_tone_difference_matrix".
+        * Neighbouring grey level dependence matrix (NGLDM) features: "ldm", "ngldm",
+          "neighbouring_grey_level_dependence_matrix", and "grey_level_dependence_matrix".
+
+        In addition, the following tags can be used:
+
+        * "none": no features are computed.
+        * "all": all features are computed.
+
+        A list of tags may be provided to select multiple feature families.
+
+    base_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "fixed_bin_size_pyradiomics", "none"}
+        Method used for discretising intensities. Used to compute intensity histogram as well as texture features.
+        The setting is ignored if none of these feature families are being computed. The following options are
+        available:
+
+        * "fixed_bin_number": The intensity range within the mask is divided into a fixed number of bins,
+          defined by the ``base_discretisation_bin_width`` parameter.
+        * "fixed_bin_size": The intensity range is divided into bins with a fixed width, defined using the
+          ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower
+          bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in
+          :class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. CT images have a default
+          lower bound of the initial bin at -1000.0 and PET images have a default lower bound at 0.0. Other images,
+          including MRI, normalised CT and PET images and filtered images, do not have a default value.
+        * "fixed_bin_size_pyradiomics": The intensity range is divided into bins with a fixed width. This follows the
+          non-IBSI compliant implementation in the pyradiomics package.
+        * "none": The intensity range is not discretised into bins. This method can only be used if the image
+          intensities are integer and strictly positive.
+
+         There is no default method. Multiple methods can be specified as a list to yield features according to each
+         method.
+
+    .. warning::
+        The "fixed_bin_size_pyradiomics" is not IBSI compliant, and should only be used when
+        reproducing results from studies that used pyradiomics.
+
+    base_discretisation_n_bins: int or list of int
+        Number of bins used for the "fixed_bin_number" discretisation method. No default value. Multiple values can
+        be specified in a list to yield features according to each number of bins.
+
+    base_discretisation_bin_width: float or list of float
+        Width of each bin in the "fixed_bin_size" discretisation method. No default value. Multiple values can be
+        specified in a list to yield features according to each bin size.
+
+    ivh_discretisation_method: {"fixed_bin_width", "fixed_bin_size", "none"}, optional, default: "none"
+        Method used for discretising intensities for computing intensity-volume histograms. The discretisation
+        methods follow those in ``base_discretisation_method``. The "none" method changes to "fixed_bin_number" if
+        the underlying data are not suitable.
+
+    ivh_discretisation_n_bins: int, optional, default: 1000
+        Number of bins used for the "fixed_bin_number" discretisation method.
+
+    ivh_discretisation_bin_width: float, optional
+        Width of each bin in the "fixed_bin_size" discretisation method. No default value.
+
+    glcm_distance: float or list of float, optional, default: 1.0
+        Distance (in voxels) for GLCM for determining the neighbourhood. Chebyshev, or checkerboard, distance is
+        used. A value of 1.0 will therefore consider all (diagonally) adjacent voxels as its neighbourhood. A list of
+        values can be provided to compute GLCM features at different scales.
+
+    glcm_spatial_method: {"2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"}, optional
+        Determines how co-occurrence matrices are formed and aggregated. One of the following:
+
+        * "2d_average": features are computed from all matrices then averaged [IBSI:BTW3].
+        * "2d_slice_merge": matrices in the same slice are merged, features computed and then averaged [IBSI:SUJT].
+        * "2.5d_direction_merge": matrices for the same direction are merged, features computed and then averaged
+          [IBSI:JJUI].
+        * "2.5d_volume_merge": all matrices are merged and a single feature is calculated [IBSI:ZW7Z].
+        * "3d_average": features are computed from all matrices then averaged [IBSI:ITBB].
+        * "3d_volume_merge": all matrices are merged and a single feature is computed from the merged matrix
+          [IBSI:IAZD].
+
+        A list of values may be provided to extract features for multiple spatial methods. Default: "2d_slice_merge"
+        (``by_slice = False``) or "3d_volume_merge" (``by_slice = True``).
+
+    glrlm_spatial_method: {"2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"}, optional
+        Determines how run length matrices are formed and aggregated. One of the following:
+
+        * "2d_average": features are calculated from all matrices then averaged [IBSI:BTW3].
+        * "2d_slice_merge": matrices in the same slice are merged, features computed and then averaged [IBSI:SUJT].
+        * "2.5d_direction_merge": matrices for the same direction are merged, features computed and then averaged
+          [IBSI:JJUI].
+        * "2.5d_volume_merge": all matrices are merged and a single feature is computed [IBSI:ZW7Z].
+        * "3d_average": features are computed from all matrices then averaged [IBSI:ITBB].
+        * "3d_volume_merge": all matrices are merged and a single feature is computed from the merged matrix
+          [IBSI:IAZD].
+
+        A list of values may be provided to extract features for multiple spatial methods. Default:
+        "2d_slice_merge" (``by_slice = False``) or "3d_volume_merge" (``by_slice = True``).
+
+    glszm_spatial_method: {"2d", "2.5d", "3d"}, optional
+        Determines how the size zone matrices are formed and aggregated. One of the following:
+
+        * "2d": features are computed from individual matrices and subsequently averaged [IBSI:8QNN].
+        * "2.5d": all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].
+        * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
+
+        A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
+        (``by_slice = False``) or "3d" (``by_slice = True``).
+
+    gldzm_spatial_method: {"2d", "2.5d", "3d"}, optional
+        Determines how the distance zone matrices are formed and aggregated. One of the following:
+
+        * "2d": features are computed from individual matrices and subsequently averaged [IBSI:8QNN].
+        * "2.5d": all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].
+        * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
+
+        A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
+        (``by_slice = False``) or "3d" (``by_slice = True``).
+
+    ngtdm_spatial_method: {"2d", "2.5d", "3d"}, optional
+        Determines how the neighbourhood grey tone difference matrices are formed and aggregated. One of the
+        following:
+
+        * "2d": features are computed from individual matrices and subsequently averaged [IBSI:8QNN].
+        * "2.5d": all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].
+        * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
+
+        A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
+        (``by_slice = False``) or "3d" (``by_slice = True``).
+
+    ngldm_distance: float or list of float, optional, default: 1.0
+        Distance (in voxels) for NGLDM for determining the neighbourhood. Chebyshev, or checkerboard, distance is
+        used. A value of 1.0 will therefore consider all (diagonally) adjacent voxels as its neighbourhood. A list of
+        values can be provided to compute NGLDM features at different scales.
+
+    ngldm_difference_level: float or list of float, optional, default: 0.0
+        Difference level (alpha) for NGLDM. Determines which discretisations are grouped together in the matrix.
+
+    ngldm_spatial_method: {"2d", "2.5d", "3d"}, optional
+        Determines how the neighbourhood grey level dependence matrices are formed and aggregated. One of the
+        following:
+
+        * "2d": features are computed from individual matrices and subsequently averaged [IBSI:8QNN].
+        * "2.5d": all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].
+        * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
+
+        A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
+        (``by_slice = False``) or "3d" (``by_slice = True``).
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
 
     def __init__(
             self,
-            by_slice: bool,
-            no_approximation: bool,
+            by_slice: bool = False,
+            no_approximation: bool = False,
             ibsi_compliant: bool = True,
-            base_feature_families: Union[None, str, List[str]] = "all",
+            base_feature_families: Union[None, str, List[str]] = "none",
             base_discretisation_method: Union[None, str, List[str]] = None,
             base_discretisation_n_bins: Union[None, int, List[int]] = None,
             base_discretisation_bin_width: Union[None, float, List[float]] = None,
@@ -24,126 +199,8 @@ class FeatureExtractionSettingsClass:
             ngldm_distance: Union[float, List[float]] = 1.0,
             ngldm_difference_level: Union[float, List[float]] = 0.0,
             ngldm_spatial_method: Union[None, str, List[str]] = None,
-            **kwargs):
-        """
-        Sets feature computation parameters for computation from the base image, without the image undergoing
-        convolutional filtering.
-
-        :param by_slice: Defines whether the experiment is by slice (True) or volumetric (False).
-            See :class:`mirp.importSettings.GeneralSettingsClass`.
-        :param no_approximation: Disables approximation of features, such as Geary's c-measure. See
-            :class:`mirp.importSettings.GeneralSettingsClass`.
-        :param base_feature_families: Determines the feature families for which features are computed. Radiomics
-            features are implemented as defined in the IBSI reference manual. The following feature families are
-            currently present, and can be added using the tags mentioned:
-
-            * Morphological features: "mrp", "morph", "morphology", and "morphological".
-            * Local intensity features: "li", "loc.int", "loc_int", "local_int", and "local_intensity".
-            * Intensity-based statistical features: "st", "stat", "stats", "statistics", and "statistical".
-            * Intensity histogram features: "ih", "int_hist", "int_histogram", and "intensity_histogram".
-            * Intensity-volume histogram features: "ivh", "int_vol_hist", and "intensity_volume_histogram".
-            * Grey level co-occurence matrix (GLCM) features: "cm", "glcm", "grey_level_cooccurrence_matrix", and
-            "cooccurrence_matrix".
-            * Grey level run length matrix (GLRLM) features: "rlm", "glrlm", "grey_level_run_length_matrix", and
-            "run_length_matrix".
-            * Grey level size zone matrix (GLSZM) features: "szm", "glszm", "grey_level_size_zone_matrix", and
-            "size_zone_matrix".
-            * Grey level distance zone matrix (GLDZM) features: "dzm", "gldzm", "grey_level_distance_zone_matrix", and
-            "distance_zone_matrix".
-            * Neighbourhood grey tone difference matrix (NGTDM) features: "tdm", "ngtdm",
-            "neighbourhood_grey_tone_difference_matrix", and "grey_tone_difference_matrix".
-            * Neighbouring grey level dependence matrix (NGLDM) features: "ldm", "ngldm",
-            "neighbouring_grey_level_dependence_matrix", and "grey_level_dependence_matrix".
-
-            A list of tags may be provided to select multiple feature families.
-            Default: "all" (features from all feature families are computed)
-        :param base_discretisation_method: Method used for discretising intensities. Used to compute intensity
-            histogram as well as texture features. "fixed_bin_size", "fixed_bin_number" and "none" methods are
-            implemented. The "fixed_bin_size" method uses the lower boundary of the resegmentation range
-            (``resegmentation_intensity_range``) as the edge of the initial bin. If this unset, a value of -1000.0,
-            0.0 or the minimum value in the ROI are used for CT, PET and other imaging modalities respectively. From
-            this starting point each bin has a fixed width defined by the ``base_discretisation_bin_width`` parameter.
-            The "fixed_bin_number" method divides the intensity range within the ROI into a number of bins,
-            defined by the ``base_discretisation_bin_width`` parameter. The "none" method assign each unique
-            intensity value is assigned its own bin. There is no default value.
-        :param base_discretisation_n_bins: Number of bins used for the "fixed_bin_number" discretisation method. No
-            default value.
-        :param base_discretisation_bin_width: Width of each bin in the "fixed_bin_size" discretisation method. No
-            default value.
-        :param ivh_discretisation_method: Discretisation method used to generate intensity bins for the
-            intensity-volume histogram. One of "fixed_bin_width", "fixed_bin_size" or "none". Default: "none".
-        :param ivh_discretisation_n_bins: Number of bins used for the "fixed_bin_number" discretisation method.
-        Default: 1000
-        :param ivh_discretisation_bin_width:  Width of each bin in the "fixed_bin_size" discretisation method. No
-            default value.
-        :param glcm_distance: Distance (in voxels) for GLCM for determining the neighbourhood. Chebyshev,
-            or checkerboard, distance is used. A value of 1.0 will therefore consider all (diagonally) adjacent
-            voxels as its neighbourhood. A list of values can be provided to compute GLCM features at different scales.
-            Default: 1.0
-        :param glcm_spatial_method: Determines how the cooccurrence matrices are formed and aggregated. One of the
-            following:
-
-             * "2d_average": features are calculated from all matrices then averaged [IBSI:BTW3].
-             * "2d_slice_merge": matrices in the same slice are merged, features calculated and then averaged [
-                IBSI:SUJT].
-             * "2.5d_direction_merge": matrices for the same direction are merged, features calculated and then averaged
-                [IBSI:JJUI].
-             * "2.5d_volume_merge": all matrices are merged and a single feature is calculated [IBSI:ZW7Z].
-             * "3d_average": features are calculated from all matrices then averaged [IBSI:ITBB].
-             * "3d_volume_merge": all matrices are merged and a single feature is calculated [IBSI:IAZD].
-
-              A list of values may be provided to extract features for multiple spatial methods.
-              Default: "2d_slice_merge" (by slice) or "3d_volume_merge" (volumetric).
-
-        :param glrlm_spatial_method:  Determines how run length matrices are formed and aggregated. One of the
-            following:
-
-             * "2d_average": features are calculated from all matrices then averaged [IBSI:BTW3].
-             * "2d_slice_merge": matrices in the same slice are merged, features calculated and then averaged [
-                IBSI:SUJT].
-             * "2.5d_direction_merge": matrices for the same direction are merged, features calculated and then averaged
-                [IBSI:JJUI].
-             * "2.5d_volume_merge": all matrices are merged and a single feature is calculated [IBSI:ZW7Z].
-             * "3d_average": features are calculated from all matrices then averaged [IBSI:ITBB].
-             * "3d_volume_merge": all matrices are merged and a single feature is calculated [IBSI:IAZD].
-
-              A list of values may be provided to extract features for multiple spatial methods.
-              Default: "2d_slice_merge" (by slice) or "3d_volume_merge" (volumetric).
-
-        :param glszm_spatial_method: Determines how the size zone matrices are formed and aggregated. One of "2d",
-            "2.5d" or "3d". The latter is only available when a volumetric analysis is conducted. For "2d",
-            features are computed from individual matrices and subsequently averaged [IBSI:8QNN]. For "2.5d" all 2D
-            matrices are merged and features are computed from this single matrix [IBSI:62GR]. For "3d" features are
-            computed from a single 3D matrix [IBSI:KOBO]. A list of values may be provided to extract features for
-            multiple spatial methods. Default: "2d" (by slice) or "3d" (volumetric).
-        :param gldzm_spatial_method: Determines how the distance zone matrices are formed and aggregated. One of "2d",
-            "2.5d" or "3d". The latter is only available when a volumetric analysis is conducted. For "2d",
-            features are computed from individual matrices and subsequently averaged [IBSI:8QNN]. For "2.5d" all 2D
-            matrices are merged and features are computed from this single matrix [IBSI:62GR]. For "3d" features are
-            computed from a single 3D matrix [IBSI:KOBO]. A list of values may be provided to extract features for
-            multiple spatial methods. Default: "2d" (by slice) or "3d" (volumetric).
-        :param ngtdm_spatial_method: Determines how the neighbourhood grey tone difference matrices are formed and
-            aggregated. One of "2d", "2.5d" or "3d". The latter is only available when a volumetric analysis is
-            conducted. For "2d", features are computed from individual matrices and subsequently averaged [IBSI:8QNN].
-            For "2.5d" all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].
-            For "3d" features are computed from a single 3D matrix [IBSI:KOBO]. A list of values may be provided to
-            extract features for multiple spatial methods. Default: "2d" (by slice) or "3d" (volumetric).
-        :param ngldm_distance: Distance (in voxels) for NGLDM for determining the neighbourhood. Chebyshev,
-            or checkerboard, distance is used. A value of 1.0 will therefore consider all (diagonally) adjacent
-            voxels as its neighbourhood. A list of values can be provided to compute NGLDM features at different scales.
-            Default: 1.0
-        :param ngldm_difference_level: Difference level (alpha) for NGLDM. Determines which discretisations are
-            grouped together in the matrix.
-        :param ngldm_spatial_method: Determines how the neighbourhood grey level dependence matrices are formed and
-            aggregated. One of "2d", "2.5d" or "3d". The latter is only available when a volumetric analysis is
-            conducted. For "2d", features are computed from individual matrices and subsequently averaged [IBSI:8QNN].
-            For "2.5d" all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].
-            For "3d" features are computed from a single 3D matrix [IBSI:KOBO]. A list of values may be provided to
-            extract features for multiple spatial methods. Default: "2d" (by slice) or "3d" (volumetric).
-        :param kwargs: unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.FeatureExtractionSettingsClass` object with configured parameters.
-        """
+            **kwargs
+    ):
         # Set by slice.
         self.by_slice: bool = by_slice
 
@@ -182,11 +239,13 @@ class FeatureExtractionSettingsClass:
             if not isinstance(base_discretisation_method, list):
                 base_discretisation_method = [base_discretisation_method]
 
-            if not all(discretisation_method in ["fixed_bin_size", "fixed_bin_number", "none"] for
-                       discretisation_method in base_discretisation_method):
+            if not all(discretisation_method in [
+                "fixed_bin_size", "fixed_bin_number", "fixed_bin_size_pyradiomics", "none"
+            ] for discretisation_method in base_discretisation_method):
                 raise ValueError(
-                    "Available values for the base_discretisation_method parameter are 'fixed_bin_size', "
-                    "'fixed_bin_number', and 'none'. One or more values were not recognised.")
+                    "Available values for the base_discretisation_method parameter are "
+                    "'fixed_bin_number', 'fixed_bin_size', 'fixed_bin_size_pyradiomics' and 'none'. "
+                    "One or more values were not recognised.")
 
             # Check discretisation_n_bins
             if "fixed_bin_number" in base_discretisation_method:
@@ -210,9 +269,10 @@ class FeatureExtractionSettingsClass:
                 base_discretisation_n_bins = None
 
             # Check discretisation_bin_width
-            if "fixed_bin_size" in base_discretisation_method:
+            if "fixed_bin_size" in base_discretisation_method or "fixed_bin_size_pyradiomics" in base_discretisation_method:
                 if base_discretisation_bin_width is None:
-                    raise ValueError("The base_discretisation_bin_width parameter has no default and must be set")
+                    raise ValueError(
+                        "The base_discretisation_bin_width parameter has no default value and must be set.")
 
                 if not isinstance(base_discretisation_bin_width, list):
                     base_discretisation_bin_width = [base_discretisation_bin_width]
