@@ -4,6 +4,78 @@ import numpy as np
 
 
 class ImagePostProcessingClass:
+    """
+    Set of parameters related to image processing.
+
+    Parameters
+    ----------
+    bias_field_correction: bool, optional, default: False
+        Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
+        correction is conducted using the information contained within the mask. Bias-field correction can only be
+        applied to MR imaging.
+
+    bias_field_correction_n_fitting_levels: int, optional, default: 3
+        The number of fitting levels for the N4 bias field correction algorithm.
+
+    bias_field_correction_n_max_iterations: int or list of int, optional, default: 100
+        The number of fitting iterations for the N4 bias field algorithm. A single integer, or a list of integers
+        with a length equal to the number of fitting levels is expected.
+
+    bias_field_convergence_threshold: float, optional, default: 0.001
+        Convergence threshold for N4 bias field correction algorithm.
+
+    intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation"}, default: "none"
+        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
+        masked by the tissue mask (of present). The following are possible:
+
+        * "none": no normalisation
+        * "range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
+          parameter, which is interpreted to represent an intensity range.
+        * "relative_range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
+          parameter, which is interpreted to represent a relative intensity range.
+        * "quantile_range": normalises intensities based on a fixed mapping against the
+          ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.
+        * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
+          deviation of intensities.
+
+    .. note::
+        intensity normalisation may remove any physical meaning of intensity units.
+
+    intensity_normalisation_range: list of float, optional
+        Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
+        intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the
+        type of normalisation method:
+
+        * "range": [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the
+          mapping range.
+        * "relative_range": [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are
+          used to set the mapping range.
+        * "quantile_range": [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used
+          to set the mapping range.
+
+        The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower
+        end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after
+        normalisation. Use ``intensity_normalisation_saturation`` to cap intensities after normalisation to a
+        specific range.
+
+    intensity_normalisation_saturation: list of float, optional, default: [np.nan, np.nan]
+        Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this
+        range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
+        than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
+        not be saturated.
+
+    tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
+        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
+         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
+
+    tissue_mask_range: list of float, optional
+        Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
+        options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
+        are considered to represent tissue).
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
 
     def __init__(
             self,
@@ -16,46 +88,8 @@ class ImagePostProcessingClass:
             intensity_normalisation_saturation: Union[List[float], None] = None,
             tissue_mask_type: str = "relative_range",
             tissue_mask_range: Union[List[float], None] = None,
-            **kwargs):
-        """
-        Sets parameters related to image post-processing. The current parameters can be used to post-process MR
-        imaging.
-
-        :param bias_field_correction: Determines whether N4 bias field correction should be performed. Only
-            applicable to MR imaging. When a tissue mask is present, bias field correction is conducted using the
-            information contained within the mask. Default: False
-        :param bias_field_correction_n_fitting_levels: The number of fitting levels for the N4 bias field correction
-            algorithm. Default: 3.
-        :param bias_field_correction_n_max_iterations: The number of fitting iterations for the N4 bias field
-            algorithm. A single integer, or a list of integers with a length equal to the number of fitting levels is
-            expected. Default: 100.
-        :param bias_field_convergence_threshold: Convergence threshold for N4 bias field correction algorithm.
-            Default: 0.001.
-        :param intensity_normalisation: Specifies the algorithm used to normalise intensities in the image. Will use
-            only intensities in voxels masked by the tissue mask. Can be "none" (no normalisation), "range" (maps to an
-            intensity range), "relative_range" (maps to a range of relative intensities), "quantile_range" (maps to a
-            range of relative intensities based on intensity percentiles), and "standardisation" (performs
-             z-normalisation). Default: "none".
-        :param intensity_normalisation_range: Defines the start and endpoint of the range that are mapped to the [
-            0.0, 1.0] interval for "range", "relative_range", and "quantile_range" intensity normalisation
-            algorithms. Default: [np.nan, np.nan] ("range"; this uses the intensity range in the image (mask) for
-            normalisation); [0.0, 1.0] ("relative_range"; this also uses the full intensity range); or [0.025,
-            0.975] ("quantile_range": the range is defined by the 2.5th and 97.5th percentiles of the intensities in
-            the image).
-        :param intensity_normalisation_saturation: Defines the start and endpoint for the saturation range. Values
-            after normalisation that lie outside this range are mapped to the limits of the range, e.g. with a range
-            of [0.0, 0.8] all values greater than 0.8 are assigned a value of 0.8. np.nan can be used to define
-            limits where the intensity values should not be saturated. Default: [np.nan, np.nan].
-        :param tissue_mask_type: Type of algorithm used to produce an approximate mask of the tissue. Such masks
-            can be used to select pixels for bias correction and intensity normalisation by excluding air. The mask
-            type can be "none", "range" (requires intensity values as `tissue_mask_range`), or "relative_range" (
-            requires fractions as `tissue_mask_range`). Default: "relative_range".
-        :param tissue_mask_range:  Range values for creating an approximate mask of the tissue. Required for range
-            and relative range options. Default: [0.02, 1.00] (relative_range); [0.0, np.nan] (range; effectively none).
-        :param kwargs: unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.ImagePostProcessingClass` object with configured parameters.
-        """
+            **kwargs
+    ):
 
         # Set bias_field_correction parameter
         self.bias_field_correction = bias_field_correction
@@ -250,7 +284,7 @@ class ImagePostProcessingClass:
             if tissue_mask_type == "relative_range":
                 tissue_mask_range = [0.02, 1.00]
             elif tissue_mask_type == "range":
-                tissue_mask_range = [0.0, np.nan]
+                tissue_mask_range = [np.nan, np.nan]
             else:
                 tissue_mask_range = [np.nan, np.nan]
 
