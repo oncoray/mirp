@@ -3,7 +3,7 @@ from typing import Union
 
 class GeneralSettingsClass:
     """
-    Sets general parameters.
+    Set of overall process parameters.
 
     Parameters
     ----------
