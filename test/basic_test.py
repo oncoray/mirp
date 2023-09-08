@@ -72,6 +72,7 @@ def run_experiment(image, roi, **kwargs):
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=True,
+        base_feature_families="all",
         base_discretisation_method=["fixed_bin_number", "fixed_bin_size"],
         base_discretisation_n_bins=12,
         base_discretisation_bin_width=25.0,
