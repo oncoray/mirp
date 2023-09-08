@@ -51,6 +51,7 @@ def test_ibsi_1_digital_phantom():
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=True,
+        base_feature_families="all",
         base_discretisation_method="none",
         ivh_discretisation_method="none",
         glcm_distance=[1.0],
@@ -607,6 +608,7 @@ def test_ibsi_1_chest_config_a():
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=False,
+        base_feature_families="all",
         base_discretisation_method="fixed_bin_size",
         base_discretisation_bin_width=25.0,
         ivh_discretisation_method="none",
@@ -1023,6 +1025,7 @@ def test_ibsi_1_chest_config_b():
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=False,
+        base_feature_families="all",
         base_discretisation_method="fixed_bin_number",
         base_discretisation_n_bins=32,
         ivh_discretisation_method="none",
@@ -1439,6 +1442,7 @@ def test_ibsi_1_chest_config_c():
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=False,
+        base_feature_families="all",
         base_discretisation_method="fixed_bin_size",
         base_discretisation_bin_width=25.0,
         ivh_discretisation_method="fixed_bin_size",
@@ -1719,6 +1723,7 @@ def test_ibsi_1_chest_config_d():
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=False,
+        base_feature_families="all",
         base_discretisation_method="fixed_bin_number",
         base_discretisation_n_bins=32,
         glcm_distance=1.0,
@@ -1998,6 +2003,7 @@ def test_ibsi_1_chest_config_e():
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=False,
+        base_feature_families="all",
         base_discretisation_method="fixed_bin_number",
         base_discretisation_n_bins=32,
         ivh_discretisation_method="fixed_bin_number",
