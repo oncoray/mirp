@@ -7,6 +7,225 @@ from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsCla
 
 
 class ImageTransformationSettingsClass:
+    """
+    Set of parameters related to image transformation using filters.
+
+    by_slice: str or bool, optional, default: False
+        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+        largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+
+    response_map_feature_families: str or list of str, optional, default: "statistics"
+        Determines the feature families for which features are computed from response maps (filtered images). Radiomics
+        features are implemented as defined in the IBSI reference manual. The following feature families can be
+        computed from response maps:
+
+        * Local intensity features: "li", "loc.int", "loc_int", "local_int", and "local_intensity".
+        * Intensity-based statistical features: "st", "stat", "stats", "statistics", and "statistical".
+        * Intensity histogram features: "ih", "int_hist", "int_histogram", and "intensity_histogram".
+        * Intensity-volume histogram features: "ivh", "int_vol_hist", and "intensity_volume_histogram".
+        * Grey level co-occurrence matrix (GLCM) features: "cm", "glcm", "grey_level_cooccurrence_matrix",
+          and "cooccurrence_matrix".
+        * Grey level run length matrix (GLRLM) features: "rlm", "glrlm", "grey_level_run_length_matrix", and
+          "run_length_matrix".
+        * Grey level size zone matrix (GLSZM) features: "szm", "glszm", "grey_level_size_zone_matrix", and
+          "size_zone_matrix".
+        * Grey level distance zone matrix (GLDZM) features: "dzm", "gldzm", "grey_level_distance_zone_matrix", and
+          "distance_zone_matrix".
+        * Neighbourhood grey tone difference matrix (NGTDM) features: "tdm", "ngtdm",
+          "neighbourhood_grey_tone_difference_matrix", and "grey_tone_difference_matrix".
+        * Neighbouring grey level dependence matrix (NGLDM) features: "ldm", "ngldm",
+          "neighbouring_grey_level_dependence_matrix", and "grey_level_dependence_matrix".
+
+        In addition, the following tags can be used:
+
+        * "none": no features are computed.
+        * "all": all features are computed.
+
+        A list of tags may be provided to select multiple feature families. Morphological features are not computed
+        from response maps, because these are mask-based and are invariant to filtering.
+
+    response_map_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "fixed_bin_size_pyradiomics", "none"}, optional, default: "fixed_bin_number"
+        Method used for discretising intensities. Used to compute intensity histogram as well as texture features.
+        The setting is ignored if none of these feature families are being computed. The following options are
+        available:
+
+        * "fixed_bin_number": The intensity range within the mask is divided into a fixed number of bins,
+          defined by the ``base_discretisation_bin_width`` parameter.
+        * "fixed_bin_size": The intensity range is divided into bins with a fixed width, defined using the
+          ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower
+          bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in
+          :class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. Other images,
+          including MRI, normalised CT and PET images and filtered images, do not have a default value, and bins are
+          created from using the minimum intensity as lower bound.
+        * "fixed_bin_size_pyradiomics": The intensity range is divided into bins with a fixed width. This follows the
+          non-IBSI compliant implementation in the pyradiomics package.
+        * "none": The intensity range is not discretised into bins. This method can only be used if the image
+          intensities are integer and strictly positive.
+
+        Multiple discretisation methods can be specified as a list to yield features according to each method.
+
+    .. note::
+        Use of the "fixed_bin_size", "fixed_bin_size_pyradiomics", and "none" discretisation methods is discouraged
+        for transformed images. Due to transformation, a direct link to any meaningful quantity represented by the
+        intensity of the original image (e.g. Hounsfield Units for CT, Standardised Uptake Value for PET) is lost.
+
+    response_map_discretisation_n_bins: int or list of int, optional, default: 16
+        Number of bins used for the "fixed_bin_number" discretisation method. Multiple values can be specified in a
+        list to yield features according to each number of bins.
+
+    response_map_discretisation_bin_width: float or list of float, optional
+        Width of each bin in the "fixed_bin_size" and "fixed_bin_size_pyradiomics" discretisation methods. Multiple
+        values can be specified in a list to yield features according to each bin width.
+
+    filter_kernels: str or list of str, optional, default: None
+        Names of the filters applied to the original image to create response maps (filtered images). Filter
+        implementation follows the IBSI reference manual. The following filters are supported:
+
+        * Mean filters: "mean"
+        * Gaussian filters: "gaussian", "riesz_gaussian", and "riesz_steered_gaussian"
+        * Laplacian-of-Gaussian filters: "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian",
+          "riesz_log", "riesz_steered_laplacian_of_gaussian", and "riesz_steered_log".
+        * Laws kernels: "laws"
+        * Gabor kernels: "gabor", "riesz_gabor", and "riesz_steered_gabor"
+        * Separable wavelets: "separable_wavelet"
+        * Non-separable wavelets: "nonseparable_wavelet", "riesz_nonseparable_wavelet",
+          and "riesz_steered_nonseparable_wavelet"
+
+        Filters with names that preceded by "riesz" undergo a Riesz transformation. If the filter name is
+        preceded by "riesz_steered", a steerable riesz filter is used.
+
+        More than one filter name can be provided. By default, no filters are selected, and image transformation is
+        skipped.
+
+    .. note::
+        There is no IBSI reference standard for Gaussian filters. However, the filter implementation is relatively
+        straightforward, and most likely reproducible.
+
+    .. warning::
+        Riesz transformation and steerable riesz transformations are experimental. The implementation of these
+        filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature derived
+        from response maps of Riesz transformations is unlikely to be reproducible.
+
+    boundary_condition: {"reflect", "constant", "nearest", "mirror", "wrap"}, optional, default: "mirror"
+        Sets the boundary condition, which determines how filters behave at the edge of an image. MIRP uses
+        the same nomenclature for boundary conditions as scipy.ndimage. See the ``mode`` parameter of
+        `scipy.ndimage.convolve
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.convolve.html#scipy.ndimage.convolve>`_
+
+    separable_wavelet_families: str or list str
+        Name of separable wavelet kernel as implemented in the ``pywavelets`` package. See `pywt.wavelist(
+        kind="discrete") <https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html#built-in-wavelets-wavelist>`_
+        for options.
+
+    separable_wavelet_set: str or list of str, optional
+        Filter orientation of separable wavelets. Allows for specifying combinations for high and low-pass filters.
+        For 2D (``by_slice=True``) filters, the following sets are possible: "hh", "hl", "lh", "ll" (y-x directions).
+        For 3D (``by_slice=False``) filters, the set of possibilities is larger: "hhh", "hhl", "hlh", "lhh", "hll",
+        "lhl", "llh", "lll". More than one  orientation may be set. Default: "hh" (2d) or "hhh (3d).
+
+    separable_wavelet_stationary: bool, optional, default: True
+        Determines if wavelets are stationary or not. Stationary wavelets maintain the image dimensions after
+        decomposition.
+
+    separable_wavelet_decomposition_level: int or list of int, optional, default: 1
+        Sets the wavelet decomposition level. For the first decomposition level, the base image is used as input to
+        generate a  response map. For decomposition levels greater than 1, the low-pass image from the previous level
+         is used as input. More than 1 value may be specified in a list.
+
+    separable_wavelet_rotation_invariance: bool, optional, default: True
+        Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates
+        permutations of the filter and, as a consequence, additional response maps. These maps are then merged using
+        the pooling method (``separable_wavelet_pooling_method``).
+
+    separable_wavelet_pooling_method: {"max", "min", "mean", "sum"}, optional, default: "max"
+        Response maps are pooled for computing a rotationally invariant response maps. This sets the method for
+        pooling.
+
+        * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
+          response maps.
+        * "min": Each voxel of the pooled response map represents the minimum value for that voxel in the underlying
+          response maps.
+        * "mean": Each voxel of the pooled response map represents the mean value for that voxel in the underlying
+          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,
+          and "max" or "min" pooling methods should be used instead.
+        * "sum": Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying
+          response maps. Similar to the "mean" pooling method, but without the normalisation.
+
+    separable_wavelet_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for separable wavelets. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    nonseparable_wavelet_families: {"shannon", "simoncelli"}
+        Name of non-separable wavelet kernels used for image transformation. Shannon and Simoncelli wavelets are
+        implemented.
+        
+    :param nonseparable_wavelet_decomposition_level: Decomposition level. Unlike the decomposition level
+        in separable wavelets, decomposition of non-separable wavelets is purely a filter-based operation.
+    :param nonseparable_wavelet_response: Type of response map created by nonseparable wavelet filters.
+        Nonseparable wavelets produce response maps with complex numbers. The complex-valued response map is
+        converted to a real-valued response map using the specified method; one of "modulus", "abs", "magnitude",
+         "angle", "phase", "argument", "real", "imaginary". Default: "real"
+    :param nonseparable_wavelet_boundary_condition: Sets the boundary condition for non-separable wavelets. This
+        supersedes any value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
+    :param gaussian_sigma: Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple
+        values can be specified. No default.
+    :param gaussian_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 4.0
+    :param gaussian_kernel_boundary_condition: Sets the boundary condition for the Gaussian filter. This
+        supersedes any value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
+    :param laplacian_of_gaussian_sigma: Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple
+        values can be specified. No default.
+    :param laplacian_of_gaussian_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 4.0
+    :param laplacian_of_gaussian_pooling_method: Determines whether and how response maps for filters with
+        different widths are pooled. Default: "none"
+    :param laplacian_of_gaussian_boundary_condition: Sets the boundary condition for the Laplacian-of-Gaussian
+        filter. This supersedes any value set by the general ``boundary_condition`` parameter. Default: same as
+        ``boundary_condition``.
+    :param laws_kernel: Compute specific Laws kernels these typically are specific combinations of kernels such
+    as L5S5E5, E5E5E5. No default.
+    :param laws_delta: Delta for chebyshev distance between center voxel and neighbourhood boundary used to
+        calculate energy maps: integer, default: 7
+    :param laws_compute_energy: Determine whether an energy image should be computed, or just the response map.
+        Default: True
+    :param laws_rotation_invariance: Determines whether separable filters are applied in a
+        pseudo-rotational invariant manner. This generates permutations of the filter and, as a consequence,
+        additional response maps. These maps are then merged using the pooling method (
+        ``laws_pooling_method``).
+        Default: True
+    :param laws_pooling_method: Determines the method used for pooling response maps from permuted
+        filters. Options are: "max", "min", "mean", "sum". Default: "max".
+    :param laws_boundary_condition: Sets the boundary condition for Laws kernels. This supersedes any
+    value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
+    :param gabor_sigma: Width of the Gaussian envelope in physical dimensions (e.g. mm). No default.
+    :param gabor_lambda: Wavelength of the oscillator. No default.
+    :param gabor_gamma: Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
+        relative to x-axis for 0-angle Gabor kernel. Default: 1.0
+    :param gabor_theta: Initial angle of the Gabor filter in degrees. Default: 0.0
+    :param gabor_theta_step: Angle step size in degrees for in-plane rotational invariance. A value of 0.0 or None (
+        default) disables stepping. Default: None
+    :param gabor_response: Type of response map created by Gabor filters. Gabor kernels consist of complex
+        numbers, and the directly computed response map will be complex as well. The complex-valued response map is
+        converted to a real-valued response map using the specified method; one of "modulus", "abs", "magnitude",
+         "angle", "phase", "argument", "real", "imaginary". Default: "modulus"
+    :param gabor_rotation_invariance: Determines whether (2D) Gabor filters are applied in a
+        pseudo-rotational invariant manner. If True, Gabor filters are applied in each of the orthogonal planes.
+        Default: False
+    :param gabor_pooling_method: Determines the method used for pooling response maps from permuted
+        filters. Options are: "max", "min", "mean", "sum". Default: "max".
+    :param gabor_boundary_condition: Sets the boundary condition for Gabor filter. This supersedes any value set
+        by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
+    :param mean_filter_kernel_size: Length of the kernel in pixels.
+    :param mean_filter_boundary_condition: Sets the boundary condition for mean filters. This supersedes any value
+        set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
+    :param riesz_filter_order: Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
+         vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],
+         [0, 1, 0]]. If an integer is provided, a set of filters is created. For example when
+         riesz_filter_order = 2 and a 2D filter is used, the following Riesz-transformations are performed: [2,
+         0], [1, 1] and [0, 2].  Note: order is (z, y, x). No default.
+    :param riesz_filter_tensor_sigma: Determines width of Gaussian filter used with Riesz filter banks. No default.
+    :param kwargs: unused keyword arguments.
+
+    :returns: A :class:`mirp.importSettings.ImageTransformationSettingsClass` object with configured parameters.
+    """
 
     def __init__(
             self,
@@ -57,163 +276,6 @@ class ImageTransformationSettingsClass:
             riesz_filter_tensor_sigma: Union[None, float, List[float]] = None,
             **kwargs
     ):
-        """
-        Sets parameters for filter transformation.
-
-        :param by_slice: Defines whether the experiment is by slice (True) or volumetric (False).
-            See :class:`mirp.importSettings.GeneralSettingsClass`.
-        :param response_map_feature_families: Determines the feature families for which features are computed. Radiomics
-            features are implemented as defined in the IBSI reference manual. The following feature families are
-            currently present, and can be added using the tags mentioned:
-
-            * Local intensity features: "li", "loc.int", "loc_int", "local_int", and "local_intensity".
-            * Intensity-based statistical features: "st", "stat", "stats", "statistics", and "statistical".
-            * Intensity histogram features: "ih", "int_hist", "int_histogram", and "intensity_histogram".
-            * Intensity-volume histogram features: "ivh", "int_vol_hist", and "intensity_volume_histogram".
-            * Grey level co-occurence matrix (GLCM) features: "cm", "glcm", "grey_level_cooccurrence_matrix", and
-            "cooccurrence_matrix".
-            * Grey level run length matrix (GLRLM) features: "rlm", "glrlm", "grey_level_run_length_matrix", and
-            "run_length_matrix".
-            * Grey level size zone matrix (GLSZM) features: "szm", "glszm", "grey_level_size_zone_matrix", and
-            "size_zone_matrix".
-            * Grey level distance zone matrix (GLDZM) features: "dzm", "gldzm", "grey_level_distance_zone_matrix", and
-            "distance_zone_matrix".
-            * Neighbourhood grey tone difference matrix (NGTDM) features: "tdm", "ngtdm",
-            "neighbourhood_grey_tone_difference_matrix", and "grey_tone_difference_matrix".
-            * Neighbouring grey level dependence matrix (NGLDM) features: "ldm", "ngldm",
-            "neighbouring_grey_level_dependence_matrix", and "grey_level_dependence_matrix".
-
-            A list of tags may be provided to select multiple feature families. Note that morphological features
-            cannot be computed for response maps, because these are mostly identical to morphological features
-            computed from the base image.
-            Default: "statistics" (intensity-based statistical features)
-        :param response_map_discretisation_method: Method used for discretising intensities in the response map.
-            Used to compute intensity
-            histogram as well as texture features. "fixed_bin_size", "fixed_bin_number" and "none" methods are
-            implemented. The "fixed_bin_size" method uses the lower boundary of the resegmentation range
-            (``resegmentation_intensity_range``) as the edge of the initial bin. If this unset, a value of -1000.0,
-            0.0 or the minimum value in the ROI are used for CT, PET and other imaging modalities respectively. From
-            this starting point each bin has a fixed width defined by the ``base_discretisation_bin_width`` parameter.
-            The "fixed_bin_number" method divides the intensity range within the ROI into a number of bins,
-            defined by the ``base_discretisation_bin_width`` parameter. The "none" method assign each unique
-            intensity value is assigned its own bin.  Use of "fixed_bin_width" is generally discouraged because most
-            filters lack a meaningful range. Default: "fixed_bin_number".
-        :param response_map_discretisation_n_bins: Number of bins used for the "fixed_bin_number" discretisation
-            method. Default: 16 bins.
-        :param response_map_discretisation_bin_width: Width of each bin in the "fixed_bin_size" discretisation method. No
-            default value.
-        :param filter_kernels: Names of the filter kernels for which response maps should be created. The following
-            filters are supported:
-
-            * Mean filters: "mean"
-            * Gaussian filters: "gaussian", "riesz_gaussian", and "riesz_steered_gaussian"
-            * Laplacian-of-Gaussian filters: "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian",
-                "riesz_log", "riesz_steered_laplacian_of_gaussian", and "riesz_steered_log".
-            * Laws kernels: "laws"
-            * Gabor kernels: "gabor", "riesz_gabor", and "riesz_steered_gabor"
-            * Separable wavelets: "separable_wavelet"
-            * Non-separable wavelets: "nonseparable_wavelet", "riesz_nonseparable_wavelet",
-                and "riesz_steered_nonseparable_wavelet"
-
-            Filters with names that preceded by "riesz" undergo a Riesz transformation. If the filter name is
-            preceded by "riesz_steered", a steerable riesz filter is used. Riesz transformation and steerable riesz
-            transformations are experimental.
-
-            More than one filter name can be provided. Default: None (no response maps are created)
-
-        :param boundary_condition: Sets the boundary condition, which determines how filter kernels behave at the
-            edge of the image. MIRP uses the same nomenclature for boundary conditions as scipy.ndimage: "reflect",
-            "constant", "nearest", "mirror", "wrap". Default: "mirror".
-        :param separable_wavelet_families: Name of separable wavelet kernels as implemented in pywavelets. No default.
-        :param separable_wavelet_set: Filter orientation of separable wavelets. Allows for specifying combinations
-            for high and low-pass filters. For 2D filters, the following sets are possible: "hh", "hl", "lh",
-            "ll" (y-x directions). For 3D filters, the set of possibilities is larger: "hhh", "hhl", "hlh", "lhh",
-            "hll", "lhl", "llh", "lll". More than one orientation may be set. Default: "hh" (2d) or "hhh (3d).
-        :param separable_wavelet_stationary: Determines if wavelets are stationary or not. Stationary wavelets
-            maintain the image dimensions after decomposition. Default: True
-        :param separable_wavelet_decomposition_level: Decomposition level. For the first decomposition level,
-            the base image is used as input to generate a response map. For decomposition levels greater than 1,
-            the low-pass image from the previous level is used as input. More than 1 value may be specified in a list.
-            Default: 1
-        :param separable_wavelet_rotation_invariance: Determines whether separable filters are applied in a
-            pseudo-rotational invariant manner. This generates permutations of the filter and, as a consequence,
-            additional response maps. These maps are then merged using the pooling method (
-            ``separable_wavelet_pooling_method``).
-            Default: True
-        :param separable_wavelet_pooling_method: Determines the method used for pooling response maps from permuted
-            filters. Options are: "max", "min", "mean", "sum". Default: "max".
-        :param separable_wavelet_boundary_condition: Sets the boundary condition for separable wavelets. This
-            supersedes any value set by the general ``boundary_condition`` parameter.
-            Default: same as ``boundary_condition``.
-        :param nonseparable_wavelet_families: Name of non-separable wavelet kernels. Currently "shannon" and
-            "simoncelli". No default.
-        :param nonseparable_wavelet_decomposition_level: Decomposition level. Unlike the decomposition level
-            in separable wavelets, decomposition of non-separable wavelets is purely a filter-based operation.
-        :param nonseparable_wavelet_response: Type of response map created by nonseparable wavelet filters.
-            Nonseparable wavelets produce response maps with complex numbers. The complex-valued response map is
-            converted to a real-valued response map using the specified method; one of "modulus", "abs", "magnitude",
-             "angle", "phase", "argument", "real", "imaginary". Default: "real"
-        :param nonseparable_wavelet_boundary_condition: Sets the boundary condition for non-separable wavelets. This
-            supersedes any value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-        :param gaussian_sigma: Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple
-            values can be specified. No default.
-        :param gaussian_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 4.0
-        :param gaussian_kernel_boundary_condition: Sets the boundary condition for the Gaussian filter. This
-            supersedes any value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-        :param laplacian_of_gaussian_sigma: Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple
-            values can be specified. No default.
-        :param laplacian_of_gaussian_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 4.0
-        :param laplacian_of_gaussian_pooling_method: Determines whether and how response maps for filters with
-            different widths are pooled. Default: "none"
-        :param laplacian_of_gaussian_boundary_condition: Sets the boundary condition for the Laplacian-of-Gaussian
-            filter. This supersedes any value set by the general ``boundary_condition`` parameter. Default: same as
-            ``boundary_condition``.
-        :param laws_kernel: Compute specific Laws kernels these typically are specific combinations of kernels such
-        as L5S5E5, E5E5E5. No default.
-        :param laws_delta: Delta for chebyshev distance between center voxel and neighbourhood boundary used to
-            calculate energy maps: integer, default: 7
-        :param laws_compute_energy: Determine whether an energy image should be computed, or just the response map.
-            Default: True
-        :param laws_rotation_invariance: Determines whether separable filters are applied in a
-            pseudo-rotational invariant manner. This generates permutations of the filter and, as a consequence,
-            additional response maps. These maps are then merged using the pooling method (
-            ``laws_pooling_method``).
-            Default: True
-        :param laws_pooling_method: Determines the method used for pooling response maps from permuted
-            filters. Options are: "max", "min", "mean", "sum". Default: "max".
-        :param laws_boundary_condition: Sets the boundary condition for Laws kernels. This supersedes any
-        value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-        :param gabor_sigma: Width of the Gaussian envelope in physical dimensions (e.g. mm). No default.
-        :param gabor_lambda: Wavelength of the oscillator. No default.
-        :param gabor_gamma: Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
-            relative to x-axis for 0-angle Gabor kernel. Default: 1.0
-        :param gabor_theta: Initial angle of the Gabor filter in degrees. Default: 0.0
-        :param gabor_theta_step: Angle step size in degrees for in-plane rotational invariance. A value of 0.0 or None (
-            default) disables stepping. Default: None
-        :param gabor_response: Type of response map created by Gabor filters. Gabor kernels consist of complex
-            numbers, and the directly computed response map will be complex as well. The complex-valued response map is
-            converted to a real-valued response map using the specified method; one of "modulus", "abs", "magnitude",
-             "angle", "phase", "argument", "real", "imaginary". Default: "modulus"
-        :param gabor_rotation_invariance: Determines whether (2D) Gabor filters are applied in a
-            pseudo-rotational invariant manner. If True, Gabor filters are applied in each of the orthogonal planes.
-            Default: False
-        :param gabor_pooling_method: Determines the method used for pooling response maps from permuted
-            filters. Options are: "max", "min", "mean", "sum". Default: "max".
-        :param gabor_boundary_condition: Sets the boundary condition for Gabor filter. This supersedes any value set
-            by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-        :param mean_filter_kernel_size: Length of the kernel in pixels.
-        :param mean_filter_boundary_condition: Sets the boundary condition for mean filters. This supersedes any value
-            set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-        :param riesz_filter_order: Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
-             vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],
-             [0, 1, 0]]. If an integer is provided, a set of filters is created. For example when
-             riesz_filter_order = 2 and a 2D filter is used, the following Riesz-transformations are performed: [2,
-             0], [1, 1] and [0, 2].  Note: order is (z, y, x). No default.
-        :param riesz_filter_tensor_sigma: Determines width of Gaussian filter used with Riesz filter banks. No default.
-        :param kwargs: unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.ImageTransformationSettingsClass` object with configured parameters.
-        """
         # Set by slice
         self.by_slice: bool = by_slice
 
