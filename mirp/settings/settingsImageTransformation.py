@@ -138,7 +138,7 @@ class ImageTransformationSettingsClass:
         the pooling method (``separable_wavelet_pooling_method``).
 
     separable_wavelet_pooling_method: {"max", "min", "mean", "sum"}, optional, default: "max"
-        Response maps are pooled for computing a rotationally invariant response maps. This sets the method for
+        Response maps are pooled to create a rotationally invariant response map. This sets the method for
         pooling.
 
         * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
@@ -158,73 +158,157 @@ class ImageTransformationSettingsClass:
     nonseparable_wavelet_families: {"shannon", "simoncelli"}
         Name of non-separable wavelet kernels used for image transformation. Shannon and Simoncelli wavelets are
         implemented.
-        
-    :param nonseparable_wavelet_decomposition_level: Decomposition level. Unlike the decomposition level
-        in separable wavelets, decomposition of non-separable wavelets is purely a filter-based operation.
-    :param nonseparable_wavelet_response: Type of response map created by nonseparable wavelet filters.
-        Nonseparable wavelets produce response maps with complex numbers. The complex-valued response map is
-        converted to a real-valued response map using the specified method; one of "modulus", "abs", "magnitude",
-         "angle", "phase", "argument", "real", "imaginary". Default: "real"
-    :param nonseparable_wavelet_boundary_condition: Sets the boundary condition for non-separable wavelets. This
-        supersedes any value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-    :param gaussian_sigma: Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple
-        values can be specified. No default.
-    :param gaussian_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 4.0
-    :param gaussian_kernel_boundary_condition: Sets the boundary condition for the Gaussian filter. This
-        supersedes any value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-    :param laplacian_of_gaussian_sigma: Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple
-        values can be specified. No default.
-    :param laplacian_of_gaussian_kernel_truncate: Width, in sigma, at which the filter is truncated. Default: 4.0
-    :param laplacian_of_gaussian_pooling_method: Determines whether and how response maps for filters with
-        different widths are pooled. Default: "none"
-    :param laplacian_of_gaussian_boundary_condition: Sets the boundary condition for the Laplacian-of-Gaussian
-        filter. This supersedes any value set by the general ``boundary_condition`` parameter. Default: same as
-        ``boundary_condition``.
-    :param laws_kernel: Compute specific Laws kernels these typically are specific combinations of kernels such
-    as L5S5E5, E5E5E5. No default.
-    :param laws_delta: Delta for chebyshev distance between center voxel and neighbourhood boundary used to
-        calculate energy maps: integer, default: 7
-    :param laws_compute_energy: Determine whether an energy image should be computed, or just the response map.
-        Default: True
-    :param laws_rotation_invariance: Determines whether separable filters are applied in a
-        pseudo-rotational invariant manner. This generates permutations of the filter and, as a consequence,
-        additional response maps. These maps are then merged using the pooling method (
-        ``laws_pooling_method``).
-        Default: True
-    :param laws_pooling_method: Determines the method used for pooling response maps from permuted
-        filters. Options are: "max", "min", "mean", "sum". Default: "max".
-    :param laws_boundary_condition: Sets the boundary condition for Laws kernels. This supersedes any
-    value set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-    :param gabor_sigma: Width of the Gaussian envelope in physical dimensions (e.g. mm). No default.
-    :param gabor_lambda: Wavelength of the oscillator. No default.
-    :param gabor_gamma: Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
-        relative to x-axis for 0-angle Gabor kernel. Default: 1.0
-    :param gabor_theta: Initial angle of the Gabor filter in degrees. Default: 0.0
-    :param gabor_theta_step: Angle step size in degrees for in-plane rotational invariance. A value of 0.0 or None (
-        default) disables stepping. Default: None
-    :param gabor_response: Type of response map created by Gabor filters. Gabor kernels consist of complex
-        numbers, and the directly computed response map will be complex as well. The complex-valued response map is
-        converted to a real-valued response map using the specified method; one of "modulus", "abs", "magnitude",
-         "angle", "phase", "argument", "real", "imaginary". Default: "modulus"
-    :param gabor_rotation_invariance: Determines whether (2D) Gabor filters are applied in a
-        pseudo-rotational invariant manner. If True, Gabor filters are applied in each of the orthogonal planes.
-        Default: False
-    :param gabor_pooling_method: Determines the method used for pooling response maps from permuted
-        filters. Options are: "max", "min", "mean", "sum". Default: "max".
-    :param gabor_boundary_condition: Sets the boundary condition for Gabor filter. This supersedes any value set
-        by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-    :param mean_filter_kernel_size: Length of the kernel in pixels.
-    :param mean_filter_boundary_condition: Sets the boundary condition for mean filters. This supersedes any value
-        set by the general ``boundary_condition`` parameter. Default: same as ``boundary_condition``.
-    :param riesz_filter_order: Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
-         vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],
-         [0, 1, 0]]. If an integer is provided, a set of filters is created. For example when
-         riesz_filter_order = 2 and a 2D filter is used, the following Riesz-transformations are performed: [2,
-         0], [1, 1] and [0, 2].  Note: order is (z, y, x). No default.
-    :param riesz_filter_tensor_sigma: Determines width of Gaussian filter used with Riesz filter banks. No default.
-    :param kwargs: unused keyword arguments.
 
-    :returns: A :class:`mirp.importSettings.ImageTransformationSettingsClass` object with configured parameters.
+    nonseparable_wavelet_decomposition_level: int or list of int, optional, default: 1
+        Sets the wavelet decomposition level. Unlike the decomposition level in separable wavelets, decomposition of
+        non-separable wavelets is purely a filter-based operation.
+
+    nonseparable_wavelet_response: {"modulus", "abs", "magnitude", "angle", "phase", "argument", "real", "imaginary"}, optional, default: "real"
+        Nonseparable wavelets produce response maps with complex numbers. The complex-valued response map is
+        converted to a real-valued response map using the specified method. "modulus", "abs", "magnitude" are
+        synonymous, as are "angle", "phase", and "argument". "real" selects the real component of the complex values,
+        and "imaginary" selects the imaginary component.
+
+    nonseparable_wavelet_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for non-separable wavelets. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    gaussian_sigma: float or list of float, optional
+         Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple values can be specified.
+
+    gaussian_kernel_truncate: float, optional, default: 4.0
+        Width, in units of sigma, at which the filter is truncated.
+
+    gaussian_kernel_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for Gaussian filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    laplacian_of_gaussian_sigma: float or list of float, optional
+        Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple values can be specified.
+
+    laplacian_of_gaussian_kernel_truncate: float, optional, default: 4.0
+        Width, in sigma, at which the filter is truncated.
+
+    laplacian_of_gaussian_pooling_method: {"max", "min", "mean", "sum", "none"}, optional, default: "none"
+        Determines whether and how response maps for filters with different widths (``laplacian_of_gaussian_sigma``)
+        are pooled.
+
+        * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
+          response maps.
+        * "min": Each voxel of the pooled response map represents the minimum value for that voxel in the underlying
+          response maps.
+        * "mean": Each voxel of the pooled response map represents the mean value for that voxel in the underlying
+          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,
+          and "max" or "min" pooling methods should be used instead.
+        * "sum": Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying
+          response maps. Similar to the "mean" pooling method, but without the normalisation.
+        * "none": Each Laplacian-of-Gaussian response map is treated separately, without pooling.
+
+    laplacian_of_gaussian_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for Laplacian-of-Gaussian filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    laws_kernel: str or list of str, optional
+        Compute specific Laws kernels these typically are specific combinations of kernels such as L5S5E5,
+        E5E5E5. The following kernels are available: 'l5', 'e5', 's5', 'w5', 'r5', 'l3', 'e3', 's3'. A combination of
+        two kernels is expected for 2D (``by_slice=True``), whereas a kernel triplet is expected for 3D filters (
+        ``by_slice=False``).
+
+    laws_compute_energy: bool, optional, default: True
+        Determine whether an energy image should be computed, or just the response map.
+
+    laws_delta: int or list of int, optional, default: 7
+        Delta for chebyshev distance between center voxel and neighbourhood boundary used to calculate energy maps.
+
+    laws_rotation_invariance: bool, optional, default: True
+        Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates
+        permutations of the filter and, as a consequence, additional response maps. These maps are then merged using
+        the pooling method (``laws_pooling_method``).
+
+    laws_pooling_method:  {"max", "min", "mean", "sum"}, optional, default: "max"
+        Response maps are pooled to create a rotationally invariant response map. This sets the method for
+        pooling.
+
+        * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
+          response maps.
+        * "min": Each voxel of the pooled response map represents the minimum value for that voxel in the underlying
+          response maps.
+        * "mean": Each voxel of the pooled response map represents the mean value for that voxel in the underlying
+          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,
+          and "max" or "min" pooling methods should be used instead.
+        * "sum": Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying
+          response maps. Similar to the "mean" pooling method, but without the normalisation.
+
+    laws_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for Laws filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    gabor_sigma: float or list of float, optional
+        Width of the Gaussian envelope in physical dimensions (e.g. mm). Multiple values can be specified.
+
+    gabor_lambda: float or list of float, optional
+        Wavelength of the oscillator component of the Gabor filter, in physical dimensions (e.g. mm).
+
+    gabor_gamma: float or list of float, optional, default: 1.0
+        Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis relative to
+        x-axis for 0-angle Gabor kernel. Default: 1.0
+
+    gabor_theta: float or list of flaot, optional, default: 0.0
+        Initial angle of the Gabor filter in degrees (not radians). Multiple angles can be provided.
+
+    gabor_theta_step: float, optional, default: None
+        Angle step size in degrees for in-plane rotational invariance. A value of 0.0 or None (default) disables
+        stepping.
+
+    gabor_response: {"modulus", "abs", "magnitude", "angle", "phase", "argument", "real", "imaginary"}, optional, default: "modulus"
+        Type of response map created by Gabor filters. Gabor kernels consist of complex numbers, and the response map
+        will be complex as well. The complex-valued response map is converted to a real-valued response map using the
+        specified method.
+
+    gabor_rotation_invariance: bool, optional, default: False
+        Determines whether (2D) Gabor filters are applied in a pseudo-rotational invariant manner. If True,
+        Gabor filters are applied in each of the orthogonal planes.
+
+    gabor_pooling_method: {"max", "min", "mean", "sum"}, optional, default: "max"
+        Response maps are pooled to create a rotationally invariant response map. This sets the method for
+        pooling.
+
+        * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
+          response maps.
+        * "min": Each voxel of the pooled response map represents the minimum value for that voxel in the underlying
+          response maps.
+        * "mean": Each voxel of the pooled response map represents the mean value for that voxel in the underlying
+          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,
+          and "max" or "min" pooling methods should be used instead.
+        * "sum": Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying
+          response maps. Similar to the "mean" pooling method, but without the normalisation.
+
+    gabor_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for Gabor filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    mean_filter_kernel_size: int or list of int, optional
+        Length of the kernel in pixels. Multiple values can be specified to create multiple response maps.
+
+    mean_filter_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for mean filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    riesz_filter_order: float, list of float or list of list of float, optional
+        Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
+        vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],
+        [0, 1, 0]]. If an integer is provided, a set of filters is created. For example when
+        riesz_filter_order = 2 and a 2D filter is used, the following Riesz-transformations are performed: [2,
+        0], [1, 1] and [0, 2].
+
+    .. note::
+          Riesz filter order uses the numpy coordinate ordering and represents (z, y, x) directions.
+
+    riesz_filter_tensor_sigma: float or list of float, optional
+        Determines width of Gaussian filter used with Riesz filter banks.
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
     """
 
     def __init__(
@@ -410,13 +494,15 @@ class ImageTransformationSettingsClass:
                 "laplacian_of_gaussian_sigma")
 
             # Check filter truncation.
-            laplacian_of_gaussian_kernel_truncate = self.check_truncation(laplacian_of_gaussian_kernel_truncate,
-                                                                          "laplacian_of_gaussian_kernel_truncate")
+            laplacian_of_gaussian_kernel_truncate = self.check_truncation(
+                laplacian_of_gaussian_kernel_truncate,
+                "laplacian_of_gaussian_kernel_truncate")
 
             # Check pooling method.
-            laplacian_of_gaussian_pooling_method = self.check_pooling_method(laplacian_of_gaussian_pooling_method,
-                                                                             "laplacian_of_gaussian_pooling_method",
-                                                                             allow_none=True)
+            laplacian_of_gaussian_pooling_method = self.check_pooling_method(
+                laplacian_of_gaussian_pooling_method,
+                "laplacian_of_gaussian_pooling_method",
+                allow_none=True)
 
             # Check boundary condition.
             laplacian_of_gaussian_boundary_condition = self.check_boundary_condition(
@@ -509,7 +595,7 @@ class ImageTransformationSettingsClass:
                     gabor_theta_step = None
 
             if gabor_theta_step is not None:
-                # Check that the step would divide the 360 degree circle into a integer number of steps.
+                # Check that the step would divide the 360-degree circle into an integer number of steps.
                 if not (360.0 / gabor_theta_step).is_integer():
                     raise ValueError(
                         f"The gabor_theta_step parameter should divide a circle into equal portions. "
@@ -753,7 +839,6 @@ class ImageTransformationSettingsClass:
         # Import pywavelets.
         import pywt
 
-        # Check if list.
         if not isinstance(x, list):
             x = [x]
 
@@ -771,7 +856,6 @@ class ImageTransformationSettingsClass:
 
     @staticmethod
     def check_nonseparable_wavelet_families(x, var_name):
-        # Check if list.
         if not isinstance(x, list):
             x = [x]
 
@@ -789,7 +873,6 @@ class ImageTransformationSettingsClass:
 
     @staticmethod
     def check_decomposition_level(x, var_name):
-        # Check if list.
         if not isinstance(x, list):
             x = [x]
 

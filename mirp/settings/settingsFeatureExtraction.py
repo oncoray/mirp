@@ -161,7 +161,7 @@ class FeatureExtractionSettingsClass:
         values can be provided to compute NGLDM features at different scales.
 
     ngldm_difference_level: float or list of float, optional, default: 0.0
-        Difference level (alpha) for NGLDM. Determines which discretisations are grouped together in the matrix.
+        Difference level (alpha) for NGLDM. Determines which bins are grouped together in the matrix.
 
     ngldm_spatial_method: {"2d", "2.5d", "3d"}, optional
         Determines how the neighbourhood grey level dependence matrices are formed and aggregated. One of the
