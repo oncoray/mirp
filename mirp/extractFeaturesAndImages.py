@@ -174,6 +174,16 @@ def _generate_feature_and_image_extraction_workflows(
 
     for image_file in image_list:
         for current_settings in settings:
+
+            if not current_settings.feature_extr.has_any_feature_family() and (
+                    current_settings.img_transform.spatial_filters is not None and not
+                    current_settings.img_transform.feature_settings.has_any_feature_family()
+            ) and (export_features or write_features):
+                raise ValueError(
+                    "No feature families were specified. Please set 'base_feature_families' or"
+                    " 'response_map_feature_families'."
+                )
+
             if current_settings.perturbation.noise_repetitions is None or \
                     current_settings.perturbation.noise_repetitions == 0:
                 noise_repetition_ids = [None]
