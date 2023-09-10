@@ -164,7 +164,7 @@ class MaskInterpolationSettingsClass:
         <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
         .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
         and cubic interpolation, respectively.
-        
+
     roi_interpolation_mask_inclusion_threshold: float, optional, default: 0.5
         Threshold for partially masked voxels after interpolation. All voxels with a value equal to or greater than
         this threshold are assigned to the mask.

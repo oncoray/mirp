@@ -4,30 +4,37 @@ import numpy as np
 
 
 class ResegmentationSettingsClass:
+    """
+    Set of parameters related to mask resegmentation. Resegmentation is used to remove parts of the
+    mask that correspond to undesired intensities that should be excluded, e.g. those corresponding to air.
+    Re-segmentation based on an intensity range is also required for using Fixed Bin Size discretisation,
+    as the lower bound of the range is used
 
+    Parameters
+    ----------
+    Sets parameters related to resegmentation of the segmentation mask.
+
+    resegmentation_method: {"none", "threshold", "range", "sigma", "outlier"}, optional, default: "none"
+        Re-segmentation method. "threshold" and "range" are synonymous and will perform resegmentation based on the
+        intensity range provided as the `resegmentation_intensity_range` parameter below. "sigma" and "outlier" are
+        synonymous for re-segmentation based on the distribution of intensities of voxels in the mask.
+
+    resegmentation_intensity_range: list of float, optional, default: None
+        Intensity threshold for threshold-based re-segmentation ("threshold" and "range"). If set, requires two
+        values for lower and upper range respectively. The upper range value can also be np.nan for half-open ranges.
+
+    resegmentation_sigma: float, optional, default: 3.0
+        Number of standard deviations for outlier-based intensity re-segmentation ("sigma" and "outlier").
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
     def __init__(
             self,
             resegmentation_method: Union[str, List[str]] = "none",
             resegmentation_intensity_range: Union[None, List[float]] = None,
             resegmentation_sigma: float = 3.0,
             **kwargs):
-        """
-        Sets parameters related to resegmentation of the ROI mask. Resegmentation is used to remove parts of the
-        mask that correspond to undesired intensities that should be excluded, e.g. those corresponding to air.
-
-        :param resegmentation_method: ROI re-segmentation method for intensity-based re-segmentation. Options are
-            "none", "threshold", "range", "sigma" and "outlier". Multiple options can be provided, and re-segmentation
-            will take place in the given order. "threshold" and "range" are synonyms, as well as "sigma" and "outlier".
-            Default: "none"
-        :param resegmentation_intensity_range: Intensity threshold for threshold-based re-segmentation ("threshold" and
-            "range"). If set, requires two values for lower and upper range respectively. The upper range value can
-            also be np.nan for half-open ranges. Default: None
-        :param resegmentation_sigma:  Number of standard deviations for outlier-based intensity re-segmentation.
-            Default: 3.0
-        :param kwargs: unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.ResegmentationSettingsClass` object with configured parameters.
-        """
 
         # Check values for resegmentation_method.
         if not isinstance(resegmentation_method, list):
