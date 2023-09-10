@@ -2,6 +2,71 @@ from typing import Union, List
 
 
 class ImagePerturbationSettingsClass:
+    """
+    Set of parameters image perturbation. Under default conditions, images are not perturbed in any way.
+
+    Parameters
+    ----------
+
+    crop_around_roi: bool, optional, default: False
+        Determines whether the image may be cropped around the regions of interest. Setting
+        this to True may speed up computation and save memory.
+
+    crop_distance: float, optional, default: 150.0
+        Physical distance around the mask that should be maintained when cropping the image. When using convolutional
+        kernels for filtering an image, we recommend to leave some distance to prevent boundary effects. A crop
+        distance of 0.0 crops the image tightly around the mask.
+
+    perturbation_noise_repetitions: int, optional, default: 0
+        Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
+        added.
+
+    perturbation_noise_level: float, optional, default: None
+        Set the noise level in intensity units. This determines the width of the normal distribution used to generate
+        random noise. If None (default), noise is determined from the image itself.
+
+    perturbation_rotation_angles: float or list of float, optional, default: 0.0
+        Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
+        plane. Multiple angles can be provided to create images with different rotations.
+
+    perturbation_translation_fraction: float or list of float, optional, default: 0.0
+        Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
+        shift slightly and interpolate at different points. Multiple values can be provided. All values should be
+        between 0.0 and 1.0.
+
+    perturbation_roi_adapt_type: {"fraction", "distance"}, optional, default: "distance"
+        Determines how the mask is grown or shrunk. Can be either "fraction" or "distance". "fraction" is used to
+        grow or shrink the mask by a certain fraction (see the ``perturbation_roi_adapt_size`` parameter).
+        "distance" is used to grow or shrink the mask by a certain physical distance, defined using the
+        ``perturbation_roi_adapt_size`` parameter.
+
+    perturbation_roi_adapt_size: float or list of float, optional, default: 0.0
+        Determines the extent of growth/shrinkage of the ROI mask. The use of this parameter depends on the
+        growth/shrinkage type (``perturbation_roi_adapt_type``), For "distance", this parameter defines
+        growth/shrinkage in physical units, typically mm. For "fraction", this parameter defines growth/shrinkage in
+        volume fraction (e.g. a value of 0.2 grows the mask by 20%). For either type, positive values indicate growing
+        the mask, whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the
+        volume of the mask.
+
+    perturbation_roi_adapt_max_erosion: float, optional, default: 0.8
+        Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
+        the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
+        used when ``perturbation_roi_adapt_type=="distance"``.
+
+    perturbation_randomise_roi_repetitions: int, optional, default: 0.0
+        Number of repetitions where the mask is randomised using supervoxel-based randomisation.
+
+    roi_split_boundary_size: float or list of float, optional, default: 0.0
+        Width of the rim used for splitting the mask into bulk and rim masks, in physical dimensions. Multiple values
+        can be provided to generate rims of different widths.
+
+    roi_split_max_erosion: float, optional, default: 0.6
+        Determines the minimum volume of the bulk mask when splitting the original mask into bulk and rim sections.
+        Fraction of the original volume, e.g. 0.6 means that the bulk contains at least 60% of the original mask.
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
 
     def __init__(self,
                  crop_around_roi: bool = False,
@@ -17,51 +82,6 @@ class ImagePerturbationSettingsClass:
                  roi_split_boundary_size: Union[None, List[float], float] = 0.0,
                  roi_split_max_erosion: float = 0.6,
                  **kwargs):
-        """
-        Sets parameters for perturbing the image.
-
-        :param crop_around_roi: Determines whether the image may be cropped around the regions of interest. Setting
-            this to True may speed up calculations and save memory. Default: False.
-        :param crop_distance: Physical distance around the ROI mask that should be maintained when cropping the image.
-            When using convolutional kernels for filtering an image, we recommend to leave some distance to prevent
-            boundary effects from interfering with the contents in the ROI. A crop distance of 0.0 crops the image
-            tightly around the ROI. Default: 150 units (usually mm).
-        :param perturbation_noise_repetitions: Number of times noise is randomly added to the image. Used in noise
-            addition image perturbations. Default: 0 (no noise is added).
-        :param perturbation_noise_level: Set the noise level in intensity units. This determines the width of the
-            normal distribution used to generate random noise. If None, noise is determined from the image itself.
-            Default: None
-        :param perturbation_rotation_angles: Angles (in degrees) over which the image and mask are rotated. This
-            rotation is only in the x-y (axial) plane. Multiple angles can be provided. Used in the rotation image
-            perturbation. Default: 0.0 (no rotation)
-        :param perturbation_translation_fraction: Sub-voxel translation distance fractions of the interpolation
-            grid. This forces the interpolation grid to shift slightly and interpolate at different points. Multiple
-            values can be provided. Value should be between 0.0 and 1.0. Used in translation perturbations.
-            Default: 0.0 (no shifting).
-        :param perturbation_roi_adapt_type: Determines how the ROI mask is grown or shrunk. Can be either "fraction"
-            or "distance". "fraction" is used to grow or shrink the ROI mask by a certain fraction (see the
-            ``perturbation_roi_adapt_size`` parameter and is used in the volume growth/shrinkage image perturbation.
-            "distance" is used to grow or shrink the ROI by a certain physical distance, defined using the
-            ``perturbation_roi_adapt_size`` parameter. Default: "distance"
-        :param perturbation_roi_adapt_size: Determines the extent of growth/shrinkage of the ROI mask.
-            The use of this parameter depends on the growth/shrinkage type (``perturbation_roi_adapt_type``),
-            For "distance", this parameter defines growth/shrinkage in physical units, typically mm. For "fraction":
-            growth/shrinkage in volume fraction. For either type, positive values indicate growing the ROI mask,
-            whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the volume of
-            the ROI mask. Default: 0.0 (no changes).
-        :param perturbation_roi_adapt_max_erosion: Limit to shrinkage of the ROI by distance-based adaptations.
-            Fraction of the original volume. Only used when ``perturbation_roi_adapt_type=="distance"``. Default: 0.8
-        :param perturbation_randomise_roi_repetitions: Number of repetitions of supervoxel-based randomisation of
-            the ROI mask. Default: 0 (no changes).
-        :param roi_split_boundary_size: Split ROI mask into a bulk and a boundary rim section. This parameter
-            determines the width of the rim. Multiple values can be provided to generate rims of different widths.
-            Default: 0.0
-        :param roi_split_max_erosion: Determines the minimum volume of the bulk ROI mask when splitting the ROI into
-            bulk and rim sections. Fraction of the original volume. Default: 0.6
-        :param kwargs: unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.ImagePerturbationSettingsClass` object with configured parameters.
-        """
 
         # Set crop_around_roi
         self.crop_around_roi: bool = crop_around_roi
