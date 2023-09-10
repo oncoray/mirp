@@ -10,6 +10,8 @@ class ImageTransformationSettingsClass:
     """
     Set of parameters related to image transformation using filters.
 
+    Parameters
+    ----------
     by_slice: str or bool, optional, default: False
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
         largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.

@@ -2,6 +2,43 @@ from typing import Union, List, Iterable
 
 
 class ImageInterpolationSettingsClass:
+    """
+    Set of parameters related to image interpolating.
+
+    Parameters
+    ----------
+    by_slice: str or bool, optional, default: False
+        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+        largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+
+    interpolate: bool, optional, default: False
+        Controls whether interpolation of images to a common grid is performed at all.
+
+    spline_order: int, optional, default: 3
+        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
+        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
+        and cubic interpolation, respectively.
+
+    new_spacing: float or list of float or list of list of float:
+        Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
+        directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
+        (if `by_slice = False`) or 2 values for y and x directions (otherwise).
+
+        Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
+        same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
+        are defined by the headers of the image files. These are typically millimeters for radiological images.
+
+    anti_aliasing: bool, optional, default: true
+        Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.
+
+    smoothing_beta: float, optional, default: 0.98
+        Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
+        anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
 
     def __init__(
             self,
@@ -11,29 +48,8 @@ class ImageInterpolationSettingsClass:
             new_spacing: Union[float, int, List[int], List[float], None] = None,
             anti_aliasing: bool = True,
             smoothing_beta: float = 0.98,
-            **kwargs):
-        """
-        Sets parameters related to image interpolation.
-
-        :param by_slice: Defines whether the experiment is by slice (True) or volumetric (False).
-            See :class:`mirp.importSettings.GeneralSettingsClass`.
-        :param interpolate: Controls whether interpolation of images to a common grid is performed at all.
-        :param spline_order: Sets the spline order used for spline interpolation. Default: 3 (tricubic spline).
-        :param new_spacing: Sets voxel spacing after interpolation. A single value represents the spacing that
-            will be applied in all directions. Non-uniform voxel spacing may also be provided, but requires 3 values
-            for z, y, and x directions (if `by_slice = False`) or 2 values for y and x directions (otherwise).
-            Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
-            same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
-            are defined by the headers of the image files. These are typically millimeters for radiological images.
-        :param anti_aliasing: Determines whether to perform anti-aliasing, which is done to mitigate aliasing
-            artifacts when downsampling. Default: True
-        :param smoothing_beta: Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of
-            1.00 equates no anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90
-            are recommended. Default: 0.98
-        :param kwargs: Unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.ImageInterpolationSettingsClass` object with configured parameters.
-        """
+            **kwargs
+    ):
 
         # Set interpolate parameter.
         self.interpolate: bool = interpolate
@@ -137,25 +153,32 @@ class ImageInterpolationSettingsClass:
 
 
 class MaskInterpolationSettingsClass:
+    """
+    Set of parameters related to mask interpolation. mirp registers the mask to an interpolated image. Therefore,
+    parameters such as `new_spacing` are missing.
+
+    Parameters
+    ----------
+    roi_spline_order: int, optional, default: 1
+        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
+        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
+        and cubic interpolation, respectively.
+        
+    roi_interpolation_mask_inclusion_threshold: float, optional, default: 0.5
+        Threshold for partially masked voxels after interpolation. All voxels with a value equal to or greater than
+        this threshold are assigned to the mask.
+
+    **kwargs: dict, optional
+        Unused keyword arguments.
+    """
 
     def __init__(
             self,
             roi_spline_order: int = 1,
             roi_interpolation_mask_inclusion_threshold: float = 0.5,
             **kwargs):
-        """
-        Sets interpolation parameters for the region of interest mask. MIRP actively maps the interpolation mask to the
-        image, which is interpolated prior to the mask. Therefore, parameters such as new_spacing are missing.
 
-        :param roi_spline_order: Sets the spline order used for spline interpolation of the mask. Default: 1 (
-            trilinear interpolation).
-        :param roi_interpolation_mask_inclusion_threshold: Threshold for ROIs with partial volumes after
-            interpolation. All voxels with a value equal to or greater than this threshold are assigned to the mask.
-            Default: 0.5
-        :param kwargs: Unused keyword arguments.
-
-        :returns: A :class:`mirp.importSettings.RoiInterpolationSettingsClass` object with configured parameters.
-        """
 
         # Check if the spline order is valid.
         if roi_spline_order < 0 or roi_spline_order > 5:
