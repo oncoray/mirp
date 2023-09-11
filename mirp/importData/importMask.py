@@ -61,7 +61,7 @@ def import_mask(
 
     Returns
     -------
-    list of MaskFile
+    mask_list: list of MaskFile
         The functions returns a list of MaskFile objects, if any were found with the specified filters.
 
     """
