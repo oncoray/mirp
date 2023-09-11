@@ -15,8 +15,7 @@ def extract_mask_labels(
         mask_sub_folder: Optional[str] = None,
         stack_masks: str = "auto",
         write_file: bool = False,
-        write_dir: Optional[str] = None,
-        **kwargs
+        write_dir: Optional[str] = None
 ):
     """
     Extract labels present in one or more masks.
