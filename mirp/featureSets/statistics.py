@@ -22,23 +22,6 @@ def get_intensity_statistics_features(image: GenericImage, mask: BaseMask):
     return feature_data
 
 
-def get_intensity_statistics_features_deprecated(img_obj, roi_obj):
-    """
-    Extract intensity statistics features for the given ROI
-    :param img_obj: image object
-    :param roi_obj: roi object with the requested ROI mask
-    :return: pandas DataFrame with feature values
-    """
-
-    # Convert image volume to table
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
-
-    # Extract features
-    df_feat = compute_intensity_statistics_features(df_img=df_img)
-
-    return df_feat
-
-
 def compute_intensity_statistics_features(df_img):
     """
     Definitions of intensity-volume histogram features
