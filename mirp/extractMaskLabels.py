@@ -1,4 +1,9 @@
-from typing import Union, Optional, List
+from typing import Union, Optional, List, Generator, Dict
+
+import os
+import pandas as pd
+
+from mirp.importData.imageGenericFile import MaskFile
 
 
 def extract_mask_labels(
@@ -54,15 +59,24 @@ def extract_mask_labels(
         DICOM files ignore this argument, because their stacking can be determined from metadata.
 
     write_file: bool, optional, default: False
-        Determines whether the labels should be written to
+        Determines whether the labels should be written to a table.
+
+    write_dir: str, optional, default: None
+        Folder
 
     Returns
     -------
-    list of MaskFile
-        The functions returns a list of MaskFile objects, if any were found with the specified filters.
+    pd.DataFrame or None
+        The functions returns a table with labels extracted from mask files.
 
     """
     from mirp.importData.importMask import import_mask
+
+    if not write_file:
+        write_dir = None
+
+    if write_file and write_dir is None:
+        raise ValueError("write_dir argument should be provided for writing a table with mask names to a table.")
 
     mask_list = import_mask(
         mask=mask,
@@ -73,3 +87,25 @@ def extract_mask_labels(
         mask_sub_folder=mask_sub_folder,
         stack_masks=stack_masks
     )
+
+    labels = [_extract_mask_labels(ii, mask) for ii, mask in enumerate(mask_list)]
+    labels = pd.DataFrame(labels)
+
+    if write_file:
+        write_dir = os.path.normpath(write_dir)
+        if not os.path.exists(write_dir):
+            os.makedirs(write_dir)
+
+        labels.to_csv(
+            path_or_buf=os.path.join(write_dir, "mask_labels.csv")
+        )
+    else:
+        return labels
+
+
+def _extract_mask_labels(mask: MaskFile, index) -> Generator[Dict[str, str], None, None]:
+
+    labels = mask.export_roi_labels()
+    labels.update(dict(["mask_index", index]))
+
+    yield labels
