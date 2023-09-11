@@ -3,8 +3,6 @@ import pandas as pd
 
 from typing import Tuple, Optional
 
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import TransformedImage

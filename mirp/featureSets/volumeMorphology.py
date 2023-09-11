@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask

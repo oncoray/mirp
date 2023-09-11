@@ -3,8 +3,6 @@ import pandas as pd
 import copy
 
 from mirp.featureSets.utilities import get_neighbour_directions, is_list_all_none, coord2Index, get_intensity_value
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask

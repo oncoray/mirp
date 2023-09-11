@@ -4,8 +4,6 @@ import pandas as pd
 import copy
 
 from mirp.featureSets.utilities import is_list_all_none
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
 from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass

@@ -4,8 +4,6 @@ import numpy as np
 import pandas as pd
 
 from mirp.featureSets.utilities import get_neighbour_directions, is_list_all_none, coord2Index
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
 from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
