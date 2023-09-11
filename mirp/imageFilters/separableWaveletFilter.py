@@ -2,7 +2,6 @@ import numpy as np
 import copy
 
 from typing import Union, List
-from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import SeparableWaveletTransformedImage
 from mirp.settings.settingsGeneric import SettingsClass
@@ -123,74 +122,6 @@ class SeparableWaveletFilter(GenericFilter):
                 x2=pooled_voxel_grid,
                 pooling_method=self.pooling_method
             )
-
-            # Remove pooled_voxel_grid to explicitly release memory when collecting garbage.
-            del pooled_voxel_grid
-
-        if self.pooling_method == "mean":
-            # Perform final pooling step for mean pooling.
-            response_voxel_grid = np.divide(response_voxel_grid, len(filter_set_list))
-
-        # Store the voxel grid in the ImageObject.
-        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
-
-        return response_map
-
-    def transform_deprecated(self, img_obj: ImageClass):
-
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Set spatial transformation filter string
-        spatial_transform_string = ["wavelet", self.wavelet_family, self.filter_configuration]
-        if not self.stationary_wavelet:
-            spatial_transform_string += ["decimated"]
-        if self.rotational_invariance:
-            spatial_transform_string += ["invar"]
-        spatial_transform_string += ["level", str(self.decomposition_level)]
-
-        # Set the name of the transform.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
-        # Skip transformation in case the input image is missing
-        if img_obj.is_missing:
-            return response_map
-
-        # Initialise voxel grid.
-        response_voxel_grid = None
-
-        # Get filter list.
-        filter_set_list: List[SeparableFilterSet] = self.get_filter_set().permute_filters(
-            rotational_invariance=self.rotational_invariance,
-            require_pre_filter=True
-        )
-
-        for ii, filter_set in enumerate(filter_set_list):
-
-            # Extract the voxel grid as starting point.
-            pooled_voxel_grid = img_obj.get_voxel_grid()
-
-            for decomposition_level in np.arange(1, self.decomposition_level + 1):
-
-                # Determine whether the pre-filter should be applied. This is the case for decomposition levels
-                # smaller than self.decomposition_level.
-                use_pre_filter = decomposition_level < self.decomposition_level
-
-                # Convolve and compute the response map.
-                pooled_voxel_grid = filter_set.convolve(
-                    voxel_grid=pooled_voxel_grid,
-                    mode=self.mode,
-                    use_pre_filter=use_pre_filter)
-
-                if use_pre_filter:
-                    # Decompose the filter set for the next level.
-                    filter_set.decompose_filter()
-
-            # Pool grids.
-            response_voxel_grid = pool_voxel_grids(
-                x1=response_voxel_grid,
-                x2=pooled_voxel_grid,
-                pooling_method=self.pooling_method)
 
             # Remove pooled_voxel_grid to explicitly release memory when collecting garbage.
             del pooled_voxel_grid

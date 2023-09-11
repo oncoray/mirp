@@ -2,7 +2,6 @@ import numpy as np
 import copy
 
 from typing import List, Union
-from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import LaplacianOfGaussianTransformedImage
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
@@ -107,58 +106,6 @@ class LaplacianOfGaussianFilter(GenericFilter):
         if self.pooling_method == "mean":
             # Perform final pooling step for mean pooling.
             response_voxel_grid = np.divide(response_voxel_grid, ii + 1)
-
-        # Set voxel grid.
-        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
-
-        return response_map
-
-    def transform_deprecated(self, img_obj: ImageClass):
-        """
-        Transform image by calculating the laplacian of the gaussian second derivatives
-        :param img_obj: image object
-        :sigma_cut_off: number of standard deviations for cut-off of the gaussian filter
-        """
-
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Prepare the string for the spatial transformation.
-        spatial_transform_string = ["log"]
-
-        if self.pooling_method == "none":
-            spatial_transform_string += ["s", str(self.sigma)]
-
-        else:
-            spatial_transform_string += [self.pooling_method]
-
-        # Set spatial transformation name.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
-        if img_obj.is_missing:
-            return response_map
-
-        # Set response voxel grid.
-        response_voxel_grid = None
-
-        # Initialise iterator ii to avoid IDE warnings.
-        ii = 0
-        for ii, pooled_filter_object in enumerate(self.generate_object(allow_pooling=False)):
-
-            # Generate transformed voxel grid.
-            pooled_voxel_grid = pooled_filter_object.transform_grid(
-                voxel_grid=img_obj.get_voxel_grid(),
-                spacing=img_obj.spacing)
-
-            # Pool voxel grids.
-            response_voxel_grid = pool_voxel_grids(
-                x1=response_voxel_grid,
-                x2=pooled_voxel_grid,
-                pooling_method=self.pooling_method)
-
-        if self.pooling_method == "mean":
-            # Perform final pooling step for mean pooling.
-            response_voxel_grid = np.divide(response_voxel_grid, ii+1)
 
         # Set voxel grid.
         response_map.set_voxel_grid(voxel_grid=response_voxel_grid)

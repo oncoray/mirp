@@ -4,7 +4,6 @@ import numpy as np
 import scipy.fft as fft
 
 from typing import List, Union
-from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import NonSeparableWaveletTransformedImage
 from mirp.settings.settingsGeneric import SettingsClass
@@ -100,32 +99,6 @@ class NonseparableWaveletFilter(GenericFilter):
 
         # Store the voxel grid in the ImageObject.
         response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
-
-        return response_map
-
-    def transform_deprecated(
-            self,
-            img_obj: ImageClass):
-
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Prepare the string for the spatial transformation.
-        spatial_transform_string = ["wavelet", self.wavelet_family]
-        spatial_transform_string += ["level", str(self.decomposition_level)]
-
-        # Set the name of the transformation.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
-        # Skip transformation in case the input image is missing
-        if img_obj.is_missing:
-            return response_map
-
-        # Create voxel grid
-        img_wavelet_grid = self.convolve(voxel_grid=img_obj.get_voxel_grid())
-
-        # Store the voxel grid in the ImageObject.
-        response_map.set_voxel_grid(voxel_grid=img_wavelet_grid)
 
         return response_map
 

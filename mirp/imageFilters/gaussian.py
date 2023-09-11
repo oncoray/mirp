@@ -2,7 +2,6 @@ import numpy as np
 import copy
 
 from typing import Union, List
-from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import GaussianTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
@@ -87,36 +86,6 @@ class GaussianFilter(GenericFilter):
             voxel_grid=image.get_voxel_grid(),
             sigma=voxel_sigma)
         )
-
-        return response_map
-
-    def transform_deprecated(self, img_obj: ImageClass):
-        """
-        Transform image by calculating the laplacian of the gaussian second derivatives
-        :param img_obj: image object
-
-        :return:
-        """
-
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Set spatial transformation string for transformed object
-        response_map.set_spatial_transform("gauss_s" + str(self.sigma))
-
-        # Skip transform in case the input image is missing
-        if img_obj.is_missing:
-            return response_map
-
-        # Calculate sigma for current image
-        vox_sigma = np.divide(
-            np.full(shape=3, fill_value=self.sigma),
-            img_obj.spacing)
-
-        # Apply filters
-        response_map.set_voxel_grid(voxel_grid=self.transform_grid(
-            voxel_grid=img_obj.get_voxel_grid(),
-            sigma=vox_sigma))
 
         return response_map
 

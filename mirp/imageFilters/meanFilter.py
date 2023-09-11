@@ -1,7 +1,6 @@
 import copy
 import numpy as np
 
-from mirp.imageClass import ImageClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import MeanTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
@@ -74,46 +73,5 @@ class MeanFilter(GenericFilter):
             voxel_grid=image.get_voxel_grid(),
             mode=self.mode)
         )
-
-        return response_map
-
-    def transform_deprecated(self, img_obj: ImageClass):
-        """
-        Transform image by calculating the mean
-        :param img_obj: image object
-        :return:
-        """
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Prepare the string for the spatial transformation.
-        spatial_transform_string = ["mean"]
-        spatial_transform_string += ["d", str(self.filter_size)]
-
-        # Set the name of the transformation.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
-        # Skip transform in case the input image is missing
-        if img_obj.is_missing:
-            return response_map
-
-        # Set up the filter kernel.
-        filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size
-
-        # Create a filter set.
-        if self.by_slice:
-            filter_set = SeparableFilterSet(
-                filter_x=filter_kernel,
-                filter_y=filter_kernel)
-        else:
-            filter_set = SeparableFilterSet(
-                filter_x=filter_kernel,
-                filter_y=filter_kernel,
-                filter_z=filter_kernel)
-
-        # Apply the filter.
-        response_map.set_voxel_grid(voxel_grid=filter_set.convolve(
-            voxel_grid=img_obj.get_voxel_grid(),
-            mode=self.mode))
 
         return response_map
