@@ -1,18 +1,7 @@
 import os
 from collections import Counter
-from itertools import product
 
-import pandas as pd
 import numpy as np
-
-
-def extract_roi_names(roi_list):
-    """
-    Extract the names of the regions of interest in roi_list
-    :param roi_list: List of roi objects
-    :return: List of roi names
-    """
-    return [roi.name for roi in roi_list]
 
 
 def parse_roi_name(roi: str):
@@ -39,11 +28,6 @@ def parse_roi_name(roi: str):
         indiv_roi = [roi.strip()]
 
     return indiv_roi
-
-
-def expand_grid(data_dict):
-    rows = product(*data_dict.values())
-    return pd.DataFrame.from_records(rows, columns=data_dict.keys())
 
 
 def check_string(input_string):
@@ -84,26 +68,6 @@ def get_version():
         version = version_file.read().strip()
 
     return version
-
-
-def get_spherical_structure(radius, spacing):
-    import numpy as np
-
-    # Define extent in index coordinates
-    extent = np.ceil(np.divide(radius, spacing)).astype(int)
-
-    # Generate coordinate grids. Note that this will generate a grid with 0,0,0 as center voxel.
-    grid_z, grid_y, grid_x = np.mgrid[-extent[0]:extent[0]+1, -extent[1]:extent[1]+1, -extent[2]:extent[2]+1]
-
-    # Transform coordinates back to real world space. We then square the values to compute the Euclidean norm later on.
-    grid_z = np.power(grid_z * spacing[0], 2.0)
-    grid_y = np.power(grid_y * spacing[1], 2.0)
-    grid_x = np.power(grid_x * spacing[2], 2.0)
-
-    # Compute the Euclidean distance to each voxel center and filter by radius.
-    geom_struct = np.sqrt(grid_z + grid_y + grid_x) <= radius
-
-    return geom_struct
 
 
 def makedirs_check(path):
