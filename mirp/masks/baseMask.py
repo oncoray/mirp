@@ -515,8 +515,13 @@ class BaseMask:
         mrp_voxel_grid = mask_copy.roi_morphology.get_voxel_grid()
 
         # Compute bounding boxes
-        int_bounding_box_dim = np.squeeze(np.diff(mask_copy.get_bounding_box(), axis=0) + 1)
-        mrp_bounding_box_dim = np.squeeze(np.diff(mask_copy.get_bounding_box(), axis=0) + 1)
+        int_bounding_box_dim = mask_copy.roi_intensity.get_bounding_box()
+        mrp_bounding_box_dim = mask_copy.roi_morphology.get_bounding_box()
+        if any(x is None for x in int_bounding_box_dim) or (y is None for y in mrp_bounding_box_dim):
+            return df
+
+        int_bounding_box_dim = np.squeeze(np.diff(int_bounding_box_dim, axis=0) + 1)
+        mrp_bounding_box_dim = np.squeeze(np.diff(mrp_bounding_box_dim, axis=0) + 1)
 
         # Set intensity mask features
         df["int_map_dim_x"] = mask_copy.roi_intensity.image_dimension[2]
