@@ -157,66 +157,11 @@ def parse_file_structure(data_config, file, use_folder_name=True):
         data_obj.restructure_files(file=file, use_folder_name=use_folder_name)
 
 
-def extract_images_for_deep_learning(data_config,
-                                     settings_config,
-                                     output_slices=False,
-                                     crop_size=None,
-                                     center_crops_per_slice=True,
-                                     remove_empty_crops=True,
-                                     intensity_range=None,
-                                     normalisation="none",
-                                     as_numpy=False,
-                                     plot_images=False):
-    """
-    Extract images for deep learning.
-
-    :param data_config: full path to a data configuration xml file.
-    :param settings_config: full path to a settings configuration xml file.
-    :param output_slices: whether to produce image slices (True) or an image volume (False) as output.
-    :param crop_size: set size of the crop. If two values are specified, crops are created in the axial
-    plane (y, x). In case three values are provided, the slice stack is cropped to the given size (z, y, x). Providing
-    three values allows for generating three-dimensional crops. If only one value is provided, an axial crop with
-    equal x and y dimensions is created.
-    :param center_crops_per_slice: Specifies whether crops are centered the ROI on each individual slice (True) or on
-    the overall center of mass (False). This setting is ignored (False) if crop_size is specified to generate
-    three-dimensional crops.
-    :param remove_empty_crops: Specifies whether slices without a mask are removed (True) or kept (False). This
-    setting is ignored (False) if crop_size is specified to generate three-dimensional crops.
-    :param intensity_range: Range (if any) for saturating image intensities. Image intensities outside this range
-    receive the nearest valid value.
-    :param normalisation: Method used to normalise image intensity. Can be one of "none", "range" or
-    "standardisation". Image intensities are normalised after saturating the image.
-    :param as_numpy: Specify whether the slices and masks should be returned as numpy ndarrays (True) or MIRP image
-    and ROI objects (False).
-    :param plot_images: flag to plot images and masks as .png (default: False)
-    :return: List of (ImageClass) images with (RoiClass) masks
-
-    This function allows unified processing of images for input into deep learning networks.
-    """
-
-    # Parse data
-    settings_list = import_configuration_settings(
-        compute_features=False,
-        path=settings_config)
-    data_obj_list = import_data_settings(path=data_config,
-                                         config_settings=settings_list,
-                                         keep_images_in_memory=False,
-                                         compute_features=False,
-                                         extract_images=False,
-                                         plot_images=plot_images)
-
-    # Process images for deep learning
-    image_list = []
-    for data_obj in data_obj_list:
-        image_list += data_obj.process_deep_learning(output_slices=output_slices,
-                                                     crop_size=crop_size,
-                                                     center_crops_per_slice=center_crops_per_slice,
-                                                     remove_empty_crops=remove_empty_crops,
-                                                     normalisation=normalisation,
-                                                     as_numpy=as_numpy,
-                                                     intensity_range=intensity_range)
-
-    return image_list
+def extract_images_for_deep_learning(**kwargs):
+    raise RuntimeError(
+        f"The extract_images_for_deep_learning function has been replaced by "
+        f"mirp.deepLearningPreprocessing.deep_learning_preprocessing."
+    )
 
 
 def parallel_process(data_obj):

@@ -47,7 +47,7 @@ For advanced users and developers, the following changes are relevant:
 If you use MIRP, please cite the following work:
 ```Zwanenburg A, Leger S, Agolli L, Pilz K, Troost EG, Richter C, Löck S. Assessing robustness of radiomic features by image perturbation. Scientific reports. 2019 Jan 24;9(1):614.```
 
-# Developers
+# Developers and contributors
 
 MIRP is developed by:
 * Alex Zwanenburg
