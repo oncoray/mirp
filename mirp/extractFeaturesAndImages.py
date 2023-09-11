@@ -63,7 +63,7 @@ def extract_images_generator(
 
 
 def extract_features_and_images(
-        image_export_format: "str" = "dict",
+        image_export_format: str = "dict",
         **kwargs
 ):
     workflows = list(_base_extract_features_and_images(**kwargs))
@@ -71,7 +71,7 @@ def extract_features_and_images(
 
 
 def extract_features_and_images_generator(
-        image_export_format: "str" = "dict",
+        image_export_format: str = "dict",
         **kwargs
 ):
     workflows = list(_base_extract_features_and_images(**kwargs))
