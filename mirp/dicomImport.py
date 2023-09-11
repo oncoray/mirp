@@ -7,7 +7,6 @@ import pydicom
 import pandas as pd
 import numpy as np
 
-from mirp.contourClass import ContourClassDeprecated
 from mirp.imageSUV import SUVscalingObj
 from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
