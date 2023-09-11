@@ -114,30 +114,10 @@ def get_image_acquisition_parameters(data_config=None, settings_config=None, plo
         return df_meta
 
 
-def get_file_structure_parameters(data_config, to_file=True):
-    # Create separate data object for each subject
-    data_obj_list = import_data_settings(data_config, None, file_structure=True)
-
-    # Initiate an empty list
-    meta_list = []
-
-    # Iterate over all data and extract imaging parameters
-    for data_obj in data_obj_list:
-        meta_list += [data_obj.get_file_structure_information()]
-
-    # Concatenate list
-    df_meta = pd.concat(meta_list, sort=False)
-
-    # Write to file
-    if to_file:
-        write_path = data_obj_list[0].write_path
-        file_path = os.path.normpath(os.path.join(write_path, "file_meta_data.csv"))
-        df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
-
-        logging.info(f"Writing overview of images files to {file_path}.")
-
-    else:
-        return df_meta
+def get_file_structure_parameters(**kwargs):
+    raise RuntimeError(
+        f"The get_file_structure_parameters function has been fully deprecated, without replacement."
+    )
 
 
 def parse_file_structure(**kwargs):
@@ -153,7 +133,7 @@ def extract_images_for_deep_learning(**kwargs):
     )
 
 
-def parallel_process(data_obj):
+def _parallel_process(data_obj):
     """
     Function for parallel feature extraction
 
@@ -166,33 +146,16 @@ def parallel_process(data_obj):
     data_obj.process()
 
 
-def extract_features(data_config, settings_config, n_processes=1):
-    """
-    Automates feature extraction
-    :param data_config: full path to a data configuration xml file.
-    :param settings_config: full path to a settings configuration xml file.
-    :param n_processes: number of simultaneous processes. For n_processes > 1, parallel processes are started.
-    :return:
-
-    This function calls the process_images function with presets.
-    """
-    process_images(data_config=data_config, settings_config=settings_config, n_processes=n_processes,
-                   keep_images_in_memory=False, compute_features=True, extract_images=False, plot_images=False)
+def extract_features(**kwargs):
+    raise RuntimeError(
+        f"The extract_features function has been replaced by mirp.extractFeaturesAndImage.extract_features."
+    )
 
 
-def extract_images_to_nifti(data_config, settings_config, n_processes=1):
-    """
-    Automates extraction of images to nifti format.
-    :param data_config: full path to a data configuration xml file.
-    :param settings_config: full path to a settings configuration xml file.
-    :param n_processes: number of simultaneous processes. For n_processes > 1, parallel processes are started.
-    :return:
-
-    This function calls the process_images function with presets.
-    """
-
-    process_images(data_config=data_config, settings_config=settings_config, n_processes=n_processes,
-                   keep_images_in_memory=False, compute_features=False, extract_images=True, plot_images=False)
+def extract_images_to_nifti(**kwargs):
+    raise RuntimeError(
+        f"The extract_images_to_nifti function has been replaced by mirp.extractFeaturesAndImage.extract_images."
+    )
 
 
 def process_images(data_config, settings_config, n_processes=1, keep_images_in_memory=False, compute_features=True,
@@ -259,7 +222,7 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
                 # Add job to worker
                 process_name = "_".join([data_obj_list[ii].subject] + data_obj_list[ii].data_str +
                                         [data_obj_list[ii].settings.general.config_str])
-                worker_list.append(mp.Process(target=parallel_process, args=(data_obj_list[ii],), name=process_name))
+                worker_list.append(mp.Process(target=_parallel_process, args=(data_obj_list[ii],), name=process_name))
                 worker_list[ii].daemon = True
                 df_mngr.loc[ii, "assigned_worker"] = ii
 
@@ -352,7 +315,7 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
                     process_name = "_".join([data_obj_list[sel_job_id].subject] + data_obj_list[sel_job_id].data_str
                                             + [data_obj_list[sel_job_id].settings.general.config_str])
 
-                    worker_list[free_workers[jj]] = mp.Process(target=parallel_process,
+                    worker_list[free_workers[jj]] = mp.Process(target=_parallel_process,
                                                                args=(data_obj_list[sel_job_id],), name=process_name)
                     worker_list[free_workers[jj]].daemon = True
                     df_mngr.loc[sel_job_id, "assigned_worker"] = free_workers[jj]
