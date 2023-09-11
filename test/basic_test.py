@@ -1,10 +1,8 @@
 import os
-import pytest
 
 import numpy as np
 import pandas as pd
 
-from mirp.experimentClass import ExperimentClass
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
