@@ -140,21 +140,10 @@ def get_file_structure_parameters(data_config, to_file=True):
         return df_meta
 
 
-def parse_file_structure(data_config, file, use_folder_name=True):
-    """
-    Parse
-    :param data_config: Path to the data configuration xml file.
-    :param file: Path to the assignment csv file.
-    :param use_folder_name: Flag to use the original folder name (True) or the DICOM patient name entry (False) as the name for the main patient-level folder.
-    :return:
-    """
-
-    # Create separate data object for each subject
-    data_obj_list = import_data_settings(data_config, None, file_structure=True)
-
-    # Iterate over all data and extract imaging parameters
-    for data_obj in data_obj_list:
-        data_obj.restructure_files(file=file, use_folder_name=use_folder_name)
+def parse_file_structure(**kwargs):
+    raise RuntimeError(
+        f"The parse_file_structure function has been fully deprecated, without replacement."
+    )
 
 
 def extract_images_for_deep_learning(**kwargs):
