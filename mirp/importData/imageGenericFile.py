@@ -206,6 +206,21 @@ class ImageFile(BaseImage):
 
         return str(np.ravel(self.image_orientation))
 
+    def set_modality(self, modality: Optional[str]):
+        from mirp.importData.utilities import supported_image_modalities
+        if modality is None:
+            return
+
+        if not isinstance(modality, str):
+            raise ValueError(f"modality is expected to be a character string. Found: {modality}")
+
+        if modality == "generic":
+            raise ValueError(f"modality cannot be 'generic'")
+
+        modality = supported_image_modalities(modality)
+        if self.modality is None or self.modality == "generic":
+            self.modality = modality[0]
+
     def create(self):
         # Import locally to avoid potential circular references.
         from mirp.importData.imageDicomFile import ImageDicomFile
@@ -811,6 +826,21 @@ class MaskFile(ImageFile):
             f"DEV: There is (intentionally) no generic implementation of load_data. Please specify "
             f"implementation for subclasses."
         )
+
+    def set_modality(self, modality: Optional[str]):
+        from mirp.importData.utilities import supported_mask_modalities
+        if modality is None:
+            return
+
+        if not isinstance(modality, str):
+            raise ValueError(f"modality is expected to be a character string. Found: {modality}")
+
+        if modality == "generic_mask":
+            raise ValueError(f"modality cannot be 'generic_mask'")
+
+        modality = supported_mask_modalities(modality)
+        if self.modality is None or self.modality == "generic_mask":
+            self.modality = modality[0]
 
     def create(self):
         # Import locally to avoid potential circular references.
