@@ -87,7 +87,7 @@ def import_image(
             f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}."
         )
 
-    image_list = _import_image(
+    image_list: Union[ImageFile, List[ImageFile]] = _import_image(
         image,
         sample_name=sample_name,
         image_name=image_name,
@@ -103,6 +103,15 @@ def import_image(
 
     # Flatten list.
     image_list = flatten_list(image_list)
+
+    replacement_image_modality = None
+    if isinstance(image_modality, str):
+        replacement_image_modality = image_modality
+    elif isinstance(image_modality, list) and len(image_modality) == 1:
+        replacement_image_modality = image_modality[1]
+
+    for image in image_list:
+        image.set_modality(modality=replacement_image_modality)
 
     return image_list
 
