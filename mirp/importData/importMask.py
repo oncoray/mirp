@@ -42,22 +42,22 @@ def import_mask(
 
     mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
         The type of modality that is expected. If None, modality is not used for filtering files.
-        Note that only DICOM files contain metadata concerning modality. Options: "rtstruct", "seg" or "generic_mask".
-        Masks from non-DICOM files are considered to be "generic_mask".
+        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+        be "generic_mask".
 
     mask_sub_folder: str, optional, default: None
-        Fixed directory substructure where mask files are located. If None, this directory substructure is not used for
+        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
         filtering files.
 
     roi_name: str, optional, default: None
         Name of the regions of interest that should be assessed.
 
     stack_masks: {"auto", "yes", "no"}, optional, default: "str"
-        One of auto, yes or no. If mask files in the same directory cannot be assigned to
-        different samples, and are 2D (slices) of the same size, they might belong to the same 3D mask stack. "auto"
-        will stack 2D numpy arrays, but not other file types. "yes" will stack all files that contain 2D images,
-        that have the same dimensions, orientation and spacing, except for DICOM files. "no" will not stack any files.
-        DICOM files ignore this argument, because their stacking can be determined from metadata.
+        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
+        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
+        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
+        because their stacking can be determined from metadata.
 
     Returns
     -------
