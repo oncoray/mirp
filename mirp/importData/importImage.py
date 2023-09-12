@@ -21,30 +21,49 @@ def import_image(
         stack_images: str = "auto"
 ) -> List[ImageFile]:
     """
-    Creates and curates references to image files. Actual image data are generally not loaded.
+    Creates and curates references to image files.
 
-    :param image: A path to an image file, a path to a directory containing image files, a path to a config_data.xml
-    file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
-    image files, or a numpy.ndarray.
-    :param sample_name: Name of expected sample names. This is used to select specific image files. If None,
-    no image files are filtered based on the corresponding sample name (if known).
-    :param image_name: Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
-    match varying structures. The sample name (if part of the file name) can also be specified using "#". For example,
-    image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii. File extensions
-    do not need to specified. If None, file names are not used for filtering files and setting sample names.
-    :param image_file_type: The type of file that is expected. If None, the file type is not used for filtering
-    files. Options: "dicom", "nifti", "nrrd", "numpy" and "itk". "itk" comprises "nifti" and "nrrd" file types.
-    :param image_modality: The type of modality that is expected. If None, modality is not used for filtering files.
-    Note that only DICOM files contain metadata concerning modality. Options: "ct", "pet" or "pt", "mri" or "mr",
-    and "generic".
-    :param image_sub_folder: Fixed directory substructure where image files are located. If None,
-    this directory substructure is not used for filtering files.
-    :param stack_images: One of auto, yes or no. If image files in the same directory cannot be assigned to
-    different samples, and are 2D (slices) of the same size, they might belong to the same 3D image stack. "auto"
-    will stack 2D numpy arrays, but not other file types. "yes" will stack all files that contain 2D images,
-    that have the same dimensions, orientation and spacing, except for DICOM files. "no" will not stack any files.
-    DICOM files ignore this argument, because their stacking can be determined from metadata.
-    :return: list of image files.
+    Parameters
+    ----------
+    image: Any
+        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+        image files, or a numpy.ndarray.
+
+    sample_name: str or list of str, default: None
+        Name of expected sample names. This is used to select specific image files. If None, no image files are
+        filtered based on the corresponding sample name (if known).
+
+    image_name: str, optional, default: None
+        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+        File extensions do not need to be specified. If None, file names are not used for filtering files and
+        setting sample names.
+
+    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+        DICOM files contain metadata concerning modality.
+
+    image_sub_folder: str, optional, default: None
+        Fixed directory substructure where image files are located. If None, the directory substructure is not used
+        for filtering files.
+
+    stack_images: {"auto", "yes", "no"}, optional, default: "str"
+    If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+    size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
+    "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+    except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
+    can be determined from metadata.
+
+    Returns
+    -------
+    image_list: list of ImageFile
+        The functions returns a list of ImageFile objects, if any were found with the specified filters.
     """
     # Check modality.
     if image_modality is not None:
