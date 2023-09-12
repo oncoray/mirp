@@ -54,11 +54,11 @@ def import_image(
         for filtering files.
 
     stack_images: {"auto", "yes", "no"}, optional, default: "str"
-    If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
-    size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
-    "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
-    except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
-    can be determined from metadata.
+        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
+        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
+        can be determined from metadata.
 
     Returns
     -------

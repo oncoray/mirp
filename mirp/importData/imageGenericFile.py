@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from typing import Union, List, Tuple, Dict, Set, Optional
+from typing import Union, List, Tuple, Dict, Set, Optional, Any
 
 from mirp.images.baseImage import BaseImage
 from mirp.images.genericImage import GenericImage
@@ -759,6 +759,21 @@ class ImageFile(BaseImage):
             image_dimensions=self.image_dimension
         )
 
+    def export_metadata(self, **kwargs) -> Optional[Dict[str, Any]]:
+        metadata = []
+        if self.sample_name is not None:
+            metadata += [("sample_name", self.sample_name)]
+        if self.modality is not None:
+            metadata += [("modality", self.modality)]
+        if self.image_spacing is not None:
+            metadata += [
+                ("spacing_z", self.image_spacing[0]),
+                ("spacing_y", self.image_spacing[1]),
+                ("spacing_x", self.image_spacing[2])
+            ]
+
+        return dict(metadata)
+
 
 class MaskFile(ImageFile):
 
@@ -1052,7 +1067,10 @@ class MaskFile(ImageFile):
 
         return mask_list
 
-    def export_roi_labels(self):
+    def export_metadata(self):
+        return
+
+    def export_roi_labels(self) -> Dict[str, Any]:
 
         if self.image_data is None:
             self.load_data()
