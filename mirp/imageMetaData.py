@@ -867,27 +867,54 @@ def convert_dicom_time(
     return ref_time
 
 
-def parse_image_correction(dcm_seq, tag, correction_abbr, image_corrections):
+def parse_image_correction(
+        dcm_seq: pydicom.Dataset,
+        tag: Tuple[hex, hex],
+        correction_abbr: str
+) -> bool:
     """
-    Parses image correction information
-    :param dcm_seq: pydicom object
-    :param tag: tag for image correction
-    :param correction_abbr: abbreviation for the specific correction in the image_corrections list
-    :param image_corrections: list of image corrections from DICOM tag (0028,0051)
-    :return: whether an image correction was performed ("YES", "NO" or "")
+    Parses image correction information. Indicates whether a specific type of PET correction was applied based on
+    available information.
 
-    This allows determining image correction with a single line call
+    Parameters
+    ----------
+    dcm_seq: pydicom.Dataset
+        Set of DICOM metadata.
+
+    tag: tag for image correction
+        Tag for reading image correction from the enhanced PET set of tags.
+
+    correction_abbr:
+        Abbreviation for the specific correction in the image_corrections list.
+
+    Returns
+    -------
+    bool, optional
     """
+    image_corrections = get_pydicom_meta_tag(
+        dcm_seq=dcm_seq,
+        tag=(0x0028, 0x0051),
+        tag_type="str"
+    )
+    if image_corrections is not None:
+        image_corrections = image_corrections.replace(
+            " ", "").replace(
+            "[", "").replace(
+            "]", "").replace(
+            "\'", "").split(sep=",")
 
-    is_corrected = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, tag_type="str", default=None)
-    if is_corrected is None and correction_abbr in image_corrections:
+    # Read from enhanced PET.
+    is_corrected = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, tag_type="str")
+    if is_corrected is None and image_corrections is None:
+        is_corrected = "NO"
+    elif is_corrected is None and correction_abbr in image_corrections:
         is_corrected = "YES"
     elif is_corrected is None and correction_abbr not in image_corrections:
         is_corrected = "NO"
     else:
-        is_corrected = ""
+        pass
 
-    return is_corrected
+    return is_corrected == "YES"
 
 
 def create_new_uid(dcm: FileDataset):
