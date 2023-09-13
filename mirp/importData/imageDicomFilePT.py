@@ -246,59 +246,138 @@ class ImageDicomFilePT(ImageDicomFile):
             dcm_meta_data += [("frame_duration", frame_duration / 1000.0)]
 
         # Image corrections
-        image_corrections = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x0051), tag_type="str", default="")
-
-        # Randoms correction method
-        random_correction_method = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0054, 0x1100), tag_type="str",
-                                                        default="")
-
-        # Attenuation correction method
-        attenuation_correction_method = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0054, 0x1101), tag_type="str",
-                                                             default="")
-
-        # Scatter correction method
-        scatter_correction_method = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0054, 0x1105), tag_type="str",
-                                                         default="")
-
-        # Load image corrections for comparison in case correction tags are missing.
-        image_corrections = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x0051), tag_type="str", default="")
-        image_corrections = image_corrections.replace(" ", "").replace("[", "").replace("]", "").replace("\'", "").split(sep=",")
-
-        # Decay corrected DECY (0018,9758)
-        decay_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9758), correction_abbr="DECY", image_corrections=image_corrections)
+        image_corrections = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0028, 0x0051),
+            tag_type="str"
+        )
+        if image_corrections is not None:
+            dcm_meta_data += [("image_corrections", image_corrections)]
 
         # Attenuation corrected ATTN (0018,9759)
-        attenuation_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9759), correction_abbr="ATTN", image_corrections=image_corrections)
+        attenuation_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9759),
+            correction_abbr="ATTN"
+        )
+        if attenuation_corrected is not None:
+            dcm_meta_data += [("attenuation_corrected", attenuation_corrected)]
+
+        # Attenuation correction method
+        attenuation_correction_method = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1101),
+            tag_type="str"
+        )
+        if attenuation_corrected is not None:
+            dcm_meta_data += [("attenuation_correction_method", attenuation_correction_method)]
 
         # Scatter corrected SCAT (0018,9760)
-        scatter_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9760), correction_abbr="SCAT", image_corrections=image_corrections)
+        scatter_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9760),
+            correction_abbr="SCAT"
+        )
+        if scatter_corrected is not None:
+            dcm_meta_data += [("scatter_corrected", scatter_corrected)]
 
-        # Dead time corrected DTIM (0018,9761)
-        dead_time_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9761), correction_abbr="DTIM", image_corrections=image_corrections)
-
-        # Gantry motion corrected MOTN (0018,9762)
-        gantry_motion_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9762), correction_abbr="MOTN", image_corrections=image_corrections)
-
-        # Patient motion corrected PMOT (0018,9763)
-        patient_motion_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9763), correction_abbr="PMOT", image_corrections=image_corrections)
-
-        # Count loss normalisation corrected CLN (0018,9764)
-        count_loss_norm_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9764), correction_abbr="CLN", image_corrections=image_corrections)
+        # Scatter correction method
+        scatter_correction_method = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1105),
+            tag_type="str"
+        )
+        if scatter_correction_method is not None:
+            dcm_meta_data += [("scatter_correction_method", scatter_correction_method)]
 
         # Randoms corrected RAN (0018,9765)
-        randoms_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9765), correction_abbr="RAN", image_corrections=image_corrections)
+        randoms_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9765),
+            correction_abbr="RAN"
+        )
+        if randoms_corrected is not None:
+            dcm_meta_data += [("randoms_corrected", randoms_corrected)]
+
+        # Randoms correction method
+        random_correction_method = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1100),
+            tag_type="str"
+        )
+        if random_correction_method is not None:
+            dcm_meta_data += [("random_correction_method", random_correction_method)]
+
+        # Decay corrected DECY (0018,9758)
+        decay_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9758),
+            correction_abbr="DECY"
+        )
+        if decay_corrected is not None:
+            dcm_meta_data += [("decay_corrected", decay_corrected)]
+
+        # Dead time corrected DTIM (0018,9761)
+        dead_time_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9761),
+            correction_abbr="DTIM"
+        )
+        if dead_time_corrected is not None:
+            dcm_meta_data += [("dead_time_corrected", dead_time_corrected)]
+
+        # Gantry motion corrected MOTN (0018,9762)
+        gantry_motion_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9762),
+            correction_abbr="MOTN"
+        )
+        if gantry_motion_corrected is not None:
+            dcm_meta_data += [("gantry_motion_corrected", gantry_motion_corrected)]
+
+        # Patient motion corrected PMOT (0018,9763)
+        patient_motion_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9763),
+            correction_abbr="PMOT"
+        )
+        if patient_motion_corrected is not None:
+            dcm_meta_data += [("patient_motion_corrected", patient_motion_corrected)]
+
+        # Count loss normalisation corrected CLN (0018,9764)
+        count_loss_norm_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9764),
+            correction_abbr="CLN"
+        )
+        if count_loss_norm_corrected is not None:
+            dcm_meta_data += [("count_loss_norm_corrected", count_loss_norm_corrected)]
 
         # Non-uniform radial sampling corrected RADL (0018,9766)
-        radl_corrected = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9766), correction_abbr="RADL", image_corrections=image_corrections)
+        radl_corrected = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9766),
+            correction_abbr="RADL"
+        )
+        if radl_corrected is not None:
+            dcm_meta_data += [("radl_corrected", radl_corrected)]
 
         # Sensitivity calibrated DCAL (0018,9767)
-        sensitivity_calibrated = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9767), correction_abbr="DCAL", image_corrections=image_corrections)
+        sensitivity_calibrated = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9767),
+            correction_abbr="DCAL"
+        )
+        if sensitivity_calibrated is not None:
+            dcm_meta_data += [("sensitivity_calibrated", sensitivity_calibrated)]
 
         # Detector normalisation correction NORM (0018,9768)
-        detector_normalisation = parse_image_correction(dcm_seq=dcm, tag=(0x0018, 0x9768), correction_abbr="NORM", image_corrections=image_corrections)
-
-
-
-
+        detector_normalisation = parse_image_correction(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9768),
+            correction_abbr="NORM"
+        )
+        if detector_normalisation is not None:
+            dcm_meta_data += [("detector_normalisation", detector_normalisation)]
 
         return metadata.update(dict(dcm_meta_data))
