@@ -2,7 +2,8 @@ import numpy as np
 
 from typing import Union, Tuple, List, Optional, Dict, Any
 from mirp.importData.imageDicomFile import ImageDicomFile
-from mirp.imageMetaData import get_pydicom_meta_tag
+from mirp.importData.utilities import get_pydicom_meta_tag
+
 
 class ImageDicomFileCT(ImageDicomFile):
     def __init__(

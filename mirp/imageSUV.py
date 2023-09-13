@@ -4,7 +4,8 @@ from copy import deepcopy
 
 import numpy as np
 
-from mirp.imageMetaData import get_pydicom_meta_tag, convert_dicom_time, set_pydicom_meta_tag
+from mirp.imageMetaData import set_pydicom_meta_tag
+from mirp.importData.utilities import convert_dicom_time, get_pydicom_meta_tag
 from mirp.utilities import get_valid_elements, get_most_common_element
 
 

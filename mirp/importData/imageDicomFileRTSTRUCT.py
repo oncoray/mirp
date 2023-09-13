@@ -10,7 +10,7 @@ from mirp.contourClass import ContourClass
 from mirp.importData.importImage import ImageFile
 from mirp.importData.imageDicomFile import MaskDicomFile
 from mirp.masks.baseMask import BaseMask
-from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
+from mirp.importData.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
 
 
 class MaskDicomFileRTSTRUCT(MaskDicomFile):

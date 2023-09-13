@@ -8,8 +8,8 @@ from pydicom import dcmread
 from warnings import warn
 
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
-from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities, supported_mask_modalities
-from mirp.imageMetaData import get_pydicom_meta_tag
+from mirp.importData.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
+    supported_mask_modalities, get_pydicom_meta_tag
 
 
 class ImageDicomFile(ImageFile):

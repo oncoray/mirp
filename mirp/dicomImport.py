@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 from mirp.imageSUV import SUVscalingObj
-from mirp.imageMetaData import get_pydicom_meta_tag, has_pydicom_meta_tag
+from mirp.importData.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp.imageClass import ImageClass
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.roiClass import RoiClass

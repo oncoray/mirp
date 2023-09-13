@@ -7,7 +7,8 @@ from pydicom import FileDataset
 from typing import Union, List
 
 from mirp.imageClass import ImageClass
-from mirp.imageMetaData import get_pydicom_meta_tag, set_pydicom_meta_tag
+from mirp.imageMetaData import set_pydicom_meta_tag
+from mirp.importData.utilities import get_pydicom_meta_tag
 from mirp.settings.settingsGeneric import SettingsClass
 
 

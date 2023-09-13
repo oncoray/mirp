@@ -3,13 +3,15 @@ import logging
 import os
 import random
 from collections.abc import Iterable
-from typing import Union, List, Optional, Tuple
+from typing import Union
 
 import numpy as np
 import pandas as pd
 import pydicom
 from pydicom import FileDataset, datadict, Dataset
 from pydicom.tag import Tag
+
+from mirp.importData.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
 
 
 def get_image_directory_meta_data(image_folder, subject):
@@ -91,65 +93,6 @@ def get_meta_data(modality, dcm_list=None, image_folder=None):
     return pd.concat(image_meta_list, axis=0)
 
 
-def get_pydicom_meta_tag(dcm_seq, tag, tag_type=None, default=None, test_tag=False):
-    # Reads dicom tag
-
-    # Initialise with default
-    tag_value = default
-
-    # Parse raw data
-    try:
-        tag_value = dcm_seq[tag].value
-    except KeyError:
-        if test_tag:
-            return False
-        else:
-            pass
-
-    if test_tag:
-        return True
-
-    if isinstance(tag_value, bytes):
-        tag_value = tag_value.decode("ASCII")
-
-    # Find empty entries
-    if tag_value is not None:
-        if tag_value == "":
-            tag_value = default
-
-    # Cast to correct type (meta tags are usually passed as strings)
-    if tag_value is not None:
-
-        # String
-        if tag_type == "str":
-            tag_value = str(tag_value)
-
-        # Float
-        elif tag_type == "float":
-            tag_value = float(tag_value)
-
-        # Multiple floats
-        elif tag_type == "mult_float":
-            tag_value = [float(str_num) for str_num in tag_value]
-
-        # Integer
-        elif tag_type == "int":
-            tag_value = int(tag_value)
-
-        # Multiple floats
-        elif tag_type == "mult_int":
-            tag_value = [int(str_num) for str_num in tag_value]
-
-        # Boolean
-        elif tag_type == "bool":
-            tag_value = bool(tag_value)
-
-        elif tag_type == "mult_str":
-            tag_value = list(tag_value)
-
-    return tag_value
-
-
 def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force_vr=None):
     # Check tag
     if isinstance(tag, tuple):
@@ -185,11 +128,6 @@ def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force
     else:
         # Add a new entry
         dcm_seq.add_new(tag=tag, VR=force_vr, value=value)
-
-
-def has_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag):
-
-    return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
 
 
 def get_itk_dicom_meta_tag(itk_img, tag, tag_type, default=None):
@@ -564,8 +502,10 @@ def get_advanced_pet_meta_data(image_file=None, dcm=None):
             if radio_admin_ref_time is None:
                 # If neither (0x0018, 0x1078) or (0x0018, 0x1072) are present, attempt to read private tags.
                 # GE tags - note that due to anonymisation, acquisition time may be different than reported.
-                acquisition_ref_time = convert_dicom_time(get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0009, 0x100d), tag_type="str"))
-                radio_admin_ref_time = convert_dicom_time(get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0009, 0x103b), tag_type="str"))
+                acquisition_ref_time = convert_dicom_time(
+                    get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0009, 0x100d), tag_type="str"))
+                radio_admin_ref_time = convert_dicom_time(
+                    get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0009, 0x103b), tag_type="str"))
 
             if radio_admin_ref_time is not None and acquisition_ref_time is not None:
 
@@ -788,133 +728,6 @@ def get_image_type(image_file):
         image_file_type = "unknown"
 
     return image_file_type
-
-
-def convert_dicom_time(
-        datetime_str: Optional[str] = None,
-        date_str: Optional[str] = None,
-        time_str: Optional[str] = None
-) -> Optional[datetime.datetime]:
-    """
-    Converts DICOM date, time or datetime string to a datetime.datetime object to facilitate use in Python.
-
-    Parameters
-    ----------
-    datetime_str: str, optional
-        Datetime string extract from a DICOM tag.
-
-    date_str: str, optional
-        Date string extracted from a DICOM tag.
-
-    time_str: str, optional
-        Time string extracted from a DICOM tag.
-
-    Returns
-    -------
-    datetime.datetime
-    """
-
-    if datetime_str is None and (date_str is None or time_str is None):
-        # No reference time can be established
-        ref_time = None
-
-    elif datetime_str is not None:
-        # Single datetime string provided
-        year = int(datetime_str[0:4])
-        month = int(datetime_str[4:6])
-        day = int(datetime_str[6:8])
-        hour = int(datetime_str[8:10])
-        minute = int(datetime_str[10:12])
-        second = int(datetime_str[12:14])
-        if len(datetime_str) > 14:
-            microsecond = int(round(float(datetime_str[14:]) * 1000))
-        else:
-            microsecond = 0
-
-        ref_time = datetime.datetime(
-            year=year,
-            month=month,
-            day=day,
-            hour=hour,
-            minute=minute,
-            second=second,
-            microsecond=microsecond
-        )
-
-    else:
-        # Separate date and time strings provided
-        year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
-        hour = int(time_str[0:2])
-        minute = int(time_str[2:4])
-        second = int(time_str[4:6])
-        if len(time_str) > 6:
-            microsecond = int(round(float(time_str[6:]) * 1000))
-        else:
-            microsecond = 0
-
-        ref_time = datetime.datetime(
-            year=year,
-            month=month,
-            day=day,
-            hour=hour,
-            minute=minute,
-            second=second,
-            microsecond=microsecond
-        )
-
-    return ref_time
-
-
-def parse_image_correction(
-        dcm_seq: pydicom.Dataset,
-        tag: Tuple[hex, hex],
-        correction_abbr: str
-) -> bool:
-    """
-    Parses image correction information. Indicates whether a specific type of PET correction was applied based on
-    available information.
-
-    Parameters
-    ----------
-    dcm_seq: pydicom.Dataset
-        Set of DICOM metadata.
-
-    tag: tag for image correction
-        Tag for reading image correction from the enhanced PET set of tags.
-
-    correction_abbr:
-        Abbreviation for the specific correction in the image_corrections list.
-
-    Returns
-    -------
-    bool, optional
-    """
-    image_corrections = get_pydicom_meta_tag(
-        dcm_seq=dcm_seq,
-        tag=(0x0028, 0x0051),
-        tag_type="str"
-    )
-    if image_corrections is not None:
-        image_corrections = image_corrections.replace(
-            " ", "").replace(
-            "[", "").replace(
-            "]", "").replace(
-            "\'", "").split(sep=",")
-
-    # Read from enhanced PET.
-    is_corrected = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, tag_type="str")
-    if is_corrected is None and image_corrections is None:
-        is_corrected = "NO"
-    elif is_corrected is None and correction_abbr in image_corrections:
-        is_corrected = "YES"
-    elif is_corrected is None and correction_abbr not in image_corrections:
-        is_corrected = "NO"
-    else:
-        pass
-
-    return is_corrected == "YES"
 
 
 def create_new_uid(dcm: FileDataset):

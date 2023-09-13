@@ -1,10 +1,13 @@
+import datetime
 import os.path
 import fnmatch
 import math
-from typing import Union, List
+from typing import Union, List, Tuple, Optional
 from os.path import split
 
 import numpy as np
+import pydicom
+from pydicom import FileDataset, Dataset
 
 
 def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
@@ -313,3 +316,200 @@ def compute_file_distance(
     x = path_to_parts(x)
 
     return len(x) - len(common_path)
+
+
+def parse_image_correction(
+        dcm_seq: pydicom.Dataset,
+        tag: Tuple[hex, hex],
+        correction_abbr: str
+) -> bool:
+    """
+    Parses image correction information. Indicates whether a specific type of PET correction was applied based on
+    available information.
+
+    Parameters
+    ----------
+    dcm_seq: pydicom.Dataset
+        Set of DICOM metadata.
+
+    tag: tag for image correction
+        Tag for reading image correction from the enhanced PET set of tags.
+
+    correction_abbr:
+        Abbreviation for the specific correction in the image_corrections list.
+
+    Returns
+    -------
+    bool, optional
+    """
+    image_corrections = get_pydicom_meta_tag(
+        dcm_seq=dcm_seq,
+        tag=(0x0028, 0x0051),
+        tag_type="str"
+    )
+    if image_corrections is not None:
+        image_corrections = image_corrections.replace(
+            " ", "").replace(
+            "[", "").replace(
+            "]", "").replace(
+            "\'", "").split(sep=",")
+
+    # Read from enhanced PET.
+    is_corrected = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, tag_type="str")
+    if is_corrected is None and image_corrections is None:
+        is_corrected = "NO"
+    elif is_corrected is None and correction_abbr in image_corrections:
+        is_corrected = "YES"
+    elif is_corrected is None and correction_abbr not in image_corrections:
+        is_corrected = "NO"
+    else:
+        pass
+
+    return is_corrected == "YES"
+
+
+def convert_dicom_time(
+        datetime_str: Optional[str] = None,
+        date_str: Optional[str] = None,
+        time_str: Optional[str] = None
+) -> Optional[datetime.datetime]:
+    """
+    Converts DICOM date, time or datetime string to a datetime.datetime object to facilitate use in Python.
+
+    Parameters
+    ----------
+    datetime_str: str, optional
+        Datetime string extract from a DICOM tag.
+
+    date_str: str, optional
+        Date string extracted from a DICOM tag.
+
+    time_str: str, optional
+        Time string extracted from a DICOM tag.
+
+    Returns
+    -------
+    datetime.datetime
+    """
+
+    if datetime_str is None and (date_str is None or time_str is None):
+        # No reference time can be established
+        ref_time = None
+
+    elif datetime_str is not None:
+        # Single datetime string provided
+        year = int(datetime_str[0:4])
+        month = int(datetime_str[4:6])
+        day = int(datetime_str[6:8])
+        hour = int(datetime_str[8:10])
+        minute = int(datetime_str[10:12])
+        second = int(datetime_str[12:14])
+        if len(datetime_str) > 14:
+            microsecond = int(round(float(datetime_str[14:]) * 1000))
+        else:
+            microsecond = 0
+
+        ref_time = datetime.datetime(
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
+            microsecond=microsecond
+        )
+
+    else:
+        # Separate date and time strings provided
+        year = int(date_str[0:4])
+        month = int(date_str[4:6])
+        day = int(date_str[6:8])
+        hour = int(time_str[0:2])
+        minute = int(time_str[2:4])
+        second = int(time_str[4:6])
+        if len(time_str) > 6:
+            microsecond = int(round(float(time_str[6:]) * 1000))
+        else:
+            microsecond = 0
+
+        ref_time = datetime.datetime(
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
+            microsecond=microsecond
+        )
+
+    return ref_time
+
+
+def get_pydicom_meta_tag(
+        dcm_seq,
+        tag,
+        tag_type=None,
+        default=None,
+        test_tag=False
+):
+    # Reads dicom tag
+
+    # Initialise with default
+    tag_value = default
+
+    # Parse raw data
+    try:
+        tag_value = dcm_seq[tag].value
+    except KeyError:
+        if test_tag:
+            return False
+        else:
+            pass
+
+    if test_tag:
+        return True
+
+    if isinstance(tag_value, bytes):
+        tag_value = tag_value.decode("ASCII")
+
+    # Find empty entries
+    if tag_value is not None:
+        if tag_value == "":
+            tag_value = default
+
+    # Cast to correct type (meta tags are usually passed as strings)
+    if tag_value is not None:
+
+        # String
+        if tag_type == "str":
+            tag_value = str(tag_value)
+
+        # Float
+        elif tag_type == "float":
+            tag_value = float(tag_value)
+
+        # Multiple floats
+        elif tag_type == "mult_float":
+            tag_value = [float(str_num) for str_num in tag_value]
+
+        # Integer
+        elif tag_type == "int":
+            tag_value = int(tag_value)
+
+        # Multiple floats
+        elif tag_type == "mult_int":
+            tag_value = [int(str_num) for str_num in tag_value]
+
+        # Boolean
+        elif tag_type == "bool":
+            tag_value = bool(tag_value)
+
+        elif tag_type == "mult_str":
+            tag_value = list(tag_value)
+
+    return tag_value
+
+
+def has_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag):
+
+    return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
