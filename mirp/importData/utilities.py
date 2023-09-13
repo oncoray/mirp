@@ -2,7 +2,7 @@ import datetime
 import os.path
 import fnmatch
 import math
-from typing import Union, List, Tuple, Optional
+from typing import Union, List, Tuple, Optional, Any
 from os.path import split
 
 import numpy as np
@@ -225,8 +225,16 @@ def isolate_sample_name(
 def path_to_parts(x: str) -> List[str]:
     """
     Split a path into its components.
-    :param x: a string or path.
-    :return: a list of path components.
+
+    Parameters
+    ---------
+    x: str
+        A string that represents a file path.
+
+    Returns
+    -------
+    path_parts: list of str
+        A list of path components.
     """
 
     path_parts = []
@@ -312,10 +320,10 @@ def compute_file_distance(
         return math.inf
 
     # Split to
-    common_path = path_to_parts(common_path)
-    x = path_to_parts(x)
+    split_common_path = path_to_parts(common_path)
+    split_x = path_to_parts(x)
 
-    return len(x) - len(common_path)
+    return len(split_x) - len(split_common_path)
 
 
 def parse_image_correction(
@@ -446,12 +454,37 @@ def convert_dicom_time(
 
 
 def get_pydicom_meta_tag(
-        dcm_seq,
-        tag,
-        tag_type=None,
-        default=None,
-        test_tag=False
-):
+        dcm_seq: pydicom.Dataset,
+        tag: Tuple[hex, hex],
+        tag_type: Optional[str] = None,
+        default: Optional[Any] = None,
+        test_tag: bool = False
+) -> Any:
+    """
+    Extract parameter from DICOM metadata.
+
+    Parameters
+    ----------
+    dcm_seq: pydicom.Dataset
+        DICOM sequence from which the parameter should be read.
+
+    tag: tuple of hex
+        Hexadecimal values representing the DICOM parameter tag.
+
+    tag_type: str, optional
+        Type to which the parameter should be converted.
+
+    default: any, optional, default: None
+        Default value to be used in absence of any value from the DICOM metadata.
+
+    test_tag: bool, optional, default: False
+        Determine whether a tag exists.
+
+    Returns
+    -------
+    tag_value: any
+        Value of the parameter read for from the DICOM metadata.
+    """
     # Reads dicom tag
 
     # Initialise with default
@@ -506,6 +539,9 @@ def get_pydicom_meta_tag(
 
         elif tag_type == "mult_str":
             tag_value = list(tag_value)
+
+        else:
+            raise ValueError(f"The tag type was not recognised: {tag_type}")
 
     return tag_value
 
