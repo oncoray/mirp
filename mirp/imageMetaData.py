@@ -3,7 +3,7 @@ import logging
 import os
 import random
 from collections.abc import Iterable
-from typing import Union
+from typing import Union, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -790,7 +790,29 @@ def get_image_type(image_file):
     return image_file_type
 
 
-def convert_dicom_time(datetime_str=None, date_str=None, time_str=None):
+def convert_dicom_time(
+        datetime_str: Optional[str] = None,
+        date_str: Optional[str] = None,
+        time_str: Optional[str] = None
+) -> Optional[datetime.datetime]:
+    """
+    Converts DICOM date, time or datetime string to a datetime.datetime object to facilitate use in Python.
+
+    Parameters
+    ----------
+    datetime_str: str, optional
+        Datetime string extract from a DICOM tag.
+
+    date_str: str, optional
+        Date string extracted from a DICOM tag.
+
+    time_str: str, optional
+        Time string extracted from a DICOM tag.
+
+    Returns
+    -------
+    datetime.datetime
+    """
 
     if datetime_str is None and (date_str is None or time_str is None):
         # No reference time can be established
@@ -798,33 +820,49 @@ def convert_dicom_time(datetime_str=None, date_str=None, time_str=None):
 
     elif datetime_str is not None:
         # Single datetime string provided
-        year    = int(datetime_str[0:4])
-        month   = int(datetime_str[4:6])
-        day     = int(datetime_str[6:8])
-        hour    = int(datetime_str[8:10])
-        minute  = int(datetime_str[10:12])
-        second  = int(datetime_str[12:14])
+        year = int(datetime_str[0:4])
+        month = int(datetime_str[4:6])
+        day = int(datetime_str[6:8])
+        hour = int(datetime_str[8:10])
+        minute = int(datetime_str[10:12])
+        second = int(datetime_str[12:14])
         if len(datetime_str) > 14:
-            musecond = int(round(float(datetime_str[14:]) * 1000))
+            microsecond = int(round(float(datetime_str[14:]) * 1000))
         else:
-            musecond = 0
+            microsecond = 0
 
-        ref_time = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=musecond)
+        ref_time = datetime.datetime(
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
+            microsecond=microsecond
+        )
 
     else:
         # Separate date and time strings provided
-        year    = int(date_str[0:4])
-        month   = int(date_str[4:6])
-        day     = int(date_str[6:8])
-        hour    = int(time_str[0:2])
-        minute  = int(time_str[2:4])
-        second  = int(time_str[4:6])
+        year = int(date_str[0:4])
+        month = int(date_str[4:6])
+        day = int(date_str[6:8])
+        hour = int(time_str[0:2])
+        minute = int(time_str[2:4])
+        second = int(time_str[4:6])
         if len(time_str) > 6:
-            musecond = int(round(float(time_str[6:]) * 1000))
+            microsecond = int(round(float(time_str[6:]) * 1000))
         else:
-            musecond = 0
+            microsecond = 0
 
-        ref_time = datetime.datetime(year=year, month=month, day=day, hour=hour, minute=minute, second=second, microsecond=musecond)
+        ref_time = datetime.datetime(
+            year=year,
+            month=month,
+            day=day,
+            hour=hour,
+            minute=minute,
+            second=second,
+            microsecond=microsecond
+        )
 
     return ref_time
 
