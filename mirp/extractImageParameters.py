@@ -4,6 +4,7 @@ from typing import Union, Optional, List, Generator, Dict
 
 from mirp.importData.imageGenericFile import ImageFile
 
+
 def extract_image_parameters(
         image,
         sample_name: Union[None, str, List[str]] = None,

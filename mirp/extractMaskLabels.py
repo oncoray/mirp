@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Generator, Dict
+from typing import Union, Optional, List, Any, Dict
 
 import os
 import pandas as pd
@@ -102,9 +102,9 @@ def extract_mask_labels(
         return labels
 
 
-def _extract_mask_labels(index: int, mask: MaskFile) -> Generator[Dict[str, str], None, None]:
+def _extract_mask_labels(index: int, mask: MaskFile) -> Dict[str, Any]:
 
     labels = mask.export_roi_labels()
     labels.update({"mask_index": index})
 
-    yield labels
+    return labels

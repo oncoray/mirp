@@ -1083,6 +1083,10 @@ class MaskFile(ImageFile):
         if len(labels) == 0:
             labels = None
 
+        if len(labels) == 1:
+            # This prevents issues when converting pandas.Dataframe
+            labels = labels[0]
+
         return {
             "sample_name": self.sample_name,
             "dir_path": self.dir_path,
