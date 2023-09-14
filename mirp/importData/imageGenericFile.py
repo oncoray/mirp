@@ -397,7 +397,7 @@ class ImageFile(BaseImage):
             if not len(self.image_spacing) == len(data_shape):
                 if raise_error:
                     raise ValueError(
-                        f"The dimensions of the image data itself ({len(data_shape)} and the dimensions of the voxel "
+                        f"The dimensions of the image data itself ({len(data_shape)}) and the dimensions of the voxel "
                         f"spacing (image_spacing; {len(self.image_spacing)}) are different."
                     )
                 else:
