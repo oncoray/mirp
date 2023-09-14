@@ -175,7 +175,7 @@ def _(
         **kwargs
 ):
 
-    from imageNumpyFile import ImageNumpyFile, MaskNumpyFile
+    from mirp.importData.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
 
     if is_mask:
         image_object = MaskNumpyFile(**kwargs)
