@@ -1,20 +1,19 @@
 import os
 import pandas as pd
-from typing import Union, Optional, List, Generator, Dict
 
 from mirp.importData.imageGenericFile import ImageFile
 
 
 def extract_image_parameters(
         image,
-        sample_name: Union[None, str, List[str]] = None,
-        image_name: Union[None, str, List[str]] = None,
-        image_file_type: Union[None, str] = None,
-        image_modality: Union[None, str, List[str]] = None,
-        image_sub_folder: Union[None, str] = None,
+        sample_name: None | str | list[str] = None,
+        image_name: None | str | list[str] = None,
+        image_file_type: None | str = None,
+        image_modality: None | str | list[str] = None,
+        image_sub_folder: None | str = None,
         stack_images: str = "auto",
         write_file: bool = False,
-        write_dir: Optional[str] = None
+        write_dir: None | str = None
 ):
     """
     Extract parameters related to image acquisition and reconstruction from images. Not all metadata may
@@ -65,8 +64,8 @@ def extract_image_parameters(
 
     Returns
     -------
-    pd.DataFrame or None
-        The functions returns a table with metadata.
+    pd.DataFrame | None
+        The functions returns a table with metadata (`write_file == False`) or nothing (`write_file == True`)
     """
 
     from mirp.importData.importImage import import_image
@@ -102,9 +101,9 @@ def extract_image_parameters(
         return metadata
 
 
-def _extract_image_parameters(index: int, image: ImageFile) -> Generator[Dict[str, str], None, None]:
+def _extract_image_parameters(index: int, image: ImageFile) -> dict[str, str]:
 
     metadata = image.export_metadata()
     metadata.update({"image_index": index})
 
-    yield metadata
+    return metadata

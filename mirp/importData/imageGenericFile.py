@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from typing import Union, List, Tuple, Dict, Set, Optional, Any
+from typing import Union, List, Dict, Set, Optional, Any
 
 from mirp.images.baseImage import BaseImage
 from mirp.images.genericImage import GenericImage
@@ -21,19 +21,20 @@ class ImageFile(BaseImage):
 
     def __init__(
             self,
-            file_path: Union[None, str] = None,
-            dir_path: Union[None, str] = None,
-            sample_name: Union[None, str, List[str]] = None,
-            file_name: Union[None, str] = None,
-            image_name: Union[None, str] = None,
-            image_modality: Union[None, str] = None,
-            image_file_type: Union[None, str] = None,
-            image_data: Union[None, np.ndarray] = None,
-            image_origin: Union[None, Tuple[float, ...]] = None,
-            image_orientation: Union[None, np.ndarray] = None,
-            image_spacing: Union[None, Tuple[float, ...]] = None,
-            image_dimensions: Union[None, Tuple[int, ...]] = None,
-            **kwargs):
+            file_path: None | str = None,
+            dir_path: None | str = None,
+            sample_name: None | str | list[str] = None,
+            file_name: None | str = None,
+            image_name: None | str = None,
+            image_modality: None | str = None,
+            image_file_type: None | str = None,
+            image_data: None | np.ndarray = None,
+            image_origin: None | tuple[float, ...] = None,
+            image_orientation: None | np.ndarray = None,
+            image_spacing: None | tuple[float, ...] = None,
+            image_dimensions: None | tuple[int, ...] = None,
+            **kwargs
+    ):
 
         super().__init__(
             image_modality=image_modality,
@@ -44,13 +45,13 @@ class ImageFile(BaseImage):
             **kwargs
         )
 
-        self.file_path: Union[None, str] = file_path
-        self.sample_name: Union[None, str, List[str]] = sample_name
-        self.image_name: Union[None, str] = image_name
+        self.file_path = file_path
+        self.sample_name = sample_name
+        self.image_name = image_name
 
         if isinstance(image_file_type, str):
             image_file_type = image_file_type.lower()
-        self.file_type: Union[None, str] = image_file_type
+        self.file_type = image_file_type
 
         # Add image data
         self.image_data = image_data
@@ -74,8 +75,8 @@ class ImageFile(BaseImage):
         if isinstance(file_path, str) and dir_path is None:
             dir_path = os.path.dirname(file_path)
 
-        self.file_name: Union[None, str] = file_name
-        self.dir_path: Union[None, str] = dir_path
+        self.file_name = file_name
+        self.dir_path = dir_path
         self.associated_masks = None
 
     def is_stackable(self, stack_images: str):

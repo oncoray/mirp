@@ -1,5 +1,3 @@
-from typing import Union, List, Dict
-
 from mirp.importData.imageGenericFile import MaskFile
 from mirp.importData.importImage import _import_image
 from mirp.importData.utilities import supported_mask_modalities, supported_file_types, flatten_list
@@ -7,14 +5,14 @@ from mirp.importData.utilities import supported_mask_modalities, supported_file_
 
 def import_mask(
         mask,
-        sample_name: Union[None, str, List[str]] = None,
-        mask_name: Union[None, str, List[str]] = None,
-        mask_file_type: Union[None, str] = None,
-        mask_modality: Union[None, str, List[str]] = None,
-        mask_sub_folder: Union[None, str] = None,
-        roi_name: Union[None, str, List[str], Dict[str, str]] = None,
+        sample_name: None | str | list[str] = None,
+        mask_name: None | str | list[str] = None,
+        mask_file_type: None | str = None,
+        mask_modality: None | str | list[str] = None,
+        mask_sub_folder: None | str = None,
+        roi_name: None | str | list[str] | dict[str, str] = None,
         stack_masks: str = "auto"
-) -> List[MaskFile]:
+) -> list[MaskFile]:
     """
     Creates and curates references to mask files. Masks determine the location of regions of interest. They are
     usually created by manual, semi-automatic or fully automatic segmentation.
@@ -61,7 +59,7 @@ def import_mask(
 
     Returns
     -------
-    mask_list: list of MaskFile
+    list of MaskFile
         The functions returns a list of MaskFile objects, if any were found with the specified filters.
 
     """

@@ -23,10 +23,10 @@ class ImageDicomFile(ImageFile):
             image_modality: Union[None, str] = None,
             image_file_type: Union[None, str] = None,
             image_data: Union[None, np.ndarray] = None,
-            image_origin: Union[None, Tuple[float]] = None,
+            image_origin: Union[None, Tuple[float, ...]] = None,
             image_orientation: Union[None, np.ndarray] = None,
-            image_spacing: Union[None, Tuple[float]] = None,
-            image_dimensions: Union[None, Tuple[int]] = None,
+            image_spacing: Union[None, Tuple[float, ...]] = None,
+            image_dimensions: Union[None, Tuple[int, ...]] = None,
             **kwargs):
 
         super().__init__(

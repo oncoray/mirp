@@ -1,5 +1,3 @@
-from typing import Union, List, Dict, Set
-
 from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
@@ -9,21 +7,105 @@ from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
 def import_image_and_mask(
         image,
         mask=None,
-        sample_name: Union[None, str, List[str]] = None,
-        image_name: Union[None, str, List[str]] = None,
-        image_file_type: Union[None, str] = None,
-        image_modality: Union[None, str, List[str]] = None,
-        image_sub_folder: Union[None, str] = None,
-        mask_name: Union[None, str, List[str]] = None,
-        mask_file_type: Union[None, str] = None,
-        mask_modality: Union[None, str, List[str]] = None,
-        mask_sub_folder: Union[None, str] = None,
-        roi_name: Union[None, str, List[str], Dict[str, str]] = None,
-        association_strategy: Union[None, str, List[str]] = None,
-        stack_masks: str = "auto",
-        stack_images: str = "auto"
-) -> List[ImageFile]:
+        sample_name: None | str | list[str] = None,
+        image_name: None | str | list[str] = None,
+        image_file_type: None | str = None,
+        image_modality: None | str | list[str] = None,
+        image_sub_folder: None | str = None,
+        mask_name: None | str | list[str] = None,
+        mask_file_type: None | str = None,
+        mask_modality: None | str | list[str] = None,
+        mask_sub_folder: None | str = None,
+        roi_name: None | str | list[str] | dict[str | str] = None,
+        association_strategy: None | str | list[str] = None,
+        stack_images: str = "auto",
+        stack_masks: str = "auto"
+) -> list[ImageFile]:
+    """
+    Creates and curates references to image files.
 
+    Parameters
+    ----------
+    image: Any
+        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+        image files, or a numpy.ndarray.
+
+    mask: Any
+        A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
+        file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
+        mask files, or a numpy.ndarray.
+
+    sample_name: str or list of str, default: None
+        Name of expected sample names. This is used to select specific image files. If None, no image files are
+        filtered based on the corresponding sample name (if known).
+
+    image_name: str, optional, default: None
+        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+        File extensions do not need to be specified. If None, file names are not used for filtering files and
+        setting sample names.
+
+    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+        DICOM files contain metadata concerning modality.
+
+    image_sub_folder: str, optional, default: None
+        Fixed directory substructure where image files are located. If None, the directory substructure is not used
+        for filtering files.
+
+    mask_name: str, optional, default: None
+        Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
+        structures. The sample name (if part of the file name) can also be specified using "#". For example,
+        mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+        do not need to be specified. If None, file names are not used for filtering files and setting sample names.
+
+    mask_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files.
+        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+        be "generic_mask".
+
+    mask_sub_folder: str, optional, default: None
+        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+        filtering files.
+
+    roi_name: str, optional, default: None
+        Name of the regions of interest that should be assessed.
+
+    association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
+        The preferred strategy for associating images and masks. File association is preferably done using frame of
+        reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
+        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
+        are of equal length.
+
+    stack_images: {"auto", "yes", "no"}, optional, default: "str"
+        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
+        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
+        can be determined from metadata.
+
+    stack_masks: {"auto", "yes", "no"}, optional, default: "str"
+        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
+        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
+        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
+        because their stacking can be determined from metadata.
+
+    Returns
+    -------
+    list of ImageFile
+        The functions returns a list of ImageFile objects, if any were found with the specified filters.
+    """
     if mask is None:
         mask = image
 
@@ -114,9 +196,9 @@ def import_image_and_mask(
 
 
 def set_association_strategy(
-        image_list: Union[List[ImageFile], List[ImageDicomFile]],
-        mask_list: Union[List[MaskFile], List[MaskDicomFile]]
-) -> Set[str]:
+        image_list: list[ImageFile] | list[ImageDicomFile],
+        mask_list: list[MaskFile] | list[MaskDicomFile]
+) -> set[str]:
     # Association strategy is set by a process of elimination.
     possible_strategies = {
         "frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position",
@@ -138,8 +220,8 @@ def set_association_strategy(
     # Check if association by frame of reference UID is possible.
     if any(isinstance(image, ImageDicomFile) for image in image_list) and \
             any(isinstance(mask, MaskDicomFile) for mask in mask_list):
-        dcm_image_list: List[ImageDicomFile] = [image for image in image_list if isinstance(image, ImageDicomFile)]
-        dcm_mask_list: List[MaskDicomFile] = [mask for mask in mask_list if isinstance(mask, MaskDicomFile)]
+        dcm_image_list: list[ImageDicomFile] = [image for image in image_list if isinstance(image, ImageDicomFile)]
+        dcm_mask_list: list[MaskDicomFile] = [mask for mask in mask_list if isinstance(mask, MaskDicomFile)]
 
         # If frame of reference UIDs are completely absent.
         if all(image.frame_of_reference_uid is None for image in dcm_image_list) or \

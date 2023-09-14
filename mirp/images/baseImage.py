@@ -1,19 +1,19 @@
 import copy
 
 import numpy as np
-from typing import Union, Optional, List, Tuple
+from typing import Union
 
 
 class BaseImage:
 
     def __init__(
             self,
-            sample_name: Optional[str] = None,
-            image_modality: Optional[str] = None,
-            image_origin: Optional[Tuple[float]] = None,
-            image_orientation: Optional[np.ndarray] = None,
-            image_spacing: Optional[Tuple[float]] = None,
-            image_dimensions: Optional[Tuple[int]] = None,
+            sample_name: None | str = None,
+            image_modality: None | str = None,
+            image_origin: None | tuple[float, ...] = None,
+            image_orientation: None | np.ndarray = None,
+            image_spacing: None | tuple[float, ...] = None,
+            image_dimensions: None | tuple[int, ...] = None,
             **kwargs
     ):
         # Make cooperative
@@ -22,7 +22,7 @@ class BaseImage:
         # Set modality.
         if isinstance(image_modality, str):
             image_modality = image_modality.lower()
-        self.modality: Union[None, str] = image_modality
+        self.modality = image_modality
 
         # Set affine-transformation related values.
         self.image_origin = copy.deepcopy(image_origin)
@@ -49,7 +49,7 @@ class BaseImage:
         else:
             spacing = np.array(self.image_spacing)
 
-        return all(spacing == spacing[0])
+        return np.all(spacing == spacing[0])
 
     def world_coordinates(self):
 

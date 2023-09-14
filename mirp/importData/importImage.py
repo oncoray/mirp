@@ -1,8 +1,6 @@
 import os
 import os.path
 from functools import singledispatch
-from typing import Union, List
-
 import numpy as np
 import pandas as pd
 
@@ -13,13 +11,13 @@ from mirp.importData.utilities import supported_file_types, supported_image_moda
 
 def import_image(
         image,
-        sample_name: Union[None, str, List[str]] = None,
-        image_name: Union[None, str, List[str]] = None,
-        image_file_type: Union[None, str] = None,
-        image_modality: Union[None, str, List[str]] = None,
-        image_sub_folder: Union[None, str] = None,
+        sample_name: None | str | list[str] = None,
+        image_name: None | str | list[str] = None,
+        image_file_type: None | str = None,
+        image_modality: None | str | list[str] = None,
+        image_sub_folder: None | str = None,
         stack_images: str = "auto"
-) -> List[ImageFile]:
+) -> list[ImageFile]:
     """
     Creates and curates references to image files.
 
@@ -62,7 +60,7 @@ def import_image(
 
     Returns
     -------
-    image_list: list of ImageFile
+    list of ImageFile
         The functions returns a list of ImageFile objects, if any were found with the specified filters.
     """
     # Check modality.
@@ -77,8 +75,8 @@ def import_image(
     if image_file_type is not None:
         if not isinstance(image_file_type, str):
             raise TypeError(
-                f"The image_file_type argument is expected to be a single character string, or None. The following file "
-                f"types are supported: {', '.join(supported_file_types(None))}.")
+                f"The image_file_type argument is expected to be a single character string, or None. The following "
+                f" file types are supported: {', '.join(supported_file_types(None))}.")
         _ = supported_file_types(image_file_type)
 
     # Check stack_images
@@ -87,7 +85,7 @@ def import_image(
             f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}."
         )
 
-    image_list: Union[ImageFile, List[ImageFile]] = _import_image(
+    image_list: ImageFile | list[ImageFile] = _import_image(
         image,
         sample_name=sample_name,
         image_name=image_name,
@@ -130,7 +128,11 @@ def _(image: list, **kwargs):
 
 
 @_import_image.register(str)
-def _(image: str, is_mask=False, **kwargs):
+def _(
+        image: str,
+        is_mask: bool = False,
+        **kwargs
+):
     # Image is a string, which could be a path to a xml file, to a csv file, or just a regular
     # path a path to a file, or a path to a directory. Test which it is and then dispatch.
 
@@ -158,16 +160,20 @@ def _(image: str, is_mask=False, **kwargs):
 
 
 @_import_image.register(pd.DataFrame)
-def _(image: pd.DataFrame,
-      image_modality: Union[None, str] = None,
-      **kwargs):
+def _(
+        image: pd.DataFrame,
+        image_modality: None | str = None,
+        **kwargs
+):
     ...
 
 
 @_import_image.register(np.ndarray)
-def _(image: np.ndarray,
-      is_mask: bool = False,
-      **kwargs):
+def _(
+        image: np.ndarray,
+        is_mask: bool = False,
+        **kwargs
+):
 
     from imageNumpyFile import ImageNumpyFile, MaskNumpyFile
 
@@ -185,7 +191,11 @@ def _(image: np.ndarray,
 
 
 @_import_image.register(ImageFile)
-def _(image: ImageFile, remove_metadata: bool = False, **kwargs):
+def _(
+        image: ImageFile,
+        remove_metadata: bool = False,
+        **kwargs
+):
 
     # Create image.
     image = image.create()
@@ -203,7 +213,11 @@ def _(image: ImageFile, remove_metadata: bool = False, **kwargs):
 
 
 @_import_image.register(ImageDirectory)
-def _(image: ImageDirectory, remove_metadata: bool = False, **kwargs):
+def _(
+        image: ImageDirectory,
+        remove_metadata: bool = False,
+        **kwargs
+):
 
     # Check first if the data are consistent for a directory.
     image.check(raise_error=True)
