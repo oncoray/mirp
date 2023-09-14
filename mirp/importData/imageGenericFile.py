@@ -736,12 +736,14 @@ class ImageFile(BaseImage):
 
         # Update image spacing attribute.
         if self.image_spacing is not None and not len(self.image_spacing) == 3:
-            image_spacing: List[float] = list(self.image_spacing)
+            image_spacing: list[float] = list(self.image_spacing)
             if dims_to_add == 2:
                 image_spacing.insert(0, image_spacing[0])
                 image_spacing.insert(0, 1.0)
             if dims_to_add == 1:
                 image_spacing.insert(0, 1.0)
+
+            self.image_spacing = tuple(image_spacing)
 
     def to_object(self, **kwargs) -> GenericImage:
 
