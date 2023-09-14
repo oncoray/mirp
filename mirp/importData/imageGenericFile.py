@@ -730,7 +730,7 @@ class ImageFile(BaseImage):
             if dims_to_add == 2:
                 image_orientation[1:2, 1:2] = self.image_orientation
             elif dims_to_add == 1:
-                image_orientation[2, 2] = self.image_orientation
+                image_orientation[1:3, 1:3] = self.image_orientation
 
             self.image_orientation = image_orientation
 
