@@ -421,16 +421,14 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             for current_structure_set_roi_sequence in self.image_metadata[(0x3006, 0x0020)]
         ]
 
-        if len(labels) == 0:
-            labels = None
+        n_labels = max([1, len(labels)])
 
-        if len(labels) == 1:
-            # This prevents issues when converting pandas.Dataframe
-            labels = labels[0]
+        if len(labels) == 0:
+            labels = [None]
 
         return {
-            "sample_name": self.sample_name,
-            "dir_path": self.dir_path,
-            "file_path": self.file_name,
+            "sample_name": [self.sample_name] * n_labels,
+            "dir_path": [self.dir_path] * n_labels,
+            "file_path": [self.file_name] * n_labels,
             "roi_label": labels
         }

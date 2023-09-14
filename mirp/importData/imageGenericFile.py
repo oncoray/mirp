@@ -1082,17 +1082,14 @@ class MaskFile(ImageFile):
 
         # Identify available labels that are non-background.
         labels = list(set(np.unique(self.image_data)) - {0})
+        n_labels = max([1, len(labels)])
 
         if len(labels) == 0:
-            labels = None
-
-        if len(labels) == 1:
-            # This prevents issues when converting pandas.Dataframe
-            labels = labels[0]
+            labels = [None]
 
         return {
-            "sample_name": self.sample_name,
-            "dir_path": self.dir_path,
-            "file_path": self.file_name,
+            "sample_name": [self.sample_name] * n_labels,
+            "dir_path": [self.dir_path] * n_labels,
+            "file_path": [self.file_name] * n_labels,
             "roi_label": labels
         }
