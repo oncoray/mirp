@@ -1,4 +1,6 @@
 import os
+import numpy as np
+
 from mirp.extractMaskLabels import extract_mask_labels
 
 
@@ -20,8 +22,13 @@ def test_extract_mask_labels_generic():
 
     assert all(x == 1 for x in mask_labels.roi_label.values)
 
-    # TODO: Mask with multiple labels
-    ...
+    mask = np.zeros((10, 10), dtype=int)
+    mask[1, 1] = 1
+    mask[2, 2] = 2
+    mask[3, 3] = 3
+    mask_labels = extract_mask_labels(mask=mask)
+    
+    assert all(x in [1, 2, 3] for x in mask_labels.roi_label.values)
 
 
 def test_extract_mask_labels_rtstruct():

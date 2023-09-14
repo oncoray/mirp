@@ -87,8 +87,8 @@ def extract_mask_labels(
         stack_masks=stack_masks
     )
 
-    labels = [_extract_mask_labels(ii, mask) for ii, mask in enumerate(mask_list)]
-    labels = pd.DataFrame(labels)
+    labels = [pd.DataFrame(_extract_mask_labels(ii, mask)) for ii, mask in enumerate(mask_list)]
+    labels = pd.concat(labels)
 
     if write_file:
         write_dir = os.path.normpath(write_dir)
