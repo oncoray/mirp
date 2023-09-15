@@ -1,6 +1,4 @@
 import os
-import numpy as np
-
 from mirp.extractImageParameters import extract_image_parameters
 
 
@@ -31,14 +29,43 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 1
 
+    # Read multiple CT images.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image")
+    )
+    assert len(image_parameters) == 3
+
     # Read a single PET image.
     image_parameters = extract_image_parameters(
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "PET", "dicom", "image")
     )
     assert len(image_parameters) == 1
 
-    # Read a single T1w-MR image.
+    # Read multiple PET images.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("PET", "dicom", "image")
+    )
+    assert len(image_parameters) == 3
+
+    # Read a single T1-weighted MR image.
     image_parameters = extract_image_parameters(
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "MR_T1", "dicom", "image")
     )
     assert len(image_parameters) == 1
+
+    # Read multiple T1-weighted MR images.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("MR_T1", "dicom", "image")
+    )
+    assert len(image_parameters) == 3
+
+    # Read multiple DICOM images.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_file_type="dicom"
+    )
+    assert len(image_parameters) == 9
+
