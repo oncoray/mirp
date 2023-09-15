@@ -2,12 +2,13 @@ import datetime
 import os.path
 import fnmatch
 import math
-from typing import Union, List, Tuple, Optional, Any
+from typing import Union, List, Tuple, Optional, Any, Iterable
 from os.path import split
 
 import numpy as np
 import pydicom
-from pydicom import FileDataset, Dataset
+from pydicom import FileDataset, Dataset, datadict
+from pydicom.tag import Tag
 
 
 def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
@@ -549,3 +550,40 @@ def get_pydicom_meta_tag(
 def has_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag):
 
     return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
+
+
+def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force_vr=None):
+    # Check tag
+    if isinstance(tag, tuple):
+        tag = Tag(tag[0], tag[1])
+
+    elif isinstance(tag, list):
+        tag = Tag(tag[0], tag[2])
+
+    elif isinstance(tag, Tag):
+        pass
+
+    else:
+        raise TypeError(f"Metadata tag {tag} is not a pydicom Tag, or can be parsed to one.")
+
+    # Read the default VR information for non-existent tags.
+    vr, vm, name, is_retired, keyword = datadict.get_entry(tag)
+
+    if vr == "DS":
+        # Decimal string (16-byte string representing decimal value)
+        if isinstance(value, Iterable):
+            value = [f"{x:.16f}"[:16] for x in value]
+        else:
+            value = f"{value:.16f}"[:16]
+
+    if tag in dcm_seq and force_vr is None:
+        # Update the value of an existing tag.
+        dcm_seq[tag].value = value
+
+    elif force_vr is None:
+        # Add a new entry.
+        dcm_seq.add_new(tag=tag, VR=vr, value=value)
+
+    else:
+        # Add a new entry
+        dcm_seq.add_new(tag=tag, VR=force_vr, value=value)

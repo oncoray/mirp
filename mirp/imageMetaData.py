@@ -93,41 +93,6 @@ def get_meta_data(modality, dcm_list=None, image_folder=None):
     return pd.concat(image_meta_list, axis=0)
 
 
-def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force_vr=None):
-    # Check tag
-    if isinstance(tag, tuple):
-        tag = Tag(tag[0], tag[1])
-
-    elif isinstance(tag, list):
-        tag = Tag(tag[0], tag[2])
-
-    elif isinstance(tag, Tag):
-        pass
-
-    else:
-        raise TypeError(f"Metadata tag {tag} is not a pydicom Tag, or can be parsed to one.")
-
-    # Read the default VR information for non-existent tags.
-    vr, vm, name, is_retired, keyword = datadict.get_entry(tag)
-
-    if vr == "DS":
-        # Decimal string (16-byte string representing decimal value)
-        if isinstance(value, Iterable):
-            value = [f"{x:.16f}"[:16] for x in value]
-        else:
-            value = f"{value:.16f}"[:16]
-
-    if tag in dcm_seq and force_vr is None:
-        # Update the value of an existing tag.
-        dcm_seq[tag].value = value
-
-    elif force_vr is None:
-        # Add a new entry.
-        dcm_seq.add_new(tag=tag, VR=vr, value=value)
-
-    else:
-        # Add a new entry
-        dcm_seq.add_new(tag=tag, VR=force_vr, value=value)
 
 
 def get_itk_dicom_meta_tag(itk_img, tag, tag_type, default=None):
