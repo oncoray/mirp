@@ -1,4 +1,4 @@
-from typing import Union, Optional, List, Any, Dict
+from typing import Any
 
 import os
 import pandas as pd
@@ -8,15 +8,15 @@ from mirp.importData.imageGenericFile import MaskFile
 
 def extract_mask_labels(
         mask=None,
-        sample_name: Union[None, str, List[str]] = None,
-        mask_name: Union[None, str, List[str]] = None,
-        mask_file_type: Optional[str] = None,
-        mask_modality: Union[None, str, List[str]] = None,
-        mask_sub_folder: Optional[str] = None,
+        sample_name: None | str | list[str] = None,
+        mask_name: None | str | list[str] = None,
+        mask_file_type: None | str = None,
+        mask_modality: None | str | list[str] = None,
+        mask_sub_folder: None | str = None,
         stack_masks: str = "auto",
         write_file: bool = False,
-        write_dir: Optional[str] = None
-):
+        write_dir: None | str = None
+) -> pd.DataFrame | None:
     """
     Extract labels present in one or more masks.
 
@@ -65,8 +65,9 @@ def extract_mask_labels(
 
     Returns
     -------
-    pd.DataFrame or None
-        The functions returns a table with labels extracted from mask files.
+    pd.DataFrame | None
+        The functions returns a table with labels extracted from mask files (`write_file == False`),
+        or None `(write_file == True)`.
 
     """
     from mirp.importData.importMask import import_mask
@@ -102,7 +103,7 @@ def extract_mask_labels(
         return labels
 
 
-def _extract_mask_labels(index: int, mask: MaskFile) -> Dict[str, Any]:
+def _extract_mask_labels(index: int, mask: MaskFile) -> dict[str, Any]:
 
     labels = mask.export_roi_labels()
     labels.update({"mask_index": index})
