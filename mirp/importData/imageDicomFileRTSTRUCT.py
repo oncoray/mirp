@@ -6,7 +6,7 @@ from typing import Union, List, Optional
 
 import pydicom
 
-from mirp.contourClass import ContourClass
+from mirp.importData.maskContour import ContourClass
 from mirp.importData.importImage import ImageFile
 from mirp.importData.imageDicomFile import MaskDicomFile
 from mirp.masks.baseMask import BaseMask
