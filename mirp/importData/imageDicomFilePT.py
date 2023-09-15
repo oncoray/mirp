@@ -380,4 +380,5 @@ class ImageDicomFilePT(ImageDicomFile):
         if detector_normalisation is not None:
             dcm_meta_data += [("detector_normalisation", detector_normalisation)]
 
-        return metadata.update(dict(dcm_meta_data))
+        metadata.update(dict(dcm_meta_data))
+        return metadata

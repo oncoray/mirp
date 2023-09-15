@@ -171,9 +171,10 @@ class ImageDicomFileStack(ImageFileStack):
 
     def export_metadata(self) -> Optional[Dict[str, Any]]:
         metadata = super().export_metadata()
-        additional_metadata = self.image_file_objects[len(self.image_file_objects) // 2].export_metadata(only_self=True)
+        additional_metadata = self.image_file_objects[0].export_metadata(only_self=True)
+        metadata.update(additional_metadata)
 
-        return metadata.update(additional_metadata)
+        return metadata
 
 
 class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):

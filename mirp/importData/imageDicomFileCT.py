@@ -137,4 +137,5 @@ class ImageDicomFileCT(ImageDicomFile):
         if contrast_agent is not None:
             dcm_meta_data += [("contrast_agent", contrast_agent)]
 
-        return metadata.update(dict(dcm_meta_data))
+        metadata.update(dict(dcm_meta_data))
+        return metadata
