@@ -28,8 +28,8 @@ Version 2 is a major refactoring of the previous code base. For users this bring
     `deepLearningPreprocessing.deep_learning_preprocessing_generator` (generator).
   - `mainFunctions.get_file_structure_parameters` and `mainFunctions.parse_file_structure` are deprecated, as the
     the file import system used in version 2 no longer requires a rigid directory structure.
-  - `mainFunctions.get_roi_labels` is now **TO BE IMPLEMENTED**.
-  - `mainFunctions.get_image_acquisition_parameters` is now **TO BE IMPLEMENTED**.
+  - `mainFunctions.get_roi_labels` is now `extractMaskLabels.extract_mask_labels`.
+  - `mainFunctions.get_image_acquisition_parameters` is now `extractImageParameters.extract_image_parameters`.
 
 For advanced users and developers, the following changes are relevant:
 - MIRP previously relied on `ImageClass` and `RoiClass` objects. These have been completely replaced by `GenericImage`
