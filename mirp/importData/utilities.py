@@ -482,7 +482,7 @@ def get_pydicom_meta_tag(
 
     Returns
     -------
-    tag_value: any
+    Any
         Value of the parameter read for from the DICOM metadata.
     """
     # Reads dicom tag
