@@ -15,7 +15,7 @@ from mirp.importData.readData import read_image_and_masks
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import TransformedImage
 from mirp.masks.baseMask import BaseMask
-from mirp.imageProcess import crop
+from mirp.imageProcess.cropping import crop, crop_image_to_size
 
 
 class StandardWorkflow(BaseWorkflow):
@@ -68,7 +68,11 @@ class StandardWorkflow(BaseWorkflow):
         return " ".join(message_str)
 
     def standard_image_processing(self) -> Tuple[GenericImage, List[BaseMask]]:
-        from mirp.imageProcess import crop, alter_mask, randomise_mask, split_masks, create_tissue_mask
+        from mirp.imageProcess.cropping import crop
+        from mirp.imageProcess.tissueMask import create_tissue_mask
+        from mirp.imageProcess.alterMask import alter_mask
+        from mirp.imageProcess.randomiseMask import randomise_mask
+        from mirp.imageProcess.splitMask import split_masks
 
         # Configure logger
         logging.basicConfig(
@@ -533,7 +537,7 @@ class StandardWorkflow(BaseWorkflow):
             mask: BaseMask,
             settings: Optional[Union[SettingsClass, FeatureExtractionSettingsClass]] = None
     ) -> Tuple[GenericImage, BaseMask]:
-        from mirp.imageProcess import discretise_image
+        from mirp.imageProcess.discretiseImage import discretise_image
 
         if settings is None:
             settings = self.settings
@@ -635,7 +639,7 @@ class StandardWorkflow(BaseWorkflow):
             output_slices: bool = False,
             crop_size: Optional[List[float]] = None
     ) -> Generator[Tuple[GenericImage, BaseMask], None, None]:
-        from mirp.imageProcess import crop_image_to_size, crop
+        from mirp.imageProcess.cropping import crop
 
         # Avoid updating by reference.
         crop_size = copy.deepcopy(crop_size)

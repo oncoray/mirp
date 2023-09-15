@@ -281,7 +281,7 @@ class GenericImage(BaseImage):
             anti_aliasing_smoothing_beta: float
     ):
         """Performs interpolation of the image volume"""
-        from mirp.imageProcess import gaussian_preprocess_filter
+        from mirp.imageProcess.antiAliasing import gaussian_preprocess_filter
         from scipy.ndimage import map_coordinates
 
         # Skip for missing images.
@@ -458,7 +458,7 @@ class GenericImage(BaseImage):
         """Register this image with another image."""
 
         from scipy.ndimage import map_coordinates
-        from mirp.imageProcess import gaussian_preprocess_filter
+        from mirp.imageProcess.antiAliasing import gaussian_preprocess_filter
 
         # This is just for type hinting. Use typing.Self once this is supported by the codestack.
         image: GenericImage = image
@@ -1041,7 +1041,8 @@ class GenericImage(BaseImage):
         """Extracts supervoxels from an image"""
 
         from skimage.segmentation import slic
-        from mirp.imageProcess import set_intensity_range, extend_intensity_range
+        from mirp.imageProcess.utilities import extend_intensity_range
+        from mirp.imageProcess.utilities import set_intensity_range
 
         if self.is_empty():
             return None

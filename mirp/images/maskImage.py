@@ -424,7 +424,8 @@ class MaskImage(GenericImage):
     ):
         """Use SLIC to randomise the roi based on supervoxels"""
         from scipy.ndimage import binary_closing
-        from mirp.imageProcess import crop, set_intensity_range
+        from mirp.imageProcess.utilities import set_intensity_range
+        from mirp.imageProcess.cropping import crop
 
         # Skip if no randomisation is required.
         if repetitions < 1:
