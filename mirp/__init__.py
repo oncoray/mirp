@@ -3,10 +3,13 @@ from ctypes.util import find_library
 import os
 
 # OpenBLAS-based multi-threading libraries
-try_paths = ['/opt/OpenBLAS/lib/libopenblas.so',
-             '/lib/libopenblas.so',
-             '/usr/lib/libopenblas.so.0',
-             find_library('openblas')]
+try_paths = [
+    '/opt/OpenBLAS/lib/libopenblas.so',
+    '/lib/libopenblas.so',
+    '/usr/lib/libopenblas.so.0',
+    find_library('openblas')
+]
+
 openblas_lib = None
 for libpath in try_paths:
     try:
@@ -24,7 +27,6 @@ if openblas_lib is not None:
 # MKL-based multi-threading libraries
 try:
     import mkl
-
     mkl.set_num_threads(1)
 except:
     pass
