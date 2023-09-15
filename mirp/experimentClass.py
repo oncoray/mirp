@@ -1,9 +1,4 @@
-# from mirp.configThreading import disable_multi_threading
-# disable_multi_threading()
-
-import numpy as np
 import os
-import pandas as pd
 from typing import List, Optional
 from mirp.settings.settingsGeneric import SettingsClass
 
@@ -88,46 +83,6 @@ class ExperimentClass:
         self.extract_images: bool = extract_images
         self.plot_images: bool = plot_images
         self.keep_images_in_memory: bool = keep_images_in_memory
-
-    def get_roi_list(self):
-        """ Extracts the available region of interest from the roi folder. This function allows identification of
-         regions of interest in new projects. """
-
-        import logging
-        from mirp.imageRead import find_regions_of_interest
-
-        # Notify log of roi name extraction
-        logging.info("Starting extraction of rois for %s.", self.subject)
-
-        # Extract regions of interest
-        roi_table = find_regions_of_interest(roi_folder=self.roi_folder, subject=self.subject)
-
-        return roi_table
-
-    def get_imaging_parameter_table(self):
-        """
-        Extracts image metadata from the image folder. This enables collection of scanner acquisition protocols and settings.
-        :return: pandas table with imaging parameters
-        """
-
-        import logging
-        from mirp.imageRead import find_imaging_parameters
-
-        # Notify for start extraction of image meta data
-        logging.info("Starting extraction of image metadata for %s.", self.subject)
-
-        # Find files and extract meta data to a dataframe
-        metadata_table = find_imaging_parameters(image_folder=self.image_folder,
-                                                 modality=self.modality,
-                                                 subject=self.subject,
-                                                 plot_images=self.plot_images,
-                                                 write_folder=self.write_path,
-                                                 roi_folder=self.roi_folder,
-                                                 registration_image_folder=self.roi_reg_img_folder,
-                                                 settings=self.settings,
-                                                 roi_names=self.roi_names)
-
-        return metadata_table
 
     def process(self):
         return
