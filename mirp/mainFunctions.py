@@ -1,117 +1,30 @@
-# from mirp.configThreading import disable_multi_threading
-# disable_multi_threading()
-
 import logging
 import multiprocessing as mp
-import os
+
 import time
 from inspect import stack, getmodule
-from typing import Optional, List
+from typing import List
 
 import numpy as np
 import pandas as pd
 
-from mirp.importData.importMask import import_mask
 from mirp.settings.importDataSettings import import_data_settings
 from mirp.settings.importConfigurationSettings import import_configuration_settings
 from mirp.experimentClass import ExperimentClass
 
 
-def get_roi_labels(
-        mask,
-        write_dir: Optional[str],
-        **kwargs
-) -> Optional[List[str]]:
-
-    # Import mask files
-    mask_list = import_mask(mask=mask, **kwargs)
-
-    if len(mask_list) == 0:
-        return None
-
-    # Get labels from mask and parse to a pandas.DataFrame.
-    roi_labels = [mask.export_roi_labels() for mask in mask_list]
-    roi_labels = [labels.update({"id": ii}) for ii, labels in enumerate(roi_labels)]
-    roi_labels = pd.concat(roi_labels)
-
-    if write_dir is not None:
-        # Check if the directory exists, and create otherwise.
-        if not os.path.exists(write_dir):
-            os.makedirs(write_dir)
-
-        file_path = os.path.join(write_dir, "roi_labels.csv")
-        roi_labels.to_csv(
-            path_or_buf=file_path,
-            sep=";",
-            na_rep="NA",
-            index=False,
-            decimal="."
-        )
-
-    else:
-        return roi_labels
+def get_roi_labels(**kwargs):
+    raise RuntimeError(
+        f"The get_roi_labels function has been replaced by "
+        f"mirp.extractMaskLabels.extract_mask_labels."
+    )
 
 
-def _get_roi_names(data_config=None, settings_config=None, to_file=True):
-    """ Allows automatic extraction of roi names """
-
-    if settings_config is not None:
-        settings_list = import_configuration_settings(settings_config)
-        data_obj_list = import_data_settings(data_config, settings_list)
-    else:
-        data_obj_list = import_data_settings(data_config, None)
-
-    roi_info_list = []
-
-    # Iterate over data and
-    for data_obj in data_obj_list:
-        roi_info_list += [data_obj.get_roi_list()]
-
-    # Concatenate list
-    df_roi = pd.concat(roi_info_list)
-
-    # Export list to project path
-    if to_file:
-        write_path = data_obj_list[0].write_path
-        file_path = os.path.normpath(os.path.join(write_path, "project_roi.csv"))
-        df_roi.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
-
-        logging.info(f"Writing list of ROI names to {file_path}.")
-
-    else:
-        return df_roi
-
-
-def get_image_acquisition_parameters(data_config=None, settings_config=None, plot_images="single", to_file=True):
-    """ Allows automatic extraction of imaging parameters """
-
-    # Read settings from settings files and create the appropriate data objects.
-    if settings_config is not None:
-        settings_list = import_configuration_settings(settings_config)
-        data_obj_list = import_data_settings(data_config, settings_list, plot_images=plot_images)
-    else:
-        data_obj_list = import_data_settings(data_config, None, plot_images=plot_images)
-
-    # Initiate an empty list
-    meta_list = []
-
-    # Iterate over all data and extract imaging parameters
-    for data_obj in data_obj_list:
-        meta_list += [data_obj.get_imaging_parameter_table()]
-
-    # Concatenate list
-    df_meta = pd.concat(meta_list)
-
-    # Export list to project path
-    if to_file:
-        write_path = data_obj_list[0].write_path
-        file_path = os.path.normpath(os.path.join(write_path, "project_image_meta_data.csv"))
-        df_meta.to_csv(path_or_buf=file_path, sep=";", na_rep="NA", index=False, decimal=".")
-
-        logging.info(f"Writing list of acquisition parameters to {file_path}.")
-
-    else:
-        return df_meta
+def get_image_acquisition_parameters(**kwargs):
+    raise RuntimeError(
+        f"The get_image_acquisition_parameters function has been replaced by "
+        f"mirp.extractImageParameters.extract_image_parameters."
+    )
 
 
 def get_file_structure_parameters(**kwargs):
@@ -131,19 +44,6 @@ def extract_images_for_deep_learning(**kwargs):
         f"The extract_images_for_deep_learning function has been replaced by "
         f"mirp.deepLearningPreprocessing.deep_learning_preprocessing."
     )
-
-
-def _parallel_process(data_obj):
-    """
-    Function for parallel feature extraction
-
-    :param data_obj: input ExperimentClass object.
-    :return:
-
-    This function is used internally.
-    """
-
-    data_obj.process()
 
 
 def extract_features(**kwargs):
@@ -341,3 +241,16 @@ def process_images(data_config, settings_config, n_processes=1, keep_images_in_m
 
         for data_obj in data_obj_list:
             data_obj.process()
+
+
+def _parallel_process(data_obj):
+    """
+    Function for parallel feature extraction
+
+    :param data_obj: input ExperimentClass object.
+    :return:
+
+    This function is used internally.
+    """
+
+    data_obj.process()
