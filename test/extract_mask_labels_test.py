@@ -27,7 +27,7 @@ def test_extract_mask_labels_generic():
     mask[2, 2] = 2
     mask[3, 3] = 3
     mask_labels = extract_mask_labels(mask=mask)
-    
+
     assert all(x in [1, 2, 3] for x in mask_labels.roi_label.values)
 
 
