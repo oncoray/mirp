@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 from pydicom import FileDataset, Sequence, Dataset
 
-from mirp.imageMetaData import set_pydicom_meta_tag, create_new_uid
-from mirp.importData.utilities import get_pydicom_meta_tag
+from mirp.imageMetaData import create_new_uid
+from mirp.importData.utilities import get_pydicom_meta_tag, set_pydicom_meta_tag
 from mirp.utilities import get_version
 from mirp.settings.settingsGeneric import SettingsClass
 
