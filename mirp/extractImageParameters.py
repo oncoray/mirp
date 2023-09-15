@@ -86,7 +86,7 @@ def extract_image_parameters(
         stack_images=stack_images
     )
 
-    metadata = [extract_image_parameters(ii, image) for ii, image in enumerate(image_list)]
+    metadata = [_extract_image_parameters(ii, image) for ii, image in enumerate(image_list)]
     metadata = pd.DataFrame(metadata)
 
     if write_file:
