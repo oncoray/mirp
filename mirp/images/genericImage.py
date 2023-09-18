@@ -97,9 +97,9 @@ class GenericImage(BaseImage):
 
         if self.modality == "ct":
             image = CTImage(image_data=self.image_data)
-        elif self.modality == "pet":
+        elif self.modality in ["pet", "pt"]:
             image = PETImage(image_data=self.image_data)
-        elif self.modality == "mr":
+        elif self.modality in ["mr", "mri"]:
             image = MRImage(image_data=self.image_data)
         elif self.modality == "generic":
             return self
