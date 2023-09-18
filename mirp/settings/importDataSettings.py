@@ -1,72 +1,53 @@
-import sys
-from xml.etree import ElementTree as ElemTree
-
+import os
 import numpy as np
 import pandas as pd
+from xml.etree import ElementTree as ElemTree
 
 from mirp.settings.utilities import str2list, str2type
 
 
 def import_data_settings(
-        path,
-        config_settings,
-        compute_features=False,
-        extract_images=False,
-        plot_images=False,
-        keep_images_in_memory=False,
-        file_structure=False,
-        **kwargs):
-    from mirp.experimentClass import ExperimentClass
-    import os
-    import logging
-
-    def find_sub_directories(dir_path):
-        sub_dir = []
-        for dir_file in os.listdir(dir_path):
-            if os.path.isdir(os.path.join(dir_path, dir_file)):
-                sub_dir.append(dir_file)
-        return sub_dir
-
-    def find_imaging_files(dir_path):
-        file_found = False
-        for dir_file in os.listdir(dir_path):
-            if os.path.isfile(os.path.join(dir_path, dir_file)):
-                if dir_file.lower().endswith((".dcm", ".ima", ".nii", ".nii.gz", ".nifti", ".nifti.gz", ".nrrd")):
-                    file_found = True
-                    break
-
-        return file_found
-
-    # Configure logger
-    logging.basicConfig(
-        format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
-        level=logging.INFO,
-        stream=sys.stdout)
+    path: str,
+    is_mask: bool
+):
+    if os.path.isfile(path):
+        raise ValueError(f"The {path} data settings file does not exist. Please check spelling of the file path.")
+    if not path.endswith(".xml"):
+        raise ValueError(f"The {path} data settings file is not an xml file.")
 
     # Load xml
     tree = ElemTree.parse(path)
     root = tree.getroot()
 
     # Empty list for iteratively storing data objects
-    data_obj_list = []
+    data_arguments_list = []
 
     # Iterate over configurations
     for branch in root.findall("config"):
+        # Set data arguments.
+        data_arguments = []
 
         # Read data from xml file
         paths_branch = branch.find("paths")
+
+        # Set main directory.
         project_path = os.path.normpath(str2type(paths_branch.find("project_folder"), "path"))
-        write_path = os.path.normpath(str2type(paths_branch.find("write_folder"), "path"))
-        excl_subj = str2list(paths_branch.find("subject_exclude"), "str")
-        incl_subj = str2list(paths_branch.find("subject_include"), "str")
-        provide_diagnostics = str2type(paths_branch.find("provide_diagnostics"), "bool")
+        if is_mask:
+            data_arguments += [("mask", project_path)]
+        else:
+            data_arguments += [("image", project_path)]
 
-        # Read cohort name or ID
-        cohort_id = str2type(paths_branch.find("cohort"), "str", "NA")
+        # Set sample name.
+        sample_name = str2list(paths_branch.find("subject_include"), "str")
+        data_arguments += [("sample_name", sample_name)]
 
-        # Identify subject folders
-        folder_list = find_sub_directories(project_path)
-
+        # Deprecated stuff.
+        # TODO: Add deprecation warnings.
+        # excl_subj = str2list(paths_branch.find("subject_exclude"), "str")
+        # write_path = os.path.normpath(str2type(paths_branch.find("write_folder"), "path"))
+        # provide_diagnostics = str2type(paths_branch.find("provide_diagnostics"), "bool")
+        # cohort_id = str2type(paths_branch.find("cohort"), "str", "NA")
+       
         # Check if there are multiple data branches with the same modality, because then we need to update the subject.
         image_data_identifier_list = []
         for data_branch in branch.findall("data"):

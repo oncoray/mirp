@@ -3,16 +3,12 @@
         <paths>
             <!--Full path to main image data folder-->
             <project_folder></project_folder>
-            <!--Full path to folder where data is to be written to-->
-            <write_folder></write_folder>
             <!--Cohort name which is appended to the feature tables-->
             <cohort></cohort>
             <!--Subjects to be excluded. All others are included-->
             <subject_exclude></subject_exclude>
             <!--Subjects to be included. All others are excluded-->
             <subject_include></subject_include>
-            <!--Extract diagnostic parameters. Can be True or False-->
-            <provide_diagnostics></provide_diagnostics>
         </paths>
         <!-- Data tags can be added multiple times -->
         <data>
