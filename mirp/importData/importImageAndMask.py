@@ -2,6 +2,7 @@ from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
+from mirp.utilities import random_string
 
 
 def import_image_and_mask(
@@ -191,6 +192,36 @@ def import_image_and_mask(
     # Ensure that we are working with deep copies from this point - we don't want to propagate changes to masks,
     # images by reference.
     image_list = [image.copy() for image in image_list]
+
+    # Set sample names. First we check if all sample names are missing.
+    if all(image.sample_name is None for image in image_list):
+        if isinstance(sample_name, str):
+            sample_name = [sample_name]
+
+        if isinstance(sample_name, list) and len(sample_name) == len(image_list):
+            for ii, image in enumerate(image_list):
+                image.set_sample_name(sample_name=sample_name[ii])
+                if image.associated_masks is not None:
+                    for mask in image.associated_masks:
+                        mask.set_sample_name(sample_name=sample_name[ii])
+
+        elif all(image.file_name is not None for image in image_list):
+            for image in image_list:
+                image.set_sample_name(sample_name=image.file_name)
+
+                if image.associated_masks is not None:
+                    for mask in image.associated_masks:
+                        mask.set_sample_name(sample_name=image.file_name)
+
+    # Then set any sample names for images that still miss them.
+    if any(image.sample_name is None for image in image_list):
+        for ii, image in enumerate(image_list):
+            if image.sample_name is None:
+                generated_sample_name = str(ii + 1) + "_" + random_string(16)
+                image.set_sample_name(sample_name=generated_sample_name)
+                if image.associated_masks is not None:
+                    for mask in image.associated_masks:
+                        mask.set_sample_name(sample_name=generated_sample_name)
 
     return image_list
 
