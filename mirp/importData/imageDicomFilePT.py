@@ -59,6 +59,9 @@ class ImageDicomFilePT(ImageDicomFile):
         # Update relevant tags in the metadata
         self.image_metadata = suv_conversion_object.update_dicom_header(dcm=self.image_metadata)
 
+        # Set image data.
+        self.image_data = image_data
+
     def export_metadata(self, self_only=False, **kwargs) -> Optional[Dict[str, Any]]:
         if not self_only:
             metadata = super().export_metadata()
