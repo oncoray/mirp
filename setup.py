@@ -10,7 +10,17 @@ setup(
     url="https://github.com/oncoray/mirp",
     license="EUPL1.2",
     author="Alex Zwanenburg",
-    packages=["mirp", "mirp.featureSets", "mirp.imageFilters"],
+    packages=[
+        "mirp",
+        "mirp.featureSets",
+        "mirp.imageFilters",
+        "mirp.imageProcess",
+        "mirp.images",
+        "mirp.importData",
+        "mirp.masks",
+        "mirp.settings",
+        "mirp.utilities"
+    ],
     install_requires=[
         "numpy",
         "scipy",
@@ -19,7 +29,8 @@ setup(
         "pydicom",
         "pywavelets",
         "itk",
-        "matplotlib"
+        "matplotlib",
+        "ray"
     ],
     python_requires=">=3.11.0",
 )
