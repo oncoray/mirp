@@ -60,7 +60,7 @@ def import_image_and_mask(
         Fixed directory substructure where image files are located. If None, the directory substructure is not used
         for filtering files.
 
-    mask_name: str, optional, default: None
+    mask_name: str or list of str, optional, default: None
         Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
         structures. The sample name (if part of the file name) can also be specified using "#". For example,
         mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
