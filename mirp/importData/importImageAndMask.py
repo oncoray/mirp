@@ -2,7 +2,7 @@ from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
-from mirp.utilities import random_string
+from mirp.utilities.utilities import random_string
 
 
 def import_image_and_mask(
