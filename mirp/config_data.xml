@@ -1,23 +1,33 @@
 <root>
     <config>
         <paths>
-            <!--Full path to main image data folder-->
-            <project_folder></project_folder>
-            <!--Subjects to be included. All others are excluded-->
-            <subject_include></subject_include>
+            <!--A path to an image file or a path to a directory containing image files.-->
+            <image></image>
+            <!--A path to a mask file, a path to a directory containing mask files. -->
+            <mask></mask>
+            <!--Name of expected sample names. This is used to select specific image files. If None, no image files are
+            filtered based on the corresponding sample name (if known).-->
+            <sample_name></sample_name>
         </paths>
         <!-- Data tags can be added multiple times -->
         <data>
-            <!--Image modality. Can be CT, PT, MR.-->
-            <modality></modality>
-            <!--Relative path to image folder. The expected path is constructed as project_folder/subject_name/image_folder. If the data is directly under subject_name, use subject_dir-->
-            <image_folder></image_folder>
-            <!--Relative path to ROI folder. The expected path is constructed as project_folder/subject_name/roi_folder. If the ROI data is directly under subject_name, use subject_dir-->
-            <roi_folder></roi_folder>
-            <!--Pattern used for (partial) matching of the image file. Only applicable to non-DICOM files, e.g. NIfTI or NRRD. If not set, the image file should be the only image file in the directory. -->
-            <image_filename_pattern></image_filename_pattern>
-            <!--Names of the ROIs to be extracted-->
-            <roi_names></roi_names>
+            <!--Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+            match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+            example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+            File extensions do not need to be specified. If None, file names are not used for filtering files and
+            setting sample names.-->
+            <image_name></image_name>
+            <!--The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+            DICOM files contain metadata concerning modality. One of ct, pet, pt, mri, mr, or generic.-->
+            <image_modality></image_modality>
+            <!--Fixed directory substructure where image files are located. If None, the directory substructure is not used
+            for filtering files.-->
+            <image_sub_folder></image_sub_folder>
+            <!--Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+            filtering files.-->
+            <mask_sub_folder></mask_sub_folder>
+            <!--Name of the regions of interest that should be assessed.-->
+            <roi_name></roi_name>
         </data>
     </config>
 </root>

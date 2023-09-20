@@ -4,7 +4,7 @@ import warnings
 
 from xml.etree import ElementTree as ElemTree
 
-from mirp.settings.utilities import str2list, str2type
+from mirp.settings.utilities import str2list, str2type, read_node
 
 
 # noinspection PyDeprecation
@@ -33,14 +33,17 @@ def import_data_settings(
         paths_branch = branch.find("paths")
 
         # Set main directory.
-        project_path = os.path.normpath(str2type(paths_branch.find("project_folder"), "path"))
         if is_mask:
-            data_arguments += [("mask", project_path)]
+            mask = os.path.normpath(
+                str2type(read_node(paths_branch, ["project_folder", "mask"]), "path"))
+            data_arguments += [("mask", mask)]
         else:
-            data_arguments += [("image", project_path)]
+            image = os.path.normpath(
+                str2type(read_node(paths_branch, ["project_folder", "image"]), "path"))
+            data_arguments += [("image", image)]
 
         # Set sample name.
-        sample_name = str2list(paths_branch.find("subject_include"), "str")
+        sample_name = str2list(read_node(paths_branch, ["sample_name", "subject_include"]), "str")
         data_arguments += [("sample_name", sample_name)]
 
         # Deprecated items.
@@ -58,20 +61,20 @@ def import_data_settings(
             current_data_arguments = copy.deepcopy(data_arguments)
 
             if is_mask:
-                mask_sub_folder = str2type(data_branch.find("roi_folder"), "path")
+                mask_sub_folder = str2type(read_node(data_branch, ["mask_sub_folder", "roi_folder"]), "path")
                 current_data_arguments += [("mask_sub_folder", mask_sub_folder)]
 
                 roi_name = str2list(data_branch.find("roi_names"), "str")
                 current_data_arguments += [("roi_name", roi_name)]
 
             else:
-                image_modality = str2type(data_branch.find("modality"), "str")
+                image_modality = str2type(read_node(data_branch, ["image_modality", "modality"]), "str")
                 current_data_arguments += [("image_modality", image_modality)]
 
-                image_sub_folder = str2type(data_branch.find("image_folder"), "path")
+                image_sub_folder = str2type(read_node(data_branch, ["image_sub_folder", "image_folder"]), "path")
                 current_data_arguments += [("image_sub_folder", image_sub_folder)]
 
-                image_name = str2type(data_branch.find("image_filename_pattern"), "str")
+                image_name = str2type(read_node(data_branch, ["image_name", "image_filename_pattern"]), "str")
                 current_data_arguments += [("image_name", image_name)]
 
             # More deprecated items.
