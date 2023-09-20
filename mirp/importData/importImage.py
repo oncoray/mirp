@@ -138,7 +138,7 @@ def _(
 
     if image.lower().endswith("xml"):
         data_arguments = import_data_settings(path=image, is_mask=is_mask)
-        return [_import_image(**current_data_arguments for current_data_arguments in data_arguments)]
+        return [_import_image(**current_data_arguments) for current_data_arguments in data_arguments]
 
     elif image.lower().endswith("csv"):
         ...
