@@ -11,6 +11,7 @@ def import_data_settings(
     path: str,
     is_mask: bool
 ) -> list[dict[str, Any]]:
+    if not os.path.exists(path):
         raise ValueError(f"The {path} data settings file does not exist. Please check spelling of the file path.")
     if not path.endswith(".xml"):
         raise ValueError(f"The {path} data settings file is not an xml file.")
@@ -83,7 +84,7 @@ def import_data_settings(
                 current_data_arguments += [("image_name", image_name)]
 
                 image_file_type = str2type(data_branch.find("image_file_type"), "str")
-                current_data_arguments = [("image_file_type", image_file_type)]
+                current_data_arguments += [("image_file_type", image_file_type)]
 
                 image_sub_folder = str2type(read_node(data_branch, ["image_sub_folder", "image_folder"]), "path")
                 current_data_arguments += [("image_sub_folder", image_sub_folder)]
@@ -108,7 +109,7 @@ def import_data_settings(
                 # noinspection PyDeprecation
                 _import_data_settings_deprecation_warning("extraction_config")
 
-            data_arguments_list += [current_data_arguments]
+            data_arguments_list += [dict(current_data_arguments)]
 
     return data_arguments_list
 
