@@ -269,7 +269,7 @@ class ImageDicomFile(ImageFile):
                 return
 
             orientation = get_pydicom_meta_tag(
-                dcm_seq=self.image_orientation,
+                dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
                 tag_type="mult_float")
             orientation += [0.0, 0.0, 1.0]
@@ -283,7 +283,7 @@ class ImageDicomFile(ImageFile):
                 return
 
             # Get pixel-spacing.
-            spacing = get_pydicom_meta_tag(dcm_seq=self.image_spacing, tag=(0x0028, 0x0030), tag_type="mult_float")
+            spacing = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0030), tag_type="mult_float")
 
             # Get slice thickness.
             z_spacing = get_pydicom_meta_tag(
