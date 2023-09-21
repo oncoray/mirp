@@ -89,6 +89,12 @@ class StandardWorkflow(BaseWorkflow):
             warnings.warn("No segmentation masks were read.")
             return
 
+        if any(not isinstance(mask, BaseMask) for mask in masks):
+            object_types = list(set([str(type(mask)) for mask in masks if not isinstance(mask, BaseMask)]))
+            raise TypeError(
+                f"One or more mask objects are not of the expected BaseMask class. Found: {', '.join(object_types)}"
+            )
+
         # Add type hints and remove masks that are empty.
         masks: List[BaseMask] = [mask for mask in masks if not mask.is_empty() and not mask.roi.is_empty_mask()]
         if len(masks) == 0:
