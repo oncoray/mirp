@@ -305,7 +305,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             import skimage.measure
 
             # Label regions
-            roi_label_mask, n_regions = skimage.measure.label(input=roi_mask, connectivity=2, return_num=True)
+            roi_label_mask, n_regions = skimage.measure.label(roi_mask, connectivity=2, return_num=True)
 
             # Determine size of regions
             roi_sizes = np.zeros(n_regions)
