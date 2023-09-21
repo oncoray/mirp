@@ -1,7 +1,7 @@
 import copy
 import os
 import warnings
-
+from typing import Any
 from xml.etree import ElementTree as ElemTree
 
 from mirp.settings.utilities import str2list, str2type, read_node
@@ -10,8 +10,7 @@ from mirp.settings.utilities import str2list, str2type, read_node
 def import_data_settings(
     path: str,
     is_mask: bool
-):
-    if os.path.isfile(path):
+) -> list[dict[str, Any]]:
         raise ValueError(f"The {path} data settings file does not exist. Please check spelling of the file path.")
     if not path.endswith(".xml"):
         raise ValueError(f"The {path} data settings file is not an xml file.")
