@@ -50,7 +50,7 @@ def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
     if modality is None:
         return ["rtstruct", "seg", "generic_mask"]
 
-    elif modality == "rtstruct":
+    elif modality in ["rtstruct"]:
         return ["rtstruct"]
 
     elif modality in ["seg"]:
