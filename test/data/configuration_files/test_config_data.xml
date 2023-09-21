@@ -40,7 +40,7 @@
             <mask_modality>rtstruct</mask_modality>
             <!--Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
             filtering files.-->
-            <mask_sub_folder>PET/dicom/image</mask_sub_folder>
+            <mask_sub_folder>PET/dicom/mask</mask_sub_folder>
             <!--Name of the regions of interest that should be assessed.-->
             <roi_name>GTV_mass_PET</roi_name>
         </data>
