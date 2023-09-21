@@ -63,6 +63,7 @@ def run_experiment(image, roi, **kwargs):
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=by_slice,
+        interpolate=True,
         new_spacing=1.0
     )
 
@@ -122,6 +123,38 @@ def run_experiment(image, roi, **kwargs):
 
     data = data[0]
     return data
+
+
+def test_xml_configurations():
+    # Read the data settings xml file, and update path to image and mask.
+    from xml.etree import ElementTree as ElemTree
+    from mirp.extractFeaturesAndImages import extract_features
+
+    # Remove temporary data xml file if it exists.
+    if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):
+        os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+
+    # Load xml.
+    tree = ElemTree.parse(os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_data.xml"))
+    paths_branch = tree.getroot()
+
+    # Update paths in xml file.
+    for image in paths_branch.iter("image"):
+        image.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
+    for mask in paths_branch.iter("mask"):
+        mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
+
+    # Save as temporary xml file.
+    tree.write(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"),
+        settings=os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_settings.xml")
+    )
+
+    pass
 
 
 def test_edge_cases_basic_pipeline():
