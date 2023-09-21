@@ -170,7 +170,9 @@ class NonseparableWaveletFilter(GenericFilter):
         distance_grid = [(distance_grid[ii] - center_pos) / center_pos for ii, center_pos in enumerate(grid_center)]
 
         # Compute the distances in the grid.
-        distance_grid = np.linalg.norm(distance_grid)
+        distance_grid = np.sqrt(np.sum(
+            np.power(np.meshgrid(distance_grid[0], distance_grid[1], distance_grid[2]), 2.0), axis=0)
+        )
 
         # Set the Nyquist frequency
         decomposed_max_frequency = 1.0 / 2.0 ** (self.decomposition_level - 1.0)

@@ -362,7 +362,7 @@ def get_ellipsoid_surface_area(semi_axes, n_degree=10):
 
 def get_minimum_oriented_bounding_box(pos_mat):
     # Implementation of Chan and Tan's algorithm (C.K. Chan, S.T. Tan. Determination of the minimum bounding box of an
-    # arbitrary solid: an iterative approach. Comp Struc 79 (2001) 1433-1449
+    # arbitrary solid: an iterative approach. Comp Struc 79 (2001) 1433-1449)
 
     import copy
     from scipy.spatial import ConvexHull

@@ -348,7 +348,9 @@ class FilterSet:
         coordinate_grid = self._get_coordinate_grid()
 
         # Compute the distances in the grid.
-        distance_grid = np.linalg.norm(coordinate_grid)
+        distance_grid = np.sqrt(np.sum(
+            np.power(np.meshgrid(coordinate_grid[0], coordinate_grid[1], coordinate_grid[2]), 2.0), axis=0)
+        )
 
         return distance_grid
 
