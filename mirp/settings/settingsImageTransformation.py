@@ -377,8 +377,9 @@ class ImageTransformationSettingsClass:
             valid_kernels: List[bool] = [ii in self.get_available_image_filters() for ii in filter_kernels]
 
             if not all(valid_kernels):
-                raise ValueError(f"One or more kernels are not implemented, or were spelled incorrectly: "
-                                 f"{', '.join([filter_kernel for ii, filter_kernel in filter_kernels if not valid_kernels[ii]])}")
+                raise ValueError(
+                    f"One or more kernels are not implemented, or were spelled incorrectly: "
+                    f"{', '.join([filter_kernel for ii, filter_kernel in enumerate(filter_kernels) if not valid_kernels[ii]])}")
 
         self.spatial_filters: Union[None, List[str]] = filter_kernels
 
