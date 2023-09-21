@@ -17,6 +17,12 @@ class ImageDicomFileStack(ImageFileStack):
     ):
         super().__init__(image_file_objects, **kwargs)
 
+        self.series_instance_uid: None | str = None
+        self.frame_of_reference_uid: None | str = None
+
+        # Add type hint.
+        self.image_file_objects: list[ImageDicomFile] = self.image_file_objects
+
     def get_slice_position(self) -> np.ndarray:
 
         position_table = self._get_origin_position_table()
@@ -137,6 +143,11 @@ class ImageDicomFileStack(ImageFileStack):
 
         if self.image_dimension is None:
             self.image_dimension = tuple([len(position_table), n_y, n_x])
+
+        if self.frame_of_reference_uid is None:
+            self.frame_of_reference_uid = self.image_file_objects[0].frame_of_reference_uid
+        if self.series_instance_uid is None:
+            self.series_instance_uid = self.image_file_objects[0].series_instance_uid
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
