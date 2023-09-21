@@ -2,6 +2,7 @@ from mirp.importData.importImage import import_image
 from mirp.importData.importMask import import_mask
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.imageDicomFile import ImageDicomFile, MaskDicomFile
+from mirp.importData.imageDicomFileStack import ImageDicomFileStack
 from mirp.utilities.utilities import random_string
 
 
@@ -249,9 +250,11 @@ def set_association_strategy(
         possible_strategies.remove("single_image")
 
     # Check if association by frame of reference UID is possible.
-    if any(isinstance(image, ImageDicomFile) for image in image_list) and \
-            any(isinstance(mask, MaskDicomFile) for mask in mask_list):
-        dcm_image_list: list[ImageDicomFile] = [image for image in image_list if isinstance(image, ImageDicomFile)]
+    if (any(isinstance(image, ImageDicomFile) or isinstance(image, ImageDicomFileStack) for image in image_list) and
+            any(isinstance(mask, MaskDicomFile) for mask in mask_list)):
+        dcm_image_list: list[ImageDicomFile | ImageDicomFileStack] = [
+            image for image in image_list
+            if isinstance(image, ImageDicomFile) or isinstance(image, ImageDicomFileStack)]
         dcm_mask_list: list[MaskDicomFile] = [mask for mask in mask_list if isinstance(mask, MaskDicomFile)]
 
         # If frame of reference UIDs are completely absent.
