@@ -26,10 +26,10 @@ class ImageDirectory:
         if sample_name is not None and not isinstance(sample_name, list):
             sample_name = [sample_name]
 
-        self.image_directory = directory
+        self.image_directory = os.path.normpath(directory)
         self.sample_name: Union[None, List[str]] = sample_name
         self.image_name = image_name
-        self.sub_folder = image_sub_folder
+        self.sub_folder = os.path.normpath(image_sub_folder) if image_sub_folder is not None else None
 
         if isinstance(image_modality, str):
             image_modality = image_modality.lower()
