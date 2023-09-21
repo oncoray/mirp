@@ -57,8 +57,12 @@ def str2type(strx, data_type, default=None):
         return default
 
     # If strx is an element, read string
-    if type(strx) is ElemTree.Element:
+    if isinstance(strx, ElemTree.Element):
         strx = strx.text
+
+    # Strip white characters.
+    if isinstance(strx, str):
+        strx = strx.strip()
 
     # Test if the requested data type is not a string or path, but is empty
     if data_type not in ["str", "path"] and (strx == "" or strx is None):
