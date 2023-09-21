@@ -7,7 +7,7 @@ from mirp.featureSets.utilities import is_list_all_none
 from mirp.images.genericImage import GenericImage
 from mirp.masks.baseMask import BaseMask
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp.utilities import real_ndim
+from mirp.utilities.utilities import real_ndim
 
 
 def get_dzm_features(

@@ -4,7 +4,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 import numpy as np
 
-from mirp.utilities import check_string, makedirs_check
+from mirp.utilities.utilities import check_string, makedirs_check
 
 
 def plot_image(img_obj, roi_list=None, slice_id="all", roi_mask=None, file_path=None, file_name="plot", g_range=None):
