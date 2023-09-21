@@ -111,7 +111,7 @@ def get_volumetric_morphological_features(
 
     # Volume density - axis-aligned bounding box
     aabb_dims = np.max(hull_verts, axis=0) - np.min(hull_verts, axis=0)
-    df_feat["morph_vol_dens_aabb"] = volume / np.product(aabb_dims)
+    df_feat["morph_vol_dens_aabb"] = volume / np.prod(aabb_dims)
 
     # Area density - axis-aligned bounding box
     df_feat["morph_area_dens_aabb"] = area / (2.0 * aabb_dims[0] * aabb_dims[1] +
@@ -122,7 +122,7 @@ def get_volumetric_morphological_features(
     if not settings.ibsi_compliant:
         # Volume density - oriented minimum bounding box
         ombb_dims = get_minimum_oriented_bounding_box(pos_mat=hull_verts)
-        df_feat["morph_vol_dens_ombb"] = volume / np.product(ombb_dims)
+        df_feat["morph_vol_dens_ombb"] = volume / np.prod(ombb_dims)
 
         # Area density - oriented minimum bounding box
         df_feat["morph_area_dens_ombb"] = area / (2.0 * ombb_dims[0] * ombb_dims[1] +
@@ -380,7 +380,7 @@ def get_minimum_oriented_bounding_box(pos_mat):
 
         # Calculate bounding box surface of the rotated contour
         rot_aabb_dims = np.max(rot_hull, axis=1) - np.min(rot_hull, axis=1)
-        rot_aabb_area = np.product(rot_aabb_dims)
+        rot_aabb_area = np.prod(rot_aabb_dims)
 
         return rot_aabb_area
 
@@ -516,7 +516,7 @@ def get_minimum_oriented_bounding_box(pos_mat):
         rot_df.loc[ii, "aabb_axis_0"] = aabb_dims[0]
         rot_df.loc[ii, "aabb_axis_1"] = aabb_dims[1]
         rot_df.loc[ii, "aabb_axis_2"] = aabb_dims[2]
-        rot_df.loc[ii, "vol"] = np.product(aabb_dims)
+        rot_df.loc[ii, "vol"] = np.prod(aabb_dims)
 
         del work_pos, aabb_dims
 
@@ -605,7 +605,7 @@ def get_minimum_volume_enclosing_ellipsoid(pos_mat, tolerance=10E-4):
         vec_new_u = vec_u * (1.0 - step_size)
 
         # Increment the jth element of new_u by step_size
-        vec_new_u[ind_j] = vec_new_u[ind_j] + step_size
+        vec_new_u[ind_j] += step_size
 
         # Store the error by taking finding the square root of the SSD between new_u and u. The SSD or sum-of-square
         # differences, takes two vectors of the same size, creates a new vector by finding the difference between
