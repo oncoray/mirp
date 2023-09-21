@@ -17,7 +17,7 @@ class PETImage(GenericImage):
             return
 
         # Ensure that PET values are not negative.
-        self.image_data = self.image_data[self.image_data < 0.0] = 0.0
+        self.image_data[self.image_data < 0.0] = 0.0
 
     def normalise_intensities(
             self,
