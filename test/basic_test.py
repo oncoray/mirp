@@ -154,7 +154,12 @@ def test_xml_configurations():
         settings=os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_settings.xml")
     )
 
-    pass
+    data = pd.concat(data)
+    assert len(data) == 2
+    assert all(data["sample_name"].values == ["STS_002", "STS_003"])
+    assert all(data["image_modality"].values == "pet")
+    assert all(data["image_mask_name"].values == "GTV_Mass_PET")
+    assert all(data["image_voxel_size"].values == 3.0)
 
 
 def test_edge_cases_basic_pipeline():

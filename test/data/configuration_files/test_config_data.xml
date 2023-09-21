@@ -42,7 +42,7 @@
             filtering files.-->
             <mask_sub_folder>PET/dicom/mask</mask_sub_folder>
             <!--Name of the regions of interest that should be assessed.-->
-            <roi_name>GTV_mass_PET</roi_name>
+            <roi_name>GTV_Mass_PET</roi_name>
         </data>
     </config>
 </root>

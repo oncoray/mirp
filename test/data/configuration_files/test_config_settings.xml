@@ -17,7 +17,7 @@
             value represents the spacing that will be applied in all directions. Non-uniform voxel spacing may also
             be provided, but requires 3 values for z, y, and x directions (if by_slice = False) or 2 values for y and
             x directions (otherwise). -->
-            <new_spacing>1.0</new_spacing>
+            <new_spacing>3.0</new_spacing>
             <!-- Anti-aliasing filter to reduce aliasing artefacts when down-sampling. Enabled by default (True). -->
             <anti_aliasing>False</anti_aliasing>
             <!-- Smoothing parameter beta for anti-aliasing filter. Must be in range (0.0, 1.0]. At 1.0 no
@@ -128,25 +128,23 @@
             <!-- Determines how cooccurrence matrices are merged. One "2d_average", "2d_slice_merge",
              "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge".
               Default: "2d_slice_merge" (by_slice = True), "3d_volume_merge" (by_slice = False) -->
-			<glcm_spatial_method>2d_average, 2d_slice_merge, 2.5d_direction_merge, 2.5d_volume_merge, 3d_average,
-                3d_volume_merge</glcm_spatial_method>
+			<glcm_spatial_method>3d_volume_merge</glcm_spatial_method>
             <!-- Determines how run length matrices are merged. One "2d_average", "2d_slice_merge",
              "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge".
               Default: "2d_slice_merge" (by_slice = True), "3d_volume_merge" (by_slice = False) -->
-			<glrlm_spatial_method>2d_average, 2d_slice_merge, 2.5d_direction_merge, 2.5d_volume_merge, 3d_average,
-                3d_volume_merge</glrlm_spatial_method>
+			<glrlm_spatial_method>3d_volume_merge</glrlm_spatial_method>
             <!-- Calculate GLSZM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
-			<glszm_spatial_method>2d, 2.5d, 3d</glszm_spatial_method>
+			<glszm_spatial_method>3d</glszm_spatial_method>
             <!-- Calculate GLDZM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
-			<gldzm_spatial_method>2d, 2.5d, 3d</gldzm_spatial_method>
+			<gldzm_spatial_method>3d</gldzm_spatial_method>
             <!-- Calculate NGTDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
-			<ngtdm_spatial_method>2d, 2.5d, 3d</ngtdm_spatial_method>
+			<ngtdm_spatial_method>3d</ngtdm_spatial_method>
             <!-- Distance (in voxels) for NGLDM for determining the neighbourhood. -->
             <ngldm_distance>1.0</ngldm_distance>
             <!-- Difference level (alpha) for NGLDM -->
             <ngldm_difference_level>0.0</ngldm_difference_level>
             <!-- Calculate NGLDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
-			<ngldm_spatial_method>2d, 2.5d, 3d</ngldm_spatial_method>
+			<ngldm_spatial_method>3d</ngldm_spatial_method>
         </feature_extr>
         <img_transform>
             <!-- Filter kernels to apply. Options: gabor, laplacian_of_gaussian, laws, mean, separable_wavelet,
