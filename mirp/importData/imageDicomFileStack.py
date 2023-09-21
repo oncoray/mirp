@@ -35,6 +35,26 @@ class ImageDicomFileStack(ImageFileStack):
 
         return np.cumsum(np.insert(np.around(image_slice_spacing, 5), 0, 0.0))
 
+    def associate_with_mask(
+            self,
+            mask_list,
+            association_strategy=None):
+        if mask_list is None or len(mask_list) == 0 or association_strategy is None:
+            return None
+
+        # Match on frame of reference UID:
+        if "frame_of_reference" in association_strategy and self.frame_of_reference_uid is not None:
+            matching_mask_list = [
+                mask_file for mask_file in mask_list
+                if self.frame_of_reference_uid == mask_file.frame_of_reference_uid
+            ]
+
+            if len(matching_mask_list) > 0:
+                self.associated_masks = matching_mask_list
+                return
+
+        return super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
+
     def complete(self, remove_metadata=False, force=False):
         """
         Fills out missing attributes in an image stack. Image parameters in DICOM stacks, by design,
