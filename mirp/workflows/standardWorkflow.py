@@ -268,7 +268,7 @@ class StandardWorkflow(BaseWorkflow):
             write_file_format: str = "nifti",
             write_all_masks: bool = False
     ):
-        from mirp.utilities import random_string
+        from mirp.utilities.utilities import random_string
         import os
 
         # Indicators to prevent the same masks from being written or exported multiple times.
