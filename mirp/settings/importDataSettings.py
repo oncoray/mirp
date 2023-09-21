@@ -35,7 +35,7 @@ def import_data_settings(
         if is_mask:
             mask = os.path.normpath(
                 str2type(read_node(paths_branch, ["project_folder", "mask"]), "path"))
-            data_arguments += [("mask", mask)]
+            data_arguments += [("image", mask)]
         else:
             image = os.path.normpath(
                 str2type(read_node(paths_branch, ["project_folder", "image"]), "path"))
@@ -65,18 +65,18 @@ def import_data_settings(
 
             if is_mask:
                 mask_name = str2list(data_branch.find("mask_name"), str)
-                current_data_arguments += [("mask_name", mask_name)]
+                current_data_arguments += [("image_name", mask_name)]
 
                 mask_file_type = str2type(data_branch.find("mask_file_type"), "str")
-                current_data_arguments += [("mask_file_type", mask_file_type)]
+                current_data_arguments += [("image_file_type", mask_file_type)]
 
                 mask_sub_folder = str2type(read_node(data_branch, ["mask_sub_folder", "roi_folder"]), "path")
-                current_data_arguments += [("mask_sub_folder", mask_sub_folder)]
+                current_data_arguments += [("image_sub_folder", mask_sub_folder)]
 
-                mask_modality = str2list(data_branch.find("mask_modality"), "str")
-                current_data_arguments += [("mask_modality", mask_modality)]
+                mask_modality = str2type(data_branch.find("mask_modality"), "str")
+                current_data_arguments += [("image_modality", mask_modality)]
 
-                roi_name = str2list(data_branch.find("roi_names"), "str")
+                roi_name = str2list(read_node(data_branch, ["roi_name", "roi_names"]), "str")
                 current_data_arguments += [("roi_name", roi_name)]
 
             else:

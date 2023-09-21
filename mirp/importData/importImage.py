@@ -141,15 +141,9 @@ def _(
         image_list = []
 
         for current_data_arguments in data_arguments:
-            if is_mask:
-                mask = current_data_arguments["mask"]
-                current_data_arguments.pop("mask")
-                image_list += [_import_image(mask, **current_data_arguments)]
-
-            else:
-                image = current_data_arguments["image"]
-                current_data_arguments.pop("image")
-                image_list += [_import_image(image, **current_data_arguments)]
+            image = current_data_arguments["image"]
+            current_data_arguments.pop("image")
+            image_list += [_import_image(image, is_mask=is_mask, **current_data_arguments)]
 
         return image_list
 
