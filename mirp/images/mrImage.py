@@ -1,6 +1,4 @@
-import copy
 import numpy as np
-from typing import Optional, Union, Tuple, List, Any
 
 from mirp.images.genericImage import GenericImage
 
@@ -13,11 +11,11 @@ class MRImage(GenericImage):
     def bias_field_correction(
             self,
             n_fitting_levels: int = 3,
-            n_max_iterations: Union[None, int, List[int]] = None,
+            n_max_iterations: None | int | list[int] = None,
             convergence_threshold: float = 0.001,
-            mask: Optional[np.ndarray] = None,
+            mask: None | np.ndarray = None,
             in_place: bool = True
-    ) -> Optional[GenericImage]:
+    ) -> None | GenericImage:
 
         import itk
 
@@ -35,6 +33,10 @@ class MRImage(GenericImage):
         input_image.SetSpacing(self.image_spacing[::-1])
         input_mask = itk.GetImageFromArray(mask.astype(np.uint8))
         input_mask.SetSpacing(self.image_spacing[::-1])
+
+        # Set number of threads
+        threader = itk.MultiThreaderBase.New()
+        threader.SetGlobalDefaultNumberOfThreads(1)
 
         # Start N4 bias correction
         corrector = itk.N4BiasFieldCorrectionImageFilter.New(input_image, input_mask)
