@@ -178,7 +178,15 @@ class GenericImage(BaseImage):
         plt.show()
 
     @staticmethod
+    def get_colour_map():
+        return "gist_gray"
+
+    @staticmethod
     def get_default_lowest_intensity():
+        return None
+
+    @staticmethod
+    def get_default_upper_intensity():
         return None
 
     def interpolate(

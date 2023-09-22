@@ -9,6 +9,10 @@ class PETImage(GenericImage):
         super().__init__(**kwargs)
 
     @staticmethod
+    def get_colour_map():
+        return "gist_yarg"
+
+    @staticmethod
     def get_default_lowest_intensity():
         return 0.0
 

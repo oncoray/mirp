@@ -30,9 +30,23 @@ class InteractivePlot:
         if show_mask:
             self.mask_data = mask.get_voxel_grid()
 
-        _, _, self.n_slices = image.image_dimension
+        self.n_slices, _, _ = image.image_dimension
         self.slice_index = int(np.floor(self.n_slices / 2.0))
-        self.plot = self.axes.imshow(self.image_data[self.slice_index, :, :], cmap='Greys')
+
+        # Set plotting options
+        colour_map = image.get_colour_map()
+        min_intensity = image.get_default_lowest_intensity() if image.get_default_lowest_intensity() is not None else (
+            np.min(self.image_data))
+        max_intensity = image.get_default_upper_intensity() if image.get_default_upper_intensity() is not None else (
+            np.max(self.image_data))
+
+        # Create plot.
+        self.plot = self.axes.imshow(
+            self.image_data[self.slice_index, :, :],
+            vmin=min_intensity,
+            vmax=max_intensity,
+            cmap=colour_map
+        )
         self.update()
 
     def onscroll(self, event):
@@ -49,5 +63,5 @@ class InteractivePlot:
 
     def update(self):
         self.plot.set_data(self.image_data[self.slice_index, :, :])
-        self.axes.set_title(f"slice {self.slice_index}")
+        self.axes.set_title(f"slice {self.slice_index + 1}")
         self.plot.axes.figure.canvas.draw()
