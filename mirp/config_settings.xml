@@ -39,12 +39,12 @@
             options. Default: 0.02, 1.0 (relative_range); 0.0, nan (range; effectively none) -->
             <tissue_mask_range></tissue_mask_range>
             <!-- Whether N4 bias field correction should be performed. Disabled by default (False); only applicable
-            to  MR imaging. If a tissue mask is created, this is used to determine  -->
+            to MR imaging. If a tissue mask is created, this is used as the mask for N4 bias field correction  -->
             <bias_field_correction></bias_field_correction>
-            <!-- Number of fitting levels for N4 bias field correction. Default: 3 -->
+            <!-- Number of fitting levels for N4 bias field correction. Default: 1 -->
             <n_fitting_levels></n_fitting_levels>
-            <!-- Max number of iterations for each of the fitting levels for N4 bias field correction. Default: 100,
-            100, 100 -->
+            <!-- Max number of iterations for each of the fitting levels for N4 bias field correction, e.g. 100, 100
+            if two fitting levels are used. Default: 50 -->
             <n_max_iterations></n_max_iterations>
             <!-- Convergence threshold for N4 bias field correction. Default: 0.001 -->
             <convergence_threshold></convergence_threshold>

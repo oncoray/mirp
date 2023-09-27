@@ -14,10 +14,10 @@ class ImagePostProcessingClass:
         correction is conducted using the information contained within the mask. Bias-field correction can only be
         applied to MR imaging.
 
-    bias_field_correction_n_fitting_levels: int, optional, default: 3
+    bias_field_correction_n_fitting_levels: int, optional, default: 1
         The number of fitting levels for the N4 bias field correction algorithm.
 
-    bias_field_correction_n_max_iterations: int or list of int, optional, default: 100
+    bias_field_correction_n_max_iterations: int or list of int, optional, default: 50
         The number of fitting iterations for the N4 bias field algorithm. A single integer, or a list of integers
         with a length equal to the number of fitting levels is expected.
 
@@ -80,7 +80,7 @@ class ImagePostProcessingClass:
     def __init__(
             self,
             bias_field_correction: bool = False,
-            bias_field_correction_n_fitting_levels: int = 3,
+            bias_field_correction_n_fitting_levels: int = 1,
             bias_field_correction_n_max_iterations: Union[int, List[int], None] = None,
             bias_field_convergence_threshold: float = 0.001,
             intensity_normalisation: str = "none",
@@ -113,7 +113,7 @@ class ImagePostProcessingClass:
         # Set default value for bias_field_correction_n_max_iterations. This is the number of iterations per fitting
         # level.
         if bias_field_correction_n_max_iterations is None and bias_field_correction:
-            bias_field_correction_n_max_iterations = [100 for ii in range(bias_field_correction_n_fitting_levels)]
+            bias_field_correction_n_max_iterations = [50 for ii in range(bias_field_correction_n_fitting_levels)]
 
         if bias_field_correction:
             # Parse to list, if a single value is provided.
