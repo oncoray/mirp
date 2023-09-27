@@ -13,7 +13,7 @@ def create_tissue_mask(
 
     if mask_type is None or mask_type == "none":
         # The entire image is the tissue mask.
-        mask = np.ones(image.image_dimension, dtype=np.uint8)
+        mask = np.ones(image.image_dimension, dtype=bool)
 
     elif mask_type == "range":
         if mask_intensity_range is None:
@@ -31,6 +31,8 @@ def create_tissue_mask(
         mask = np.logical_and(voxel_grid >= mask_intensity_range[0], voxel_grid <= mask_intensity_range[1])
 
     elif mask_type == "relative_range":
+        from skimage.morphology import binary_opening
+
         # The relative intensity range provided forms the mask range. This means that we need to convert the relative
         # range to the range present in the image.
         if mask_intensity_range is None:
@@ -53,8 +55,16 @@ def create_tissue_mask(
         ]
 
         mask = np.logical_and(voxel_grid >= tissue_range[0], voxel_grid <= tissue_range[1])
+
+        # Perform binary closing to smooth the mask.
+        mask = binary_opening(mask)
+
     else:
         raise ValueError(f"The tissue_mask_type configuration parameter is expected to be one of none, range, "
                          f"or relative_range. Encountered: {mask_type}")
+
+    # Check that masks are not completely empty.
+    if np.all(np.logical_not(mask)):
+        mask = np.ones(image.image_dimension, dtype=bool)
 
     return mask
