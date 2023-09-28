@@ -1,6 +1,8 @@
 from typing import Union, List, Dict, Optional, Generator, Iterable
 import copy
 
+import ray
+
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.workflows.standardWorkflow import StandardWorkflow
@@ -77,6 +79,27 @@ def extract_features_and_images_generator(
     workflows = list(_base_extract_features_and_images(**kwargs))
     for workflow in workflows:
         yield workflow.standard_extraction(image_export_format=image_export_format)
+
+
+def extract_features_and_images_ray(
+        image_export_format: str = "dict",
+        num_cpus: None | int = None,
+        **kwargs
+):
+    from utilities.rayUtilities import initialise_ray
+    initialise_ray(num_cpus=num_cpus)
+
+    results = [
+        _ray_extractor.remote(workflow=workflow, image_export_format=image_export_format)
+        for workflow in _base_extract_features_and_images(**kwargs)
+    ]
+
+    return ray.get(results)
+
+
+@ray.remote
+def _ray_extractor(workflow: StandardWorkflow, image_export_format="dict"):
+    return workflow.standard_extraction(image_export_format=image_export_format)
 
 
 def _base_extract_features_and_images(
