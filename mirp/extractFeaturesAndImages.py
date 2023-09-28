@@ -27,7 +27,7 @@ def extract_features_generator(
         export_features: bool = False,
         **kwargs
 ):
-    yield from extract_features_and_images(
+    yield from extract_features_and_images_generator(
         write_features=write_features,
         export_features=export_features,
         write_images=False,
