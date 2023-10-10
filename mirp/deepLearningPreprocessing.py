@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Optional, Generator, Iterable, Any
+from typing import Generator, Iterable, Any
 import copy
 import ray
 
@@ -16,7 +16,7 @@ def deep_learning_preprocessing(
         write_images: bool = True,
         num_cpus: None | int = None,
         **kwargs
-) -> List[Any]:
+) -> list[Any]:
 
     # Conditionally start a ray cluster.
     external_ray = ray.is_initialized()
@@ -81,7 +81,7 @@ def _ray_extractor(
 
 def deep_learning_preprocessing_generator(
         output_slices: bool = False,
-        crop_size: Optional[List[float]] = None,
+        crop_size:None | list[float] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
         export_images: bool = True,
@@ -106,23 +106,23 @@ def deep_learning_preprocessing_generator(
 def _base_deep_learning_preprocessing(
         image,
         mask=None,
-        sample_name: Union[None, str, List[str]] = None,
-        image_name: Union[None, str, List[str]] = None,
-        image_file_type: Union[None, str] = None,
-        image_modality: Union[None, str, List[str]] = None,
-        image_sub_folder: Union[None, str] = None,
-        mask_name: Union[None, str, List[str]] = None,
-        mask_file_type: Union[None, str] = None,
-        mask_modality: Union[None, str, List[str]] = None,
-        mask_sub_folder: Union[None, str] = None,
-        roi_name: Union[None, str, List[str], Dict[str, str]] = None,
-        association_strategy: Union[None, str, List[str]] = None,
-        settings: Union[None, str, SettingsClass, List[SettingsClass]] = None,
+        sample_name: None | str | list[str] = None,
+        image_name: None | str | list[str] = None,
+        image_file_type: None | str = None,
+        image_modality: None | str | list[str] = None,
+        image_sub_folder: None | str = None,
+        mask_name: None | str | list[str] = None,
+        mask_file_type: None | str = None,
+        mask_modality: None | str | list[str] = None,
+        mask_sub_folder: None | str = None,
+        roi_name: None | str | list[str] | dict[str, str] = None,
+        association_strategy: None | str | list[str] = None,
+        settings: None | str | SettingsClass | list[SettingsClass] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto",
         write_images: bool = False,
         export_images: bool = True,
-        write_dir: Optional[str] = None,
+        write_dir: None | str = None,
         **kwargs
 ):
     from mirp.importData.importImageAndMask import import_image_and_mask
@@ -184,9 +184,9 @@ def _base_deep_learning_preprocessing(
 
 
 def _generate_dl_preprocessing_workflows(
-        image_list: List[ImageFile],
-        settings: List[SettingsClass],
-        write_dir: Optional[str],
+        image_list: list[ImageFile],
+        settings: list[SettingsClass],
+        write_dir: None | str,
         write_images: bool,
         export_images: bool
 ) -> Generator[StandardWorkflow, None, None]:
