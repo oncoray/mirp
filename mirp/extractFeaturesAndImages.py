@@ -66,10 +66,32 @@ def extract_images_generator(
 
 def extract_features_and_images(
         image_export_format: str = "dict",
+        num_cpus: None | int = None,
         **kwargs
 ):
-    workflows = list(_base_extract_features_and_images(**kwargs))
-    return [workflow.standard_extraction(image_export_format=image_export_format) for workflow in workflows]
+
+    # Conditionally
+    external_ray = ray.is_initialized()
+    if not external_ray and num_cpus is not None and num_cpus > 1:
+        ray.init(num_cpus=num_cpus)
+
+    if ray.is_initialized():
+        # Parallel processing.
+        results = [
+            _ray_extractor.remote(workflow=workflow, image_export_format=image_export_format)
+            for workflow in _base_extract_features_and_images(**kwargs)
+        ]
+
+        results = ray.get(results)
+        if not external_ray:
+            ray.shutdown()
+
+    else:
+        # Sequential processing.
+        workflows = list(_base_extract_features_and_images(**kwargs))
+        results = [workflow.standard_extraction(image_export_format=image_export_format) for workflow in workflows]
+
+    return results
 
 
 def extract_features_and_images_generator(
@@ -79,22 +101,6 @@ def extract_features_and_images_generator(
     workflows = list(_base_extract_features_and_images(**kwargs))
     for workflow in workflows:
         yield workflow.standard_extraction(image_export_format=image_export_format)
-
-
-def extract_features_and_images_ray(
-        image_export_format: str = "dict",
-        num_cpus: None | int = None,
-        **kwargs
-):
-    from utilities.rayUtilities import initialise_ray
-    initialise_ray(num_cpus=num_cpus)
-
-    results = [
-        _ray_extractor.remote(workflow=workflow, image_export_format=image_export_format)
-        for workflow in _base_extract_features_and_images(**kwargs)
-    ]
-
-    return ray.get(results)
 
 
 @ray.remote
