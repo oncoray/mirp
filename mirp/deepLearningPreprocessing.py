@@ -1,5 +1,6 @@
 from typing import Union, List, Dict, Optional, Generator, Iterable, Any
 import copy
+import ray
 
 from mirp.importData.imageGenericFile import ImageFile
 from mirp.settings.settingsGeneric import SettingsClass
@@ -8,29 +9,74 @@ from mirp.workflows.standardWorkflow import StandardWorkflow
 
 def deep_learning_preprocessing(
         output_slices: bool = False,
-        crop_size: Optional[List[float]] = None,
+        crop_size: None | list[float] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
         export_images: bool = False,
         write_images: bool = True,
+        num_cpus: None | int = None,
         **kwargs
 ) -> List[Any]:
 
-    workflows = list(_base_deep_learning_preprocessing(
-        export_images=export_images,
-        write_images=write_images,
-        **kwargs)
-    )
+    # Conditionally start a ray cluster.
+    external_ray = ray.is_initialized()
+    if not external_ray and num_cpus is not None and num_cpus > 1:
+        ray.init(num_cpus=num_cpus)
 
-    return [
-        workflow.deep_learning_conversion(
-            output_slices=output_slices,
-            crop_size=crop_size,
-            image_export_format=image_export_format,
-            write_file_format=write_file_format
+    if ray.is_initialized():
+        # Parallel processing.
+        results = [
+            _ray_extractor.remote(
+                workflow=workflow,
+                output_slices=output_slices,
+                crop_size=crop_size,
+                image_export_format=image_export_format,
+                write_file_format=write_file_format
+            )
+            for workflow in _base_deep_learning_preprocessing(
+                export_images=export_images,
+                write_images=write_images,
+                **kwargs
+            )
+        ]
+
+        results = ray.get(results)
+        if not external_ray:
+            ray.shutdown()
+    else:
+        workflows = list(_base_deep_learning_preprocessing(
+            export_images=export_images,
+            write_images=write_images,
+            **kwargs)
         )
-        for workflow in workflows
-    ]
+
+        results = [
+            workflow.deep_learning_conversion(
+                output_slices=output_slices,
+                crop_size=crop_size,
+                image_export_format=image_export_format,
+                write_file_format=write_file_format
+            )
+            for workflow in workflows
+        ]
+
+    return results
+
+
+@ray.remote
+def _ray_extractor(
+        workflow: StandardWorkflow,
+        output_slices: bool = False,
+        crop_size: None | list[float] = None,
+        image_export_format: str = "numpy",
+        write_file_format: str = "numpy"
+):
+    return workflow.deep_learning_conversion(
+        output_slices=output_slices,
+        crop_size=crop_size,
+        image_export_format=image_export_format,
+        write_file_format=write_file_format
+    )
 
 
 def deep_learning_preprocessing_generator(

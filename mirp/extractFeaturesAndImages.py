@@ -70,7 +70,7 @@ def extract_features_and_images(
         **kwargs
 ):
 
-    # Conditionally
+    # Conditionally start a ray cluster.
     external_ray = ray.is_initialized()
     if not external_ray and num_cpus is not None and num_cpus > 1:
         ray.init(num_cpus=num_cpus)
