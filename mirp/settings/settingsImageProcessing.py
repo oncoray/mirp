@@ -73,7 +73,7 @@ class ImagePostProcessingClass:
         options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
         are considered to represent tissue).
 
-    **kwargs: dict, optional
+    **kwargs:
         Unused keyword arguments.
     """
 

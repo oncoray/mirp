@@ -9,14 +9,189 @@ from mirp.workflows.standardWorkflow import StandardWorkflow
 
 def deep_learning_preprocessing(
         output_slices: bool = False,
-        crop_size: None | list[float] = None,
+        crop_size: None | list[float] | list[int] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
         export_images: bool = False,
         write_images: bool = True,
         num_cpus: None | int = None,
         **kwargs
-) -> list[Any]:
+) -> None | list[Any]:
+    """
+    Pre-processes images for deep learning.
+
+    Parameters
+    ----------
+    output_slices: bool, optional, default: False
+        Determines whether separate slices should be extracted.
+
+    crop_size: list of float or list of int, optional, default: None
+        Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
+        mask(s).
+
+    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
+        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
+        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+
+    write_file_format: {"nifti", "numpy"}, default: "numpy"
+        File format for processed images and masks. ``"nifti"`` writes images and masks in the NIfTI file format,
+        and ``"numpy"`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.
+
+    export_images: bool, default: False
+        Determines whether processed images and masks should be returned by the function.
+
+    write_images: bool, default: True
+        Determines whether processed images and masks should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    num_cpus: int, optional, default: None
+        Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
+        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used
+        instead. By default, image and mask processing are processed sequentially.
+
+    **kwargs:
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
+        :class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
+        :class:`mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others. See also the
+        `Other Parameters` section below.
+
+    Returns
+    -------
+    None | list[Any]
+        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
+
+    Other Parameters
+    ----------------
+    write_dir: str, optional
+        Path to directory where processed images and masks should be written.
+
+    image: Any
+        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+        image files, or a numpy.ndarray.
+
+    mask: Any
+        A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
+        file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
+        mask files, or a numpy.ndarray.
+
+    sample_name: str or list of str, default: None
+        Name of expected sample names. This is used to select specific image files. If None, no image files are
+        filtered based on the corresponding sample name (if known).
+
+    image_name: str, optional, default: None
+        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+        File extensions do not need to be specified. If None, file names are not used for filtering files and
+        setting sample names.
+
+    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+        DICOM files contain metadata concerning modality.
+
+    image_sub_folder: str, optional, default: None
+        Fixed directory substructure where image files are located. If None, the directory substructure is not used
+        for filtering files.
+
+    mask_name: str or list of str, optional, default: None
+        Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
+        structures. The sample name (if part of the file name) can also be specified using "#". For example,
+        mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+        do not need to be specified. If None, file names are not used for filtering files and setting sample names.
+
+    mask_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files.
+        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+        be "generic_mask".
+
+    mask_sub_folder: str, optional, default: None
+        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+        filtering files.
+
+    roi_name: str, optional, default: None
+        Name of the regions of interest that should be assessed.
+
+    association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
+        The preferred strategy for associating images and masks. File association is preferably done using frame of
+        reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
+        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
+        are of equal length.
+
+    stack_images: {"auto", "yes", "no"}, optional, default: "str"
+        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
+        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
+        can be determined from metadata.
+
+    stack_masks: {"auto", "yes", "no"}, optional, default: "str"
+        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
+        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
+        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
+        because their stacking can be determined from metadata.
+
+        intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation"}, default: "none"
+        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
+        masked by the tissue mask (of present). The following are possible:
+
+        * "none": no normalisation
+        * "range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
+          parameter, which is interpreted to represent an intensity range.
+        * "relative_range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
+          parameter, which is interpreted to represent a relative intensity range.
+        * "quantile_range": normalises intensities based on a fixed mapping against the
+          ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.
+        * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
+          deviation of intensities.
+
+    .. note::
+        intensity normalisation may remove any physical meaning of intensity units.
+
+    intensity_normalisation_range: list of float, optional
+        Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
+        intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the
+        type of normalisation method:
+
+        * "range": [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the
+          mapping range.
+        * "relative_range": [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are
+          used to set the mapping range.
+        * "quantile_range": [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used
+          to set the mapping range.
+
+        The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower
+        end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after
+        normalisation. Use ``intensity_normalisation_saturation`` to cap intensities after normalisation to a
+        specific range.
+
+    intensity_normalisation_saturation: list of float, optional, default: [np.nan, np.nan]
+        Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this
+        range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
+        than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
+        not be saturated.
+
+    tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
+        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
+         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
+
+    tissue_mask_range: list of float, optional
+        Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
+        options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
+        are considered to represent tissue).
+
+    """
 
     # Conditionally start a ray cluster.
     external_ray = ray.is_initialized()
@@ -60,14 +235,15 @@ def deep_learning_preprocessing(
             for workflow in workflows
         ]
 
-    return results
+    if export_images:
+        return results
 
 
 @ray.remote
 def _ray_extractor(
         workflow: StandardWorkflow,
         output_slices: bool = False,
-        crop_size: None | list[float] = None,
+        crop_size: None | list[float] | list[int] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy"
 ):
@@ -81,7 +257,7 @@ def _ray_extractor(
 
 def deep_learning_preprocessing_generator(
         output_slices: bool = False,
-        crop_size:None | list[float] = None,
+        crop_size: None | list[float] | list[int] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
         export_images: bool = True,

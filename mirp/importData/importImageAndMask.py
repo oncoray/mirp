@@ -105,7 +105,7 @@ def import_image_and_mask(
 
     Returns
     -------
-    list of ImageFile
+    list[ImageFile]
         The functions returns a list of ImageFile objects, if any were found with the specified filters.
     """
     if mask is None:
