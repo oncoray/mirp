@@ -3,7 +3,7 @@ import datetime
 
 from typing import Union, Tuple, List, Optional, Dict, Any
 
-from mirp.imageSUV import SUVscalingObj
+from mirp.importData.imageSUV import SUVscalingObj
 from mirp.importData.imageDicomFile import ImageDicomFile
 from mirp.importData.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
 
