@@ -64,6 +64,9 @@ def deep_learning_preprocessing(
 
     Other Parameters
     ----------------
+    .. note::
+        The parameters below can be provided as keyword arguments.
+
     write_dir: str, optional
         Path to directory where processed images and masks should be written.
 
@@ -190,6 +193,70 @@ def deep_learning_preprocessing(
         Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
         options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
         are considered to represent tissue).
+
+        interpolate: bool, optional, default: False
+        Controls whether interpolation of images to a common grid is performed at all.
+
+    spline_order: int, optional, default: 3
+        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
+        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
+        and cubic interpolation, respectively.
+
+    new_spacing: float or list of float or list of list of float:
+        Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
+        directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
+        (if `by_slice = False`) or 2 values for y and x directions (otherwise).
+
+        Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
+        same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
+        are defined by the headers of the image files. These are typically millimeters for radiological images.
+
+    anti_aliasing: bool, optional, default: true
+        Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.
+
+    smoothing_beta: float, optional, default: 0.98
+        Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
+        anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
+
+        perturbation_noise_repetitions: int, optional, default: 0
+        Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
+        added.
+
+    perturbation_noise_level: float, optional, default: None
+        Set the noise level in intensity units. This determines the width of the normal distribution used to generate
+        random noise. If None (default), noise is determined from the image itself.
+
+    perturbation_rotation_angles: float or list of float, optional, default: 0.0
+        Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
+        plane. Multiple angles can be provided to create images with different rotations.
+
+    perturbation_translation_fraction: float or list of float, optional, default: 0.0
+        Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
+        shift slightly and interpolate at different points. Multiple values can be provided. All values should be
+        between 0.0 and 1.0.
+
+    perturbation_roi_adapt_type: {"fraction", "distance"}, optional, default: "distance"
+        Determines how the mask is grown or shrunk. Can be either "fraction" or "distance". "fraction" is used to
+        grow or shrink the mask by a certain fraction (see the ``perturbation_roi_adapt_size`` parameter).
+        "distance" is used to grow or shrink the mask by a certain physical distance, defined using the
+        ``perturbation_roi_adapt_size`` parameter.
+
+    perturbation_roi_adapt_size: float or list of float, optional, default: 0.0
+        Determines the extent of growth/shrinkage of the ROI mask. The use of this parameter depends on the
+        growth/shrinkage type (``perturbation_roi_adapt_type``), For "distance", this parameter defines
+        growth/shrinkage in physical units, typically mm. For "fraction", this parameter defines growth/shrinkage in
+        volume fraction (e.g. a value of 0.2 grows the mask by 20%). For either type, positive values indicate growing
+        the mask, whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the
+        volume of the mask.
+
+    perturbation_roi_adapt_max_erosion: float, optional, default: 0.8
+        Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
+        the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
+        used when ``perturbation_roi_adapt_type=="distance"``.
+
+    perturbation_randomise_roi_repetitions: int, optional, default: 0.0
+        Number of repetitions where the mask is randomised using supervoxel-based randomisation.
 
     """
 
