@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Optional, Generator, Iterable
+from typing import Union, List, Dict, Optional, Generator, Iterable, Any
 import copy
 
 import ray
@@ -12,7 +12,33 @@ def extract_features(
         write_features: bool = True,
         export_features: bool = False,
         **kwargs
-):
+) -> None | list[Any]:
+    """
+    Compute features from regions of interest in images. This function is a wrapper around
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images`.
+
+    Parameters
+    ----------
+    write_features: bool, default: True
+        Determines whether features computed from images should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_features: bool, default: False
+        Determines whether features computed from images should be returned by the function.
+
+    **kwargs:
+        Keyword arguments passed to :func:`mirp.extractFeaturesAndImages.extract_features_and_images`.
+
+    Returns
+    -------
+    None | list[Any]
+        List of feature tables, if ``export_features=True``.
+
+    See Also
+    --------
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images`
+
+    """
     return extract_features_and_images(
         write_features=write_features,
         export_features=export_features,
@@ -23,10 +49,36 @@ def extract_features(
 
 
 def extract_features_generator(
-        write_features: bool = True,
-        export_features: bool = False,
+        write_features: bool = False,
+        export_features: bool = True,
         **kwargs
 ):
+    """
+    Compute features from regions of interest in images. This generator is a wrapper around
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
+
+    Parameters
+    ----------
+    write_features: bool, default: False
+        Determines whether features computed from images should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_features: bool, default: True
+        Determines whether features computed from images should be returned by the function.
+
+    **kwargs:
+        Keyword arguments passed to :func:`mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
+
+    Returns
+    -------
+    None | list[Any]
+        List of feature tables, if ``export_features=True``.
+
+    See Also
+    --------
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images_generator`
+
+    """
     yield from extract_features_and_images_generator(
         write_features=write_features,
         export_features=export_features,
@@ -41,6 +93,32 @@ def extract_images(
         export_images: bool = False,
         **kwargs
 ):
+    """
+    Process images and masks. This function is a wrapper around
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images`.
+
+    Parameters
+    ----------
+    write_images: bool, default: True
+        Determines whether processed images and masks should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_images: bool, default: False
+        Determines whether processed images and masks should be returned by the function.
+
+    **kwargs:
+        Keyword arguments passed to :func:`mirp.extractFeaturesAndImages.extract_features_and_images`.
+
+    Returns
+    -------
+    None | list[Any]
+        List of feature tables, if ``export_images=True``.
+
+    See Also
+    --------
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images`
+
+    """
     return extract_features_and_images(
         write_features=False,
         export_features=False,
@@ -51,10 +129,36 @@ def extract_images(
 
 
 def extract_images_generator(
-        write_images: bool = True,
-        export_images: bool = False,
+        write_images: bool = False,
+        export_images: bool = True,
         **kwargs
 ):
+    """
+    Process images and masks. This generator is a wrapper around
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
+
+    Parameters
+    ----------
+    write_images: bool, default: True
+       Determines whether processed images and masks should be written to the directory indicated by the
+       ``write_dir`` keyword argument.
+
+    export_images: bool, default: False
+       Determines whether processed images and masks should be returned by the function.
+
+    **kwargs:
+       Keyword arguments passed to :func:`mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
+
+    Yields
+    ------
+    None | list[Any]
+       List of feature tables, if ``export_images=True``.
+
+    See Also
+    --------
+    :func:`mirp.extractFeaturesAndImages.extract_features_and_images_generator`
+
+    """
     yield from extract_features_and_images_generator(
         write_features=False,
         export_features=False,
@@ -69,6 +173,152 @@ def extract_features_and_images(
         num_cpus: None | int = None,
         **kwargs
 ):
+    """
+    Processes images and computes features from regions of interest.
+
+    Parameters
+    ----------
+    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
+        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
+        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+
+    num_cpus: int, optional, default: None
+        Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be
+        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used
+        instead. By default, images are processed sequentially.
+
+    **kwargs:
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:
+
+        * general settings (:class:`mirp.settings.settingsGeneral.GeneralSettingsClass`)
+        * image post-processing (:class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+        * image interpolation / resampling (
+          :class:`mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+          :class:`mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+        * image transformation (:class:`mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+        * feature computation / extraction (
+          :class:`mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+
+        See also the `Other Parameters` section below.
+
+    Returns
+    -------
+    None | list[Any]
+        List of features, images and masks, depending on ``export_features`` and ``export_images``.
+
+    Other Parameters
+    ----------------
+    .. note::
+        The parameters below can be provided as keyword arguments.
+
+    write_dir: str, optional
+        Path to directory where processed images, masks and feature tables should be written.
+
+    write_features: bool, default: False
+        Determines whether features computed from images should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_features: bool, default: False
+        Determines whether features computed from images should be returned by the function.
+
+    write_images: bool, default: False
+        Determines whether processed images and masks should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_images: bool, default: False
+        Determines whether processed images and masks should be returned by the function.
+
+    image: Any
+        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+        image files, or a numpy.ndarray.
+
+    mask: Any
+        A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
+        file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
+        mask files, or a numpy.ndarray.
+
+    sample_name: str or list of str, default: None
+        Name of expected sample names. This is used to select specific image files. If None, no image files are
+        filtered based on the corresponding sample name (if known).
+
+    image_name: str, optional, default: None
+        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+        File extensions do not need to be specified. If None, file names are not used for filtering files and
+        setting sample names.
+
+    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+        DICOM files contain metadata concerning modality.
+
+    image_sub_folder: str, optional, default: None
+        Fixed directory substructure where image files are located. If None, the directory substructure is not used
+        for filtering files.
+
+    mask_name: str or list of str, optional, default: None
+        Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
+        structures. The sample name (if part of the file name) can also be specified using "#". For example,
+        mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+        do not need to be specified. If None, file names are not used for filtering files and setting sample names.
+
+    mask_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files.
+        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+        be "generic_mask".
+
+    mask_sub_folder: str, optional, default: None
+        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+        filtering files.
+
+    roi_name: str, optional, default: None
+        Name of the regions of interest that should be assessed.
+
+    association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
+        The preferred strategy for associating images and masks. File association is preferably done using frame of
+        reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
+        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
+        are of equal length.
+
+    stack_images: {"auto", "yes", "no"}, optional, default: "str"
+        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
+        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
+        can be determined from metadata.
+
+    stack_masks: {"auto", "yes", "no"}, optional, default: "str"
+        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
+        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
+        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
+        because their stacking can be determined from metadata.
+
+    See Also
+    --------
+    * general settings (:class:`mirp.settings.settingsGeneral.GeneralSettingsClass`)
+    * image post-processing (:class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+    * image perturbation / augmentation (:class:`mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+    * image interpolation / resampling (:class:`mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+      :class:`mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+    * mask resegmentation (:class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+    * image transformation (:class:`mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+    * feature computation / extraction (:class:`mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+
+    """
 
     # Conditionally start a ray cluster.
     external_ray = ray.is_initialized()
@@ -98,6 +348,148 @@ def extract_features_and_images_generator(
         image_export_format: str = "dict",
         **kwargs
 ):
+    """
+    Processes images and computes features from regions of interest as a generator.
+
+    Parameters
+    ----------
+    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
+        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
+        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+
+    **kwargs:
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:
+
+        * general settings (:class:`mirp.settings.settingsGeneral.GeneralSettingsClass`)
+        * image post-processing (:class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+        * image interpolation / resampling (
+          :class:`mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+          :class:`mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+        * image transformation (:class:`mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+        * feature computation / extraction (
+          :class:`mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+
+        See also the `Other Parameters` section below.
+
+    Yields
+    ------
+    None | list[Any]
+        List of features, images and masks, depending on ``export_features`` and ``export_images``.
+
+    Other Parameters
+    ----------------
+    .. note::
+        The parameters below can be provided as keyword arguments.
+
+    write_dir: str, optional
+        Path to directory where processed images, masks and feature tables should be written.
+
+    write_features: bool, default: False
+        Determines whether features computed from images should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_features: bool, default: False
+        Determines whether features computed from images should be returned by the function.
+
+    write_images: bool, default: False
+        Determines whether processed images and masks should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_images: bool, default: False
+        Determines whether processed images and masks should be returned by the function.
+
+    image: Any
+        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+        image files, or a numpy.ndarray.
+
+    mask: Any
+        A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
+        file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
+        mask files, or a numpy.ndarray.
+
+    sample_name: str or list of str, default: None
+        Name of expected sample names. This is used to select specific image files. If None, no image files are
+        filtered based on the corresponding sample name (if known).
+
+    image_name: str, optional, default: None
+        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+        File extensions do not need to be specified. If None, file names are not used for filtering files and
+        setting sample names.
+
+    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+        DICOM files contain metadata concerning modality.
+
+    image_sub_folder: str, optional, default: None
+        Fixed directory substructure where image files are located. If None, the directory substructure is not used
+        for filtering files.
+
+    mask_name: str or list of str, optional, default: None
+        Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
+        structures. The sample name (if part of the file name) can also be specified using "#". For example,
+        mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+        do not need to be specified. If None, file names are not used for filtering files and setting sample names.
+
+    mask_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
+        The type of file that is expected. If None, the file type is not used for filtering files.
+        "itk" comprises "nifti" and "nrrd" file types.
+
+    mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
+        The type of modality that is expected. If None, modality is not used for filtering files.
+        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+        be "generic_mask".
+
+    mask_sub_folder: str, optional, default: None
+        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+        filtering files.
+
+    roi_name: str, optional, default: None
+        Name of the regions of interest that should be assessed.
+
+    association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
+        The preferred strategy for associating images and masks. File association is preferably done using frame of
+        reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
+        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
+        are of equal length.
+
+    stack_images: {"auto", "yes", "no"}, optional, default: "str"
+        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
+        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
+        can be determined from metadata.
+
+    stack_masks: {"auto", "yes", "no"}, optional, default: "str"
+        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
+        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
+        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
+        because their stacking can be determined from metadata.
+
+    See Also
+    --------
+    * general settings (:class:`mirp.settings.settingsGeneral.GeneralSettingsClass`)
+    * image post-processing (:class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+    * image perturbation / augmentation (:class:`mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+    * image interpolation / resampling (:class:`mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+      :class:`mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+    * mask resegmentation (:class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+    * image transformation (:class:`mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+    * feature computation / extraction (:class:`mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+
+    """
+
     workflows = list(_base_extract_features_and_images(**kwargs))
     for workflow in workflows:
         yield workflow.standard_extraction(image_export_format=image_export_format)
