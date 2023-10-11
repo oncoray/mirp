@@ -40,6 +40,7 @@ For advanced users and developers, the following changes are relevant:
   structures are more flexible. File import of new modalities can be implemented as a relevant subclass of `ImageFile`.
 - MIRP uses type hinting, and makes use of the `Self` type hint introduced in Python 3.11. MIRP 
   therefore requires Python 3.11 or later.
+- MIRP now uses the `ray` package for parallel processing.
 
 ## Examples
 

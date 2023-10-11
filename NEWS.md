@@ -1,6 +1,41 @@
-# Version 1.3.0 (dev)
+# Version 2.0.0
 
 ## Major changes
+
+- MIRP was previously configured using two `xml` files: [`config_data.xml`](mirp/config_data.xml) for configuring
+  directories, data to be read, etc., and [`config_settings.xml`](mirp/config_settings.xml) for configuring experiments.
+  While these two files can still be used, MIRP can now be configured directly, without using these files.
+
+- The main functions of MIRP (`mainFunctions.py`) have all been re-implemented.
+  - `mainFunctions.extract_features` is now `extractFeaturesAndImages.extract_features` (functional form) or
+    `extractFeaturesAndImages.extract_features_generator` (generator). The replacements allow for both writing
+    feature values to a directory and returning them as function output. 
+  - `mainFunctions.extract_images_to_nifti` is now `extractFeaturesAndImages.extract_images` (functional form) or
+     `extractFeaturesAndImages.extract_images_generator` (generator). The replacements allow for both writing 
+     images to a directory (e.g., in NIfTI or numpy format) and returning them as function output.
+  - `mainFunctions.extract_images_for_deep_learning` has been replaced by 
+    `deepLearningPreprocessing.deep_learning_preprocessing` (functional form) and 
+    `deepLearningPreprocessing.deep_learning_preprocessing_generator` (generator).
+  - `mainFunctions.get_file_structure_parameters` and `mainFunctions.parse_file_structure` are deprecated, as the
+    the file import system used in version 2 no longer requires a rigid directory structure.
+  - `mainFunctions.get_roi_labels` is now `extractMaskLabels.extract_mask_labels`.
+  - `mainFunctions.get_image_acquisition_parameters` is now `extractImageParameters.extract_image_parameters`.
+
+- MIRP previously relied on `ImageClass` and `RoiClass` objects. These have been completely replaced by `GenericImage`
+  (and its subclasses, e.g. `CTImage`) and `BaseMask` objects, respectively. New image modalities can be added as
+  subclass of `GenericImage` in the `mirp.images` submodule.
+
+- File import, e.g. from DICOM or NIfTI files, in was previously implemented in an ad-hoc manner, and required a rigid
+  directory structure. Now, file import is implemented using an object-oriented approach, and directory structures 
+  are more flexible. File import of new modalities can be implemented as a relevant subclass of `ImageFile`.
+
+- MIRP uses type hinting, and makes use of the `Self` type hint introduced in Python 3.11. MIRP therefore requires 
+  Python 3.11 or later.
+
+## Minor changes
+- MIRP now uses the `ray` package for parallel processing.
+
+# Version 1.3.0 (dev - unreleased)
 
 ## Minor changes
 - `SimpleITK` has been removed as a dependency. Handling of non-DICOM imaging is now done through `itk` itself.
