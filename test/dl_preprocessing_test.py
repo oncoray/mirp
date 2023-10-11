@@ -7,12 +7,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_extract_image_crop():
-    # Configure settings.
-    settings = SettingsClass(
-        base_feature_families="none",
-        response_map_feature_families="none"
-    )
-
     # No cropping.
     data = deep_learning_preprocessing(
         output_slices=False,
@@ -21,8 +15,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     image = data[0][0][0]
@@ -39,8 +32,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     images = data[0][0]
@@ -59,8 +51,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     image = data[0][0][0]
@@ -77,8 +68,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     image = data[0][0][0]
@@ -95,8 +85,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     images = data[0][0]
@@ -115,8 +104,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     image = data[0][0][0]
@@ -135,8 +123,7 @@ def test_extract_image_crop():
         write_images=False,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
-        roi_name="GTV-1",
-        settings=settings
+        roi_name="GTV-1"
     )
 
     images = data[0][0]
