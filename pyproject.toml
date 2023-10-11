@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mirp"
+version = "2.0.0"
+description = "A package for standardised processing of medical imaging and computation of quantitative features."
+authors = [
+    {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
+]
+license = {file = "LICENSE.txt"}
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Topic :: Scientific/Engineering :: Medical Science Apps."
+]
+urls = [
+    {Homepage = "https://github.com/oncoray/mirp"}
+]
+requires-python = ">=3.11"
+dependencies = [
+    "itk>=5.3.0",
+    "matplotlib>=3.7.0",
+    "numpy>=1.25",
+    "pandas>=2.0.0",
+    "pydicom>=2.4.0",
+    "pywavelets>=1.4.0",
+    "ray>=2.7.0",
+    "scikit-image>=0.20.0",
+    "scipy>=1.11"
+]
+optional-dependencies = [
+    "pytest>=7.4.0",
+    "sphinx>=5.0.0"
+]
