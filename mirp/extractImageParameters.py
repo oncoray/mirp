@@ -14,7 +14,7 @@ def extract_image_parameters(
         stack_images: str = "auto",
         write_file: bool = False,
         write_dir: None | str = None
-):
+) -> pd.DataFrame | None:
     """
     Extract parameters related to image acquisition and reconstruction from images. Not all metadata may
     be available.
