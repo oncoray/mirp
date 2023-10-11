@@ -28,7 +28,7 @@ copyright = (
 author = 'Alex Zwanenburg'
 
 # The full version, including alpha/beta/rc tags
-with open("VERSION.txt", "r") as version_file:
+with open("../../VERSION.txt", "r") as version_file:
     version = version_file.read().strip()
 release = version
 
