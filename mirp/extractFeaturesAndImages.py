@@ -1,4 +1,4 @@
-from typing import Union, List, Dict, Optional, Generator, Iterable, Any
+from typing import Generator, Iterable, Any
 import copy
 
 import ray
@@ -9,8 +9,9 @@ from mirp.workflows.standardWorkflow import StandardWorkflow
 
 
 def extract_features(
-        write_features: bool = True,
-        export_features: bool = False,
+        write_features: None | bool = None,
+        export_features: None | bool = None,
+        write_dir: None | str = None,
         **kwargs
 ) -> None | list[Any]:
     """
@@ -19,12 +20,16 @@ def extract_features(
 
     Parameters
     ----------
-    write_features: bool, default: True
+    write_features: bool, optional
         Determines whether features computed from images should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
-    export_features: bool, default: False
+    export_features: bool, optional
         Determines whether features computed from images should be returned by the function.
+
+    write_dir: str, optional
+        Path to directory where feature tables should be written. If not set, feature tables are returned by this
+        function. Required if ``write_features=True``.
 
     **kwargs:
         Keyword arguments passed to :func:`mirp.extractFeaturesAndImages.extract_features_and_images`.
@@ -44,6 +49,7 @@ def extract_features(
         export_features=export_features,
         write_images=False,
         export_images=False,
+        write_dir=write_dir,
         **kwargs
     )
 
@@ -89,8 +95,9 @@ def extract_features_generator(
 
 
 def extract_images(
-        write_images: bool = True,
-        export_images: bool = False,
+        write_images: None | bool = True,
+        export_images: None | bool = False,
+        write_dir: None | str = None,
         **kwargs
 ):
     """
@@ -99,12 +106,16 @@ def extract_images(
 
     Parameters
     ----------
-    write_images: bool, default: True
+    write_images: bool, optional
         Determines whether processed images and masks should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
-    export_images: bool, default: False
+    export_images: bool, optional
         Determines whether processed images and masks should be returned by the function.
+
+    write_dir: str, optional
+        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        are returned by this function. Required if ``write_features=True``.
 
     **kwargs:
         Keyword arguments passed to :func:`mirp.extractFeaturesAndImages.extract_features_and_images`.
@@ -124,6 +135,7 @@ def extract_images(
         export_features=False,
         write_images=write_images,
         export_images=export_images,
+        write_dir=write_dir,
         **kwargs
     )
 
@@ -503,25 +515,25 @@ def _ray_extractor(workflow: StandardWorkflow, image_export_format="dict"):
 def _base_extract_features_and_images(
         image,
         mask=None,
-        sample_name: Union[None, str, List[str]] = None,
-        image_name: Union[None, str, List[str]] = None,
-        image_file_type: Union[None, str] = None,
-        image_modality: Union[None, str, List[str]] = None,
-        image_sub_folder: Union[None, str] = None,
-        mask_name: Union[None, str, List[str]] = None,
-        mask_file_type: Union[None, str] = None,
-        mask_modality: Union[None, str, List[str]] = None,
-        mask_sub_folder: Union[None, str] = None,
-        roi_name: Union[None, str, List[str], Dict[str, str]] = None,
-        association_strategy: Union[None, str, List[str]] = None,
-        settings: Union[None, str, SettingsClass, List[SettingsClass]] = None,
+        sample_name: None | str | list[str] = None,
+        image_name: None | str | list[str] = None,
+        image_file_type: None | str = None,
+        image_modality: None | str | list[str] = None,
+        image_sub_folder: None | str = None,
+        mask_name: None | str | list[str] = None,
+        mask_file_type: None | str = None,
+        mask_modality: None | str | list[str] = None,
+        mask_sub_folder: None | str = None,
+        roi_name: None | str | list[str] | dict[str, str] = None,
+        association_strategy: None | str | list[str] = None,
+        settings: None | str | SettingsClass | list[SettingsClass] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto",
-        write_features: bool = False,
-        export_features: bool = False,
-        write_images: bool = False,
-        export_images: bool = False,
-        write_dir: Optional[str] = None,
+        write_features: None | bool = None,
+        export_features: None | bool = None,
+        write_images: None | bool = None,
+        export_images: None | bool = None,
+        write_dir: None | str = None,
         **kwargs
 ):
     from mirp.importData.importImageAndMask import import_image_and_mask
@@ -543,16 +555,28 @@ def _base_extract_features_and_images(
             **kwargs
         )
     else:
-        raise TypeError(f"The 'settings' argument is expected to be a path to a configuration xml file, "
-                        f"a SettingsClass object, or a list thereof. Found: {type(settings)}.")
+        raise TypeError(
+            f"The 'settings' argument is expected to be a path to a configuration xml file, a SettingsClass object, or "
+            f"a list thereof. Found: {type(settings)}."
+        )
+
+    # Infer write_images, export_images, write_features, export_features based on write_dir.
+    if write_images is None:
+        write_images = write_dir is not None
+    if export_images is None:
+        export_images = write_dir is None
+    if write_features is None:
+        write_features = write_dir is not None
+    if export_features is None:
+        export_features = write_dir is None
 
     if not write_images and not write_features:
         write_dir = None
 
     if write_images and write_dir is None:
-        raise ValueError("write_dir argument should be provided for writing images and masks to.")
+        raise ValueError("write_dir argument is required for writing images and masks, but not provided.")
     if write_features and write_dir is None:
-        raise ValueError("write_dir argument should be provided for writing feature tables to.")
+        raise ValueError("write_dir argument is required for writing feature tables, but not provided.")
 
     image_list = import_image_and_mask(
         image=image,
@@ -584,9 +608,9 @@ def _base_extract_features_and_images(
 
 
 def _generate_feature_and_image_extraction_workflows(
-        image_list: List[ImageFile],
-        settings: List[SettingsClass],
-        write_dir: Optional[str],
+        image_list: list[ImageFile],
+        settings: list[SettingsClass],
+        write_dir: None | str,
         write_features: bool,
         export_features: bool,
         write_images: bool,
