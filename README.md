@@ -7,7 +7,10 @@ MIRP focuses on radiomics applications and supports computation of features for 
 and image processing for deep-learning applications.
 
 ## Installing MIRP
-...
+MIRP is available from PyPI and can be installed using `pip`:
+```
+pip install mirp
+```
 
 ## Transitioning to version 2
 
@@ -42,10 +45,55 @@ For advanced users and developers, the following changes are relevant:
   therefore requires Python 3.11 or later.
 - MIRP now uses the `ray` package for parallel processing.
 
-## Examples
+## Examples - Computing Radiomics Features
+
+MIRP can be used to compute quantitative features from regions of interest in images in an IBSI-compliant manner. This 
+requires both images and masks. MIRP can process DICOM, NIfTI, NRRD and numpy images. Masks are DICOM radiotherapy 
+structure sets (RTSTRUCT), or volumetric data with integer labels (e.g. 1, 2, etc.).
+
+Below is a minimal working example for extracting features from a single image file and its mask.
+
+```
+from mirp.extractFeaturesAndImages import extract_features
+
+feature_data = extract_features(
+    image="path to image",
+    mask="path to mask",
+    base_discretisation_method="fixed_bin_number",
+    base_discretisation_n_bins=32
+)
+```
+Instead of providing the path to the image (`"path_to_image"`), a numpy image can be provided, and the same goes for 
+`"path to mask"`. The disadvantage of doing so is that voxel spacing cannot be determined. 
+
+MIRP also supports processing images and masks for multiple samples (e.g., patients). The syntax is much the same, 
+but depending on the file type and directory structure, additional arguments need to be specified. For example, 
+assume that files are organised in subfolders for each sample, i.e. `main_folder / sample_name / subfolder`. The 
+minimal working example is then:
+
+```
+from mirp.extractFeaturesAndImages import extract_features
+
+feature_data = extract_features(
+    image="path to main image_directory",
+    mask="path to main mask_directory",
+    image_sub_folder="image subdirectory structure relative to main image directory",
+    mask_sub_folder="mask subdirectory structure relative to main mask directory",
+    base_discretisation_method="fixed_bin_number",
+    base_discretisation_n_bins=32
+)
+```
+The above example will compute features sequentially. MIRP supports parallel processing using the `ray` package. 
+Feature computation can be parallelized by specifying the `num_cpus` argument, e.g. `num_cpus=2` for two CPU threads.
+
+## Examples - Image Pre-processing
+...
+
+## Examples - Summarising Image Metadata
+...
 
 # Citation info
-If you use MIRP, please cite the following work:
+A publication for MIRP is forthcoming. For now, please cite the following work:
 ```Zwanenburg A, Leger S, Agolli L, Pilz K, Troost EG, Richter C, Löck S. Assessing robustness of radiomic features by image perturbation. Scientific reports. 2019 Jan 24;9(1):614.```
 
 # Developers and contributors
