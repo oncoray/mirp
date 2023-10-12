@@ -7,8 +7,9 @@ MIRP focuses on radiomics applications and supports computation of features for 
 and image processing for deep-learning applications.
 
 ## Installing MIRP
-MIRP is available from PyPI and can be installed using `pip`:
-```
+MIRP is available from PyPI and can be installed using `pip`, or other installer tools:
+
+```commandline
 pip install mirp
 ```
 
@@ -53,7 +54,7 @@ structure sets (RTSTRUCT), or volumetric data with integer labels (e.g. 1, 2, et
 
 Below is a minimal working example for extracting features from a single image file and its mask.
 
-```
+```python
 from mirp.extractFeaturesAndImages import extract_features
 
 feature_data = extract_features(
@@ -71,7 +72,7 @@ but depending on the file type and directory structure, additional arguments nee
 assume that files are organised in subfolders for each sample, i.e. `main_folder / sample_name / subfolder`. The 
 minimal working example is then:
 
-```
+```python
 from mirp.extractFeaturesAndImages import extract_features
 
 feature_data = extract_features(
@@ -86,11 +87,31 @@ feature_data = extract_features(
 The above example will compute features sequentially. MIRP supports parallel processing using the `ray` package. 
 Feature computation can be parallelized by specifying the `num_cpus` argument, e.g. `num_cpus=2` for two CPU threads.
 
-## Examples - Image Pre-processing
+## Examples - Image Preprocessing
 ...
 
 ## Examples - Summarising Image Metadata
-...
+
+MIRP can also summarise image metadata. This is particularly relevant for DICOM files that have considerable 
+metadata. Other files, e.g. NIfTI, only have metadata related to position and spacing of the image.
+
+Below is a minimal working example for extracting metadata from a single image file.
+```python
+from mirp.extractImageParameters import extract_image_parameters
+image_parameters = extract_image_parameters(
+    image="path to image"
+)
+```
+
+MIRP also supports extracting metadata from multiple files. For example, assume that files are organised in 
+subfolders for each sample, i.e. `main_folder / sample_name / subfolder`. The minimal working example is then:
+```python
+from mirp.extractImageParameters import extract_image_parameters
+image_parameters = extract_image_parameters(
+    image="path to main image_directory",
+    image_sub_folder="image subdirectory structure relative to main image directory"
+)
+```
 
 # Citation info
 A publication for MIRP is forthcoming. For now, please cite the following work:
