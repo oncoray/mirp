@@ -539,6 +539,24 @@ def _base_extract_features_and_images(
     from mirp.importData.importImageAndMask import import_image_and_mask
     from mirp.settings.importConfigurationSettings import import_configuration_settings
 
+    # Infer write_images, export_images, write_features, export_features based on write_dir.
+    if write_images is None:
+        write_images = write_dir is not None
+    if export_images is None:
+        export_images = write_dir is None
+    if write_features is None:
+        write_features = write_dir is not None
+    if export_features is None:
+        export_features = write_dir is None
+
+    if not write_images and not write_features:
+        write_dir = None
+
+    if write_images and write_dir is None:
+        raise ValueError("write_dir argument is required for writing images and masks, but not provided.")
+    if write_features and write_dir is None:
+        raise ValueError("write_dir argument is required for writing feature tables, but not provided.")
+
     # Import settings (to provide immediate feedback if something is amiss).
     if isinstance(settings, str):
         settings = import_configuration_settings(
@@ -559,24 +577,6 @@ def _base_extract_features_and_images(
             f"The 'settings' argument is expected to be a path to a configuration xml file, a SettingsClass object, or "
             f"a list thereof. Found: {type(settings)}."
         )
-
-    # Infer write_images, export_images, write_features, export_features based on write_dir.
-    if write_images is None:
-        write_images = write_dir is not None
-    if export_images is None:
-        export_images = write_dir is None
-    if write_features is None:
-        write_features = write_dir is not None
-    if export_features is None:
-        export_features = write_dir is None
-
-    if not write_images and not write_features:
-        write_dir = None
-
-    if write_images and write_dir is None:
-        raise ValueError("write_dir argument is required for writing images and masks, but not provided.")
-    if write_features and write_dir is None:
-        raise ValueError("write_dir argument is required for writing feature tables, but not provided.")
 
     image_list = import_image_and_mask(
         image=image,

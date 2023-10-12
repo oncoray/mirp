@@ -32,6 +32,11 @@ def import_configuration_settings(
             kwargs.update({
                 "base_feature_families": "none",
                 "response_map_feature_families": "none"})
+        else:
+            if "base_feature_families" not in kwargs:
+                kwargs.update({"base_feature_families": "all"})
+            if "response_map_feature_families" not in kwargs:
+                kwargs.update({"response_map_feature_families": "statistics"})
 
         # Set general settings.
         general_settings = GeneralSettingsClass(**kwargs)
