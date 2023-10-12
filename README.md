@@ -76,8 +76,8 @@ minimal working example is then:
 from mirp.extractFeaturesAndImages import extract_features
 
 feature_data = extract_features(
-    image="path to main image_directory",
-    mask="path to main mask_directory",
+    image="path to main image directory",
+    mask="path to main mask directory",
     image_sub_folder="image subdirectory structure relative to main image directory",
     mask_sub_folder="mask subdirectory structure relative to main mask directory",
     base_discretisation_method="fixed_bin_number",
@@ -108,8 +108,29 @@ subfolders for each sample, i.e. `main_folder / sample_name / subfolder`. The mi
 ```python
 from mirp.extractImageParameters import extract_image_parameters
 image_parameters = extract_image_parameters(
-    image="path to main image_directory",
+    image="path to main image directory",
     image_sub_folder="image subdirectory structure relative to main image directory"
+)
+```
+
+## Examples - Finding labels
+
+MIRP can identify which labels are present in masks. For a single mask file, labels can be retrieved as follows:
+```python
+from mirp.extractMaskLabels import extract_mask_labels
+
+mask_labels = extract_mask_labels(
+    mask="path to mask"
+)
+```
+
+MIRP supports extracting labels from multiple masks. For example, assume that files are organised in subfolders for 
+each sample, i.e. `main_folder / sample_name / subfolder`. The minimal working example is then:
+```python
+from mirp.extractMaskLabels import extract_mask_labels
+mask_labels = extract_mask_labels(
+    mask="path to main mask directory",
+    mask_sub_folder="mask subdirectory structure relative to main mask directory"
 )
 ```
 

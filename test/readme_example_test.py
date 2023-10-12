@@ -41,3 +41,20 @@ def test_example_image_metadata():
         image_sub_folder=os.path.join("CT", "dicom", "image")
     )
     assert len(image_parameters) == 3
+
+
+def test_example_retrieve_mask_labels():
+    from mirp.extractMaskLabels import extract_mask_labels
+
+    mask_labels = extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "mask", "STS_001_mask.npy")
+    )
+    assert mask_labels.roi_label.values[0] == 1
+
+    # Multiple masks.
+    mask_labels = extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask_sub_folder=os.path.join("CT", "numpy", "mask")
+    )
+
+    assert all(x == 1 for x in mask_labels.roi_label.values)
