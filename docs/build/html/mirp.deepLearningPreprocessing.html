@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Image preprocessing for deep learning &mdash; mirp 2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Compute quantitative image features" href="mirp.extractFeaturesAndImages.html" />
+    <link rel="prev" title="Extract image metadata" href="mirp.extractImageParameters.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Image preprocessing for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.extractFeaturesAndImages.html">Compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.settings.html">Configuring the image processing workflow</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Image preprocessing for deep learning</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mirp.deepLearningPreprocessing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-mirp.deepLearningPreprocessing">
+<span id="image-preprocessing-for-deep-learning"></span><h1>Image preprocessing for deep learning<a class="headerlink" href="#module-mirp.deepLearningPreprocessing" title="Permalink to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.deepLearningPreprocessing.deep_learning_preprocessing">
+<span class="sig-prename descclassname"><span class="pre">mirp.deepLearningPreprocessing.</span></span><span class="sig-name descname"><span class="pre">deep_learning_preprocessing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_slices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_export_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_file_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_cpus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/mirp/deepLearningPreprocessing.html#deep_learning_preprocessing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.deepLearningPreprocessing.deep_learning_preprocessing" title="Permalink to this definition"></a></dt>
+<dd><p>Pre-processes images for deep learning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_slices</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Determines whether separate slices should be extracted.</p></li>
+<li><p><strong>crop_size</strong> (<em>list of float</em><em> or </em><em>list of int</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
+mask(s).</p></li>
+<li><p><strong>image_export_format</strong> (<em>{&quot;dict&quot;</em><em>, </em><em>&quot;native&quot;</em><em>, </em><em>&quot;numpy&quot;}</em><em>, </em><em>default: &quot;numpy&quot;</em>) – Return format for processed images and masks. <code class="docutils literal notranslate"><span class="pre">&quot;dict&quot;</span></code> returns dictionaries of images and masks as numpy
+arrays and associated characteristics. <code class="docutils literal notranslate"><span class="pre">&quot;native&quot;</span></code> returns images and masks in their internal format.
+<code class="docutils literal notranslate"><span class="pre">&quot;numpy&quot;</span></code> returns images and masks in numpy format. This argument is only used if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p></li>
+<li><p><strong>write_file_format</strong> (<em>{&quot;nifti&quot;</em><em>, </em><em>&quot;numpy&quot;}</em><em>, </em><em>default: &quot;numpy&quot;</em>) – File format for processed images and masks. <code class="docutils literal notranslate"><span class="pre">&quot;nifti&quot;</span></code> writes images and masks in the NIfTI file format,
+and <code class="docutils literal notranslate"><span class="pre">&quot;numpy&quot;</span></code> writes images and masks as numpy files. This argument is only used if <code class="docutils literal notranslate"><span class="pre">write_images=True</span></code>.</p></li>
+<li><p><strong>export_images</strong> (<em>bool</em><em>, </em><em>default: False</em>) – Determines whether processed images and masks should be returned by the function.</p></li>
+<li><p><strong>write_images</strong> (<em>bool</em><em>, </em><em>default: True</em>) – Determines whether processed images and masks should be written to the directory indicated by the
+<code class="docutils literal notranslate"><span class="pre">write_dir</span></code> keyword argument.</p></li>
+<li><p><strong>num_cpus</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
+parallelized using the <code class="docutils literal notranslate"><span class="pre">ray</span></code> package. If a ray cluster is defined by the user, this cluster will be used
+instead. By default, image and mask processing are processed sequentially.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed for importing images and masks (
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mirp.importData.importImageAndMask.import_image_and_mask()</span></code>) and configuring settings (notably
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageProcessing.ImagePostProcessingClass" title="mirp.settings.settingsImageProcessing.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">mirp.settings.settingsImageProcessing.ImagePostProcessingClass</span></code></a>,
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass" title="mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass</span></code></a>), among others. See also the
+<cite>Other Parameters</cite> section below.</p></li>
+<li><p><strong>note::</strong> (<em>..</em>) – The parameters below can be provided as keyword arguments.</p></li>
+<li><p><strong>write_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to directory where processed images and masks should be written.</p></li>
+<li><p><strong>image</strong> (<em>Any</em>) – A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+image files, or a numpy.ndarray.</p></li>
+<li><p><strong>mask</strong> (<em>Any</em>) – A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
+file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
+mask files, or a numpy.ndarray.</p></li>
+<li><p><strong>sample_name</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>default: None</em>) – Name of expected sample names. This is used to select specific image files. If None, no image files are
+filtered based on the corresponding sample name (if known).</p></li>
+<li><p><strong>image_name</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Pattern to match image files against. The matches are exact. Use wildcard symbols (“*”) to
+match varying structures. The sample name (if part of the file name) can also be specified using “#”. For
+example, image_name = ‘#_*_image’ would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+File extensions do not need to be specified. If None, file names are not used for filtering files and
+setting sample names.</p></li>
+<li><p><strong>image_file_type</strong> (<em>{&quot;dicom&quot;</em><em>, </em><em>&quot;nifti&quot;</em><em>, </em><em>&quot;nrrd&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;itk&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of file that is expected. If None, the file type is not used for filtering files.
+“itk” comprises “nifti” and “nrrd” file types.</p></li>
+<li><p><strong>image_modality</strong> (<em>{&quot;ct&quot;</em><em>, </em><em>&quot;pet&quot;</em><em>, </em><em>&quot;pt&quot;</em><em>, </em><em>&quot;mri&quot;</em><em>, </em><em>&quot;mr&quot;</em><em>, </em><em>&quot;generic&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+DICOM files contain metadata concerning modality.</p></li>
+<li><p><strong>image_sub_folder</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Fixed directory substructure where image files are located. If None, the directory substructure is not used
+for filtering files.</p></li>
+<li><p><strong>mask_name</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Pattern to match mask files against. The matches are exact. Use wildcard symbols (“*”) to match varying
+structures. The sample name (if part of the file name) can also be specified using “#”. For example,
+mask_name = ‘#_*_mask’ would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+do not need to be specified. If None, file names are not used for filtering files and setting sample names.</p></li>
+<li><p><strong>mask_file_type</strong> (<em>{&quot;dicom&quot;</em><em>, </em><em>&quot;nifti&quot;</em><em>, </em><em>&quot;nrrd&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;itk&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of file that is expected. If None, the file type is not used for filtering files.
+“itk” comprises “nifti” and “nrrd” file types.</p></li>
+<li><p><strong>mask_modality</strong> (<em>{&quot;rtstruct&quot;</em><em>, </em><em>&quot;seg&quot;</em><em>, </em><em>&quot;generic_mask&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of modality that is expected. If None, modality is not used for filtering files.
+Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+be “generic_mask”.</p></li>
+<li><p><strong>mask_sub_folder</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+filtering files.</p></li>
+<li><p><strong>roi_name</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Name of the regions of interest that should be assessed.</p></li>
+<li><p><strong>association_strategy</strong> (<em>{&quot;frame_of_reference&quot;</em><em>, </em><em>&quot;sample_name&quot;</em><em>, </em><em>&quot;file_distance&quot;</em><em>, </em><em>&quot;file_name_similarity&quot;</em><em>,  </em><em>&quot;list_order&quot;</em><em>, </em><em>&quot;position&quot;</em><em>, </em><em>&quot;single_image&quot;}</em>) – The preferred strategy for associating images and masks. File association is preferably done using frame of
+reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
+<cite>list_order</cite> which may be applicable when a list with images and a list with masks is provided and both lists
+are of equal length.</p></li>
+<li><p><strong>stack_images</strong> (<em>{&quot;auto&quot;</em><em>, </em><em>&quot;yes&quot;</em><em>, </em><em>&quot;no&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;str&quot;</em>) – If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+size, they might belong to the same 3D image stack. “auto” will stack 2D numpy arrays, but not other file types.
+“yes” will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+except for DICOM files. “no” will not stack any files. DICOM files ignore this argument, because their stacking
+can be determined from metadata.</p></li>
+<li><p><strong>stack_masks</strong> (<em>{&quot;auto&quot;</em><em>, </em><em>&quot;yes&quot;</em><em>, </em><em>&quot;no&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;str&quot;</em>) – If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+size, they might belong to the same 3D mask stack. “auto” will stack 2D numpy arrays, but not other file
+types. “yes” will stack all files that contain 2D images, that have the same dimensions, orientation and
+spacing, except for DICOM files. “no” will not stack any files. DICOM files ignore this argument,
+because their stacking can be determined from metadata.</p></li>
+<li><p><strong>intensity_normalisation</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;range&quot;</em><em>, </em><em>&quot;relative_range&quot;</em><em>, </em><em>&quot;quantile_range&quot;</em><em>, </em><em>&quot;standardisation&quot;}</em><em>, </em><em>default: &quot;none&quot;</em>) – <p>Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
+masked by the tissue mask (of present). The following are possible:</p>
+<ul>
+<li><p>”none”: no normalisation</p></li>
+<li><p>”range”: normalises intensities based on a fixed mapping against the <code class="docutils literal notranslate"><span class="pre">intensity_normalisation_range</span></code>
+parameter, which is interpreted to represent an intensity range.</p></li>
+<li><p>”relative_range”: normalises intensities based on a fixed mapping against the <code class="docutils literal notranslate"><span class="pre">intensity_normalisation_range</span></code>
+parameter, which is interpreted to represent a relative intensity range.</p></li>
+<li><p>”quantile_range”: normalises intensities based on a fixed mapping against the
+<code class="docutils literal notranslate"><span class="pre">intensity_normalisation_range</span></code> parameter, which is interpreted to represent a quantile range.</p></li>
+<li><p>”standardisation”: normalises intensities by subtraction of the mean intensity and division by the standard
+deviation of intensities.</p></li>
+</ul>
+</p></li>
+<li><p><strong>note::</strong> – intensity normalisation may remove any physical meaning of intensity units.</p></li>
+<li><p><strong>intensity_normalisation_range</strong> (<em>list of float</em><em>, </em><em>optional</em>) – <p>Required for “range”, “relative_range”, and “quantile_range” intensity normalisation methods, and defines the
+intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the
+type of normalisation method:</p>
+<ul>
+<li><p>”range”: [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the
+mapping range.</p></li>
+<li><p>”relative_range”: [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are
+used to set the mapping range.</p></li>
+<li><p>”quantile_range”: [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used
+to set the mapping range.</p></li>
+</ul>
+<p>The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower
+end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after
+normalisation. Use <code class="docutils literal notranslate"><span class="pre">intensity_normalisation_saturation</span></code> to cap intensities after normalisation to a
+specific range.</p>
+</p></li>
+<li><p><strong>intensity_normalisation_saturation</strong> (<em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default:</em><em> [</em><em>np.nan</em><em>, </em><em>np.nan</em><em>]</em>) – Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this
+range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
+than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
+not be saturated.</p></li>
+<li><p><strong>tissue_mask_type</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;range&quot;</em><em>, </em><em>&quot;relative_range&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;relative_range&quot;</em>) – <dl class="simple">
+<dt>Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select</dt><dd><p>pixels for bias correction and intensity normalisation by excluding non-tissue voxels.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>tissue_mask_range</strong> (<em>list of float</em><em>, </em><em>optional</em>) – <p>Range values for creating an approximate mask of the tissue. Required for “range” and “relative_range”
+options. Default: [0.02, 1.00] (<code class="docutils literal notranslate"><span class="pre">&quot;relative_range&quot;</span></code>); [np.nan, np.nan] (<code class="docutils literal notranslate"><span class="pre">&quot;range&quot;</span></code>; effectively all voxels
+are considered to represent tissue).</p>
+<p>interpolate: bool, optional, default: False
+Controls whether interpolation of images to a common grid is performed at all.</p>
+</p></li>
+<li><p><strong>spline_order</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default: 3</em>) – Sets the spline order used for spline interpolation. mirp uses <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage.map_coordinates">scipy.ndimage.map_coordinates</a> internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
+and cubic interpolation, respectively.</p></li>
+<li><p><strong>new_spacing</strong> (<em>float</em><em> or </em><em>list of float</em><em> or </em><em>list of list of float:</em>) – <p>Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
+directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
+(if <cite>by_slice = False</cite>) or 2 values for y and x directions (otherwise).</p>
+<p>Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
+same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
+are defined by the headers of the image files. These are typically millimeters for radiological images.</p>
+</p></li>
+<li><p><strong>anti_aliasing</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: true</em>) – Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.</p></li>
+<li><p><strong>smoothing_beta</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.98</em>) – <p>Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
+anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.</p>
+<p>perturbation_noise_repetitions: int, optional, default: 0
+Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
+added.</p>
+</p></li>
+<li><p><strong>perturbation_noise_level</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Set the noise level in intensity units. This determines the width of the normal distribution used to generate
+random noise. If None (default), noise is determined from the image itself.</p></li>
+<li><p><strong>perturbation_rotation_angles</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
+plane. Multiple angles can be provided to create images with different rotations.</p></li>
+<li><p><strong>perturbation_translation_fraction</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
+shift slightly and interpolate at different points. Multiple values can be provided. All values should be
+between 0.0 and 1.0.</p></li>
+<li><p><strong>perturbation_roi_adapt_type</strong> (<em>{&quot;fraction&quot;</em><em>, </em><em>&quot;distance&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;distance&quot;</em>) – Determines how the mask is grown or shrunk. Can be either “fraction” or “distance”. “fraction” is used to
+grow or shrink the mask by a certain fraction (see the <code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_size</span></code> parameter).
+“distance” is used to grow or shrink the mask by a certain physical distance, defined using the
+<code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_size</span></code> parameter.</p></li>
+<li><p><strong>perturbation_roi_adapt_size</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Determines the extent of growth/shrinkage of the ROI mask. The use of this parameter depends on the
+growth/shrinkage type (<code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_type</span></code>), For “distance”, this parameter defines
+growth/shrinkage in physical units, typically mm. For “fraction”, this parameter defines growth/shrinkage in
+volume fraction (e.g. a value of 0.2 grows the mask by 20%). For either type, positive values indicate growing
+the mask, whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the
+volume of the mask.</p></li>
+<li><p><strong>perturbation_roi_adapt_max_erosion</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.8</em>) – Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
+the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
+used when <code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_type==&quot;distance&quot;</span></code>.</p></li>
+<li><p><strong>perturbation_randomise_roi_repetitions</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Number of repetitions where the mask is randomised using supervoxel-based randomisation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of images and masks in the format indicated by <code class="docutils literal notranslate"><span class="pre">image_export_format</span></code>, if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None | list[Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.deepLearningPreprocessing.deep_learning_preprocessing_generator">
+<span class="sig-prename descclassname"><span class="pre">mirp.deepLearningPreprocessing.</span></span><span class="sig-name descname"><span class="pre">deep_learning_preprocessing_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_slices</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">crop_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">image_export_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_file_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'numpy'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Generator</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/mirp/deepLearningPreprocessing.html#deep_learning_preprocessing_generator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.deepLearningPreprocessing.deep_learning_preprocessing_generator" title="Permalink to this definition"></a></dt>
+<dd><p>Generator for pre-processing images for deep learning.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>output_slices</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Determines whether separate slices should be extracted.</p></li>
+<li><p><strong>crop_size</strong> (<em>list of float</em><em> or </em><em>list of int</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
+mask(s).</p></li>
+<li><p><strong>image_export_format</strong> (<em>{&quot;dict&quot;</em><em>, </em><em>&quot;native&quot;</em><em>, </em><em>&quot;numpy&quot;}</em><em>, </em><em>default: &quot;numpy&quot;</em>) – Return format for processed images and masks. <code class="docutils literal notranslate"><span class="pre">&quot;dict&quot;</span></code> returns dictionaries of images and masks as numpy
+arrays and associated characteristics. <code class="docutils literal notranslate"><span class="pre">&quot;native&quot;</span></code> returns images and masks in their internal format.
+<code class="docutils literal notranslate"><span class="pre">&quot;numpy&quot;</span></code> returns images and masks in numpy format. This argument is only used if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p></li>
+<li><p><strong>write_file_format</strong> (<em>{&quot;nifti&quot;</em><em>, </em><em>&quot;numpy&quot;}</em><em>, </em><em>default: &quot;numpy&quot;</em>) – File format for processed images and masks. <code class="docutils literal notranslate"><span class="pre">&quot;nifti&quot;</span></code> writes images and masks in the NIfTI file format,
+and <code class="docutils literal notranslate"><span class="pre">&quot;numpy&quot;</span></code> writes images and masks as numpy files. This argument is only used if <code class="docutils literal notranslate"><span class="pre">write_images=True</span></code>.</p></li>
+<li><p><strong>export_images</strong> (<em>bool</em><em>, </em><em>default: True</em>) – Determines whether processed images and masks should be returned by the function.</p></li>
+<li><p><strong>write_images</strong> (<em>bool</em><em>, </em><em>default: False</em>) – Determines whether processed images and masks should be written to the directory indicated by the
+<code class="docutils literal notranslate"><span class="pre">write_dir</span></code> keyword argument.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed for importing images and masks (
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mirp.importData.importImageAndMask.import_image_and_mask()</span></code>) and configuring settings (notably
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageProcessing.ImagePostProcessingClass" title="mirp.settings.settingsImageProcessing.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">mirp.settings.settingsImageProcessing.ImagePostProcessingClass</span></code></a>,
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass" title="mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass</span></code></a>), among others. See also the
+<cite>Other Parameters</cite> section below.</p></li>
+<li><p><strong>note::</strong> (<em>..</em>) – The parameters below can be provided as keyword arguments.</p></li>
+<li><p><strong>write_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to directory where processed images and masks should be written.</p></li>
+<li><p><strong>image</strong> (<em>Any</em>) – A path to an image file, a path to a directory containing image files, a path to a config_data.xml
+file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
+image files, or a numpy.ndarray.</p></li>
+<li><p><strong>mask</strong> (<em>Any</em>) – A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
+file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
+mask files, or a numpy.ndarray.</p></li>
+<li><p><strong>sample_name</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>default: None</em>) – Name of expected sample names. This is used to select specific image files. If None, no image files are
+filtered based on the corresponding sample name (if known).</p></li>
+<li><p><strong>image_name</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Pattern to match image files against. The matches are exact. Use wildcard symbols (“*”) to
+match varying structures. The sample name (if part of the file name) can also be specified using “#”. For
+example, image_name = ‘#_*_image’ would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+File extensions do not need to be specified. If None, file names are not used for filtering files and
+setting sample names.</p></li>
+<li><p><strong>image_file_type</strong> (<em>{&quot;dicom&quot;</em><em>, </em><em>&quot;nifti&quot;</em><em>, </em><em>&quot;nrrd&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;itk&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of file that is expected. If None, the file type is not used for filtering files.
+“itk” comprises “nifti” and “nrrd” file types.</p></li>
+<li><p><strong>image_modality</strong> (<em>{&quot;ct&quot;</em><em>, </em><em>&quot;pet&quot;</em><em>, </em><em>&quot;pt&quot;</em><em>, </em><em>&quot;mri&quot;</em><em>, </em><em>&quot;mr&quot;</em><em>, </em><em>&quot;generic&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+DICOM files contain metadata concerning modality.</p></li>
+<li><p><strong>image_sub_folder</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Fixed directory substructure where image files are located. If None, the directory substructure is not used
+for filtering files.</p></li>
+<li><p><strong>mask_name</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Pattern to match mask files against. The matches are exact. Use wildcard symbols (“*”) to match varying
+structures. The sample name (if part of the file name) can also be specified using “#”. For example,
+mask_name = ‘#_*_mask’ would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+do not need to be specified. If None, file names are not used for filtering files and setting sample names.</p></li>
+<li><p><strong>mask_file_type</strong> (<em>{&quot;dicom&quot;</em><em>, </em><em>&quot;nifti&quot;</em><em>, </em><em>&quot;nrrd&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;itk&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of file that is expected. If None, the file type is not used for filtering files.
+“itk” comprises “nifti” and “nrrd” file types.</p></li>
+<li><p><strong>mask_modality</strong> (<em>{&quot;rtstruct&quot;</em><em>, </em><em>&quot;seg&quot;</em><em>, </em><em>&quot;generic_mask&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of modality that is expected. If None, modality is not used for filtering files.
+Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+be “generic_mask”.</p></li>
+<li><p><strong>mask_sub_folder</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+filtering files.</p></li>
+<li><p><strong>roi_name</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Name of the regions of interest that should be assessed.</p></li>
+<li><p><strong>association_strategy</strong> (<em>{&quot;frame_of_reference&quot;</em><em>, </em><em>&quot;sample_name&quot;</em><em>, </em><em>&quot;file_distance&quot;</em><em>, </em><em>&quot;file_name_similarity&quot;</em><em>,  </em><em>&quot;list_order&quot;</em><em>, </em><em>&quot;position&quot;</em><em>, </em><em>&quot;single_image&quot;}</em>) – The preferred strategy for associating images and masks. File association is preferably done using frame of
+reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
+<cite>list_order</cite> which may be applicable when a list with images and a list with masks is provided and both lists
+are of equal length.</p></li>
+<li><p><strong>stack_images</strong> (<em>{&quot;auto&quot;</em><em>, </em><em>&quot;yes&quot;</em><em>, </em><em>&quot;no&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;str&quot;</em>) – If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+size, they might belong to the same 3D image stack. “auto” will stack 2D numpy arrays, but not other file types.
+“yes” will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
+except for DICOM files. “no” will not stack any files. DICOM files ignore this argument, because their stacking
+can be determined from metadata.</p></li>
+<li><p><strong>stack_masks</strong> (<em>{&quot;auto&quot;</em><em>, </em><em>&quot;yes&quot;</em><em>, </em><em>&quot;no&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;str&quot;</em>) – If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
+size, they might belong to the same 3D mask stack. “auto” will stack 2D numpy arrays, but not other file
+types. “yes” will stack all files that contain 2D images, that have the same dimensions, orientation and
+spacing, except for DICOM files. “no” will not stack any files. DICOM files ignore this argument,
+because their stacking can be determined from metadata.</p></li>
+<li><p><strong>intensity_normalisation</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;range&quot;</em><em>, </em><em>&quot;relative_range&quot;</em><em>, </em><em>&quot;quantile_range&quot;</em><em>, </em><em>&quot;standardisation&quot;}</em><em>, </em><em>default: &quot;none&quot;</em>) – <p>Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
+masked by the tissue mask (of present). The following are possible:</p>
+<ul>
+<li><p>”none”: no normalisation</p></li>
+<li><p>”range”: normalises intensities based on a fixed mapping against the <code class="docutils literal notranslate"><span class="pre">intensity_normalisation_range</span></code>
+parameter, which is interpreted to represent an intensity range.</p></li>
+<li><p>”relative_range”: normalises intensities based on a fixed mapping against the <code class="docutils literal notranslate"><span class="pre">intensity_normalisation_range</span></code>
+parameter, which is interpreted to represent a relative intensity range.</p></li>
+<li><p>”quantile_range”: normalises intensities based on a fixed mapping against the
+<code class="docutils literal notranslate"><span class="pre">intensity_normalisation_range</span></code> parameter, which is interpreted to represent a quantile range.</p></li>
+<li><p>”standardisation”: normalises intensities by subtraction of the mean intensity and division by the standard
+deviation of intensities.</p></li>
+</ul>
+</p></li>
+<li><p><strong>note::</strong> – intensity normalisation may remove any physical meaning of intensity units.</p></li>
+<li><p><strong>intensity_normalisation_range</strong> (<em>list of float</em><em>, </em><em>optional</em>) – <p>Required for “range”, “relative_range”, and “quantile_range” intensity normalisation methods, and defines the
+intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the
+type of normalisation method:</p>
+<ul>
+<li><p>”range”: [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the
+mapping range.</p></li>
+<li><p>”relative_range”: [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are
+used to set the mapping range.</p></li>
+<li><p>”quantile_range”: [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used
+to set the mapping range.</p></li>
+</ul>
+<p>The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower
+end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after
+normalisation. Use <code class="docutils literal notranslate"><span class="pre">intensity_normalisation_saturation</span></code> to cap intensities after normalisation to a
+specific range.</p>
+</p></li>
+<li><p><strong>intensity_normalisation_saturation</strong> (<em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default:</em><em> [</em><em>np.nan</em><em>, </em><em>np.nan</em><em>]</em>) – Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this
+range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
+than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
+not be saturated.</p></li>
+<li><p><strong>tissue_mask_type</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;range&quot;</em><em>, </em><em>&quot;relative_range&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;relative_range&quot;</em>) – <dl class="simple">
+<dt>Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select</dt><dd><p>pixels for bias correction and intensity normalisation by excluding non-tissue voxels.</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>tissue_mask_range</strong> (<em>list of float</em><em>, </em><em>optional</em>) – <p>Range values for creating an approximate mask of the tissue. Required for “range” and “relative_range”
+options. Default: [0.02, 1.00] (<code class="docutils literal notranslate"><span class="pre">&quot;relative_range&quot;</span></code>); [np.nan, np.nan] (<code class="docutils literal notranslate"><span class="pre">&quot;range&quot;</span></code>; effectively all voxels
+are considered to represent tissue).</p>
+<p>interpolate: bool, optional, default: False
+Controls whether interpolation of images to a common grid is performed at all.</p>
+</p></li>
+<li><p><strong>spline_order</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default: 3</em>) – <p>Sets the spline order used for spline interpolation. mirp uses <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage.map_coordinates">scipy.ndimage.map_coordinates</a> internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
+and cubic interpolation, respectively.</p>
+</p></li>
+<li><p><strong>new_spacing</strong> (<em>float</em><em> or </em><em>list of float</em><em> or </em><em>list of list of float:</em>) – <p>Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
+directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
+(if <cite>by_slice = False</cite>) or 2 values for y and x directions (otherwise).</p>
+<p>Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
+same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
+are defined by the headers of the image files. These are typically millimeters for radiological images.</p>
+</p></li>
+<li><p><strong>anti_aliasing</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: true</em>) – Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.</p></li>
+<li><p><strong>smoothing_beta</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.98</em>) – <p>Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
+anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.</p>
+<p>perturbation_noise_repetitions: int, optional, default: 0
+Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
+added.</p>
+</p></li>
+<li><p><strong>perturbation_noise_level</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Set the noise level in intensity units. This determines the width of the normal distribution used to generate
+random noise. If None (default), noise is determined from the image itself.</p></li>
+<li><p><strong>perturbation_rotation_angles</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
+plane. Multiple angles can be provided to create images with different rotations.</p></li>
+<li><p><strong>perturbation_translation_fraction</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
+shift slightly and interpolate at different points. Multiple values can be provided. All values should be
+between 0.0 and 1.0.</p></li>
+<li><p><strong>perturbation_roi_adapt_type</strong> (<em>{&quot;fraction&quot;</em><em>, </em><em>&quot;distance&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;distance&quot;</em>) – Determines how the mask is grown or shrunk. Can be either “fraction” or “distance”. “fraction” is used to
+grow or shrink the mask by a certain fraction (see the <code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_size</span></code> parameter).
+“distance” is used to grow or shrink the mask by a certain physical distance, defined using the
+<code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_size</span></code> parameter.</p></li>
+<li><p><strong>perturbation_roi_adapt_size</strong> (<em>float</em><em> or </em><em>list of float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Determines the extent of growth/shrinkage of the ROI mask. The use of this parameter depends on the
+growth/shrinkage type (<code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_type</span></code>), For “distance”, this parameter defines
+growth/shrinkage in physical units, typically mm. For “fraction”, this parameter defines growth/shrinkage in
+volume fraction (e.g. a value of 0.2 grows the mask by 20%). For either type, positive values indicate growing
+the mask, whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the
+volume of the mask.</p></li>
+<li><p><strong>perturbation_roi_adapt_max_erosion</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.8</em>) – Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
+the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
+used when <code class="docutils literal notranslate"><span class="pre">perturbation_roi_adapt_type==&quot;distance&quot;</span></code>.</p></li>
+<li><p><strong>perturbation_randomise_roi_repetitions</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default: 0.0</em>) – Number of repetitions where the mask is randomised using supervoxel-based randomisation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>None | list[Any]</em> – List of images and masks in the format indicated by <code class="docutils literal notranslate"><span class="pre">image_export_format</span></code>, if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mirp.extractImageParameters.html" class="btn btn-neutral float-left" title="Extract image metadata" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mirp.extractFeaturesAndImages.html" class="btn btn-neutral float-right" title="Compute quantitative image features" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

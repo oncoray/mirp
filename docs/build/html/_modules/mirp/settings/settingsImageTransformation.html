@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mirp.settings.settingsImageTransformation &mdash; mirp 2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.deepLearningPreprocessing.html">Image preprocessing for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractFeaturesAndImages.html">Compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.settings.html">Configuring the image processing workflow</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mirp.settings.settingsImageTransformation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mirp.settings.settingsImageTransformation</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">mirp.settings.settingsFeatureExtraction</span> <span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
+
+
+<div class="viewcode-block" id="ImageTransformationSettingsClass"><a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass">[docs]</a><span class="k">class</span> <span class="nc">ImageTransformationSettingsClass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set of parameters related to image transformation using filters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    by_slice: str or bool, optional, default: False</span>
+<span class="sd">        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the</span>
+<span class="sd">        largest slice (&quot;largest&quot;). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.</span>
+
+<span class="sd">    response_map_feature_families: str or list of str, optional, default: &quot;statistics&quot;</span>
+<span class="sd">        Determines the feature families for which features are computed from response maps (filtered images). Radiomics</span>
+<span class="sd">        features are implemented as defined in the IBSI reference manual. The following feature families can be</span>
+<span class="sd">        computed from response maps:</span>
+
+<span class="sd">        * Local intensity features: &quot;li&quot;, &quot;loc.int&quot;, &quot;loc_int&quot;, &quot;local_int&quot;, and &quot;local_intensity&quot;.</span>
+<span class="sd">        * Intensity-based statistical features: &quot;st&quot;, &quot;stat&quot;, &quot;stats&quot;, &quot;statistics&quot;, and &quot;statistical&quot;.</span>
+<span class="sd">        * Intensity histogram features: &quot;ih&quot;, &quot;int_hist&quot;, &quot;int_histogram&quot;, and &quot;intensity_histogram&quot;.</span>
+<span class="sd">        * Intensity-volume histogram features: &quot;ivh&quot;, &quot;int_vol_hist&quot;, and &quot;intensity_volume_histogram&quot;.</span>
+<span class="sd">        * Grey level co-occurrence matrix (GLCM) features: &quot;cm&quot;, &quot;glcm&quot;, &quot;grey_level_cooccurrence_matrix&quot;,</span>
+<span class="sd">          and &quot;cooccurrence_matrix&quot;.</span>
+<span class="sd">        * Grey level run length matrix (GLRLM) features: &quot;rlm&quot;, &quot;glrlm&quot;, &quot;grey_level_run_length_matrix&quot;, and</span>
+<span class="sd">          &quot;run_length_matrix&quot;.</span>
+<span class="sd">        * Grey level size zone matrix (GLSZM) features: &quot;szm&quot;, &quot;glszm&quot;, &quot;grey_level_size_zone_matrix&quot;, and</span>
+<span class="sd">          &quot;size_zone_matrix&quot;.</span>
+<span class="sd">        * Grey level distance zone matrix (GLDZM) features: &quot;dzm&quot;, &quot;gldzm&quot;, &quot;grey_level_distance_zone_matrix&quot;, and</span>
+<span class="sd">          &quot;distance_zone_matrix&quot;.</span>
+<span class="sd">        * Neighbourhood grey tone difference matrix (NGTDM) features: &quot;tdm&quot;, &quot;ngtdm&quot;,</span>
+<span class="sd">          &quot;neighbourhood_grey_tone_difference_matrix&quot;, and &quot;grey_tone_difference_matrix&quot;.</span>
+<span class="sd">        * Neighbouring grey level dependence matrix (NGLDM) features: &quot;ldm&quot;, &quot;ngldm&quot;,</span>
+<span class="sd">          &quot;neighbouring_grey_level_dependence_matrix&quot;, and &quot;grey_level_dependence_matrix&quot;.</span>
+
+<span class="sd">        In addition, the following tags can be used:</span>
+
+<span class="sd">        * &quot;none&quot;: no features are computed.</span>
+<span class="sd">        * &quot;all&quot;: all features are computed.</span>
+
+<span class="sd">        A list of tags may be provided to select multiple feature families. Morphological features are not computed</span>
+<span class="sd">        from response maps, because these are mask-based and are invariant to filtering.</span>
+
+<span class="sd">    response_map_discretisation_method: {&quot;fixed_bin_number&quot;, &quot;fixed_bin_size&quot;, &quot;fixed_bin_size_pyradiomics&quot;, &quot;none&quot;}, optional, default: &quot;fixed_bin_number&quot;</span>
+<span class="sd">        Method used for discretising intensities. Used to compute intensity histogram as well as texture features.</span>
+<span class="sd">        The setting is ignored if none of these feature families are being computed. The following options are</span>
+<span class="sd">        available:</span>
+
+<span class="sd">        * &quot;fixed_bin_number&quot;: The intensity range within the mask is divided into a fixed number of bins,</span>
+<span class="sd">          defined by the ``base_discretisation_bin_width`` parameter.</span>
+<span class="sd">        * &quot;fixed_bin_size&quot;: The intensity range is divided into bins with a fixed width, defined using the</span>
+<span class="sd">          ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower</span>
+<span class="sd">          bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in</span>
+<span class="sd">          :class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. Other images,</span>
+<span class="sd">          including MRI, normalised CT and PET images and filtered images, do not have a default value, and bins are</span>
+<span class="sd">          created from using the minimum intensity as lower bound.</span>
+<span class="sd">        * &quot;fixed_bin_size_pyradiomics&quot;: The intensity range is divided into bins with a fixed width. This follows the</span>
+<span class="sd">          non-IBSI compliant implementation in the pyradiomics package.</span>
+<span class="sd">        * &quot;none&quot;: The intensity range is not discretised into bins. This method can only be used if the image</span>
+<span class="sd">          intensities are integer and strictly positive.</span>
+
+<span class="sd">        Multiple discretisation methods can be specified as a list to yield features according to each method.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Use of the &quot;fixed_bin_size&quot;, &quot;fixed_bin_size_pyradiomics&quot;, and &quot;none&quot; discretisation methods is discouraged</span>
+<span class="sd">            for transformed images. Due to transformation, a direct link to any meaningful quantity represented by the</span>
+<span class="sd">            intensity of the original image (e.g. Hounsfield Units for CT, Standardised Uptake Value for PET) is lost.</span>
+
+<span class="sd">    response_map_discretisation_n_bins: int or list of int, optional, default: 16</span>
+<span class="sd">        Number of bins used for the &quot;fixed_bin_number&quot; discretisation method. Multiple values can be specified in a</span>
+<span class="sd">        list to yield features according to each number of bins.</span>
+
+<span class="sd">    response_map_discretisation_bin_width: float or list of float, optional</span>
+<span class="sd">        Width of each bin in the &quot;fixed_bin_size&quot; and &quot;fixed_bin_size_pyradiomics&quot; discretisation methods. Multiple</span>
+<span class="sd">        values can be specified in a list to yield features according to each bin width.</span>
+
+<span class="sd">    filter_kernels: str or list of str, optional, default: None</span>
+<span class="sd">        Names of the filters applied to the original image to create response maps (filtered images). Filter</span>
+<span class="sd">        implementation follows the IBSI reference manual. The following filters are supported:</span>
+
+<span class="sd">        * Mean filters: &quot;mean&quot;</span>
+<span class="sd">        * Gaussian filters: &quot;gaussian&quot;, &quot;riesz_gaussian&quot;, and &quot;riesz_steered_gaussian&quot;</span>
+<span class="sd">        * Laplacian-of-Gaussian filters: &quot;laplacian_of_gaussian&quot;, &quot;log&quot;, &quot;riesz_laplacian_of_gaussian&quot;,</span>
+<span class="sd">          &quot;riesz_log&quot;, &quot;riesz_steered_laplacian_of_gaussian&quot;, and &quot;riesz_steered_log&quot;.</span>
+<span class="sd">        * Laws kernels: &quot;laws&quot;</span>
+<span class="sd">        * Gabor kernels: &quot;gabor&quot;, &quot;riesz_gabor&quot;, and &quot;riesz_steered_gabor&quot;</span>
+<span class="sd">        * Separable wavelets: &quot;separable_wavelet&quot;</span>
+<span class="sd">        * Non-separable wavelets: &quot;nonseparable_wavelet&quot;, &quot;riesz_nonseparable_wavelet&quot;,</span>
+<span class="sd">          and &quot;riesz_steered_nonseparable_wavelet&quot;</span>
+
+<span class="sd">        Filters with names that preceded by &quot;riesz&quot; undergo a Riesz transformation. If the filter name is preceded by</span>
+<span class="sd">        &quot;riesz_steered&quot;, a steerable riesz filter is used.</span>
+
+<span class="sd">        More than one filter name can be provided. By default, no filters are selected, and image transformation is</span>
+<span class="sd">        skipped.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            There is no IBSI reference standard for Gaussian filters. However, the filter implementation is relatively</span>
+<span class="sd">            straightforward, and most likely reproducible.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Riesz transformation and steerable riesz transformations are experimental. The implementation of these</span>
+<span class="sd">            filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature</span>
+<span class="sd">            derived from response maps of Riesz transformations is unlikely to be reproducible.</span>
+
+<span class="sd">    boundary_condition: {&quot;reflect&quot;, &quot;constant&quot;, &quot;nearest&quot;, &quot;mirror&quot;, &quot;wrap&quot;}, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition, which determines how filters behave at the edge of an image. MIRP uses</span>
+<span class="sd">        the same nomenclature for boundary conditions as scipy.ndimage. See the ``mode`` parameter of</span>
+<span class="sd">        `scipy.ndimage.convolve</span>
+<span class="sd">        &lt;https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.convolve.html#scipy.ndimage.convolve&gt;`_</span>
+
+<span class="sd">    separable_wavelet_families: str or list str</span>
+<span class="sd">        Name of separable wavelet kernel as implemented in the ``pywavelets`` package. See `pywt.wavelist(</span>
+<span class="sd">        kind=&quot;discrete&quot;) &lt;https://pywavelets.readthedocs.io/en/latest/ref/wavelets.html#built-in-wavelets-wavelist&gt;`_</span>
+<span class="sd">        for options.</span>
+
+<span class="sd">    separable_wavelet_set: str or list of str, optional</span>
+<span class="sd">        Filter orientation of separable wavelets. Allows for specifying combinations for high and low-pass filters.</span>
+<span class="sd">        For 2D (``by_slice=True``) filters, the following sets are possible: &quot;hh&quot;, &quot;hl&quot;, &quot;lh&quot;, &quot;ll&quot; (y-x directions).</span>
+<span class="sd">        For 3D (``by_slice=False``) filters, the set of possibilities is larger: &quot;hhh&quot;, &quot;hhl&quot;, &quot;hlh&quot;, &quot;lhh&quot;, &quot;hll&quot;,</span>
+<span class="sd">        &quot;lhl&quot;, &quot;llh&quot;, &quot;lll&quot;. More than one  orientation may be set. Default: &quot;hh&quot; (2d) or &quot;hhh (3d).</span>
+
+<span class="sd">    separable_wavelet_stationary: bool, optional, default: True</span>
+<span class="sd">        Determines if wavelets are stationary or not. Stationary wavelets maintain the image dimensions after</span>
+<span class="sd">        decomposition.</span>
+
+<span class="sd">    separable_wavelet_decomposition_level: int or list of int, optional, default: 1</span>
+<span class="sd">        Sets the wavelet decomposition level. For the first decomposition level, the base image is used as input to</span>
+<span class="sd">        generate a  response map. For decomposition levels greater than 1, the low-pass image from the previous level</span>
+<span class="sd">        is used as input. More than 1 value may be specified in a list.</span>
+
+<span class="sd">    separable_wavelet_rotation_invariance: bool, optional, default: True</span>
+<span class="sd">        Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates</span>
+<span class="sd">        permutations of the filter and, as a consequence, additional response maps. These maps are then merged using</span>
+<span class="sd">        the pooling method (``separable_wavelet_pooling_method``).</span>
+
+<span class="sd">    separable_wavelet_pooling_method: {&quot;max&quot;, &quot;min&quot;, &quot;mean&quot;, &quot;sum&quot;}, optional, default: &quot;max&quot;</span>
+<span class="sd">        Response maps are pooled to create a rotationally invariant response map. This sets the method for</span>
+<span class="sd">        pooling.</span>
+
+<span class="sd">        * &quot;max&quot;: Each voxel of the pooled response map represents the maximum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;min&quot;: Each voxel of the pooled response map represents the minimum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;mean&quot;: Each voxel of the pooled response map represents the mean value for that voxel in the underlying</span>
+<span class="sd">          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,</span>
+<span class="sd">          and &quot;max&quot; or &quot;min&quot; pooling methods should be used instead.</span>
+<span class="sd">        * &quot;sum&quot;: Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying</span>
+<span class="sd">          response maps. Similar to the &quot;mean&quot; pooling method, but without the normalisation.</span>
+
+<span class="sd">    separable_wavelet_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for separable wavelets. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    nonseparable_wavelet_families: {&quot;shannon&quot;, &quot;simoncelli&quot;}</span>
+<span class="sd">        Name of non-separable wavelet kernels used for image transformation. Shannon and Simoncelli wavelets are</span>
+<span class="sd">        implemented.</span>
+
+<span class="sd">    nonseparable_wavelet_decomposition_level: int or list of int, optional, default: 1</span>
+<span class="sd">        Sets the wavelet decomposition level. Unlike the decomposition level in separable wavelets, decomposition of</span>
+<span class="sd">        non-separable wavelets is purely a filter-based operation.</span>
+
+<span class="sd">    nonseparable_wavelet_response: {&quot;modulus&quot;, &quot;abs&quot;, &quot;magnitude&quot;, &quot;angle&quot;, &quot;phase&quot;, &quot;argument&quot;, &quot;real&quot;, &quot;imaginary&quot;}, optional, default: &quot;real&quot;</span>
+<span class="sd">        Nonseparable wavelets produce response maps with complex numbers. The complex-valued response map is</span>
+<span class="sd">        converted to a real-valued response map using the specified method. &quot;modulus&quot;, &quot;abs&quot;, &quot;magnitude&quot; are</span>
+<span class="sd">        synonymous, as are &quot;angle&quot;, &quot;phase&quot;, and &quot;argument&quot;. &quot;real&quot; selects the real component of the complex values,</span>
+<span class="sd">        and &quot;imaginary&quot; selects the imaginary component.</span>
+
+<span class="sd">    nonseparable_wavelet_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for non-separable wavelets. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    gaussian_sigma: float or list of float, optional</span>
+<span class="sd">         Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple values can be specified.</span>
+
+<span class="sd">    gaussian_kernel_truncate: float, optional, default: 4.0</span>
+<span class="sd">        Width, in units of sigma, at which the filter is truncated.</span>
+
+<span class="sd">    gaussian_kernel_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for Gaussian filters. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    laplacian_of_gaussian_sigma: float or list of float, optional</span>
+<span class="sd">        Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple values can be specified.</span>
+
+<span class="sd">    laplacian_of_gaussian_kernel_truncate: float, optional, default: 4.0</span>
+<span class="sd">        Width, in sigma, at which the filter is truncated.</span>
+
+<span class="sd">    laplacian_of_gaussian_pooling_method: {&quot;max&quot;, &quot;min&quot;, &quot;mean&quot;, &quot;sum&quot;, &quot;none&quot;}, optional, default: &quot;none&quot;</span>
+<span class="sd">        Determines whether and how response maps for filters with different widths (``laplacian_of_gaussian_sigma``)</span>
+<span class="sd">        are pooled.</span>
+
+<span class="sd">        * &quot;max&quot;: Each voxel of the pooled response map represents the maximum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;min&quot;: Each voxel of the pooled response map represents the minimum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;mean&quot;: Each voxel of the pooled response map represents the mean value for that voxel in the underlying</span>
+<span class="sd">          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,</span>
+<span class="sd">          and &quot;max&quot; or &quot;min&quot; pooling methods should be used instead.</span>
+<span class="sd">        * &quot;sum&quot;: Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying</span>
+<span class="sd">          response maps. Similar to the &quot;mean&quot; pooling method, but without the normalisation.</span>
+<span class="sd">        * &quot;none&quot;: Each Laplacian-of-Gaussian response map is treated separately, without pooling.</span>
+
+<span class="sd">    laplacian_of_gaussian_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for Laplacian-of-Gaussian filters. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    laws_kernel: str or list of str, optional</span>
+<span class="sd">        Compute specific Laws kernels these typically are specific combinations of kernels such as L5S5E5,</span>
+<span class="sd">        E5E5E5. The following kernels are available: &#39;l5&#39;, &#39;e5&#39;, &#39;s5&#39;, &#39;w5&#39;, &#39;r5&#39;, &#39;l3&#39;, &#39;e3&#39;, &#39;s3&#39;. A combination of</span>
+<span class="sd">        two kernels is expected for 2D (``by_slice=True``), whereas a kernel triplet is expected for 3D filters (</span>
+<span class="sd">        ``by_slice=False``).</span>
+
+<span class="sd">    laws_compute_energy: bool, optional, default: True</span>
+<span class="sd">        Determine whether an energy image should be computed, or just the response map.</span>
+
+<span class="sd">    laws_delta: int or list of int, optional, default: 7</span>
+<span class="sd">        Delta for chebyshev distance between center voxel and neighbourhood boundary used to calculate energy maps.</span>
+
+<span class="sd">    laws_rotation_invariance: bool, optional, default: True</span>
+<span class="sd">        Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates</span>
+<span class="sd">        permutations of the filter and, as a consequence, additional response maps. These maps are then merged using</span>
+<span class="sd">        the pooling method (``laws_pooling_method``).</span>
+
+<span class="sd">    laws_pooling_method:  {&quot;max&quot;, &quot;min&quot;, &quot;mean&quot;, &quot;sum&quot;}, optional, default: &quot;max&quot;</span>
+<span class="sd">        Response maps are pooled to create a rotationally invariant response map. This sets the method for</span>
+<span class="sd">        pooling.</span>
+
+<span class="sd">        * &quot;max&quot;: Each voxel of the pooled response map represents the maximum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;min&quot;: Each voxel of the pooled response map represents the minimum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;mean&quot;: Each voxel of the pooled response map represents the mean value for that voxel in the underlying</span>
+<span class="sd">          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,</span>
+<span class="sd">          and &quot;max&quot; or &quot;min&quot; pooling methods should be used instead.</span>
+<span class="sd">        * &quot;sum&quot;: Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying</span>
+<span class="sd">          response maps. Similar to the &quot;mean&quot; pooling method, but without the normalisation.</span>
+
+<span class="sd">    laws_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for Laws filters. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    gabor_sigma: float or list of float, optional</span>
+<span class="sd">        Width of the Gaussian envelope in physical dimensions (e.g. mm). Multiple values can be specified.</span>
+
+<span class="sd">    gabor_lambda: float or list of float, optional</span>
+<span class="sd">        Wavelength of the oscillator component of the Gabor filter, in physical dimensions (e.g. mm).</span>
+
+<span class="sd">    gabor_gamma: float or list of float, optional, default: 1.0</span>
+<span class="sd">        Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis relative to</span>
+<span class="sd">        x-axis for 0-angle Gabor kernel. Default: 1.0</span>
+
+<span class="sd">    gabor_theta: float or list of flaot, optional, default: 0.0</span>
+<span class="sd">        Initial angle of the Gabor filter in degrees (not radians). Multiple angles can be provided.</span>
+
+<span class="sd">    gabor_theta_step: float, optional, default: None</span>
+<span class="sd">        Angle step size in degrees for in-plane rotational invariance. A value of 0.0 or None (default) disables</span>
+<span class="sd">        stepping.</span>
+
+<span class="sd">    gabor_response: {&quot;modulus&quot;, &quot;abs&quot;, &quot;magnitude&quot;, &quot;angle&quot;, &quot;phase&quot;, &quot;argument&quot;, &quot;real&quot;, &quot;imaginary&quot;}, optional, default: &quot;modulus&quot;</span>
+<span class="sd">        Type of response map created by Gabor filters. Gabor kernels consist of complex numbers, and the response map</span>
+<span class="sd">        will be complex as well. The complex-valued response map is converted to a real-valued response map using the</span>
+<span class="sd">        specified method.</span>
+
+<span class="sd">    gabor_rotation_invariance: bool, optional, default: False</span>
+<span class="sd">        Determines whether (2D) Gabor filters are applied in a pseudo-rotational invariant manner. If True,</span>
+<span class="sd">        Gabor filters are applied in each of the orthogonal planes.</span>
+
+<span class="sd">    gabor_pooling_method: {&quot;max&quot;, &quot;min&quot;, &quot;mean&quot;, &quot;sum&quot;}, optional, default: &quot;max&quot;</span>
+<span class="sd">        Response maps are pooled to create a rotationally invariant response map. This sets the method for</span>
+<span class="sd">        pooling.</span>
+
+<span class="sd">        * &quot;max&quot;: Each voxel of the pooled response map represents the maximum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;min&quot;: Each voxel of the pooled response map represents the minimum value for that voxel in the underlying</span>
+<span class="sd">          response maps.</span>
+<span class="sd">        * &quot;mean&quot;: Each voxel of the pooled response map represents the mean value for that voxel in the underlying</span>
+<span class="sd">          response maps. For band-pass and high-pass filters, this will likely result in values close to 0.0,</span>
+<span class="sd">          and &quot;max&quot; or &quot;min&quot; pooling methods should be used instead.</span>
+<span class="sd">        * &quot;sum&quot;: Each voxel of the pooled response map is the sum of intensities for that voxel in the underlying</span>
+<span class="sd">          response maps. Similar to the &quot;mean&quot; pooling method, but without the normalisation.</span>
+
+<span class="sd">    gabor_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for Gabor filters. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    mean_filter_kernel_size: int or list of int, optional</span>
+<span class="sd">        Length of the kernel in pixels. Multiple values can be specified to create multiple response maps.</span>
+
+<span class="sd">    mean_filter_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for mean filters. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    riesz_filter_order: float, list of float or list of list of float, optional</span>
+<span class="sd">        Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer</span>
+<span class="sd">        vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],</span>
+<span class="sd">        [0, 1, 0]]. If an integer is provided, a set of filters is created. For example when</span>
+<span class="sd">        riesz_filter_order = 2 and a 2D filter is used, the following Riesz-transformations are performed: [2,</span>
+<span class="sd">        0], [1, 1] and [0, 2].</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Riesz filter order uses the numpy coordinate ordering and represents (z, y, x) directions.</span>
+
+<span class="sd">    riesz_filter_tensor_sigma: float or list of float, optional</span>
+<span class="sd">        Determines width of Gaussian filter used with Riesz filter banks.</span>
+
+<span class="sd">    **kwargs: dict, optional</span>
+<span class="sd">        Unused keyword arguments.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="n">response_map_feature_settings</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">FeatureExtractionSettingsClass</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+            <span class="n">response_map_feature_families</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;statistical&quot;</span><span class="p">,</span>
+            <span class="n">response_map_discretisation_method</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span>
+            <span class="n">response_map_discretisation_n_bins</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">16</span><span class="p">,</span>
+            <span class="n">response_map_discretisation_bin_width</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">filter_kernels</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;mirror&quot;</span><span class="p">,</span>
+            <span class="n">separable_wavelet_families</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">separable_wavelet_set</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">separable_wavelet_stationary</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">separable_wavelet_decomposition_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">separable_wavelet_rotation_invariance</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">separable_wavelet_pooling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span>
+            <span class="n">separable_wavelet_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">nonseparable_wavelet_families</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">nonseparable_wavelet_decomposition_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">nonseparable_wavelet_response</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;real&quot;</span><span class="p">,</span>
+            <span class="n">nonseparable_wavelet_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gaussian_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gaussian_kernel_truncate</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>
+            <span class="n">gaussian_kernel_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">laplacian_of_gaussian_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">laplacian_of_gaussian_kernel_truncate</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">4.0</span><span class="p">,</span>
+            <span class="n">laplacian_of_gaussian_pooling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="n">laplacian_of_gaussian_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">laws_kernel</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">laws_delta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">7</span><span class="p">,</span>
+            <span class="n">laws_compute_energy</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">laws_rotation_invariance</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">laws_pooling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span>
+            <span class="n">laws_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gabor_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gabor_lambda</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gabor_gamma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">gabor_theta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">gabor_theta_step</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gabor_response</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;modulus&quot;</span><span class="p">,</span>
+            <span class="n">gabor_rotation_invariance</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">gabor_pooling_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span>
+            <span class="n">gabor_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">mean_filter_kernel_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">mean_filter_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">riesz_filter_order</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">riesz_filter_tensor_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="c1"># Set by slice</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">by_slice</span>
+
+        <span class="c1"># Check filter kernels</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filter_kernels</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">filter_kernels</span> <span class="o">=</span> <span class="p">[</span><span class="n">filter_kernels</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">filter_kernels</span><span class="p">):</span>
+            <span class="n">filter_kernels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">filter_kernels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Check validity of the filter kernel names.</span>
+            <span class="n">valid_kernels</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_image_filters</span><span class="p">()</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">filter_kernels</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_kernels</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;One or more kernels are not implemented, or were spelled incorrectly: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">filter_kernel</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">filter_kernel</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">enumerate</span><span class="p">(</span><span class="n">filter_kernels</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">valid_kernels</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">filter_kernels</span>
+
+        <span class="c1"># Check families.</span>
+        <span class="k">if</span> <span class="n">response_map_feature_families</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">response_map_feature_families</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">response_map_feature_families</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">response_map_feature_families</span> <span class="o">=</span> <span class="p">[</span><span class="n">response_map_feature_families</span><span class="p">]</span>
+
+        <span class="c1"># Check which entries are valid.</span>
+        <span class="n">valid_families</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;li&quot;</span><span class="p">,</span> <span class="s2">&quot;loc.int&quot;</span><span class="p">,</span> <span class="s2">&quot;loc_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_intensity&quot;</span><span class="p">,</span> <span class="s2">&quot;st&quot;</span><span class="p">,</span> <span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="s2">&quot;statistics&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;statistical&quot;</span><span class="p">,</span> <span class="s2">&quot;ih&quot;</span><span class="p">,</span> <span class="s2">&quot;int_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;int_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_histogram&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ivh&quot;</span><span class="p">,</span> <span class="s2">&quot;int_vol_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_volume_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;cm&quot;</span><span class="p">,</span> <span class="s2">&quot;glcm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_cooccurrence_matrix&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cooccurrence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;rlm&quot;</span><span class="p">,</span> <span class="s2">&quot;glrlm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_run_length_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;run_length_matrix&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;szm&quot;</span><span class="p">,</span> <span class="s2">&quot;glszm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;dzm&quot;</span><span class="p">,</span> <span class="s2">&quot;gldzm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;grey_level_distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;tdm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngtdm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;neighbourhood_grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;ldm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;neighbouring_grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">response_map_feature_families</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_families</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;One or more families in the base_feature_families parameter were not recognised: &quot;</span>
+                             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">response_map_feature_families</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">is_valid</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">enumerate</span><span class="p">(</span><span class="n">valid_families</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">is_valid</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create a temporary feature settings object. If response_map_feature_settings is not present, this object is</span>
+        <span class="c1"># used. Otherwise, response_map_feature_settings is copied, and then updated.</span>
+        <span class="n">temp_feature_settings</span> <span class="o">=</span> <span class="n">FeatureExtractionSettingsClass</span><span class="p">(</span>
+            <span class="n">by_slice</span><span class="o">=</span><span class="n">by_slice</span><span class="p">,</span>
+            <span class="n">no_approximation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">base_feature_families</span><span class="o">=</span><span class="n">response_map_feature_families</span><span class="p">,</span>
+            <span class="n">base_discretisation_method</span><span class="o">=</span><span class="n">response_map_discretisation_method</span><span class="p">,</span>
+            <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="n">response_map_discretisation_bin_width</span><span class="p">,</span>
+            <span class="n">base_discretisation_n_bins</span><span class="o">=</span><span class="n">response_map_discretisation_n_bins</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">response_map_feature_settings</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">filter_feature_settings</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">response_map_feature_settings</span><span class="p">)</span>
+            <span class="n">filter_feature_settings</span><span class="o">.</span><span class="n">families</span> <span class="o">=</span> <span class="n">temp_feature_settings</span><span class="o">.</span><span class="n">families</span>
+            <span class="n">filter_feature_settings</span><span class="o">.</span><span class="n">discretisation_method</span> <span class="o">=</span> <span class="n">temp_feature_settings</span><span class="o">.</span><span class="n">discretisation_method</span>
+            <span class="n">filter_feature_settings</span><span class="o">.</span><span class="n">discretisation_n_bins</span> <span class="o">=</span> <span class="n">temp_feature_settings</span><span class="o">.</span><span class="n">discretisation_n_bins</span>
+            <span class="n">filter_feature_settings</span><span class="o">.</span><span class="n">discretisation_bin_width</span> <span class="o">=</span> <span class="n">temp_feature_settings</span><span class="o">.</span><span class="n">discretisation_bin_width</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">filter_feature_settings</span> <span class="o">=</span> <span class="n">temp_feature_settings</span>
+
+        <span class="c1"># Set feature settings.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_settings</span><span class="p">:</span> <span class="n">FeatureExtractionSettingsClass</span> <span class="o">=</span> <span class="n">filter_feature_settings</span>
+
+        <span class="c1"># Check boundary condition.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span> <span class="o">=</span> <span class="n">boundary_condition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+            <span class="n">boundary_condition</span><span class="p">,</span>
+            <span class="s2">&quot;boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check mean filter settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_mean_filter</span><span class="p">():</span>
+            <span class="c1"># Check filter size.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean_filter_kernel_size</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">mean_filter_kernel_size</span> <span class="o">=</span> <span class="p">[</span><span class="n">mean_filter_kernel_size</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="n">mean_filter_kernel_size</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;All kernel sizes for the mean filter are expected to be integer values equal or &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;greater than 1. Found: one or more kernel sizes that were not integers.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">kernel_size</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">kernel_size</span> <span class="ow">in</span> <span class="n">mean_filter_kernel_size</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;All kernel sizes for the mean filter are expected to be integer values equal or &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;greater than 1. Found: one or more kernel sizes less then 1.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition</span>
+            <span class="n">mean_filter_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">mean_filter_boundary_condition</span><span class="p">,</span>
+                <span class="s2">&quot;mean_filter_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mean_filter_kernel_size</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">mean_filter_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_filter_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mean_filter_kernel_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_filter_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_filter_boundary_condition</span>
+
+        <span class="c1"># Check Gaussian kernel settings.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gaussian_filter</span><span class="p">():</span>
+            <span class="c1"># Check sigma.</span>
+            <span class="n">gaussian_sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sigma</span><span class="p">(</span>
+                <span class="n">gaussian_sigma</span><span class="p">,</span>
+                <span class="s2">&quot;gaussian_sigma&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check filter truncation.</span>
+            <span class="n">gaussian_kernel_truncate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_truncation</span><span class="p">(</span>
+                <span class="n">gaussian_kernel_truncate</span><span class="p">,</span>
+                <span class="s2">&quot;gaussian_kernel_truncate&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition</span>
+            <span class="n">gaussian_kernel_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">gaussian_kernel_boundary_condition</span><span class="p">,</span>
+                <span class="s2">&quot;gaussian_kernel_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gaussian_sigma</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gaussian_kernel_truncate</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gaussian_kernel_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaussian_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gaussian_sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaussian_sigma_truncate</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaussian_kernel_truncate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gaussian_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">gaussian_kernel_boundary_condition</span>
+
+        <span class="c1"># Check laplacian-of-gaussian filter settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_laplacian_of_gaussian_filter</span><span class="p">():</span>
+            <span class="c1"># Check sigma.</span>
+            <span class="n">laplacian_of_gaussian_sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sigma</span><span class="p">(</span>
+                <span class="n">laplacian_of_gaussian_sigma</span><span class="p">,</span>
+                <span class="s2">&quot;laplacian_of_gaussian_sigma&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check filter truncation.</span>
+            <span class="n">laplacian_of_gaussian_kernel_truncate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_truncation</span><span class="p">(</span>
+                <span class="n">laplacian_of_gaussian_kernel_truncate</span><span class="p">,</span>
+                <span class="s2">&quot;laplacian_of_gaussian_kernel_truncate&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check pooling method.</span>
+            <span class="n">laplacian_of_gaussian_pooling_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pooling_method</span><span class="p">(</span>
+                <span class="n">laplacian_of_gaussian_pooling_method</span><span class="p">,</span>
+                <span class="s2">&quot;laplacian_of_gaussian_pooling_method&quot;</span><span class="p">,</span>
+                <span class="n">allow_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition.</span>
+            <span class="n">laplacian_of_gaussian_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">laplacian_of_gaussian_boundary_condition</span><span class="p">,</span> <span class="s2">&quot;laplacian_of_gaussian_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">laplacian_of_gaussian_sigma</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laplacian_of_gaussian_kernel_truncate</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laplacian_of_gaussian_pooling_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laplacian_of_gaussian_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">laplacian_of_gaussian_sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_sigma_truncate</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">laplacian_of_gaussian_kernel_truncate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_pooling_method</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">laplacian_of_gaussian_pooling_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">laplacian_of_gaussian_boundary_condition</span>
+
+        <span class="c1"># Check Laws kernel filter settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_laws_filter</span><span class="p">():</span>
+            <span class="c1"># Check kernel.</span>
+            <span class="n">laws_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_laws_kernels</span><span class="p">(</span><span class="n">laws_kernel</span><span class="p">,</span>
+                                                  <span class="s2">&quot;laws_kernel&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check energy computation.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">laws_compute_energy</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The laws_compute_energy parameter is expected to be a boolean value.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">laws_compute_energy</span><span class="p">:</span>
+
+                <span class="c1"># Check delta.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">laws_delta</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">laws_delta</span> <span class="o">=</span> <span class="p">[</span><span class="n">laws_delta</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">delta</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">delta</span> <span class="ow">in</span> <span class="n">laws_delta</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The laws_delta parameter is expected to be one or more integers with value 0 or &quot;</span>
+                        <span class="s2">&quot;greater. Found: one or more values that are not integer.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">delta</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">delta</span> <span class="ow">in</span> <span class="n">laws_delta</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The laws_delta parameter is expected to be one or more integers with value 0 or &quot;</span>
+                        <span class="s2">&quot;greater. Found: one or more values that are less than 0.&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">laws_delta</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1"># Check invariance.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">laws_rotation_invariance</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The laws_rotation_invariance parameter is expected to be a boolean value.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check pooling method.</span>
+            <span class="n">laws_pooling_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pooling_method</span><span class="p">(</span><span class="n">laws_pooling_method</span><span class="p">,</span> <span class="s2">&quot;laws_pooling_method&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition</span>
+            <span class="n">laws_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span><span class="n">laws_boundary_condition</span><span class="p">,</span> <span class="s2">&quot;laws_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">laws_kernel</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laws_compute_energy</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">laws_delta</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laws_rotation_invariance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laws_pooling_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">laws_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">laws_calculate_energy</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">laws_compute_energy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laws_kernel</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">laws_kernel</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laws_delta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">laws_delta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laws_rotation_invariance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">laws_rotation_invariance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laws_pooling_method</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">laws_pooling_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">laws_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">laws_boundary_condition</span>
+
+        <span class="c1"># Check Gabor filter settings.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gabor_filter</span><span class="p">():</span>
+            <span class="c1"># Check sigma.</span>
+            <span class="n">gabor_sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sigma</span><span class="p">(</span><span class="n">gabor_sigma</span><span class="p">,</span> <span class="s2">&quot;gabor_sigma&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check gamma. Gamma behaves like sigma.</span>
+            <span class="n">gabor_gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sigma</span><span class="p">(</span><span class="n">gabor_gamma</span><span class="p">,</span> <span class="s2">&quot;gabor_gamma&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check lambda. Lambda behaves like sigma</span>
+            <span class="n">gabor_lambda</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sigma</span><span class="p">(</span><span class="n">gabor_lambda</span><span class="p">,</span> <span class="s2">&quot;gabor_lambda&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check theta step.</span>
+            <span class="k">if</span> <span class="n">gabor_theta_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gabor_theta_step</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The gabor_theta_step parameter is expected to be an angle, in degrees. Found a &quot;</span>
+                        <span class="s2">&quot;value that was not a number.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">gabor_theta_step</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="n">gabor_theta_step</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="n">gabor_theta_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Check that the step would divide the 360-degree circle into an integer number of steps.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mf">360.0</span> <span class="o">/</span> <span class="n">gabor_theta_step</span><span class="p">)</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;The gabor_theta_step parameter should divide a circle into equal portions. &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;The current settings would create </span><span class="si">{</span><span class="mf">360.0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">gabor_theta_step</span><span class="si">}</span><span class="s2"> portions.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check theta.</span>
+            <span class="n">gabor_pool_theta</span> <span class="o">=</span> <span class="n">gabor_theta_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gabor_theta</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">gabor_theta</span> <span class="o">=</span> <span class="p">[</span><span class="n">gabor_theta</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">gabor_theta_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">gabor_theta</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The gabor_theta parameter cannot have more than one value when used in conjunction&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; with the gabor_theta_step parameter&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">theta</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span> <span class="k">for</span> <span class="n">theta</span> <span class="ow">in</span> <span class="n">gabor_theta</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The gabor_theta parameter is expected to be one or more values indicating angles in&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; degrees. Found: one or more values that were not numeric.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">gabor_theta_step</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">gabor_theta</span> <span class="o">=</span> <span class="p">[</span><span class="n">gabor_theta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ii</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">360.0</span><span class="p">,</span> <span class="n">gabor_theta_step</span><span class="p">)]</span>
+
+            <span class="c1"># Check filter response.</span>
+            <span class="n">gabor_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_response</span><span class="p">(</span><span class="n">gabor_response</span><span class="p">,</span> <span class="s2">&quot;gabor_response&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check rotation invariance</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gabor_rotation_invariance</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The gabor_rotation_invariance parameter is expected to be a boolean value.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check pooling method</span>
+            <span class="n">gabor_pooling_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pooling_method</span><span class="p">(</span><span class="n">gabor_pooling_method</span><span class="p">,</span> <span class="s2">&quot;gabor_pooling_method&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition</span>
+            <span class="n">gabor_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">gabor_boundary_condition</span><span class="p">,</span> <span class="s2">&quot;gabor_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gabor_sigma</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_gamma</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_lambda</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_theta</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_pool_theta</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_response</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_rotation_invariance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_pooling_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">gabor_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gabor_sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_gamma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gabor_gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_lambda</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gabor_lambda</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_theta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">gabor_theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_pool_theta</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">gabor_pool_theta</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_response</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">gabor_response</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_rotation_invariance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">gabor_rotation_invariance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_pooling_method</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">gabor_pooling_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gabor_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">gabor_boundary_condition</span>
+
+        <span class="c1"># Check separable wavelet settings.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_separable_wavelet_filter</span><span class="p">():</span>
+            <span class="c1"># Check wavelet families.</span>
+            <span class="n">separable_wavelet_families</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_separable_wavelet_families</span><span class="p">(</span>
+                <span class="n">separable_wavelet_families</span><span class="p">,</span> <span class="s2">&quot;separable_wavelet_families&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check wavelet filter sets.</span>
+            <span class="n">separable_wavelet_set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_separable_wavelet_sets</span><span class="p">(</span><span class="n">separable_wavelet_set</span><span class="p">,</span> <span class="s2">&quot;separable_wavelet_set&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check if wavelet is stationary</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">separable_wavelet_stationary</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The separable_wavelet_stationary parameter is expected to be a boolean value.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check decomposition level</span>
+            <span class="n">separable_wavelet_decomposition_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_decomposition_level</span><span class="p">(</span>
+                <span class="n">separable_wavelet_decomposition_level</span><span class="p">,</span> <span class="s2">&quot;separable_wavelet_decomposition_level&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check rotation invariance</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">separable_wavelet_rotation_invariance</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The separable_wavelet_rotation_invariance parameter is expected to be a boolean value.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check pooling method.</span>
+            <span class="n">separable_wavelet_pooling_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_pooling_method</span><span class="p">(</span>
+                <span class="n">separable_wavelet_pooling_method</span><span class="p">,</span> <span class="s2">&quot;separable_wavelet_pooling_method&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition.</span>
+            <span class="n">separable_wavelet_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">separable_wavelet_boundary_condition</span><span class="p">,</span> <span class="s2">&quot;separable_wavelet_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">separable_wavelet_families</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">separable_wavelet_set</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">separable_wavelet_stationary</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">separable_wavelet_decomposition_level</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">separable_wavelet_rotation_invariance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">separable_wavelet_pooling_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">separable_wavelet_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_families</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">separable_wavelet_families</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_filter_set</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">separable_wavelet_set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_stationary</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">separable_wavelet_stationary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_decomposition_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">separable_wavelet_decomposition_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_rotation_invariance</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">separable_wavelet_rotation_invariance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_pooling_method</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">separable_wavelet_pooling_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">separable_wavelet_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">separable_wavelet_boundary_condition</span>
+
+        <span class="c1"># Set parameters for non-separable wavelets.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_nonseparable_wavelet_filter</span><span class="p">():</span>
+            <span class="c1"># Check wavelet families.</span>
+            <span class="n">nonseparable_wavelet_families</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_nonseparable_wavelet_families</span><span class="p">(</span>
+                <span class="n">nonseparable_wavelet_families</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet_families&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check decomposition level.</span>
+            <span class="n">nonseparable_wavelet_decomposition_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_decomposition_level</span><span class="p">(</span>
+                <span class="n">nonseparable_wavelet_decomposition_level</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet_decomposition_level&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check filter response.</span>
+            <span class="n">nonseparable_wavelet_response</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_response</span><span class="p">(</span>
+                <span class="n">nonseparable_wavelet_response</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet_response&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check boundary condition.</span>
+            <span class="n">nonseparable_wavelet_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">nonseparable_wavelet_boundary_condition</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet_boundary_condition&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nonseparable_wavelet_families</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">nonseparable_wavelet_decomposition_level</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">nonseparable_wavelet_response</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">nonseparable_wavelet_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonseparable_wavelet_families</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">nonseparable_wavelet_families</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonseparable_wavelet_decomposition_level</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="n">nonseparable_wavelet_decomposition_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonseparable_wavelet_response</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">nonseparable_wavelet_response</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonseparable_wavelet_boundary_condition</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">nonseparable_wavelet_boundary_condition</span>
+
+        <span class="c1"># Check Riesz filter orders.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_riesz_filter</span><span class="p">():</span>
+            <span class="n">riesz_filter_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_riesz_filter_order</span><span class="p">(</span><span class="n">riesz_filter_order</span><span class="p">,</span> <span class="s2">&quot;riesz_filter_order&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">riesz_filter_order</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_steered_riesz_filter</span><span class="p">():</span>
+            <span class="n">riesz_filter_tensor_sigma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_sigma</span><span class="p">(</span><span class="n">riesz_filter_tensor_sigma</span><span class="p">,</span> <span class="s2">&quot;riesz_filter_tensor_sigma&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">riesz_filter_tensor_sigma</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">riesz_order</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]]]</span> <span class="o">=</span> <span class="n">riesz_filter_order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">riesz_filter_tensor_sigma</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="n">riesz_filter_tensor_sigma</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_available_image_filters</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s2">&quot;separable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_nonseparable_wavelet&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;riesz_steered_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gaussian&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_laplacian_of_gaussian&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;riesz_log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_log&quot;</span><span class="p">,</span> <span class="s2">&quot;laws&quot;</span><span class="p">,</span> <span class="s2">&quot;gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">check_boundary_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Avoid updating by reference.</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No value for the </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter could be set, due to a lack of a default.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check value</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;reflect&quot;</span><span class="p">,</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;nearest&quot;</span><span class="p">,</span> <span class="s2">&quot;mirror&quot;</span><span class="p">,</span> <span class="s2">&quot;wrap&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The provided value for the </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> is not valid. One of &#39;reflect&#39;, &#39;constant&#39;, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;nearest&#39;, &#39;mirror&#39; or &#39;wrap&#39; was expected. Found: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_pooling_method</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+        <span class="n">valid_pooling_method</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">allow_none</span><span class="p">:</span>
+            <span class="n">valid_pooling_method</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_pooling_method</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter expects one of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_pooling_method</span><span class="p">)</span><span class="si">}</span><span class="s2">. Found: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_sigma</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="c1"># Check sigma is a list.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="c1"># Check that the sigma values are floating points.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sigma</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">sigma</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to consists of floating points with values &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: one or more values that were not floating points.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">sigma</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">sigma</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to consists of floating points with values &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: one or more values with value 0.0 or less.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_truncation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+
+        <span class="c1"># Check that the truncation values are floating points.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to be a floating point with value &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: a value that was not a floating point.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to be a floating point with value &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: a value of 0.0 or less.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_response</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+
+        <span class="n">valid_response</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;modulus&quot;</span><span class="p">,</span> <span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="s2">&quot;magnitude&quot;</span><span class="p">,</span> <span class="s2">&quot;angle&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;argument&quot;</span><span class="p">,</span> <span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="s2">&quot;imaginary&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check that response is correct.</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">valid_response</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is not correct. Expected one of </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">valid_response</span><span class="p">)</span><span class="si">}</span><span class="s2">. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Found: </span><span class="si">{</span><span class="n">x</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_separable_wavelet_families</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="c1"># Import pywavelets.</span>
+        <span class="kn">import</span> <span class="nn">pywt</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="n">available_kernels</span> <span class="o">=</span> <span class="n">pywt</span><span class="o">.</span><span class="n">wavelist</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;discrete&quot;</span><span class="p">)</span>
+        <span class="n">valid_kernel</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">available_kernels</span> <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_kernel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter requires wavelet families that match those defined in the &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;pywavelets package. Could not match: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">kernel</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">kernel</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">valid_kernel</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Return lowercase values.</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_nonseparable_wavelet_families</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="n">available_kernels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;simoncelli&quot;</span><span class="p">,</span> <span class="s2">&quot;shannon&quot;</span><span class="p">]</span>
+        <span class="n">valid_kernel</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">available_kernels</span> <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_kernel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter expects one or more of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">available_kernels</span><span class="p">)</span><span class="si">}</span><span class="s2">. Could not match: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">kernel</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">kernel</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">valid_kernel</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Return lowercase values.</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">check_decomposition_level</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter should be one or more integer &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;values of at least 1. Found: one or more values that was not an integer.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">xx</span> <span class="o">&gt;=</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter should be one or more integer &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;values of at least 1. Found: one or more values that was not an integer.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">check_separable_wavelet_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;hh&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="s2">&quot;hhh&quot;</span>
+
+        <span class="c1"># Check if x is a list.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="c1"># Generate all potential combinations.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">possible_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combination</span><span class="p">)</span> <span class="k">for</span> <span class="n">combination</span> <span class="ow">in</span> <span class="n">product</span><span class="p">([</span><span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">possible_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combination</span><span class="p">)</span> <span class="k">for</span> <span class="n">combination</span> <span class="ow">in</span> <span class="n">product</span><span class="p">([</span><span class="s2">&quot;l&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">3</span><span class="p">)]</span>
+
+        <span class="c1"># Check for all.</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">kernel</span> <span class="o">==</span> <span class="s2">&quot;all&quot;</span> <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">possible_combinations</span>
+
+        <span class="c1"># Check which kernels are valid.</span>
+        <span class="n">valid_kernel</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">possible_combinations</span> <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_kernel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter requires combinations of low (l) and high-pass (h) kernels. &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;Two kernels should be specified for 2D, and three for 3D. Found the following invalid &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;combinations: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">kernel</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">kernel</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">valid_kernel</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Return lowercase values.</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">check_laws_kernels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]],</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+
+        <span class="c1"># Set implemented kernels.</span>
+        <span class="n">kernels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;l5&#39;</span><span class="p">,</span> <span class="s1">&#39;e5&#39;</span><span class="p">,</span> <span class="s1">&#39;s5&#39;</span><span class="p">,</span> <span class="s1">&#39;w5&#39;</span><span class="p">,</span> <span class="s1">&#39;r5&#39;</span><span class="p">,</span> <span class="s1">&#39;l3&#39;</span><span class="p">,</span> <span class="s1">&#39;e3&#39;</span><span class="p">,</span> <span class="s1">&#39;s3&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Generate all valid combinations.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">possible_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combination</span><span class="p">)</span> <span class="k">for</span> <span class="n">combination</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">kernels</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">2</span><span class="p">)]</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">possible_combinations</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">combination</span><span class="p">)</span> <span class="k">for</span> <span class="n">combination</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">kernels</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">3</span><span class="p">)]</span>
+
+        <span class="c1"># Create list.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="c1"># Check which kernels are valid.</span>
+        <span class="n">valid_kernel</span> <span class="o">=</span> <span class="p">[</span><span class="n">kernel</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">possible_combinations</span> <span class="k">for</span> <span class="n">kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_kernel</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter requires combinations of Laws kernels. The follow kernels are &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;implemented: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">kernels</span><span class="p">)</span><span class="si">}</span><span class="s2">. Two kernels should be specified for 2D, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;and three for 3D. Found the following illegal combinations: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">kernel</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">kernel</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">enumerate</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">valid_kernel</span><span class="p">[</span><span class="n">ii</span><span class="p">]])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Return lowercase values.</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">check_riesz_filter_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
+
+        <span class="c1"># Skip if None</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">x</span>
+
+        <span class="c1"># Set number of elements that the filter order should have</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">n_elements</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">n_elements</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="c1"># Create filterbank.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="c1"># Check that x is not negative.</span>
+            <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter cannot be negative.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Set filter order.</span>
+            <span class="n">single_filter_order</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">x</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+            <span class="c1"># Generate all valid combinations.</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">combination</span><span class="p">)</span> <span class="k">for</span> <span class="n">combination</span> <span class="ow">in</span> <span class="n">product</span><span class="p">(</span><span class="n">single_filter_order</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">n_elements</span><span class="p">)</span> <span class="k">if</span>
+                 <span class="nb">sum</span><span class="p">(</span><span class="n">combination</span><span class="p">)</span> <span class="o">==</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to be a list&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Create a nested list,</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="c1"># Check that all elements of x have the right length, and do not negative orders.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">xx</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_elements</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to contain filter orders, each consisting of &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_elements</span><span class="si">}</span><span class="s2"> non-negative integer values. One or more filter orders did not have the &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;expected number of elements.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">xxx</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">xxx</span> <span class="ow">in</span> <span class="n">xx</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to contain filter orders, each consisting of &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_elements</span><span class="si">}</span><span class="s2"> non-negative integer values. One or more filter orders did not fully &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;consist of integer values.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">xxx</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">xxx</span> <span class="ow">in</span> <span class="n">xx</span><span class="p">)</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter is expected to contain filter orders, each consisting of &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">n_elements</span><span class="si">}</span><span class="s2"> non-negative integer values. One or more filter orders contained negative values.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">has_mean_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gaussian&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_laplacian_of_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_log&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;riesz_steered_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_log&quot;</span>
+            <span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_laws_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;laws&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_gabor_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gabor&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_separable_wavelet_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;separable_wavelet&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_nonseparable_wavelet_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+            <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_nonseparable_wavelet&quot;</span>
+            <span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_riesz_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;riesz&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_steered_riesz_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;riesz_steered&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

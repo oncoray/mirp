@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mirp.settings.settingsGeneral &mdash; mirp 2.0.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.deepLearningPreprocessing.html">Image preprocessing for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractFeaturesAndImages.html">Compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.settings.html">Configuring the image processing workflow</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mirp.settings.settingsGeneral</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mirp.settings.settingsGeneral</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+
+
+<div class="viewcode-block" id="GeneralSettingsClass"><a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.settingsGeneral.GeneralSettingsClass">[docs]</a><span class="k">class</span> <span class="nc">GeneralSettingsClass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Set of overall process parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    by_slice: str or bool, optional, default: False</span>
+<span class="sd">        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the</span>
+<span class="sd">        largest slice (&quot;largest&quot;).</span>
+
+<span class="sd">    config_str: str, optional</span>
+<span class="sd">        Sets a configuration string, which can be used to differentiate results obtained using other settings.</span>
+
+<span class="sd">    divide_disconnected_roi: {&quot;keep_as_is&quot;, &quot;keep_largest&quot;, &quot;combine&quot;}, default: &quot;keep_as_is&quot;</span>
+<span class="sd">        Defines how masks are treated after being loaded.</span>
+
+<span class="sd">    no_approximation: bool, optional, default: False</span>
+<span class="sd">        Disables approximation of features, such as Geary&#39;s c-measure. Can be True or False (default).</span>
+
+<span class="sd">    **kwargs: dict, optional</span>
+<span class="sd">        Unused keyword arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">by_slice</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">config_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="n">divide_disconnected_roi</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;keep_as_is&quot;</span><span class="p">,</span>
+            <span class="n">no_approximation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+        <span class="c1"># Parse and check slice information.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">by_slice</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">by_slice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;true&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">]:</span>
+                <span class="n">by_slice</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">select_slice</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span>
+            <span class="k">elif</span> <span class="n">by_slice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;false&quot;</span><span class="p">,</span> <span class="s2">&quot;f&quot;</span><span class="p">,</span> <span class="s2">&quot;0&quot;</span><span class="p">]:</span>
+                <span class="n">by_slice</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">select_slice</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span>
+            <span class="k">elif</span> <span class="n">by_slice</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;largest&quot;</span><span class="p">]:</span>
+                <span class="n">by_slice</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">select_slice</span> <span class="o">=</span> <span class="s2">&quot;largest&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The by_slice parameter should be true, false, t, f, 1, 0 or largest. Found: </span><span class="si">{</span><span class="n">by_slice</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">by_slice</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="n">select_slice</span> <span class="o">=</span> <span class="s2">&quot;all&quot;</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The by_slice parameter should be a string or boolean.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set by_slice and select_slice parameters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">by_slice</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_slice</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">select_slice</span>
+
+        <span class="c1"># Set configuration string.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config_str</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">config_str</span>
+
+        <span class="c1"># Check divide_disconnected_roi</span>
+        <span class="k">if</span> <span class="n">divide_disconnected_roi</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;keep_as_is&quot;</span><span class="p">,</span> <span class="s2">&quot;keep_largest&quot;</span><span class="p">,</span> <span class="s2">&quot;combine&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The divide_disconnected_roi parameter should be &#39;keep_as_is&#39;, &#39;keep_largest&#39;, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;combine&#39;. Found: </span><span class="si">{</span><span class="n">divide_disconnected_roi</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set divide_disconnected_roi</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">divide_disconnected_roi</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">divide_disconnected_roi</span>
+
+        <span class="c1"># Set approximation of features.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_approximation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">no_approximation</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
