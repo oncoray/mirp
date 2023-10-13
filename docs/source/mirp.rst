@@ -1,16 +1,25 @@
-.. mirp documentation master file, created by
-   sphinx-quickstart on Fri Oct 13 14:08:55 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+mirp package
+============
 
-Welcome to mirp's documentation!
-================================
+Subpackages
+-----------
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+   :maxdepth: 4
 
-   mirp.deepLearningPreprocessing
+   mirp.importData
+   mirp.settings
+
+Submodules
+----------
+
+mirp.deepLearningPreprocessing module
+-------------------------------------
+
+.. automodule:: mirp.deepLearningPreprocessing
+   :members:
+   :undoc-members:
+   :show-inheritance:
 
 mirp.extractFeaturesAndImages module
 ------------------------------------
@@ -36,9 +45,10 @@ mirp.extractMaskLabels module
    :undoc-members:
    :show-inheritance:
 
-Indices and tables
-==================
+Module contents
+---------------
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. automodule:: mirp
+   :members:
+   :undoc-members:
+   :show-inheritance:

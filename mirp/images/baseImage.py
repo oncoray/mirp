@@ -184,13 +184,25 @@ class BaseImage:
         Here we use the fact that all right-hand matrices except X are square matrices with the same dimensions,
         and thus are associative. Here we compute the result of A_origin * A_orientation * A_spacing.
 
-        :param origin: Origin of the voxel grid in world coordinates. If None, the origin of the image is used.
-        :param orientation: Orientation of the voxel grid in the world coordinate frame. If None, the orientation of
-        the image is used.
-        :param spacing: Spacing of voxels in world units. If None, the spacing of the image is used.
-        :param inverse: Return
+        Parameters
+        ----------
+        origin: np.ndarray, optional, default: None
+            Origin of the voxel grid in world coordinates. If None, the origin of the image is used.
 
-        :return: affine 4 x 4 matrix
+        orientation: np.ndarray, optional, default: None
+            Orientation of the voxel grid in the world coordinate frame. If None, the orientation of
+            the image is used.
+
+        spacing: np.ndarray, optional, default: None
+            Spacing of voxels in world units. If None, the spacing of the image is used.
+
+        inverse: bool, default: False
+            Return inverse of the affine matrix
+
+        Returns
+        -------
+        np.ndarray
+            Affine matrix or inverse affine matrix (if `inverse=True`)
         """
 
         # Matrix multiplication of orientation and spacing (scale) matrices (A_orientation * A_spacing).

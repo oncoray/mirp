@@ -66,10 +66,10 @@ class ImageTransformationSettingsClass:
 
         Multiple discretisation methods can be specified as a list to yield features according to each method.
 
-    .. note::
-        Use of the "fixed_bin_size", "fixed_bin_size_pyradiomics", and "none" discretisation methods is discouraged
-        for transformed images. Due to transformation, a direct link to any meaningful quantity represented by the
-        intensity of the original image (e.g. Hounsfield Units for CT, Standardised Uptake Value for PET) is lost.
+        .. note::
+            Use of the "fixed_bin_size", "fixed_bin_size_pyradiomics", and "none" discretisation methods is discouraged
+            for transformed images. Due to transformation, a direct link to any meaningful quantity represented by the
+            intensity of the original image (e.g. Hounsfield Units for CT, Standardised Uptake Value for PET) is lost.
 
     response_map_discretisation_n_bins: int or list of int, optional, default: 16
         Number of bins used for the "fixed_bin_number" discretisation method. Multiple values can be specified in a
@@ -93,20 +93,20 @@ class ImageTransformationSettingsClass:
         * Non-separable wavelets: "nonseparable_wavelet", "riesz_nonseparable_wavelet",
           and "riesz_steered_nonseparable_wavelet"
 
-        Filters with names that preceded by "riesz" undergo a Riesz transformation. If the filter name is
-        preceded by "riesz_steered", a steerable riesz filter is used.
+        Filters with names that preceded by "riesz" undergo a Riesz transformation. If the filter name is preceded by
+        "riesz_steered", a steerable riesz filter is used.
 
         More than one filter name can be provided. By default, no filters are selected, and image transformation is
         skipped.
 
-    .. note::
-        There is no IBSI reference standard for Gaussian filters. However, the filter implementation is relatively
-        straightforward, and most likely reproducible.
+        .. note::
+            There is no IBSI reference standard for Gaussian filters. However, the filter implementation is relatively
+            straightforward, and most likely reproducible.
 
-    .. warning::
-        Riesz transformation and steerable riesz transformations are experimental. The implementation of these
-        filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature derived
-        from response maps of Riesz transformations is unlikely to be reproducible.
+        .. warning::
+            Riesz transformation and steerable riesz transformations are experimental. The implementation of these
+            filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature
+            derived from response maps of Riesz transformations is unlikely to be reproducible.
 
     boundary_condition: {"reflect", "constant", "nearest", "mirror", "wrap"}, optional, default: "mirror"
         Sets the boundary condition, which determines how filters behave at the edge of an image. MIRP uses
@@ -132,7 +132,7 @@ class ImageTransformationSettingsClass:
     separable_wavelet_decomposition_level: int or list of int, optional, default: 1
         Sets the wavelet decomposition level. For the first decomposition level, the base image is used as input to
         generate a  response map. For decomposition levels greater than 1, the low-pass image from the previous level
-         is used as input. More than 1 value may be specified in a list.
+        is used as input. More than 1 value may be specified in a list.
 
     separable_wavelet_rotation_invariance: bool, optional, default: True
         Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates
@@ -303,14 +303,15 @@ class ImageTransformationSettingsClass:
         riesz_filter_order = 2 and a 2D filter is used, the following Riesz-transformations are performed: [2,
         0], [1, 1] and [0, 2].
 
-    .. note::
-          Riesz filter order uses the numpy coordinate ordering and represents (z, y, x) directions.
+        .. note::
+            Riesz filter order uses the numpy coordinate ordering and represents (z, y, x) directions.
 
     riesz_filter_tensor_sigma: float or list of float, optional
         Determines width of Gaussian filter used with Riesz filter banks.
 
     **kwargs: dict, optional
         Unused keyword arguments.
+
     """
 
     def __init__(
