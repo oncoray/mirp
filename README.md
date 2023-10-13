@@ -48,9 +48,10 @@ For advanced users and developers, the following changes are relevant:
 
 ## Examples - Computing Radiomics Features
 
-MIRP can be used to compute quantitative features from regions of interest in images in an IBSI-compliant manner. This 
-requires both images and masks. MIRP can process DICOM, NIfTI, NRRD and numpy images. Masks are DICOM radiotherapy 
-structure sets (RTSTRUCT), or volumetric data with integer labels (e.g. 1, 2, etc.).
+MIRP can be used to compute quantitative features from regions of interest in images in an IBSI-compliant manner 
+using a standardized workflow This requires both images and masks. MIRP can process DICOM, NIfTI, NRRD and numpy 
+images. Masks are DICOM radiotherapy structure sets (RTSTRUCT), or volumetric data with integer labels (e.g. 1, 2, 
+etc.).
 
 Below is a minimal working example for extracting features from a single image file and its mask.
 
@@ -88,7 +89,8 @@ The above example will compute features sequentially. MIRP supports parallel pro
 Feature computation can be parallelized by specifying the `num_cpus` argument, e.g. `num_cpus=2` for two CPU threads.
 
 ## Examples - Image Preprocessing
-...
+Deep learning-based radiomics is an alternative to using predefined quantitative features. MIRP supports 
+preprocessing of images and masks using the same standardized workflow that is used for computing features.
 
 ## Examples - Summarising Image Metadata
 
