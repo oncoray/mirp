@@ -14,9 +14,6 @@ class GeneralSettingsClass:
     config_str: str, optional
         Sets a configuration string, which can be used to differentiate results obtained using other settings.
 
-    divide_disconnected_roi: {"keep_as_is", "keep_largest", "combine"}, default: "keep_as_is"
-        Defines how masks are treated after being loaded.
-
     no_approximation: bool, optional, default: False
         Disables approximation of features, such as Geary's c-measure. Can be True or False (default).
 
@@ -28,7 +25,6 @@ class GeneralSettingsClass:
             self,
             by_slice: Union[str, bool] = False,
             config_str: str = "",
-            divide_disconnected_roi: str = "keep_as_is",
             no_approximation: bool = False,
             **kwargs):
 
@@ -59,15 +55,6 @@ class GeneralSettingsClass:
 
         # Set configuration string.
         self.config_str: str = config_str
-
-        # Check divide_disconnected_roi
-        if divide_disconnected_roi not in ["keep_as_is", "keep_largest", "combine"]:
-            raise ValueError(
-                f"The divide_disconnected_roi parameter should be 'keep_as_is', 'keep_largest', "
-                f"'combine'. Found: {divide_disconnected_roi}")
-
-        # Set divide_disconnected_roi
-        self.divide_disconnected_roi: str = divide_disconnected_roi
 
         # Set approximation of features.
         self.no_approximation: bool = no_approximation
