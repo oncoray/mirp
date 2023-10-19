@@ -1,5 +1,5 @@
-Compute quantitative image features
-===================================
+Process image and compute quantitative image features
+=====================================================
 
 .. automodule:: mirp.extractFeaturesAndImages
    :members:
