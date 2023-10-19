@@ -21,19 +21,19 @@ Version 2 is a major refactoring of the previous code base. For users this bring
   directories, data to be read, etc., and [`config_settings.xml`](mirp/config_settings.xml) for configuring experiments.
   While these two files can still be used, MIRP can now be configured directly, without using these files.
 - The main functions of MIRP (`mainFunctions.py`) have all been re-implemented.
-  - `mainFunctions.extract_features` is now `extractFeaturesAndImages.extract_features` (functional form) or
-    `extractFeaturesAndImages.extract_features_generator` (generator). The replacements allow for both writing
+  - `mainFunctions.extract_features` is now `extract_features` (functional form) or
+    `extract_features_generator` (generator). The replacements allow for both writing
     feature values to a directory and returning them as function output. 
-  - `mainFunctions.extract_images_to_nifti` is now `extractFeaturesAndImages.extract_images` (functional form) or
-     `extractFeaturesAndImages.extract_images_generator` (generator). The replacements allow for both writing 
+  - `mainFunctions.extract_images_to_nifti` is now `extract_images` (functional form) or
+     `extract_images_generator` (generator). The replacements allow for both writing 
      images to a directory (e.g., in NIfTI or numpy format) and returning them as function output.
   - `mainFunctions.extract_images_for_deep_learning` has been replaced by 
-    `deepLearningPreprocessing.deep_learning_preprocessing` (functional form) and 
-    `deepLearningPreprocessing.deep_learning_preprocessing_generator` (generator).
+    `deep_learning_preprocessing` (functional form) and 
+    `deep_learning_preprocessing_generator` (generator).
   - `mainFunctions.get_file_structure_parameters` and `mainFunctions.parse_file_structure` are deprecated, as the
     the file import system used in version 2 no longer requires a rigid directory structure.
-  - `mainFunctions.get_roi_labels` is now `extractMaskLabels.extract_mask_labels`.
-  - `mainFunctions.get_image_acquisition_parameters` is now `extractImageParameters.extract_image_parameters`.
+  - `mainFunctions.get_roi_labels` is now `extract_mask_labels`.
+  - `mainFunctions.get_image_acquisition_parameters` is now `extract_image_parameters`.
 
 For advanced users and developers, the following changes are relevant:
 - MIRP previously relied on `ImageClass` and `RoiClass` objects. These have been completely replaced by `GenericImage`
@@ -56,7 +56,7 @@ etc.).
 Below is a minimal working example for extracting features from a single image file and its mask.
 
 ```python
-from mirp.extractFeaturesAndImages import extract_features
+from mirp import extract_features
 
 feature_data = extract_features(
     image="path to image",
@@ -74,7 +74,7 @@ assume that files are organised in subfolders for each sample, i.e. `main_folder
 minimal working example is then:
 
 ```python
-from mirp.extractFeaturesAndImages import extract_features
+from mirp import extract_features
 
 feature_data = extract_features(
     image="path to main image directory",
@@ -99,7 +99,7 @@ metadata. Other files, e.g. NIfTI, only have metadata related to position and sp
 
 Below is a minimal working example for extracting metadata from a single image file.
 ```python
-from mirp.extractImageParameters import extract_image_parameters
+from mirp import extract_image_parameters
 image_parameters = extract_image_parameters(
     image="path to image"
 )
@@ -108,7 +108,7 @@ image_parameters = extract_image_parameters(
 MIRP also supports extracting metadata from multiple files. For example, assume that files are organised in 
 subfolders for each sample, i.e. `main_folder / sample_name / subfolder`. The minimal working example is then:
 ```python
-from mirp.extractImageParameters import extract_image_parameters
+from mirp import extract_image_parameters
 image_parameters = extract_image_parameters(
     image="path to main image directory",
     image_sub_folder="image subdirectory structure relative to main image directory"
@@ -119,7 +119,7 @@ image_parameters = extract_image_parameters(
 
 MIRP can identify which labels are present in masks. For a single mask file, labels can be retrieved as follows:
 ```python
-from mirp.extractMaskLabels import extract_mask_labels
+from mirp import extract_mask_labels
 
 mask_labels = extract_mask_labels(
     mask="path to mask"
@@ -129,7 +129,7 @@ mask_labels = extract_mask_labels(
 MIRP supports extracting labels from multiple masks. For example, assume that files are organised in subfolders for 
 each sample, i.e. `main_folder / sample_name / subfolder`. The minimal working example is then:
 ```python
-from mirp.extractMaskLabels import extract_mask_labels
+from mirp import extract_mask_labels
 mask_labels = extract_mask_labels(
     mask="path to main mask directory",
     mask_sub_folder="mask subdirectory structure relative to main mask directory"

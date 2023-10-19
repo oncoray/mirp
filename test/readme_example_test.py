@@ -3,7 +3,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_example_feature_extraction():
-    from mirp.extractFeaturesAndImages import extract_features
+    from mirp import extract_features
 
     # Extract from single DICOM stack.
     feature_data = extract_features(
@@ -27,7 +27,7 @@ def test_example_feature_extraction():
 
 
 def test_example_image_metadata():
-    from mirp.extractImageParameters import extract_image_parameters
+    from mirp import extract_image_parameters
 
     # Extract from single DICOM stack.
     image_parameters = extract_image_parameters(
@@ -44,7 +44,7 @@ def test_example_image_metadata():
 
 
 def test_example_retrieve_mask_labels():
-    from mirp.extractMaskLabels import extract_mask_labels
+    from mirp import extract_mask_labels
 
     mask_labels = extract_mask_labels(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "mask", "STS_001_mask.npy")
