@@ -6,3 +6,5 @@ test/data/reference_values/.Rhistory
 test/.Rhistory
 test/data/temp
 /test/data/configuration_files/temp_test_config_data.xml
+/mirp.egg-info/
+/dist/
