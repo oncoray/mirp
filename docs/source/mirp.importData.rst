@@ -4,8 +4,8 @@ Configuring image and mask import
 Most relevant MIRP functions require images, masks or both as input. MIRP is flexible when it comes to input:
 
 * By specifying the directory where images and/or masks are found:
-    * Nested structure: In a nested structure all images and masks are separated for each sample. For example, an
-      image dataset of 128 samples may be organised as follows::
+    * **Nested flat layout**: In a nested flat layout all images and masks are separated for each sample. For
+      example, an image dataset of 128 samples may be organised as follows::
 
         image_root_directory
         ├─ sample_001
@@ -32,7 +32,7 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
       cases where MIRP is unable to determine if a file is an image or a mask. In those cases, additional keyword
       arguments may be provided:
 
-        .. code-block:: python
+      .. code-block:: python
 
           some_function(
               ...,
@@ -46,7 +46,8 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
       contains a wildcard character (``*``) that matches any pattern starting with ``"CT_dicom_"``. File extensions are
       never of the pattern.
 
-      Alternatively, image and mask data may be organised per sample but with a subdirectory structure::
+    * **Fully nested structure**: In a nested structure all images and masks are separated for each. Unlike the above
+      example, image and mask data may be organised into different subdirectory structures::
 
         image_root_directory
         ├─ sample_001
@@ -80,13 +81,41 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
       The ``mask`` keyword argument is automatically assumed to be equal to ``image``, i.e. images and masks are
       under the same root directory. If this is not the case, ``mask`` should be specified as well.
 
-* Flat layout:
+    * **Flat layout**: In a flat layout, all image and mask files are contained in the same
+      directory::
 
+        image_root_directory
+            ├─ sample_001_CT_dicom_000.dcm
+            ├─ ...
+            ├─ sample_001_CT_dicom_319.dcm
+            ├─ sample_127_CT_dicom_000.dcm
+            ├─ ...
+            ├─ sample_127_CT_dicom_255.dcm
+            ├─ sample_001_mask.dcm
+            ├─ ...
+            └─ sample_127_mask.dcm
 
+      Flat layouts are somewhat more challenging for MIRP, as sample identifiers have to be inferred, and images and
+      masks may be hard to associate. For DICOM images sample names and other association data typically can be
+      obtained from the DICOM metadata. For other types of images, e.g. NIfTI or numpy, in a flat layout,
+      ``image_name`` and ``mask_name`` should be provided:
 
-* By creating a :class:`~mirp.settings.settingsGeneric.SettingsClass` object. This object can be initialised using the
-  same keyword arguments as above. Alternatively, the attributes of the
-  :class:`~mirp.settings.settingsGeneric.SettingsClass` can be filled with the specific objects documented below.
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = "image_root_directory",
+              image_name = "#_CT_dicom_*",
+              mask_name = "#_mask",
+              ...
+          )
+
+      The above example contain two wildcards: ``#`` and ``*`` that fulfill different roles. While ``*`` matches any
+      pattern, ``#`` matches any pattern and uses that pattern as the sample name. This way, sample identifiers can
+      be determined for flat layouts.
+
+* By providing a direct path to image and mask files: TODO HERE
+
 * By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
   created using :func:`mirp.utilities.config_utilities.get_data_xml`.
 
