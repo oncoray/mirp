@@ -1,4 +1,2 @@
 include *.md
-include *.txt
-recursive-include docs *.md
-recursive-include docs *.txt
+include LICENSE.txt
