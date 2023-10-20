@@ -161,6 +161,9 @@ def test_xml_configurations():
     assert all(data["image_mask_name"].values == "GTV_Mass_PET")
     assert all(data["image_voxel_size"].values == 3.0)
 
+    # Clean up
+    os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+
 
 def test_edge_cases_basic_pipeline():
     """
