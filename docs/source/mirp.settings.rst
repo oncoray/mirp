@@ -9,7 +9,8 @@ Standardization Initiative. Many aspects of this workflow can be configured. Thi
 * By creating a :class:`~mirp.settings.settingsGeneric.SettingsClass` object. This object can be initialised using the
   same keyword arguments as above. Alternatively, the attributes of the
   :class:`~mirp.settings.settingsGeneric.SettingsClass` can be filled with the specific objects documented below.
-* By specifying the configuration in a stand-alone configuration ``xml`` file.
+* By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
+  created using :func:`mirp.utilities.config_utilities.get_settings_xml`.
 
 General settings
 ----------------
@@ -66,3 +67,16 @@ Image transformation settings
    :members:
    :no-undoc-members:
    :show-inheritance:
+
+Generic settings object
+-----------------------
+
+.. automodule:: mirp.settings.settingsGeneric
+   :members:
+   :no-undoc-members:
+   :show-inheritance:
+
+Creating a settings xml file
+----------------------------
+
+.. autofunction:: mirp.utilities.config_utilities.get_settings_xml
