@@ -1,0 +1,106 @@
+Configuring image and mask import
+=================================
+
+Most relevant MIRP functions require images, masks or both as input. MIRP is flexible when it comes to input:
+
+* By specifying the directory where images and/or masks are found:
+    * Nested structure: In a nested structure all images and masks are separated for each sample. For example, an
+      image dataset of 128 samples may be organised as follows::
+
+        image_root_directory
+        ├─ sample_001
+        │   └─ ...
+        ├─ ...
+        └─ sample_127
+            └─ image_sub_folder
+            ├─ CT_dicom_000.dcm
+            ├─ ...
+            └─ CT_dicom_255.dcm
+            └─ mask.dcm
+
+      Images and mask files are directly under the sample directory. Only one keyword argument is required:
+
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = "image_root_directory",
+              ...
+          )
+
+      MIRP is generally able to determine which files are images and which files are masks. However, there may be
+      cases where MIRP is unable to determine if a file is an image or a mask. In those cases, additional keyword
+      arguments may be provided:
+
+        .. code-block:: python
+
+          some_function(
+              ...,
+              image = "image_root_directory",
+              image_name = "CT_dicom_*",
+              mask_name = "mask"
+              ...
+          )
+
+      Here, ``image_name`` and ``mask_name`` contain patterns for image and mask files, respectively. ``"CT_dicom_*"``
+      contains a wildcard character (``*``) that matches any pattern starting with ``"CT_dicom_"``. File extensions are
+      never of the pattern.
+
+      Alternatively, image and mask data may be organised per sample but with a subdirectory structure::
+
+        image_root_directory
+        ├─ sample_001
+        │   └─ image_sub_folder
+        │   │   └─ ...
+        │   └─ mask_sub_folder
+        │       └─ ...
+        ├─ ...
+        └─ sample_127
+            └─ image_sub_folder
+            │   ├─ CT_dicom_000.dcm
+            │   ├─ ...
+            │   └─ CT_dicom_255.dcm
+            └─ mask_sub_folder
+                └─ mask.dcm
+
+      Here the directory for each sample contains consistently named subdirectory structures (``image_sub_folder``
+      and ``mask_sub_folder``), that contains the set of DICOM images and a mask, respectively. Then the following
+      keyword arguments may be specified:
+
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = "image_root_directory",
+              image_sub_folder = "image_sub_folder",
+              mask_sub_folder = "mask_sub_folder",
+              ...
+          )
+
+      The ``mask`` keyword argument is automatically assumed to be equal to ``image``, i.e. images and masks are
+      under the same root directory. If this is not the case, ``mask`` should be specified as well.
+
+* Flat layout:
+
+
+
+* By creating a :class:`~mirp.settings.settingsGeneric.SettingsClass` object. This object can be initialised using the
+  same keyword arguments as above. Alternatively, the attributes of the
+  :class:`~mirp.settings.settingsGeneric.SettingsClass` can be filled with the specific objects documented below.
+* By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
+  created using :func:`mirp.utilities.config_utilities.get_data_xml`.
+
+Image and mask import
+---------------------
+
+.. note:: The :func:`~mirp.importData.importImageAndMask.import_image_and_mask` function is called internally by other
+  functions. These function pass through keyword arguments to
+  :func:`~mirp.importData.importImageAndMask.import_image_and_mask`.
+
+.. autofunction:: mirp.importData.importImageAndMask.import_image_and_mask
+
+
+Creating a data xml file
+----------------------------
+
+.. autofunction:: mirp.utilities.config_utilities.get_data_xml

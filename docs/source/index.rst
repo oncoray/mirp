@@ -14,6 +14,7 @@ Welcome to mirp's documentation!
    mirp.deepLearningPreprocessing
    mirp.extractFeaturesAndImages
    mirp.extractMaskLabels
+   mirp.importData
    mirp.settings
 
 Indices and tables
