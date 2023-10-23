@@ -151,10 +151,46 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
         with the second image, and so forth.
 
 * By providing the image and mask directly:
-    * **Single image and mask**:
+    Images and masks can be provided directly using ``numpy.ndarray`` objects.
+
+    .. warning::
+      Even though images can be directly provided as ``numpy`` arrays, this should only be done if all data has
+      the same (physical) resolution, or if physical resolution does not matter. This is because ``numpy`` arrays only
+      contain values, and no metadata concerning pixel or voxel spacing. Internally, MIRP will use a default value of
+      1.0 × 1.0 × 1.0.
+
+    * **Single image and mask**: Let ``numpy_image`` and ``numpy_mask`` be two ``numpy`` arrays with the same
+      dimension. Then, these objects can be provided as follows:
+
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = numpy_image,
+              mask = numpy_mask,
+              ...
+          )
+
+    * **Multiple images and masks**: Multiple images and masks can be provided as lists of ``numpy`` arrays:
+
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = [numpy_image_001, numpy_image_002]
+              mask = [numpy_mask_001, numpy_mask_002],
+              ...
+          )
+      .. warning::
+        While it is possible to provide multiple masks for each image, in practice there is no safe way to do so. The
+        only way to associate image and masks is by their image dimension, which may be the same for different images.
+        with its masks, e.g. on sample name or frame of reference. Hence, providing one mask per image is recommended.
+        MIRP will treat image and mask lists of equal length as being sorted by element, and associate the first mask
+        with the first image, the second mask with the second image, and so forth.
 
 * By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
-  created using :func:`mirp.utilities.config_utilities.get_data_xml`.
+  created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the``xml`` file are the same as the
+  arguments of :func:`~mirp.importData.importImageAndMask.import_image_and_mask`.
 
 Image and mask import
 ---------------------
