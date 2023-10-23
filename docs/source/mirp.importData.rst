@@ -114,7 +114,44 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
       pattern, ``#`` matches any pattern and uses that pattern as the sample name. This way, sample identifiers can
       be determined for flat layouts.
 
-* By providing a direct path to image and mask files: TODO HERE
+* By providing a direct path to image and mask files:
+    * **Single image and mask**: A path to an image and mask may be provided as follows:
+
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = "image_directory/image.nii.gz",
+              mask = "mask_directory/mask.nii.gz",
+              ...
+          )
+
+      Here ``"image.nii.gz"`` is an image file in NIfTI format, located in the ``"image_directory"`` directory.
+      Similarly, ``"mask.nii.gz"`` is a mask file (containing integer-value labels) that is located in the
+      ``"mask_directory"`` directory.
+
+    * **Multiple images and masks**: Multiple images and masks can be provided as lists.
+
+      .. code-block:: python
+
+          some_function(
+              ...,
+              image = ["image_directory/image_001.nii.gz", "image_directory/image_002.nii.gz"],
+              mask = ["mask_directory_001/mask.nii.gz", "mask_directory_002/mask.nii.gz"],
+              ...
+          )
+
+      .. note::
+        It is possible to provide multiple masks for each image as long as their is some way to associate the image
+        with its masks, e.g. on sample name or frame of reference.
+
+      .. note::
+        In absence of any further identifiers for associating images and masks, MIRP will treat image and mask lists of
+        equal length as being sorted by element, and associate the first mask with the first image, the second mask
+        with the second image, and so forth.
+
+* By providing the image and mask directly:
+    * **Single image and mask**:
 
 * By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
   created using :func:`mirp.utilities.config_utilities.get_data_xml`.
