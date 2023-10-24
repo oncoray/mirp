@@ -203,8 +203,8 @@ MIRP processes and analyses images and masks. There are multiple ways to provide
   created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the``xml`` file are the same as the
   arguments of :func:`~mirp.importData.importImageAndMask.import_image_and_mask`, that are listed below.
 
-Being more selective
---------------------
+Selecting specific images and masks
+-----------------------------------
 On occasion, input should be more selective. This can be done by specifying additional arguments:
 
 * Select specific samples using ``sample_name``:
@@ -235,7 +235,50 @@ On occasion, input should be more selective. This can be done by specifying addi
     The ``mask_name`` argument functions exactly the same as ``image_name``.
 
 * Select the image and mask file types using ``image_file_type`` and ``mask_file_type``:
-    
+    MIRP can filter image and mask files based on the file type. MIRP currently supports DICOM (``"dicom"``), NIfTI
+    (``"nifti"``), NRRD (``"nrrd"``) and numpy (``"numpy"``) files as file format.
+
+* Select image files based on image modality using ``image_modality``:
+    MIRP can filter image files based on the image modality. Aside from generic image modality, MIRP specifically
+    checks for the following modalities:
+    * Computed tomography (CT): ``"ct"``
+    * Positron emission tomography (PET): ``"pet"`` or ``"pt"``
+    * Magnetic resonance imaging (MRI): ``"mri"`` or ``"mr"``
+
+    Images from other modalities are currently not fully supported, and a default ``"generic"`` image modality will
+    be assigned.
+
+    .. note::
+        Image modality is important because it adapts the image processing workflow to the requirements and
+        possibilities of each modality. For example, bias-field correction can only be performed on MR imaging, and
+        Hounsfield units are automatically rounded for CT imaging.
+
+    .. warning::
+        Only DICOM images contain metadata concerning image modality. Images from other file types are interpreted as
+        ``"generic"`` by default and cannot be filtered using ``image_modality``. For these image, the
+        ``image_modality`` argument sets the actual image modality.
+
+* Select mask files based on mask modality using ``mask_modality``:
+    MIRP can filter mask files based on the modality of the mask. Aside form generic masks, MIRP specifically checks for
+    radiotherapy structure (RTSTRUCT) files.
+
+    .. note::
+        Only DICOM images contain metadata concerning mask modality. Masks from other file types are interpreted as
+        ``"generic_mask"`` by default and cannot be filtered using ``mask_modality``.
+
+    .. note::
+        Support for DICOM segmentation (SEG) files is being implemented.
+
+* Select the specific regions of interest using ``roi_name``:
+    A mask file may contain multiple masks. By default, MIRP will assess all masks in a file. The ``roi_name`` argument
+    can be used to specify the list of regions of interest that should be assessed. For DICOM mask files, names of
+    regions of interest are provided in the metadata. For other mask file types, masks are either boolean, or
+    non-negative integers. For these, ``False`` or ``0`` are interpreted as background, and not assessed. If, for
+    example, regions of interest are labelled with ``1``, ``2`` and ``3``, MIRP will recognize both
+    ``roi_name=["1", "2", "3"]`` and ``roi_name=["region_1", "region_2", "region_3"]``.
+
+    You can use the :func:`~mirp.extractMaskLabels.extract_mask_labels` function to identify the names of the regions
+    of interest in mask files.
 
 Image and mask import function arguments
 ----------------------------------------
