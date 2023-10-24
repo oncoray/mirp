@@ -24,7 +24,8 @@ def import_image_and_mask(
         stack_masks: str = "auto"
 ) -> list[ImageFile]:
     """
-    Creates and curates references to image files.
+    Creates and curates references to image and mask files. This function is usually called internally by other
+    functions such as :func:`~mirp.extractFeaturesAndImages.extract_features`.
 
     Parameters
     ----------
