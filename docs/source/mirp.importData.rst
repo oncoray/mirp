@@ -1,7 +1,13 @@
 Configuring image and mask import
 =================================
 
-Most relevant MIRP functions require images, masks or both as input. MIRP is flexible when it comes to input:
+Many relevant MIRP functions require images, masks or both as input. This section provides details on how image and
+mask import is configured.
+
+Specifying input
+----------------
+
+MIRP processes and analyses images and masks. There are multiple ways to provide images and masks:
 
 * By specifying the directory where images and/or masks are found:
     * **Nested flat layout**: In a nested flat layout all images and masks are separated for each sample. For
@@ -81,8 +87,12 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
       The ``mask`` keyword argument is automatically assumed to be equal to ``image``, i.e. images and masks are
       under the same root directory. If this is not the case, ``mask`` should be specified as well.
 
-    * **Flat layout**: In a flat layout, all image and mask files are contained in the same
-      directory::
+      .. note::
+        MIRP will interpret the name of the directory that is neither part of the root directory or the subdirectory
+        structures as the sample name, unless the sample name can be determined from metadata (i.e. DICOM files). In
+        the example above, sample names based on the directory structure would be ``"sample_001"`` to ``"sample_127"``.
+
+    * **Flat layout**: In a flat layout, all image and mask files are contained in the same directory::
 
         image_root_directory
             ├─ sample_001_CT_dicom_000.dcm
@@ -181,6 +191,7 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
               mask = [numpy_mask_001, numpy_mask_002],
               ...
           )
+
       .. warning::
         While it is possible to provide multiple masks for each image, in practice there is no safe way to do so. The
         only way to associate image and masks is by their image dimension, which may be the same for different images.
@@ -188,12 +199,46 @@ Most relevant MIRP functions require images, masks or both as input. MIRP is fle
         MIRP will treat image and mask lists of equal length as being sorted by element, and associate the first mask
         with the first image, the second mask with the second image, and so forth.
 
-* By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
+* By specifying the configuration in a stand-alone data ``xml`` file. An empty copy of the ``xml`` file can be
   created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the``xml`` file are the same as the
-  arguments of :func:`~mirp.importData.importImageAndMask.import_image_and_mask`.
+  arguments of :func:`~mirp.importData.importImageAndMask.import_image_and_mask`, that are listed below.
 
-Image and mask import
----------------------
+Being more selective
+--------------------
+On occasion, input should be more selective. This can be done by specifying additional arguments:
+
+* Select specific samples using ``sample_name``:
+    Sample names can be provided as a list of strings to filter images and masks and exclude those that do not appear
+    in the provided list.
+
+    .. note::
+      If sample names cannot be determined from metadata, directory structure or file names, MIRP cannot filter image
+      and mask files using the provided sample names. In this case, should the list of provided sample names equal
+      that of the images, the provided sample names will be associated one-to-one with images. Otherwise, MIRP will
+      randomly generate sample names.
+
+* Select specific image and mask files based on their file names using ``image_name`` and ``mask_name``:
+    MIRP can filter image and mask files based on file names. ``image_name`` and ``mask_name`` arguments each take a
+    single string as argument. This string is matched exactly, and only file names that match that string are selected.
+    File extensions are ignored.
+
+    To allow for some flexibility, wildcard characters can be used. MIRP recognises two types of wildcard characters:
+    ``*`` and ``#``. ``*`` denotes any character. For example, if files are named ``image_001.nii.gz``,
+    ``image_002.nii.gz`` and ``another_image_001.nii.gz``, using ``image_name="image_*"`` will select
+    ``image_001.nii.gz``, ``image_002.nii.gz``. Using ``image_name="*image_*"`` will select all three.
+
+    The other wildcard character (``#``) denotes the part of the file name that is the sample name. For example, if
+    files are named ``sample_001_image_001.nii.gz``, ``sample_001_image_002.nii.gz`` and
+    ``sample_002_image_001.nii.gz``, using ``image_name="#_image_*"`` will select all three files, and assign
+    ``sample_001``, ``sample_001`` and ``sample_002`` as sample names, respectively.
+
+    The ``mask_name`` argument functions exactly the same as ``image_name``.
+
+* Select the image and mask file types using ``image_file_type`` and ``mask_file_type``:
+    
+
+Image and mask import function arguments
+----------------------------------------
 
 .. note:: The :func:`~mirp.importData.importImageAndMask.import_image_and_mask` function is called internally by other
   functions. These function pass through keyword arguments to
