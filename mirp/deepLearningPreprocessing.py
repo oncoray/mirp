@@ -54,206 +54,24 @@ def deep_learning_preprocessing(
         Keyword arguments passed for importing images and masks (
         :func:`~mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
         :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
-        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), see below.
-
-        .. note::
-            The parameters below can be provided as keyword arguments.
-
-    write_dir: str, optional
-        Path to directory where processed images and masks should be written.
-
-    image: Any
-        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
-        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
-        image files, or a numpy.ndarray.
-
-    mask: Any
-        A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
-        file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
-        mask files, or a numpy.ndarray.
-
-    sample_name: str or list of str, default: None
-        Name of expected sample names. This is used to select specific image files. If None, no image files are
-        filtered based on the corresponding sample name (if known).
-
-    image_name: str, optional, default: None
-        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
-        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
-        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
-        File extensions do not need to be specified. If None, file names are not used for filtering files and
-        setting sample names.
-
-    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
-        The type of file that is expected. If None, the file type is not used for filtering files.
-        "itk" comprises "nifti" and "nrrd" file types.
-
-    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
-        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
-        DICOM files contain metadata concerning modality.
-
-    image_sub_folder: str, optional, default: None
-        Fixed directory substructure where image files are located. If None, the directory substructure is not used
-        for filtering files.
-
-    mask_name: str or list of str, optional, default: None
-        Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
-        structures. The sample name (if part of the file name) can also be specified using "#". For example,
-        mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
-        do not need to be specified. If None, file names are not used for filtering files and setting sample names.
-
-    mask_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
-        The type of file that is expected. If None, the file type is not used for filtering files.
-        "itk" comprises "nifti" and "nrrd" file types.
-
-    mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
-        The type of modality that is expected. If None, modality is not used for filtering files.
-        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
-        be "generic_mask".
-
-    mask_sub_folder: str, optional, default: None
-        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
-        filtering files.
-
-    roi_name: str, optional, default: None
-        Name of the regions of interest that should be assessed.
-
-    association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
-        The preferred strategy for associating images and masks. File association is preferably done using frame of
-        reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
-        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
-        are of equal length.
-
-    stack_images: {"auto", "yes", "no"}, optional, default: "str"
-        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
-        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
-        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
-        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
-        can be determined from metadata.
-
-    stack_masks: {"auto", "yes", "no"}, optional, default: "str"
-        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
-        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
-        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
-        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
-        because their stacking can be determined from metadata.
-
-    intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation"}, default: "none"
-        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
-        masked by the tissue mask (of present). The following are possible:
-
-        * "none": no normalisation
-        * "range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
-          parameter, which is interpreted to represent an intensity range.
-        * "relative_range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
-          parameter, which is interpreted to represent a relative intensity range.
-        * "quantile_range": normalises intensities based on a fixed mapping against the
-          ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.
-        * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
-          deviation of intensities.
-
-        .. note::
-            intensity normalisation may remove any physical meaning of intensity units.
-
-    intensity_normalisation_range: list of float, optional
-        Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
-        intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the
-        type of normalisation method:
-
-        * "range": [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the
-          mapping range.
-        * "relative_range": [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are
-          used to set the mapping range.
-        * "quantile_range": [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used
-          to set the mapping range.
-
-        The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower
-        end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after
-        normalisation. Use ``intensity_normalisation_saturation`` to cap intensities after normalisation to a
-        specific range.
-
-    intensity_normalisation_saturation: list of float, optional, default: [np.nan, np.nan]
-        Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this
-        range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
-        than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
-        not be saturated.
-
-    tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
-        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
-        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
-
-    tissue_mask_range: list of float, optional
-        Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
-        options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
-        are considered to represent tissue).
-
-    interpolate: bool, optional, default: False
-        Controls whether interpolation of images to a common grid is performed at all.
-
-    spline_order: int, optional, default: 3
-        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
-        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
-        and cubic interpolation, respectively.
-
-    new_spacing: float or list of float or list of list of float:
-        Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
-        directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
-        (if `by_slice = False`) or 2 values for y and x directions (otherwise).
-
-        Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
-        same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
-        are defined by the headers of the image files. These are typically millimeters for radiological images.
-
-    anti_aliasing: bool, optional, default: true
-        Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.
-
-    smoothing_beta: float, optional, default: 0.98
-        Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
-        anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
-
-    perturbation_noise_repetitions: int, optional, default: 0
-        Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
-        added.
-
-    perturbation_noise_level: float, optional, default: None
-        Set the noise level in intensity units. This determines the width of the normal distribution used to generate
-        random noise. If None (default), noise is determined from the image itself.
-
-    perturbation_rotation_angles: float or list of float, optional, default: 0.0
-        Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
-        plane. Multiple angles can be provided to create images with different rotations.
-
-    perturbation_translation_fraction: float or list of float, optional, default: 0.0
-        Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
-        shift slightly and interpolate at different points. Multiple values can be provided. All values should be
-        between 0.0 and 1.0.
-
-    perturbation_roi_adapt_type: {"fraction", "distance"}, optional, default: "distance"
-        Determines how the mask is grown or shrunk. Can be either "fraction" or "distance". "fraction" is used to
-        grow or shrink the mask by a certain fraction (see the ``perturbation_roi_adapt_size`` parameter).
-        "distance" is used to grow or shrink the mask by a certain physical distance, defined using the
-        ``perturbation_roi_adapt_size`` parameter.
-
-    perturbation_roi_adapt_size: float or list of float, optional, default: 0.0
-        Determines the extent of growth/shrinkage of the ROI mask. The use of this parameter depends on the
-        growth/shrinkage type (``perturbation_roi_adapt_type``), For "distance", this parameter defines
-        growth/shrinkage in physical units, typically mm. For "fraction", this parameter defines growth/shrinkage in
-        volume fraction (e.g. a value of 0.2 grows the mask by 20%). For either type, positive values indicate growing
-        the mask, whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the
-        volume of the mask.
-
-    perturbation_roi_adapt_max_erosion: float, optional, default: 0.8
-        Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
-        the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
-        used when ``perturbation_roi_adapt_type=="distance"``.
-
-    perturbation_randomise_roi_repetitions: int, optional, default: 0.0
-        Number of repetitions where the mask is randomised using supervoxel-based randomisation.
+        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others.
 
     Returns
     -------
     None | list[Any]
         List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
+
+    See Also
+    --------
+    Keyword arguments can be provided to configure the following:
+
+    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)
+    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+      :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+
     """
 
     # Conditionally start a ray cluster.
@@ -359,206 +177,23 @@ def deep_learning_preprocessing_generator(
         Keyword arguments passed for importing images and masks (
         :func:`~mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
         :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
-        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), see below.
-
-        .. note::
-            The parameters below can be provided as keyword arguments.
-
-    write_dir: str, optional
-        Path to directory where processed images and masks should be written.
-
-    image: Any
-        A path to an image file, a path to a directory containing image files, a path to a config_data.xml
-        file, a path to a csv file containing references to image files, a pandas.DataFrame containing references to
-        image files, or a numpy.ndarray.
-
-    mask: Any
-        A path to a mask file, a path to a directory containing mask files, a path to a config_data.xml
-        file, a path to a csv file containing references to mask files, a pandas.DataFrame containing references to
-        mask files, or a numpy.ndarray.
-
-    sample_name: str or list of str, default: None
-        Name of expected sample names. This is used to select specific image files. If None, no image files are
-        filtered based on the corresponding sample name (if known).
-
-    image_name: str, optional, default: None
-        Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
-        match varying structures. The sample name (if part of the file name) can also be specified using "#". For
-        example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
-        File extensions do not need to be specified. If None, file names are not used for filtering files and
-        setting sample names.
-
-    image_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
-        The type of file that is expected. If None, the file type is not used for filtering files.
-        "itk" comprises "nifti" and "nrrd" file types.
-
-    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
-        The type of modality that is expected. If None, modality is not used for filtering files. Note that only
-        DICOM files contain metadata concerning modality.
-
-    image_sub_folder: str, optional, default: None
-        Fixed directory substructure where image files are located. If None, the directory substructure is not used
-        for filtering files.
-
-    mask_name: str or list of str, optional, default: None
-        Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
-        structures. The sample name (if part of the file name) can also be specified using "#". For example,
-        mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
-        do not need to be specified. If None, file names are not used for filtering files and setting sample names.
-
-    mask_file_type: {"dicom", "nifti", "nrrd", "numpy", "itk"}, optional, default: None
-        The type of file that is expected. If None, the file type is not used for filtering files.
-        "itk" comprises "nifti" and "nrrd" file types.
-
-    mask_modality: {"rtstruct", "seg", "generic_mask"}, optional, default: None
-        The type of modality that is expected. If None, modality is not used for filtering files.
-        Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
-        be "generic_mask".
-
-    mask_sub_folder: str, optional, default: None
-        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
-        filtering files.
-
-    roi_name: str, optional, default: None
-        Name of the regions of interest that should be assessed.
-
-    association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
-        The preferred strategy for associating images and masks. File association is preferably done using frame of
-        reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
-        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
-        are of equal length.
-
-    stack_images: {"auto", "yes", "no"}, optional, default: "str"
-        If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
-        size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
-        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
-        except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
-        can be determined from metadata.
-
-    stack_masks: {"auto", "yes", "no"}, optional, default: "str"
-        If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
-        size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
-        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
-        spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
-        because their stacking can be determined from metadata.
-
-    intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation"}, default: "none"
-        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
-        masked by the tissue mask (of present). The following are possible:
-
-        * "none": no normalisation
-        * "range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
-          parameter, which is interpreted to represent an intensity range.
-        * "relative_range": normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``
-          parameter, which is interpreted to represent a relative intensity range.
-        * "quantile_range": normalises intensities based on a fixed mapping against the
-          ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.
-        * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
-          deviation of intensities.
-
-        .. note::
-            intensity normalisation may remove any physical meaning of intensity units.
-
-    intensity_normalisation_range: list of float, optional
-        Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
-        intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the
-        type of normalisation method:
-
-        * "range": [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the
-          mapping range.
-        * "relative_range": [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are
-          used to set the mapping range.
-        * "quantile_range": [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used
-          to set the mapping range.
-
-        The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower
-        end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after
-        normalisation. Use ``intensity_normalisation_saturation`` to cap intensities after normalisation to a
-        specific range.
-
-    intensity_normalisation_saturation: list of float, optional, default: [np.nan, np.nan]
-        Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this
-        range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
-        than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
-        not be saturated.
-
-    tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
-        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
-        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
-
-    tissue_mask_range: list of float, optional
-        Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
-        options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
-        are considered to represent tissue).
-
-    interpolate: bool, optional, default: False
-        Controls whether interpolation of images to a common grid is performed at all.
-
-    spline_order: int, optional, default: 3
-        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
-        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
-        and cubic interpolation, respectively.
-
-    new_spacing: float or list of float or list of list of float:
-        Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
-        directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
-        (if `by_slice = False`) or 2 values for y and x directions (otherwise).
-
-        Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
-        same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
-        are defined by the headers of the image files. These are typically millimeters for radiological images.
-
-    anti_aliasing: bool, optional, default: true
-        Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.
-
-    smoothing_beta: float, optional, default: 0.98
-        Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
-        anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
-
-    perturbation_noise_repetitions: int, optional, default: 0
-        Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
-        added.
-
-    perturbation_noise_level: float, optional, default: None
-        Set the noise level in intensity units. This determines the width of the normal distribution used to generate
-        random noise. If None (default), noise is determined from the image itself.
-
-    perturbation_rotation_angles: float or list of float, optional, default: 0.0
-        Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
-        plane. Multiple angles can be provided to create images with different rotations.
-
-    perturbation_translation_fraction: float or list of float, optional, default: 0.0
-        Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
-        shift slightly and interpolate at different points. Multiple values can be provided. All values should be
-        between 0.0 and 1.0.
-
-    perturbation_roi_adapt_type: {"fraction", "distance"}, optional, default: "distance"
-        Determines how the mask is grown or shrunk. Can be either "fraction" or "distance". "fraction" is used to
-        grow or shrink the mask by a certain fraction (see the ``perturbation_roi_adapt_size`` parameter).
-        "distance" is used to grow or shrink the mask by a certain physical distance, defined using the
-        ``perturbation_roi_adapt_size`` parameter.
-
-    perturbation_roi_adapt_size: float or list of float, optional, default: 0.0
-        Determines the extent of growth/shrinkage of the ROI mask. The use of this parameter depends on the
-        growth/shrinkage type (``perturbation_roi_adapt_type``), For "distance", this parameter defines
-        growth/shrinkage in physical units, typically mm. For "fraction", this parameter defines growth/shrinkage in
-        volume fraction (e.g. a value of 0.2 grows the mask by 20%). For either type, positive values indicate growing
-        the mask, whereas negative values indicate its shrinkage. Multiple values can be provided to perturb the
-        volume of the mask.
-
-    perturbation_roi_adapt_max_erosion: float, optional, default: 0.8
-        Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
-        the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
-        used when ``perturbation_roi_adapt_type=="distance"``.
-
-    perturbation_randomise_roi_repetitions: int, optional, default: 0.0
-        Number of repetitions where the mask is randomised using supervoxel-based randomisation.
+        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others.
 
     Yields
     -------
     None | list[Any]
         List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
+
+    See Also
+    --------
+    Keyword arguments can be provided to configure the following:
+
+    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)
+    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+      :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
 
     """
     workflows = list(_base_deep_learning_preprocessing(
