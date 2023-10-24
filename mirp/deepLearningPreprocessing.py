@@ -52,20 +52,12 @@ def deep_learning_preprocessing(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
-        :class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
-        :class:`mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others. See also the
-        `Other Parameters` section below.
+        :func:`~mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
+        :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
+        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), see below.
 
-    Returns
-    -------
-    None | list[Any]
-        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
-
-    Other Parameters
-    ----------------
-    .. note::
-        The parameters below can be provided as keyword arguments.
+        .. note::
+            The parameters below can be provided as keyword arguments.
 
     write_dir: str, optional
         Path to directory where processed images and masks should be written.
@@ -159,8 +151,8 @@ def deep_learning_preprocessing(
         * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
           deviation of intensities.
 
-    .. note::
-        intensity normalisation may remove any physical meaning of intensity units.
+        .. note::
+            intensity normalisation may remove any physical meaning of intensity units.
 
     intensity_normalisation_range: list of float, optional
         Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
@@ -187,14 +179,14 @@ def deep_learning_preprocessing(
 
     tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
         Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
-         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
+        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
 
     tissue_mask_range: list of float, optional
         Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
         options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
         are considered to represent tissue).
 
-        interpolate: bool, optional, default: False
+    interpolate: bool, optional, default: False
         Controls whether interpolation of images to a common grid is performed at all.
 
     spline_order: int, optional, default: 3
@@ -219,7 +211,7 @@ def deep_learning_preprocessing(
         Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
         anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
 
-        perturbation_noise_repetitions: int, optional, default: 0
+    perturbation_noise_repetitions: int, optional, default: 0
         Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
         added.
 
@@ -258,6 +250,10 @@ def deep_learning_preprocessing(
     perturbation_randomise_roi_repetitions: int, optional, default: 0.0
         Number of repetitions where the mask is randomised using supervoxel-based randomisation.
 
+    Returns
+    -------
+    None | list[Any]
+        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
     """
 
     # Conditionally start a ray cluster.
@@ -361,20 +357,12 @@ def deep_learning_preprocessing_generator(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
-        :class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
-        :class:`mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others. See also the
-        `Other Parameters` section below.
+        :func:`~mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
+        :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
+        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), see below.
 
-    Yields
-    -------
-    None | list[Any]
-        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
-
-    Other Parameters
-    ----------------
-    .. note::
-        The parameters below can be provided as keyword arguments.
+        .. note::
+            The parameters below can be provided as keyword arguments.
 
     write_dir: str, optional
         Path to directory where processed images and masks should be written.
@@ -468,8 +456,8 @@ def deep_learning_preprocessing_generator(
         * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
           deviation of intensities.
 
-    .. note::
-        intensity normalisation may remove any physical meaning of intensity units.
+        .. note::
+            intensity normalisation may remove any physical meaning of intensity units.
 
     intensity_normalisation_range: list of float, optional
         Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
@@ -496,14 +484,14 @@ def deep_learning_preprocessing_generator(
 
     tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
         Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
-         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
+        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
 
     tissue_mask_range: list of float, optional
         Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
         options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
         are considered to represent tissue).
 
-        interpolate: bool, optional, default: False
+    interpolate: bool, optional, default: False
         Controls whether interpolation of images to a common grid is performed at all.
 
     spline_order: int, optional, default: 3
@@ -528,7 +516,7 @@ def deep_learning_preprocessing_generator(
         Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
         anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
 
-        perturbation_noise_repetitions: int, optional, default: 0
+    perturbation_noise_repetitions: int, optional, default: 0
         Number of repetitions where noise is randomly added to the image. A value of 0 means that no noise will be
         added.
 
@@ -566,6 +554,11 @@ def deep_learning_preprocessing_generator(
 
     perturbation_randomise_roi_repetitions: int, optional, default: 0.0
         Number of repetitions where the mask is randomised using supervoxel-based randomisation.
+
+    Yields
+    -------
+    None | list[Any]
+        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
 
     """
     workflows = list(_base_deep_learning_preprocessing(
