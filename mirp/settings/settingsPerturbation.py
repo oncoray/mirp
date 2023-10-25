@@ -3,7 +3,8 @@ from typing import Union, List
 
 class ImagePerturbationSettingsClass:
     """
-    Set of parameters image perturbation. Under default conditions, images are not perturbed in any way.
+    Parameters related to image and mask perturbation / augmentation. By default images and masks are not perturbed or
+    augmented.
 
     Parameters
     ----------
@@ -68,20 +69,22 @@ class ImagePerturbationSettingsClass:
         Unused keyword arguments.
     """
 
-    def __init__(self,
-                 crop_around_roi: bool = False,
-                 crop_distance: float = 150.0,
-                 perturbation_noise_repetitions: int = 0,
-                 perturbation_noise_level: Union[None, float] = None,
-                 perturbation_rotation_angles: Union[None, List[float], float] = 0.0,
-                 perturbation_translation_fraction: Union[None, List[float], float] = 0.0,
-                 perturbation_roi_adapt_type: str = "distance",
-                 perturbation_roi_adapt_size: Union[None, List[float], float] = 0.0,
-                 perturbation_roi_adapt_max_erosion: float = 0.8,
-                 perturbation_randomise_roi_repetitions: int = 0,
-                 roi_split_boundary_size: Union[None, List[float], float] = 0.0,
-                 roi_split_max_erosion: float = 0.6,
-                 **kwargs):
+    def __init__(
+            self,
+            crop_around_roi: bool = False,
+            crop_distance: float = 150.0,
+            perturbation_noise_repetitions: int = 0,
+            perturbation_noise_level: Union[None, float] = None,
+            perturbation_rotation_angles: Union[None, List[float], float] = 0.0,
+            perturbation_translation_fraction: Union[None, List[float], float] = 0.0,
+            perturbation_roi_adapt_type: str = "distance",
+            perturbation_roi_adapt_size: Union[None, List[float], float] = 0.0,
+            perturbation_roi_adapt_max_erosion: float = 0.8,
+            perturbation_randomise_roi_repetitions: int = 0,
+            roi_split_boundary_size: Union[None, List[float], float] = 0.0,
+            roi_split_max_erosion: float = 0.6,
+            **kwargs
+    ):
 
         # Set crop_around_roi
         self.crop_around_roi: bool = crop_around_roi
