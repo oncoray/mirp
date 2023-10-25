@@ -10,14 +10,29 @@ from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
 
 
 class SettingsClass:
+    """
 
+    Parameters
+    ----------
+    general_settings: GeneralSettingsClass, optional
+    post_process_settings: ImagePostProcessingClass, optional
+    perturbation_settings: ImagePerturbationSettingsClass, optional
+    img_interpolate_settings: ImageInterpolationSettingsClass, optional
+    roi_interpolate_settings: MaskInterpolationSettingsClass, optional
+    roi_resegment_settings: ResegmentationSettingsClass, optional
+    feature_extr_settings: FeatureExtractionSettingsClass, optional
+    img_transform_settings: ImageTransformationSettingsClass, optional
+
+    **kwargs: dict, optional
+        Keyword arguments for initialising settings classes.
+    """
     def __init__(
             self,
             general_settings: Optional[GeneralSettingsClass] = None,
-            img_interpolate_settings: Optional[ImageInterpolationSettingsClass] = None,
-            roi_interpolate_settings: Optional[MaskInterpolationSettingsClass] = None,
             post_process_settings: Optional[ImagePostProcessingClass] = None,
             perturbation_settings: Optional[ImagePerturbationSettingsClass] = None,
+            img_interpolate_settings: Optional[ImageInterpolationSettingsClass] = None,
+            roi_interpolate_settings: Optional[MaskInterpolationSettingsClass] = None,
             roi_resegment_settings: Optional[ResegmentationSettingsClass] = None,
             feature_extr_settings: Optional[FeatureExtractionSettingsClass] = None,
             img_transform_settings: Optional[ImageTransformationSettingsClass] = None,
