@@ -3,7 +3,8 @@ from typing import Union, List
 
 class FeatureExtractionSettingsClass:
     """
-    Set of parameters related to feature computation.
+    Parameters related to feature computation. Many are conditional on the type of features that will be computed (
+    ``base_feature_families``).
 
     Parameters
     ----------
@@ -43,7 +44,11 @@ class FeatureExtractionSettingsClass:
         * "none": no features are computed.
         * "all": all features are computed.
 
-        A list of tags may be provided to select multiple feature families.
+        A list of strings may be provided to select multiple feature families.
+
+        .. note::
+            Even though ``"none"`` is the internal default, the :func:`~mirp.extractFeaturesAndImages.extract_features`
+            function overrides this, and sets the default to ``"all"``.
 
     base_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "fixed_bin_size_pyradiomics", "none"}
         Method used for discretising intensities. Used to compute intensity histogram as well as texture features.

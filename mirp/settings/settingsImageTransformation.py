@@ -8,7 +8,17 @@ from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsCla
 
 class ImageTransformationSettingsClass:
     """
-    Set of parameters related to image transformation using filters.
+    Parameters related to image transformation using filters. Many parameters are conditional on the selected image
+    filter (``filter_kernels``). By default, only statistical features are computed from filtered images.
+
+    .. note::
+        Many feature extraction parameters are copied from
+        :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`, except
+        ``response_map_feature_families``, ``response_map_discretisation_method`` and
+        ``response_map_discretisation_n_bins``. If other parameters need to be changed from their default settings,
+        first create an object of the current class (
+        :class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`), and then update the
+        attributes.
 
     Parameters
     ----------
