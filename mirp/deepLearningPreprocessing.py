@@ -30,6 +30,10 @@ def deep_learning_preprocessing(
         Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
         mask(s).
 
+        .. note::
+            MIRP follows the numpy convention for indexing (*z*, *y*, *x*). The final element always corresponds to the
+            *x* dimension.
+
     image_export_format: {"dict", "native", "numpy"}, default: "numpy"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
@@ -163,6 +167,10 @@ def deep_learning_preprocessing_generator(
     crop_size: list of float or list of int, optional, default: None
         Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
         mask(s).
+
+        .. note::
+            MIRP follows the numpy convention for indexing (*z*, *y*, *x*). The final element always corresponds to the
+            *x* dimension.
 
     image_export_format: {"dict", "native", "numpy"}, default: "numpy"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy

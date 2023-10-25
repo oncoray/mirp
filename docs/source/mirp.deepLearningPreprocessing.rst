@@ -12,6 +12,17 @@ The deep learning preprocessing function comes in two versions:
 Example
 -------
 
+MIRP can be used to crop images, e.g. to make them conform to the input of convolutional neural networks:
+
+.. code-block:: python
+
+    from mirp import deep_learning_preprocessing
+
+    processed_data = deep_learning_preprocessing(
+        image="path to image",
+        mask="path to mask,
+        crop_size=[50, 224, 224]
+    )
 
 API documentation
 -----------------
