@@ -367,6 +367,11 @@ def _base_extract_features_and_images(
     if write_features and write_dir is None:
         raise ValueError("write_dir argument is required for writing feature tables, but not provided.")
 
+    if not write_features and not write_images and not export_features and not export_images:
+        raise ValueError(
+            f"At least one of write_features, write_images, export_features and export_images should be True."
+        )
+
     # Import settings (to provide immediate feedback if something is amiss).
     if isinstance(settings, str):
         settings = import_configuration_settings(
