@@ -38,8 +38,8 @@ class ImagePostProcessingClass:
         * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
           deviation of intensities.
 
-    .. note::
-        intensity normalisation may remove any physical meaning of intensity units.
+        .. note::
+            intensity normalisation may remove any physical meaning of intensity units.
 
     intensity_normalisation_range: list of float, optional
         Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
@@ -66,7 +66,7 @@ class ImagePostProcessingClass:
 
     tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
         Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
-         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
+        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
 
     tissue_mask_range: list of float, optional
         Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"

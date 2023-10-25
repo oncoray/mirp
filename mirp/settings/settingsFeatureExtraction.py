@@ -66,9 +66,9 @@ class FeatureExtractionSettingsClass:
          There is no default method. Multiple methods can be specified as a list to yield features according to each
          method.
 
-    .. warning::
-        The "fixed_bin_size_pyradiomics" is not IBSI compliant, and should only be used when
-        reproducing results from studies that used pyradiomics.
+        .. warning::
+            The "fixed_bin_size_pyradiomics" is not IBSI compliant, and should only be used when
+            reproducing results from studies that used pyradiomics.
 
     base_discretisation_n_bins: int or list of int
         Number of bins used for the "fixed_bin_number" discretisation method. No default value. Multiple values can
