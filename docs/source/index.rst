@@ -1,21 +1,34 @@
-.. mirp documentation master file, created by
-   sphinx-quickstart on Fri Oct 13 14:08:55 2023.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to mirp's documentation!
-================================
+Welcome to MIRP
+===============
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
-   mirp.extractImageParameters
-   mirp.deepLearningPreprocessing
-   mirp.extractFeaturesAndImages
-   mirp.extractMaskLabels
    mirp.importData
    mirp.settings
+   mirp.extractImageParameters
+   mirp.extractMaskLabels
+   mirp.deepLearningPreprocessing
+   mirp.extractFeaturesAndImages
+
+Quick-start
+===========
+Medical Image Radiomics Processor (MIRP) is an IBSI-compliant python package for medical image analysis.
+MIRP focuses on radiomics applications and supports computation of features for conventional radiomics
+and image processing for deep-learning applications.
+
+Installing MIRP
+---------------
+MIRP is available from PyPI and can be installed using ``pip``, or other installer tools:
+
+.. code-block:: console
+
+    pip install mirp
+
+
+
+
 
 Indices and tables
 ==================

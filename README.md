@@ -2,7 +2,7 @@
 
 # Medical Image Radiomics Processor
 
-The Medical Image Radiomics Processor (MIRP) is an IBSI-compliant python package for medical image analysis.
+Medical Image Radiomics Processor (MIRP) is an IBSI-compliant python package for medical image analysis.
 MIRP focuses on radiomics applications and supports computation of features for conventional radiomics
 and image processing for deep-learning applications.
 
@@ -88,9 +88,21 @@ feature_data = extract_features(
 The above example will compute features sequentially. MIRP supports parallel processing using the `ray` package. 
 Feature computation can be parallelized by specifying the `num_cpus` argument, e.g. `num_cpus=2` for two CPU threads.
 
-## Examples - Image Preprocessing
+## Examples - Image Preprocessing for deep learning
 Deep learning-based radiomics is an alternative to using predefined quantitative features. MIRP supports 
 preprocessing of images and masks using the same standardized workflow that is used for computing features.
+
+```python
+from mirp import deep_learning_preprocessing
+
+feature_data = deep_learning_preprocessing(
+    image="path to image",
+    mask="path to mask",
+    crop_size=[224, 224, 50]
+)
+```
+
+Below is a minimal working example for preprocessing 
 
 ## Examples - Summarising Image Metadata
 

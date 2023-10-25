@@ -1,5 +1,5 @@
-Configuring image and mask import
-=================================
+Configure image and mask import
+===============================
 
 Many relevant MIRP functions require images, masks or both as input. This section provides details on how image and
 mask import is configured.

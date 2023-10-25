@@ -18,7 +18,7 @@ def extract_mask_labels(
         write_dir: None | str = None
 ) -> pd.DataFrame | None:
     """
-    Extract labels present in one or more masks.
+    Extract labels of regions of interest present in one or more mask files.
 
     Parameters
     ----------
@@ -29,7 +29,7 @@ def extract_mask_labels(
 
     sample_name: str or list of str, optional, default: None
         Name of expected sample names. This is used to select specific mask files. If None, no mask files are filtered
-         based on the corresponding sample name (if known).
+        based on the corresponding sample name (if known).
 
     mask_name: str, optional, default: None
         Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying

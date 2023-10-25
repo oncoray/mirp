@@ -1,5 +1,5 @@
-Configuring the image processing and feature extraction workflow
-================================================================
+Configure the image processing and feature extraction workflow
+==============================================================
 
 MIRP implements the standardised image processing and feature extraction workflow recommended by the Image Biomarker
 Standardization Initiative. Many aspects of this workflow can be configured. This can be done in several ways:
