@@ -14,7 +14,7 @@ class ImageTransformationSettingsClass:
     ----------
     by_slice: str or bool, optional, default: False
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+        largest slice ("largest"). See :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
     response_map_feature_families: str or list of str, optional, default: "statistics"
         Determines the feature families for which features are computed from response maps (filtered images). Radiomics
@@ -56,7 +56,7 @@ class ImageTransformationSettingsClass:
         * "fixed_bin_size": The intensity range is divided into bins with a fixed width, defined using the
           ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower
           bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in
-          :class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. Other images,
+          :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. Other images,
           including MRI, normalised CT and PET images and filtered images, do not have a default value, and bins are
           created from using the minimum intensity as lower bound.
         * "fixed_bin_size_pyradiomics": The intensity range is divided into bins with a fixed width. This follows the

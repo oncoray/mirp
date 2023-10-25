@@ -9,11 +9,11 @@ class FeatureExtractionSettingsClass:
     ----------
     by_slice: str or bool, optional, default: False
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+        largest slice ("largest"). See :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
     no_approximation: bool, optional, default: False
         Disables approximation of features, such as Geary's c-measure. Can be True or False (default). See
-        :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+        :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
     base_feature_families: str or list of str, optional, default: "none"
         Determines the feature families for which features are computed. Radiomics features are implemented as
@@ -55,7 +55,7 @@ class FeatureExtractionSettingsClass:
         * "fixed_bin_size": The intensity range is divided into bins with a fixed width, defined using the
           ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower
           bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in
-          :class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. CT images have a default
+          :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. CT images have a default
           lower bound of the initial bin at -1000.0 and PET images have a default lower bound at 0.0. Other images,
           including MRI, normalised CT and PET images and filtered images, do not have a default value.
         * "fixed_bin_size_pyradiomics": The intensity range is divided into bins with a fixed width. This follows the

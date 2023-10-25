@@ -9,7 +9,7 @@ class ImageInterpolationSettingsClass:
     ----------
     by_slice: str or bool, optional, default: False
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest"). See :class:`mirp.settings.settingsGeneral.GeneralSettingsClass`.
+        largest slice ("largest"). See :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
     interpolate: bool, optional, default: False
         Controls whether interpolation of images to a common grid is performed at all.

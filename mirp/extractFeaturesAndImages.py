@@ -279,16 +279,16 @@ def extract_features_and_images_generator(
         Keyword arguments passed for importing images and masks (
         :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:
 
-        * general settings (:class:`mirp.settings.settingsGeneral.GeneralSettingsClass`)
-        * image post-processing (:class:`mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
-        * image perturbation / augmentation (:class:`mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+        * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
+        * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
         * image interpolation / resampling (
-          :class:`mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
-          :class:`mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
-        * mask resegmentation (:class:`mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
-        * image transformation (:class:`mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+          :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+          :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+        * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
         * feature computation / extraction (
-          :class:`mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+          :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
 
     Yields
     ------
