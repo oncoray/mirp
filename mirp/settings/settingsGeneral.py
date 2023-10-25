@@ -3,7 +3,8 @@ from typing import Union
 
 class GeneralSettingsClass:
     """
-    Set of overall process parameters.
+    Set of overall process parameters. The most important parameter here is ``by_slice`` which affects how images are
+    processed and features are computed.
 
     Parameters
     ----------
@@ -15,7 +16,8 @@ class GeneralSettingsClass:
         Sets a configuration string, which can be used to differentiate results obtained using other settings.
 
     no_approximation: bool, optional, default: False
-        Disables approximation of features, such as Geary's c-measure. Can be True or False (default).
+        Disables approximation within MIRP. This currently only affects computation of features such as Geary's
+        c-measure. Can be True or False (default). False means that approximation is performed.
 
     **kwargs: dict, optional
         Unused keyword arguments.
