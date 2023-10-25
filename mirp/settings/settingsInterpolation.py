@@ -3,7 +3,13 @@ from typing import Union, List, Iterable
 
 class ImageInterpolationSettingsClass:
     """
-    Set of parameters related to image interpolating.
+    Parameters related to image interpolating / resampling. Images in a dataset are typically resampled to uniform
+    voxel spacing to ensure that their spatial representation does not vary between samples. Note that when the
+    voxel spacing in the original image is smaller than that in the resampled image (e.g., 0.5 mm sampled to 1.0 mm),
+    antialiasing may be recommended.
+
+    For parameters related to mask interpolation / resampling, see
+    :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`
 
     Parameters
     ----------
@@ -154,9 +160,10 @@ class ImageInterpolationSettingsClass:
 
 class MaskInterpolationSettingsClass:
     """
-    Set of parameters related to mask interpolation. mirp registers the mask to an interpolated image. Therefore,
-    parameters such as `new_spacing` are missing.
-
+    Parameters related to mask interpolation / resampling. MIRP registers the mask to an interpolated image based,
+    and fewer parameters can be set compared to image interpolation / resampling (
+    :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`).
+    
     Parameters
     ----------
     roi_spline_order: int, optional, default: 1
