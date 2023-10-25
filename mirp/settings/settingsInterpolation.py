@@ -163,7 +163,7 @@ class MaskInterpolationSettingsClass:
     Parameters related to mask interpolation / resampling. MIRP registers the mask to an interpolated image based,
     and fewer parameters can be set compared to image interpolation / resampling (
     :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`).
-    
+
     Parameters
     ----------
     roi_spline_order: int, optional, default: 1

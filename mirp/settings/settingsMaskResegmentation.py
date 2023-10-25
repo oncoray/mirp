@@ -5,10 +5,14 @@ import numpy as np
 
 class ResegmentationSettingsClass:
     """
-    Set of parameters related to mask resegmentation. Resegmentation is used to remove parts of the
-    mask that correspond to undesired intensities that should be excluded, e.g. those corresponding to air.
-    Re-segmentation based on an intensity range is also required for using Fixed Bin Size discretisation,
-    as the lower bound of the range is used
+    Parameters related to mask resegmentation. Resegmentation is used to remove parts of the mask that correspond to
+    undesired intensities that should be excluded, e.g. those corresponding to air. Resegmentation based on an
+    intensity range is also required for using *Fixed Bin Size* discretisation to set the lower bound of the first bin.
+
+    .. note::
+        Even though intensity range resegmentation is usually required to perform *Fixed Bin Size* discretisation,
+        default values are available for computed tomography (CT) and positron emission tomography (PET) imaging,
+        and are set to -1000.0 Hounsfield Units and 0.0 SUV, respectively.
 
     Parameters
     ----------
