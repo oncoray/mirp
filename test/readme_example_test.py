@@ -1,4 +1,6 @@
 import os
+import numpy as np
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -24,6 +26,24 @@ def test_example_feature_extraction():
         base_discretisation_n_bins=32
     )
     assert len(feature_data) == 3
+
+
+def test_example_deep_learning_preprocessing():
+    from mirp import deep_learning_preprocessing
+
+    processed_data = deep_learning_preprocessing(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        crop_size=[50, 224, 224]
+    )
+
+    image = processed_data[0][0][0]
+    mask = processed_data[0][1][0]
+
+    assert np.array_equal(image.shape, (50, 224, 224))
+    assert np.array_equal(mask.shape, (50, 224, 224))
+    assert np.any(image > -1000.0)
+    assert np.any(mask)
 
 
 def test_example_image_metadata():
