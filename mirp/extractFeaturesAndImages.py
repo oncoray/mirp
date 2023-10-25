@@ -115,7 +115,7 @@ def extract_images(
 
     write_dir: str, optional
         Path to directory where processed images and masks should be written. If not set, processed images and masks
-        are returned by this function. Required if ``write_features=True``.
+        are returned by this function. Required if ``write_images=True``.
 
     **kwargs:
         Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.
