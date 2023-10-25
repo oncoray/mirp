@@ -18,6 +18,28 @@ images) and only processing images (without computing features):
 * :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`: conventional function that only processes images.
 * :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`: generator that yields processed images.
 
+Example
+-------
+
+MIRP can compute features from regions of interest in images. The simplest example is:
+
+.. code-block:: python
+
+    from mirp import extract_features
+
+    feature_data = extract_features(
+        image="path to image",
+        mask="path to mask",
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32
+    )
+
+The ``base_discretisation_method`` and its corresponding parameters are required as long as any texture or
+intensity-histogram features are involved.
+
+API documentation
+-----------------
+
 .. autofunction:: mirp.extractFeaturesAndImages.extract_features_and_images
 
 .. autofunction:: mirp.extractFeaturesAndImages.extract_features_and_images_generator
