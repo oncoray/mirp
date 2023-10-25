@@ -88,21 +88,22 @@ feature_data = extract_features(
 The above example will compute features sequentially. MIRP supports parallel processing using the `ray` package. 
 Feature computation can be parallelized by specifying the `num_cpus` argument, e.g. `num_cpus=2` for two CPU threads.
 
-## Examples - Image Preprocessing for deep learning
+## Examples - Image Preprocessing for Deep Learning
 Deep learning-based radiomics is an alternative to using predefined quantitative features. MIRP supports 
 preprocessing of images and masks using the same standardized workflow that is used for computing features.
+
+Below is a minimal working example for preprocessing deep learning images. Note that MIRP uses the numpy notation 
+for indexing, i.e. indices are ordered [*z*, *y*, *x*].
 
 ```python
 from mirp import deep_learning_preprocessing
 
-feature_data = deep_learning_preprocessing(
+processed_images = deep_learning_preprocessing(
     image="path to image",
     mask="path to mask",
-    crop_size=[224, 224, 50]
+    crop_size=[50, 224, 224]
 )
 ```
-
-Below is a minimal working example for preprocessing 
 
 ## Examples - Summarising Image Metadata
 
