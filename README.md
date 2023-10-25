@@ -113,6 +113,7 @@ metadata. Other files, e.g. NIfTI, only have metadata related to position and sp
 Below is a minimal working example for extracting metadata from a single image file.
 ```python
 from mirp import extract_image_parameters
+
 image_parameters = extract_image_parameters(
     image="path to image"
 )
@@ -122,6 +123,7 @@ MIRP also supports extracting metadata from multiple files. For example, assume 
 subfolders for each sample, i.e. `main_folder / sample_name / subfolder`. The minimal working example is then:
 ```python
 from mirp import extract_image_parameters
+
 image_parameters = extract_image_parameters(
     image="path to main image directory",
     image_sub_folder="image subdirectory structure relative to main image directory"

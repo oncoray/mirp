@@ -280,17 +280,13 @@ On occasion, input should be more selective. This can be done by specifying addi
     You can use the :func:`~mirp.extractMaskLabels.extract_mask_labels` function to identify the names of the regions
     of interest in mask files.
 
-Image and mask import function arguments
-----------------------------------------
+API documentation
+-----------------
 
 .. note:: The :func:`~mirp.importData.importImageAndMask.import_image_and_mask` function is called internally by other
   functions. These function pass through keyword arguments to
   :func:`~mirp.importData.importImageAndMask.import_image_and_mask`.
 
 .. autofunction:: mirp.importData.importImageAndMask.import_image_and_mask
-
-
-Creating a data xml file
-----------------------------
 
 .. autofunction:: mirp.utilities.config_utilities.get_data_xml

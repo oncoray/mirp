@@ -2,7 +2,7 @@ Process image and compute quantitative image features
 =====================================================
 
 Two of the main uses for MIRP are to process images and compute quantitative features from images. Both use the same
-standardized, IBSI 1 and IBSI 2 compliant workflow. Two versions of the image processing and feature computation
+standardized, IBSI 1 and IBSI 2 compliant, workflow. Two versions of the image processing and feature computation
 function exist:
 
 * :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`: conventional function that processes images and
@@ -36,6 +36,10 @@ MIRP can compute features from regions of interest in images. The simplest examp
 
 The ``base_discretisation_method`` and its corresponding parameters are required as long as any texture or
 intensity-histogram features are involved.
+
+TODO: More realistic example
+
+TODO: Example using filter.
 
 API documentation
 -----------------

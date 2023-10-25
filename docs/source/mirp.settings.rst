@@ -10,7 +10,7 @@ Standardization Initiative. Many aspects of this workflow can be configured. Thi
   same keyword arguments as above. Alternatively, the attributes of the
   :class:`~mirp.settings.settingsGeneric.SettingsClass` can be filled with the specific objects documented below.
 * By specifying the configuration in a stand-alone settings ``xml`` file. An empty copy of the ``xml`` file can be
-  created using :func:`mirp.utilities.config_utilities.get_settings_xml`.
+  created using :func:`~mirp.utilities.config_utilities.get_settings_xml`.
 
 General settings
 ----------------
