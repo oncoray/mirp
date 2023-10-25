@@ -12,8 +12,9 @@ def deep_learning_preprocessing(
         crop_size: None | list[float] | list[int] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
-        export_images: bool = False,
-        write_images: bool = True,
+        export_images: None | bool = None,
+        write_images: None | bool = None,
+        write_dir: None | str = None,
         num_cpus: None | int = None,
         **kwargs
 ) -> None | list[Any]:
@@ -38,12 +39,16 @@ def deep_learning_preprocessing(
         File format for processed images and masks. ``"nifti"`` writes images and masks in the NIfTI file format,
         and ``"numpy"`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.
 
-    export_images: bool, default: False
+    export_images: bool, optional
         Determines whether processed images and masks should be returned by the function.
 
-    write_images: bool, default: True
+    write_images: bool, optional
         Determines whether processed images and masks should be written to the directory indicated by the
         ``write_dir`` keyword argument.
+
+    write_dir: str, optional
+        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        are returned by this function. Required if ``write_images=True``.
 
     num_cpus: int, optional, default: None
         Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
@@ -92,6 +97,7 @@ def deep_learning_preprocessing(
             for workflow in _base_deep_learning_preprocessing(
                 export_images=export_images,
                 write_images=write_images,
+                write_dir=write_dir,
                 **kwargs
             )
         ]
@@ -103,6 +109,7 @@ def deep_learning_preprocessing(
         workflows = list(_base_deep_learning_preprocessing(
             export_images=export_images,
             write_images=write_images,
+            write_dir=write_dir,
             **kwargs)
         )
 
@@ -116,8 +123,7 @@ def deep_learning_preprocessing(
             for workflow in workflows
         ]
 
-    if export_images:
-        return results
+    return results
 
 
 @ray.remote
@@ -141,8 +147,9 @@ def deep_learning_preprocessing_generator(
         crop_size: None | list[float] | list[int] = None,
         image_export_format: str = "numpy",
         write_file_format: str = "numpy",
-        export_images: bool = True,
-        write_images: bool = False,
+        export_images: None | bool = None,
+        write_images: None | bool = None,
+        write_dir: None | str = None,
         **kwargs
 ) -> Generator[Any, None, None]:
     """
@@ -166,12 +173,16 @@ def deep_learning_preprocessing_generator(
         File format for processed images and masks. ``"nifti"`` writes images and masks in the NIfTI file format,
         and ``"numpy"`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.
 
-    export_images: bool, default: True
+    export_images: bool, optional
         Determines whether processed images and masks should be returned by the function.
 
-    write_images: bool, default: False
+    write_images: bool, optional
         Determines whether processed images and masks should be written to the directory indicated by the
         ``write_dir`` keyword argument.
+
+    write_dir: str, optional
+        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        are returned by this function. Required if ``write_images=True``.
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
@@ -199,6 +210,7 @@ def deep_learning_preprocessing_generator(
     workflows = list(_base_deep_learning_preprocessing(
         export_images=export_images,
         write_images=write_images,
+        write_dir=write_dir,
         **kwargs))
 
     for workflow in workflows:
@@ -227,13 +239,28 @@ def _base_deep_learning_preprocessing(
         settings: None | str | SettingsClass | list[SettingsClass] = None,
         stack_masks: str = "auto",
         stack_images: str = "auto",
-        write_images: bool = False,
-        export_images: bool = True,
+        write_images: None | bool = None,
+        export_images: None | bool = None,
         write_dir: None | str = None,
         **kwargs
 ):
     from mirp.importData.importImageAndMask import import_image_and_mask
     from mirp.settings.importConfigurationSettings import import_configuration_settings
+
+    # Infer write_images, export_images based on write_dir.
+    if write_images is None:
+        write_images = write_dir is not None
+    if export_images is None:
+        export_images = write_dir is None
+
+    if not write_images:
+        write_dir = None
+
+    if write_images and write_dir is None:
+        raise ValueError("write_dir argument should be provided for writing images and masks to.")
+
+    if not write_images and not export_images:
+        raise ValueError(f"write_images and export_images arguments cannot both be False.")
 
     # Import settings (to provide immediate feedback if something is amiss).
     if isinstance(settings, str):
@@ -251,17 +278,10 @@ def _base_deep_learning_preprocessing(
             **kwargs
         )
     else:
-        raise TypeError(f"The 'settings' argument is expected to be a path to a configuration xml file, "
-                        f"a SettingsClass object, or a list thereof. Found: {type(settings)}.")
-
-    if not write_images:
-        write_dir = None
-
-    if write_images and write_dir is None:
-        raise ValueError("write_dir argument should be provided for writing images and masks to.")
-
-    if not write_images and not export_images:
-        raise ValueError(f"write_images and export_images arguments cannot both be False.")
+        raise TypeError(
+            f"The 'settings' argument is expected to be a path to a configuration xml file, "
+            f"a SettingsClass object, or a list thereof. Found: {type(settings)}."
+        )
 
     image_list = import_image_and_mask(
         image=image,
