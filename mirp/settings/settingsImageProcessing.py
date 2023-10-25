@@ -5,7 +5,9 @@ import numpy as np
 
 class ImagePostProcessingClass:
     """
-    Set of parameters related to image processing.
+    Parameters related to image processing. Note that parameters concerning image perturbation / augmentation and
+    resampling are set separately, see :class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass` and
+    :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`.
 
     Parameters
     ----------
