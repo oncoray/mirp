@@ -1,5 +1,3 @@
-from typing import Optional
-
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.settings.settingsGeneral import GeneralSettingsClass
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
@@ -11,31 +9,74 @@ from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
 
 class SettingsClass:
     """
+    Container for objects used to configure the image processing and feature processing workflow. This object can be
+    initialised in two ways:
+
+    * By providing (already initialised) configuration objects as arguments.
+    * By passing arguments to configuration objects as keyword arguments. These configuration objects will then be
+      created while initialising this container.
 
     Parameters
     ----------
     general_settings: GeneralSettingsClass, optional
+        Configuration object for parameters related to the general process. See
+        :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
+
     post_process_settings: ImagePostProcessingClass, optional
+        Configuration object for parameters related to image (post-)processing. See
+        :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`.
+
     perturbation_settings: ImagePerturbationSettingsClass, optional
+        Configuration object for parameters related to image perturbation / augmentation. See
+        :class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`.
+
     img_interpolate_settings: ImageInterpolationSettingsClass, optional
+        Configuration object for parameters related to image resampling. See
+        :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`.
+
     roi_interpolate_settings: MaskInterpolationSettingsClass, optional
+        Configuration object for parameters related to mask resampling. See
+        :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`.
+
     roi_resegment_settings: ResegmentationSettingsClass, optional
+        Configuration object for parameters related to mask resegmentation. See
+        :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`.
+
     feature_extr_settings: FeatureExtractionSettingsClass, optional
+        Configuration object for parameters related to feature computation. See
+        :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`.
+
     img_transform_settings: ImageTransformationSettingsClass, optional
+        Configuration object for parameters related to image transformation. See
+        :class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`.
 
     **kwargs: dict, optional
         Keyword arguments for initialising settings classes.
+
+    See Also
+    --------
+
+    * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
+    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
+    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
+    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
+      :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
+    * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+    * feature computation / extraction (
+      :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+
     """
     def __init__(
             self,
-            general_settings: Optional[GeneralSettingsClass] = None,
-            post_process_settings: Optional[ImagePostProcessingClass] = None,
-            perturbation_settings: Optional[ImagePerturbationSettingsClass] = None,
-            img_interpolate_settings: Optional[ImageInterpolationSettingsClass] = None,
-            roi_interpolate_settings: Optional[MaskInterpolationSettingsClass] = None,
-            roi_resegment_settings: Optional[ResegmentationSettingsClass] = None,
-            feature_extr_settings: Optional[FeatureExtractionSettingsClass] = None,
-            img_transform_settings: Optional[ImageTransformationSettingsClass] = None,
+            general_settings: None | GeneralSettingsClass = None,
+            post_process_settings: None | ImagePostProcessingClass = None,
+            perturbation_settings: None | ImagePerturbationSettingsClass = None,
+            img_interpolate_settings: None | ImageInterpolationSettingsClass = None,
+            roi_interpolate_settings: None | MaskInterpolationSettingsClass = None,
+            roi_resegment_settings: None | ResegmentationSettingsClass = None,
+            feature_extr_settings: None | FeatureExtractionSettingsClass = None,
+            img_transform_settings: None | ImageTransformationSettingsClass = None,
             **kwargs
     ):
         # General settings.
