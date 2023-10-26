@@ -198,7 +198,6 @@ def import_configuration_settings(
 
         if roi_resegment_branch is not None:
             roi_resegment_settings = ResegmentationSettingsClass(
-                resegmentation_method=str2list(roi_resegment_branch.find("method"), "str", "none"),
                 resegmentation_intensity_range=str2list(read_node(
                     roi_resegment_branch, ["intensity_range", "g_thresh"]), "float", None),
                 resegmentation_sigma=str2type(roi_resegment_branch.find("sigma"), "float", 3.0))

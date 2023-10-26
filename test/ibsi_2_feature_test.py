@@ -54,7 +54,6 @@ def _get_default_settings(
         )
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method="threshold",
         resegmentation_intensity_range=[-1000.0, 400.0]
     )
 

@@ -19,7 +19,6 @@ def test_basic_ct_feature_extraction():
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
         roi_name="GTV-1",
         base_feature_families="statistics",
-        resegmentation_method="range",
         resegmentation_intensity_range=[-1000.0, 250.0]
     )
 

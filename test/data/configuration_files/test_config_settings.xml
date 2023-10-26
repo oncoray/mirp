@@ -92,11 +92,6 @@
             not documented here. -->
         </vol_adapt>
         <roi_resegment>
-            <!-- ROI re-segmentation method for intensity-based re-segmentation. Options are threshold, range, sigma and
-            outlier. Multiple options can be provided, and re-segmentation will take place in the given order.
-            "threshold" and "range" are synonyms, as well as "sigma" and "outlier". If left unset, no re-segmentation
-             is performed.-->
-            <method>threshold</method>
             <!-- Intensity threshold for threshold-based re-segmentation (threshold and range). If set, requires two
              values for lower and upper range respectively. The upper range value can also be nan for half-open
              ranges. -->

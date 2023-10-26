@@ -524,7 +524,6 @@ def create_settings(
         resegmentation_intensity_range = [-200.0, 200.0]
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method="threshold",
         resegmentation_intensity_range=resegmentation_intensity_range
     )
 
@@ -555,4 +554,8 @@ def create_settings(
 def get_bounding_box(image):
     z_ind, y_ind, x_ind = np.where(image)
 
-    return tuple([np.min(z_ind), np.max(z_ind)]), tuple([np.min(y_ind), np.max(y_ind)]), tuple([np.min(x_ind), np.max(x_ind)])
+    return (
+        tuple([np.min(z_ind), np.max(z_ind)]),
+        tuple([np.min(y_ind), np.max(y_ind)]),
+        tuple([np.min(x_ind), np.max(x_ind)])
+    )

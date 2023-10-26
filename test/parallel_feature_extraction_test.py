@@ -20,7 +20,6 @@ def test_parallel_feature_extraction():
         roi_name="GTV-1",
         perturbation_translation_fraction=[0.0, 0.5],
         base_feature_families="statistics",
-        resegmentation_method="range",
         resegmentation_intensity_range=[-1000.0, 250.0]
     )
 
@@ -35,7 +34,6 @@ def test_parallel_feature_extraction():
         roi_name="GTV-1",
         perturbation_translation_fraction=[0.0, 0.5],
         base_feature_families="statistics",
-        resegmentation_method="range",
         resegmentation_intensity_range=[-1000.0, 250.0]
     )
 

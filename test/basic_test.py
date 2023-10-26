@@ -200,7 +200,6 @@ def test_edge_cases_basic_pipeline():
         data = run_experiment(
             image=image,
             roi="full_mask",
-            resegmentation_method="range",
             resegmentation_intensity_range=[100.0, 200.0]
         )
 

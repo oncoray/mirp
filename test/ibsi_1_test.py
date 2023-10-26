@@ -599,7 +599,6 @@ def test_ibsi_1_chest_config_a():
     )
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method=["range"],
         resegmentation_intensity_range=[-500.0, 400.0]
     )
 
@@ -1015,7 +1014,6 @@ def test_ibsi_1_chest_config_b():
     )
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method="range",
         resegmentation_intensity_range=[-500.0, 400.0]
     )
 
@@ -1431,7 +1429,6 @@ def test_ibsi_1_chest_config_c():
     )
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method="range",
         resegmentation_intensity_range=[-1000.0, 400.0]
     )
 
@@ -1711,7 +1708,6 @@ def test_ibsi_1_chest_config_d():
     )
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method="outlier",
         resegmentation_sigma=3.0
     )
 
@@ -1989,7 +1985,6 @@ def test_ibsi_1_chest_config_e():
     )
 
     resegmentation_settings = ResegmentationSettingsClass(
-        resegmentation_method=["range", "outlier"],
         resegmentation_intensity_range=[-1000.0, 400.0],
         resegmentation_sigma=3.0
     )

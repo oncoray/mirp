@@ -22,7 +22,6 @@ def resegmentise_mask(
     for mask in masks:
         mask.resegmentise_mask(
             image=image,
-            resegmentation_method=resegmentation_method,
             intensity_range=intensity_range,
             sigma=sigma
         )
