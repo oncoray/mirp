@@ -12,17 +12,17 @@ class GenericImage(BaseImage):
 
     def __init__(
             self,
-            image_data: Optional[np.ndarray],
-            separate_slices: Optional[bool] = None,
-            translation: Optional[Tuple[float, ...]] = None,
-            rotation_angle: Optional[float] = None,
-            noise_iteration_id: Optional[int] = None,
-            noise_level: Optional[float] = None,
+            image_data: None | np.ndarray,
+            separate_slices: None | bool = None,
+            translation: None | tuple[float, ...] = None,
+            rotation_angle: None | float = None,
+            noise_iteration_id: None | int = None,
+            noise_level: None | float = None,
             interpolated: bool = False,
-            interpolation_algorithm: Optional[str] = None,
-            discretisation_method: Optional[str] = None,
-            discretisation_bin_number: Optional[int] = None,
-            discretisation_bin_width: Optional[float] = None,
+            interpolation_algorithm: None | str = None,
+            discretisation_method: None | str = None,
+            discretisation_bin_number: None | int = None,
+            discretisation_bin_width: None | float = None,
             **kwargs
     ):
         super().__init__(**kwargs)
