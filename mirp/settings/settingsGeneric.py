@@ -51,7 +51,7 @@ class SettingsClass:
         :class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`.
 
     **kwargs: dict, optional
-        Keyword arguments for initialising settings classes.
+        Keyword arguments for initialising configuration objects stored in this container object.
 
     See Also
     --------
@@ -59,8 +59,8 @@ class SettingsClass:
     * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
-    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
-      :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
+    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`
+      and :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
     * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
     * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
     * feature computation / extraction (
