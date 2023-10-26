@@ -8,16 +8,14 @@
             <by_slice>False</by_slice>
         </general>
         <img_interpolate>
-            <!-- Controls whether interpolation is performed at all. -->
-            <interpolate>True</interpolate>
-            <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear), 2, 3
-            (cubic), 4, 5 -->
-            <spline_order>3</spline_order>
             <!-- Voxel spacing after interpolation. Units are defined by the headers of the image files. Every
             value represents the spacing that will be applied in all directions. Non-uniform voxel spacing may also
             be provided, but requires 3 values for z, y, and x directions (if by_slice = False) or 2 values for y and
             x directions (otherwise). -->
             <new_spacing>3.0</new_spacing>
+            <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear), 2, 3
+            (cubic), 4, 5 -->
+            <spline_order>3</spline_order>
             <!-- Anti-aliasing filter to reduce aliasing artefacts when down-sampling. Enabled by default (True). -->
             <anti_aliasing>False</anti_aliasing>
             <!-- Smoothing parameter beta for anti-aliasing filter. Must be in range (0.0, 1.0]. At 1.0 no
