@@ -27,7 +27,6 @@ def _get_default_settings(by_slice: bool = False):
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=by_slice,
-        interpolate=False,
         anti_aliasing=False
     )
 

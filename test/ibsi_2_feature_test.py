@@ -42,14 +42,12 @@ def _get_default_settings(
     if by_slice:
         image_interpolation_settings = ImageInterpolationSettingsClass(
             by_slice=by_slice,
-            interpolate=False,
             anti_aliasing=False
         )
 
     else:
         image_interpolation_settings = ImageInterpolationSettingsClass(
             by_slice=by_slice,
-            interpolate=True,
             spline_order=3,
             new_spacing=1.0,
             anti_aliasing=False

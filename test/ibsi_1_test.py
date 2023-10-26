@@ -44,7 +44,6 @@ def test_ibsi_1_digital_phantom():
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=general_settings.by_slice,
-        interpolate=False,
         anti_aliasing=False
     )
 
@@ -596,7 +595,6 @@ def test_ibsi_1_chest_config_a():
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=general_settings.by_slice,
-        interpolate=False,
         anti_aliasing=False
     )
 
@@ -1011,7 +1009,6 @@ def test_ibsi_1_chest_config_b():
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=general_settings.by_slice,
-        interpolate=True,
         spline_order=1,
         new_spacing=2.0,
         anti_aliasing=False
@@ -1428,7 +1425,6 @@ def test_ibsi_1_chest_config_c():
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=general_settings.by_slice,
-        interpolate=True,
         spline_order=1,
         new_spacing=2.0,
         anti_aliasing=False
@@ -1709,7 +1705,6 @@ def test_ibsi_1_chest_config_d():
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=general_settings.by_slice,
-        interpolate=True,
         spline_order=1,
         new_spacing=2.0,
         anti_aliasing=False
@@ -1988,7 +1983,6 @@ def test_ibsi_1_chest_config_e():
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=general_settings.by_slice,
-        interpolate=True,
         spline_order=3,
         new_spacing=2.0,
         anti_aliasing=False

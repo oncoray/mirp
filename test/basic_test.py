@@ -63,7 +63,6 @@ def run_experiment(image, roi, **kwargs):
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=by_slice,
-        interpolate=True,
         new_spacing=1.0
     )
 

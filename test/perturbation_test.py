@@ -514,7 +514,6 @@ def create_settings(
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
         by_slice=False,
-        interpolate=True,
         spline_order=3,
         new_spacing=new_spacing,
         anti_aliasing=False

@@ -129,11 +129,11 @@ def import_configuration_settings(
 
             img_interp_settings = ImageInterpolationSettingsClass(
                 by_slice=general_settings.by_slice,
-                interpolate=str2type(img_interp_branch.find("interpolate"), "bool", False),
                 spline_order=str2type(img_interp_branch.find("spline_order"), "int", 3),
                 new_spacing=str2list(img_interp_branch.find("new_spacing"), "float", None),
                 anti_aliasing=str2type(img_interp_branch.find("anti_aliasing"), "bool", True),
-                smoothing_beta=str2type(img_interp_branch.find("smoothing_beta"), "float", 0.98))
+                smoothing_beta=str2type(img_interp_branch.find("smoothing_beta"), "float", 0.98)
+            )
 
         else:
             img_interp_settings = ImageInterpolationSettingsClass(by_slice=general_settings.by_slice)

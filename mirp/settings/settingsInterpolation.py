@@ -1,4 +1,4 @@
-from typing import Union, List, Iterable
+from typing import Iterable
 
 
 class ImageInterpolationSettingsClass:
@@ -9,7 +9,7 @@ class ImageInterpolationSettingsClass:
     antialiasing may be recommended.
 
     For parameters related to mask interpolation / resampling, see
-    :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`
+    :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`.
 
     Parameters
     ----------
@@ -17,16 +17,7 @@ class ImageInterpolationSettingsClass:
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
         largest slice ("largest"). See :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
-    interpolate: bool, optional, default: False
-        Controls whether interpolation of images to a common grid is performed at all.
-
-    spline_order: int, optional, default: 3
-        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
-        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
-        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
-        and cubic interpolation, respectively.
-
-    new_spacing: float or list of float or list of list of float:
+    new_spacing: float or list of float or list of list of float, optional:
         Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
         directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
         (if `by_slice = False`) or 2 values for y and x directions (otherwise).
@@ -35,12 +26,18 @@ class ImageInterpolationSettingsClass:
         same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
         are defined by the headers of the image files. These are typically millimeters for radiological images.
 
+    spline_order: int, optional, default: 3
+        Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
+        <https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.map_coordinates.html#scipy.ndimage
+        .map_coordinates>`_ internally. Spline orders 0, 1, and 3 refer to nearest neighbour, linear interpolation
+        and cubic interpolation, respectively.
+
     anti_aliasing: bool, optional, default: true
-        Determines whether to perform anti-aliasing, which is done to mitigate aliasing artifacts when downsampling.
+        Determines whether to perform antialiasing, which is done to mitigate aliasing artifacts when downsampling.
 
     smoothing_beta: float, optional, default: 0.98
         Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
-        anti-aliasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
+        antialiasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
 
     **kwargs: dict, optional
         Unused keyword arguments.
@@ -49,16 +46,15 @@ class ImageInterpolationSettingsClass:
     def __init__(
             self,
             by_slice: bool,
-            interpolate: bool = False,
+            new_spacing: None | float | int | list[int] | list[float] | list[list[float]] | list[list[int]] = None,
             spline_order: int = 3,
-            new_spacing: Union[float, int, List[int], List[float], None] = None,
             anti_aliasing: bool = True,
             smoothing_beta: float = 0.98,
             **kwargs
     ):
 
         # Set interpolate parameter.
-        self.interpolate: bool = interpolate
+        self.interpolate: bool = new_spacing is not None
 
         # Check if the spline order is valid.
         if spline_order < 0 or spline_order > 5:
@@ -68,17 +64,7 @@ class ImageInterpolationSettingsClass:
         # Set spline order for the interpolating spline.
         self.spline_order: int = spline_order
 
-        # Check
-        if not interpolate:
-            new_spacing = None
-
-        else:
-            # When interpolation is desired, check that the desired spacing is set.
-            if new_spacing is None:
-                raise ValueError(
-                    "The desired voxel spacing for resampling is required if interpolation=True. "
-                    "However, no new spacing was defined.")
-
+        if self.interpolate:
             # Parse value to list of floating point values to facilitate checks.
             if isinstance(new_spacing, (int, float)):
                 new_spacing = [new_spacing]
@@ -99,7 +85,7 @@ class ImageInterpolationSettingsClass:
 
         # Set spacing for resampling. Note that new_spacing should now either be None or a nested list, i.e. a list
         # containing other lists.
-        self.new_spacing: Union[None, List] = new_spacing
+        self.new_spacing: None | list[list[float | None]] = new_spacing
 
         # Set anti-aliasing.
         self.anti_aliasing: bool = anti_aliasing
@@ -115,8 +101,7 @@ class ImageInterpolationSettingsClass:
         self.smoothing_beta: float = smoothing_beta
 
     @staticmethod
-    def _check_new_sample_spacing(by_slice,
-                                  new_spacing):
+    def _check_new_sample_spacing(by_slice, new_spacing):
         # Checks whether sample spacing is correctly set, and parses it.
 
         # Parse value to list of floating point values to facilitate checks.
@@ -124,7 +109,7 @@ class ImageInterpolationSettingsClass:
             new_spacing = [new_spacing]
 
         # Convert to floating point values.
-        new_spacing: List[Union[float, None]] = [float(new_spacing_element) for new_spacing_element in new_spacing]
+        new_spacing: list[float | None] = [float(new_spacing_element) for new_spacing_element in new_spacing]
 
         if by_slice:
             # New spacing is expect to consist of at most two values when the experiment is based on slices. A
@@ -185,7 +170,6 @@ class MaskInterpolationSettingsClass:
             roi_spline_order: int = 1,
             roi_interpolation_mask_inclusion_threshold: float = 0.5,
             **kwargs):
-
 
         # Check if the spline order is valid.
         if roi_spline_order < 0 or roi_spline_order > 5:
