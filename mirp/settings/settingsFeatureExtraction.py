@@ -83,7 +83,7 @@ class FeatureExtractionSettingsClass:
         Width of each bin in the "fixed_bin_size" discretisation method. No default value. Multiple values can be
         specified in a list to yield features according to each bin width.
 
-    ivh_discretisation_method: {"fixed_bin_width", "fixed_bin_size", "none"}, optional, default: "none"
+    ivh_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "none"}, optional, default: "none"
         Method used for discretising intensities for computing intensity-volume histograms. The discretisation
         methods follow those in ``base_discretisation_method``. The "none" method changes to "fixed_bin_number" if
         the underlying data are not suitable.
