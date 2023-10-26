@@ -96,6 +96,7 @@ Because the resegmentation range is not set, the lower bound of the initial bin 
     feature_data = extract_features(
         image="path to CT image",
         mask="path to CT mask",
+        image_modality="CT",
         new_spacing=1.0,
         base_discretisation_method="fixed_bin_size",
         base_discretisation_bin_width=25
@@ -113,13 +114,51 @@ for soft tissues: ``resegmentation_intensity_range=[-200.0, 200.0]``. Thus the l
     feature_data = extract_features(
         image="path to CT image",
         mask="path to CT mask",
+        image_modality="CT",
         resegmentation_intensity_range=[-200.0, 200.0]
         new_spacing=1.0,
         base_discretisation_method="fixed_bin_size",
         base_discretisation_bin_width=25
     )
 
-TODO: Example using filter.
+The above examples all compute features from the base image. Filters can be applied to images to enhance patterns such
+as edges. In the example below, we compute features from a Laplacian-of-Gaussian filtered image:
+
+.. code-block:: python
+
+    from mirp import extract_features
+
+    feature_data = extract_features(
+        image="path to image",
+        mask="path to mask",
+        base_discretisation_method="fixed_bin_size",
+        base_discretisation_bin_width=25
+        filter_kernels="laplacian_of_gaussian",
+        laplacian_of_gaussian_sigma=2.0
+    )
+
+By default, only statistical features are computed from filtered images, and features are still extracted from the
+base image. You can change this by specifying ``base_feature_families="none"`` (to prevent computing features from
+the base image) and specifying ``response_map_feature_families``. In the example below, we compute both statistical
+features and intensity histogram features.
+
+.. code-block:: python
+
+    from mirp import extract_features
+
+    feature_data = extract_features(
+        image="path to image",
+        mask="path to mask",
+        base_feature_families="none",
+        response_map_feature_families=["statistics", "intensity_histogram"],
+        filter_kernels="laplacian_of_gaussian",
+        laplacian_of_gaussian_sigma=2.0
+    )
+
+Even though intensity histogram features require discretisation, you don't have to provide a discretisation method
+and associated parameters. This is because for many filters, intensities in the filtered images no longer represent a
+measurable quantity. Hence a *Fixed Bin Number* algorithm is used by default, with 16 bins. These parameters can be
+changed using the ``response_map_discretisation_method`` and ``response_map_discretisation_n_bins`` arguments.
 
 API documentation
 -----------------
