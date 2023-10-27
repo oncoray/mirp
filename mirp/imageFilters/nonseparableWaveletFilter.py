@@ -105,7 +105,7 @@ class NonseparableWaveletFilter(GenericFilter):
     def shannon_filter(self, filter_size):
         """
         Set up the shannon filter in the Fourier domain.
-        @param filter_size: Size of the filter. By default equal to the size of the image.
+        @param filter_size: Size of the filter. By default, equal to the size of the image.
         """
 
         # Get the distance grid.
@@ -125,7 +125,7 @@ class NonseparableWaveletFilter(GenericFilter):
     def simoncelli_filter(self, filter_size):
         """
         Set up the simoncelli filter in the Fourier domain.
-        @param filter_size: Size of the filter. By default equal to the size of the image.
+        @param filter_size: Size of the filter. By default, equal to the size of the image.
         """
 
         # Get the distance grid.
@@ -170,9 +170,16 @@ class NonseparableWaveletFilter(GenericFilter):
         distance_grid = [(distance_grid[ii] - center_pos) / center_pos for ii, center_pos in enumerate(grid_center)]
 
         # Compute the distances in the grid.
-        distance_grid = np.sqrt(np.sum(
-            np.power(np.meshgrid(distance_grid[0], distance_grid[1], distance_grid[2]), 2.0), axis=0)
-        )
+        if len(filter_shape) == 2:
+            distance_grid = np.sqrt(np.sum(
+                np.power(np.meshgrid(distance_grid[0], distance_grid[1]), 2.0), axis=0)
+            )
+        elif len(filter_shape) == 3:
+            distance_grid = np.sqrt(np.sum(
+                np.power(np.meshgrid(distance_grid[0], distance_grid[1], distance_grid[2]), 2.0), axis=0)
+            )
+        else:
+            raise ValueError("Filter shape should have 2 or 3 dimensions.")
 
         # Set the Nyquist frequency
         decomposed_max_frequency = 1.0 / 2.0 ** (self.decomposition_level - 1.0)
