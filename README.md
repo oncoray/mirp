@@ -1,4 +1,4 @@
-<img src="icon/mirp.svg" align="right" width="120"/>
+<img src="https://raw.githubusercontent.com/oncoray/mirp/master/icon/mirp.svg" align="right" width="120"/>
 
 # Medical Image Radiomics Processor
 
