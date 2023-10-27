@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Process image and compute quantitative image features &mdash; mirp 2.0.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=51b770b3"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Preprocess images for deep learning" href="mirp.deepLearningPreprocessing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mirp.importData.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.settings.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mirp.deepLearningPreprocessing.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Process image and compute quantitative image features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#examples">Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-documentation">API documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images"><code class="docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features"><code class="docutils literal notranslate"><span class="pre">extract_features()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_generator"><code class="docutils literal notranslate"><span class="pre">extract_features_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_images"><code class="docutils literal notranslate"><span class="pre">extract_images()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_images_generator"><code class="docutils literal notranslate"><span class="pre">extract_images_generator()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Process image and compute quantitative image features</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mirp.extractFeaturesAndImages.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="process-image-and-compute-quantitative-image-features">
+<h1>Process image and compute quantitative image features<a class="headerlink" href="#process-image-and-compute-quantitative-image-features" title="Link to this heading"></a></h1>
+<p>Two of the main uses for MIRP are to process images and compute quantitative features from images. Both use the same
+standardized, IBSI 1 and IBSI 2 compliant, workflow. Two versions of the image processing and feature computation
+function exist:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a>: conventional function that processes images and
+computes features.</p></li>
+<li><p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a>: generator that yields processed
+images and features computed therefrom.</p></li>
+</ul>
+<p>For convenience, the above functions are wrapped to allow for only computing feature values (without exporting
+images) and only processing images (without computing features):</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features" title="mirp.extractFeaturesAndImages.extract_features"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features()</span></code></a>: conventional function that only computes features.</p></li>
+<li><p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_generator" title="mirp.extractFeaturesAndImages.extract_features_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_generator()</span></code></a>: generator that only yields feature values.</p></li>
+<li><p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a>: conventional function that only processes images.</p></li>
+<li><p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a>: generator that yields processed images.</p></li>
+</ul>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h2>
+<p>MIRP can compute features from regions of interest in images. The simplest example is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to mask&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_n_bins</span><span class="o">=</span><span class="mi">32</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">base_discretisation_method</span></code> and its corresponding parameters are required as long as any texture or
+intensity-histogram features are involved.</p>
+<p>A more realistic example involves interpolation to ensure that voxel spacing is the same for all images in a dataset.
+For example, a positron emission tomography (PET) dataset may be resampled to 3 by 3 by 3 mm isotropic voxels. This
+is achieved by providing the <code class="docutils literal notranslate"><span class="pre">new_spacing</span></code> argument, i.e. <code class="docutils literal notranslate"><span class="pre">new_spacing=3.0</span></code> or <code class="docutils literal notranslate"><span class="pre">new_spacing=[3.0,</span> <span class="pre">3.0,</span> <span class="pre">3.0]</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to PET image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to PET mask&quot;</span><span class="p">,</span>
+    <span class="n">image_modality</span><span class="o">=</span><span class="s2">&quot;PET&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_n_bins</span><span class="o">=</span><span class="mi">32</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">image_modality=&quot;PET&quot;</span></code> is used to declare that the image is a PET image. If this is a DICOM image, this
+argument is not necessary – the modality can be inferred from the metadata.</p>
+<p>Sometimes, in-plane resolution is much higher than axial resolution. For example, in (older) computed tomography (CT)
+images, in-plane resolution may be 1 by 1 mm, but the distance between slices can be 7 mm or greater.
+Resampling to isotropic 1 by 1 by 1 mm voxels causes considerable data to be inferred between slices,
+which may not be desirable. In that case, images may be better processed by slice-by-slice (<em>2D</em>).
+This is achieved by providing the <code class="docutils literal notranslate"><span class="pre">by_slice</span></code> argument, i.e. <code class="docutils literal notranslate"><span class="pre">by_slice=True</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to CT image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to CT mask&quot;</span><span class="p">,</span>
+    <span class="n">image_modality</span><span class="o">=</span><span class="s2">&quot;CT&quot;</span><span class="p">,</span>
+    <span class="n">by_slice</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_n_bins</span><span class="o">=</span><span class="mi">32</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>In the above example <code class="docutils literal notranslate"><span class="pre">new_spacing=1.0</span></code> causes all images to be resampled in-plane to a 1 mm resolution.</p>
+<p>The previous examples used the <em>Fixed Bin Number</em> to discretise intensities within the mask into a fixed number of bins.
+For some imaging modalities, intensities carry a physical (or at least calibrated) meaning, such as Hounsfield units in
+computed tomography and standardised uptake values in positron emission tomography. For these <em>Fixed Bin Size</em> (also
+known as <em>Fixed Bin Width</em>) can be interesting, as this creates a mapping between intensities and bins that is
+consistent across the dataset. MIRP sets the lower bound of the initial bin using the resegmentation range, or in
+its absence, a default value (if any).</p>
+<p>Below we compute features from a computed tomography image using a <em>Fixed Bin Size</em> discretisation method.
+Because the resegmentation range is not set, the lower bound of the initial bin defaults to -1000 Hounsfield Units.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to CT image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to CT mask&quot;</span><span class="p">,</span>
+    <span class="n">image_modality</span><span class="o">=</span><span class="s2">&quot;CT&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">25.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>If the region of interest contained in the mask in the above example covers soft tissue, this default might not be good.
+We can change this by providing the <code class="docutils literal notranslate"><span class="pre">resegmentation_intensity_range</span></code> argument. Here, we provide a window more fitting
+for soft tissues: <code class="docutils literal notranslate"><span class="pre">resegmentation_intensity_range=[-200.0,</span> <span class="pre">200.0]</span></code>. Thus the lower bound of the initial bin is set to
+-200 Hounsfield Units, and 16 bins total are formed.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to CT image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to CT mask&quot;</span><span class="p">,</span>
+    <span class="n">image_modality</span><span class="o">=</span><span class="s2">&quot;CT&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">resegmentation_intensity_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">200.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">],</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">25.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The above examples all compute features from the base image. Filters can be applied to images to enhance patterns such
+as edges. In the example below, we compute features from a Laplacian-of-Gaussian filtered image:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to mask&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>
+    <span class="n">filter_kernels</span><span class="o">=</span><span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span>
+    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="mf">2.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>By default, only statistical features are computed from filtered images, and features are still extracted from the
+base image. You can change this by specifying <code class="docutils literal notranslate"><span class="pre">base_feature_families=&quot;none&quot;</span></code> (to prevent computing features from
+the base image) and specifying <code class="docutils literal notranslate"><span class="pre">response_map_feature_families</span></code>. In the example below, we compute both statistical
+features and intensity histogram features.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path to mask&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">base_feature_families</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">,</span>
+    <span class="n">response_map_feature_families</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;statistics&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_histogram&quot;</span><span class="p">],</span>
+    <span class="n">filter_kernels</span><span class="o">=</span><span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span>
+    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="mf">2.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Even though intensity histogram features require discretisation, you don’t have to provide a discretisation method
+and associated parameters. This is because for many filters, intensities in the filtered images no longer represent a
+measurable quantity. Hence a <em>Fixed Bin Number</em> algorithm is used by default, with 16 bins. These parameters can be
+changed using the <code class="docutils literal notranslate"><span class="pre">response_map_discretisation_method</span></code> and <code class="docutils literal notranslate"><span class="pre">response_map_discretisation_n_bins</span></code> arguments.</p>
+</section>
+<section id="api-documentation">
+<h2>API documentation<a class="headerlink" href="#api-documentation" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.extractFeaturesAndImages.extract_features_and_images">
+<span class="sig-prename descclassname"><span class="pre">mirp.extractFeaturesAndImages.</span></span><span class="sig-name descname"><span class="pre">extract_features_and_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_export_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_cpus</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mirp/extractFeaturesAndImages.html#extract_features_and_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="Link to this definition"></a></dt>
+<dd><p>Processes images and computes features from regions of interest.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_export_format</strong> (<em>{&quot;dict&quot;</em><em>, </em><em>&quot;native&quot;</em><em>, </em><em>&quot;numpy&quot;}</em><em>, </em><em>default: &quot;numpy&quot;</em>) – Return format for processed images and masks. <code class="docutils literal notranslate"><span class="pre">&quot;dict&quot;</span></code> returns dictionaries of images and masks as numpy
+arrays and associated characteristics. <code class="docutils literal notranslate"><span class="pre">&quot;native&quot;</span></code> returns images and masks in their internal format.
+<code class="docutils literal notranslate"><span class="pre">&quot;numpy&quot;</span></code> returns images and masks in numpy format. This argument is only used if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p></li>
+<li><p><strong>num_cpus</strong> (<em>int</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be
+parallelized using the <code class="docutils literal notranslate"><span class="pre">ray</span></code> package. If a ray cluster is defined by the user, this cluster will be used
+instead. By default, images are processed sequentially.</p></li>
+<li><p><strong>**kwargs</strong> – <p>Keyword arguments passed for importing images and masks (
+<a class="reference internal" href="mirp.importData.html#mirp.importData.importImageAndMask.import_image_and_mask" title="mirp.importData.importImageAndMask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mirp.importData.importImageAndMask.import_image_and_mask()</span></code></a>) and configuring settings:</p>
+<ul>
+<li><p>general settings (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsGeneral.GeneralSettingsClass" title="mirp.settings.settingsGeneral.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>)</p></li>
+<li><p>image post-processing (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageProcessing.ImagePostProcessingClass" title="mirp.settings.settingsImageProcessing.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>)</p></li>
+<li><p>image perturbation / augmentation (<code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code>)</p></li>
+<li><p>image interpolation / resampling (
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageInterpolationSettingsClass</span></code></a> and
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaskInterpolationSettingsClass</span></code></a>)</p></li>
+<li><p>mask resegmentation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass" title="mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResegmentationSettingsClass</span></code></a>)</p></li>
+<li><p>image transformation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass" title="mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageTransformationSettingsClass</span></code></a>)</p></li>
+<li><p>feature computation / extraction (
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass" title="mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureExtractionSettingsClass</span></code></a>)</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of features, images and masks, depending on <code class="docutils literal notranslate"><span class="pre">export_features</span></code> and <code class="docutils literal notranslate"><span class="pre">export_images</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None | list[Any]</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Keyword arguments can be provided to configure the following:</p>
+<ul class="simple">
+<li><p>image and mask import (<a class="reference internal" href="mirp.importData.html#mirp.importData.importImageAndMask.import_image_and_mask" title="mirp.importData.importImageAndMask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code></a>)</p></li>
+<li><p>general settings (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsGeneral.GeneralSettingsClass" title="mirp.settings.settingsGeneral.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>)</p></li>
+<li><p>image post-processing (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageProcessing.ImagePostProcessingClass" title="mirp.settings.settingsImageProcessing.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>)</p></li>
+<li><p>image perturbation / augmentation (<code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code>)</p></li>
+<li><p>image interpolation / resampling (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageInterpolationSettingsClass</span></code></a> and
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaskInterpolationSettingsClass</span></code></a>)</p></li>
+<li><p>mask resegmentation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass" title="mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResegmentationSettingsClass</span></code></a>)</p></li>
+<li><p>image transformation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass" title="mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageTransformationSettingsClass</span></code></a>)</p></li>
+<li><p>feature computation / extraction (
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass" title="mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureExtractionSettingsClass</span></code></a>)</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.extractFeaturesAndImages.extract_features_and_images_generator">
+<span class="sig-prename descclassname"><span class="pre">mirp.extractFeaturesAndImages.</span></span><span class="sig-name descname"><span class="pre">extract_features_and_images_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">image_export_format</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dict'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mirp/extractFeaturesAndImages.html#extract_features_and_images_generator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="Link to this definition"></a></dt>
+<dd><p>Processes images and computes features from regions of interest as a generator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>image_export_format</strong> (<em>{&quot;dict&quot;</em><em>, </em><em>&quot;native&quot;</em><em>, </em><em>&quot;numpy&quot;}</em><em>, </em><em>default: &quot;numpy&quot;</em>) – Return format for processed images and masks. <code class="docutils literal notranslate"><span class="pre">&quot;dict&quot;</span></code> returns dictionaries of images and masks as numpy
+arrays and associated characteristics. <code class="docutils literal notranslate"><span class="pre">&quot;native&quot;</span></code> returns images and masks in their internal format.
+<code class="docutils literal notranslate"><span class="pre">&quot;numpy&quot;</span></code> returns images and masks in numpy format. This argument is only used if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – <p>Keyword arguments passed for importing images and masks (
+<a class="reference internal" href="mirp.importData.html#mirp.importData.importImageAndMask.import_image_and_mask" title="mirp.importData.importImageAndMask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mirp.importData.importImageAndMask.import_image_and_mask()</span></code></a>) and configuring settings:</p>
+<ul>
+<li><p>general settings (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsGeneral.GeneralSettingsClass" title="mirp.settings.settingsGeneral.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>)</p></li>
+<li><p>image post-processing (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageProcessing.ImagePostProcessingClass" title="mirp.settings.settingsImageProcessing.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>)</p></li>
+<li><p>image perturbation / augmentation (<code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code>)</p></li>
+<li><p>image interpolation / resampling (
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageInterpolationSettingsClass</span></code></a> and
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaskInterpolationSettingsClass</span></code></a>)</p></li>
+<li><p>mask resegmentation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass" title="mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResegmentationSettingsClass</span></code></a>)</p></li>
+<li><p>image transformation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass" title="mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageTransformationSettingsClass</span></code></a>)</p></li>
+<li><p>feature computation / extraction (
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass" title="mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureExtractionSettingsClass</span></code></a>)</p></li>
+</ul>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>None | list[Any]</em> – List of features, images and masks, depending on <code class="docutils literal notranslate"><span class="pre">export_features</span></code> and <code class="docutils literal notranslate"><span class="pre">export_images</span></code>.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Keyword arguments can be provided to configure the following:</p>
+<ul class="simple">
+<li><p>image and mask import (<a class="reference internal" href="mirp.importData.html#mirp.importData.importImageAndMask.import_image_and_mask" title="mirp.importData.importImageAndMask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code></a>)</p></li>
+<li><p>general settings (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsGeneral.GeneralSettingsClass" title="mirp.settings.settingsGeneral.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>)</p></li>
+<li><p>image post-processing (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageProcessing.ImagePostProcessingClass" title="mirp.settings.settingsImageProcessing.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>)</p></li>
+<li><p>image perturbation / augmentation (<code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code>)</p></li>
+<li><p>image interpolation / resampling (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageInterpolationSettingsClass</span></code></a> and
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass" title="mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">MaskInterpolationSettingsClass</span></code></a>)</p></li>
+<li><p>mask resegmentation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass" title="mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ResegmentationSettingsClass</span></code></a>)</p></li>
+<li><p>image transformation (<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass" title="mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageTransformationSettingsClass</span></code></a>)</p></li>
+<li><p>feature computation / extraction (
+<a class="reference internal" href="mirp.settings.html#mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass" title="mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">FeatureExtractionSettingsClass</span></code></a>)</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.extractFeaturesAndImages.extract_features">
+<span class="sig-prename descclassname"><span class="pre">mirp.extractFeaturesAndImages.</span></span><span class="sig-name descname"><span class="pre">extract_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">write_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/mirp/extractFeaturesAndImages.html#extract_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.extractFeaturesAndImages.extract_features" title="Link to this definition"></a></dt>
+<dd><p>Compute features from regions of interest in images. This function is a wrapper around
+<a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>write_features</strong> (<em>bool</em><em>, </em><em>optional</em>) – Determines whether features computed from images should be written to the directory indicated by the
+<code class="docutils literal notranslate"><span class="pre">write_dir</span></code> keyword argument.</p></li>
+<li><p><strong>export_features</strong> (<em>bool</em><em>, </em><em>optional</em>) – Determines whether features computed from images should be returned by the function.</p></li>
+<li><p><strong>write_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to directory where feature tables should be written. If not set, feature tables are returned by this
+function. Required if <code class="docutils literal notranslate"><span class="pre">write_features=True</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to <a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of feature tables, if <code class="docutils literal notranslate"><span class="pre">export_features=True</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None | list[Any]</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.extractFeaturesAndImages.extract_features_generator">
+<span class="sig-prename descclassname"><span class="pre">mirp.extractFeaturesAndImages.</span></span><span class="sig-name descname"><span class="pre">extract_features_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">write_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_features</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mirp/extractFeaturesAndImages.html#extract_features_generator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.extractFeaturesAndImages.extract_features_generator" title="Link to this definition"></a></dt>
+<dd><p>Compute features from regions of interest in images. This generator is a wrapper around
+<a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>write_features</strong> (<em>bool</em><em>, </em><em>default: False</em>) – Determines whether features computed from images should be written to the directory indicated by the
+<code class="docutils literal notranslate"><span class="pre">write_dir</span></code> keyword argument.</p></li>
+<li><p><strong>export_features</strong> (<em>bool</em><em>, </em><em>default: True</em>) – Determines whether features computed from images should be returned by the function.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to <a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of feature tables, if <code class="docutils literal notranslate"><span class="pre">export_features=True</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None | list[Any]</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.extractFeaturesAndImages.extract_images">
+<span class="sig-prename descclassname"><span class="pre">mirp.extractFeaturesAndImages.</span></span><span class="sig-name descname"><span class="pre">extract_images</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">write_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_dir</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">None</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mirp/extractFeaturesAndImages.html#extract_images"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.extractFeaturesAndImages.extract_images" title="Link to this definition"></a></dt>
+<dd><p>Process images and masks. This function is a wrapper around
+<a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>write_images</strong> (<em>bool</em><em>, </em><em>optional</em>) – Determines whether processed images and masks should be written to the directory indicated by the
+<code class="docutils literal notranslate"><span class="pre">write_dir</span></code> keyword argument.</p></li>
+<li><p><strong>export_images</strong> (<em>bool</em><em>, </em><em>optional</em>) – Determines whether processed images and masks should be returned by the function.</p></li>
+<li><p><strong>write_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to directory where processed images and masks should be written. If not set, processed images and masks
+are returned by this function. Required if <code class="docutils literal notranslate"><span class="pre">write_images=True</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to <a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>List of feature tables, if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>None | list[Any]</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images" title="mirp.extractFeaturesAndImages.extract_features_and_images"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images()</span></code></a></p>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mirp.extractFeaturesAndImages.extract_images_generator">
+<span class="sig-prename descclassname"><span class="pre">mirp.extractFeaturesAndImages.</span></span><span class="sig-name descname"><span class="pre">extract_images_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">write_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">export_images</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/mirp/extractFeaturesAndImages.html#extract_images_generator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mirp.extractFeaturesAndImages.extract_images_generator" title="Link to this definition"></a></dt>
+<dd><p>Process images and masks. This generator is a wrapper around
+<a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>write_images</strong> (<em>bool</em><em>, </em><em>default: True</em>) – Determines whether processed images and masks should be written to the directory indicated by the
+<code class="docutils literal notranslate"><span class="pre">write_dir</span></code> keyword argument.</p></li>
+<li><p><strong>export_images</strong> (<em>bool</em><em>, </em><em>default: False</em>) – Determines whether processed images and masks should be returned by the function.</p></li>
+<li><p><strong>**kwargs</strong> – Keyword arguments passed to <a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Yields<span class="colon">:</span></dt>
+<dd class="field-even"><p><em>None | list[Any]</em> – List of feature tables, if <code class="docutils literal notranslate"><span class="pre">export_images=True</span></code>.</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference internal" href="#mirp.extractFeaturesAndImages.extract_features_and_images_generator" title="mirp.extractFeaturesAndImages.extract_features_and_images_generator"><code class="xref py py-func docutils literal notranslate"><span class="pre">extract_features_and_images_generator()</span></code></a></p>
+</div>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mirp.deepLearningPreprocessing.html" class="btn btn-neutral float-left" title="Preprocess images for deep learning" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
