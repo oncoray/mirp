@@ -587,16 +587,13 @@ class StandardWorkflow(BaseWorkflow):
             mask: BaseMask
     ) -> pd.DataFrame:
 
-        if image.separate_slices:
-            voxel_size = np.max(np.array(image.image_spacing)[[1, 2]])
-        else:
-            voxel_size = np.max(np.array(image.image_spacing))
-
         return pd.DataFrame({
             "sample_name": image.sample_name,
             "image_settings_id": self.settings_name if self.settings_name is not None else np.nan,
             "image_modality": image.modality,
-            "image_voxel_size": voxel_size,
+            "image_voxel_size_x": image.image_spacing[2],
+            "image_voxel_size_y": image.image_spacing[1],
+            "image_voxel_size_z": image.image_spacing[0],
             "image_noise_level": image.noise_level if image.noise_level is not None else 0.0,
             "image_noise_iteration_id": image.noise_iteration_id if image.noise_iteration_id is not None else np.nan,
             "image_rotation_angle": image.rotation_angle if image.rotation_angle is not None else 0.0,
