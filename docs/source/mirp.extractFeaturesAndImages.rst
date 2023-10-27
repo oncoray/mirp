@@ -99,7 +99,7 @@ Because the resegmentation range is not set, the lower bound of the initial bin 
         image_modality="CT",
         new_spacing=1.0,
         base_discretisation_method="fixed_bin_size",
-        base_discretisation_bin_width=25
+        base_discretisation_bin_width=25.0
     )
 
 If the region of interest contained in the mask in the above example covers soft tissue, this default might not be good.
@@ -115,10 +115,10 @@ for soft tissues: ``resegmentation_intensity_range=[-200.0, 200.0]``. Thus the l
         image="path to CT image",
         mask="path to CT mask",
         image_modality="CT",
-        resegmentation_intensity_range=[-200.0, 200.0]
         new_spacing=1.0,
+        resegmentation_intensity_range=[-200.0, 200.0],
         base_discretisation_method="fixed_bin_size",
-        base_discretisation_bin_width=25
+        base_discretisation_bin_width=25.0
     )
 
 The above examples all compute features from the base image. Filters can be applied to images to enhance patterns such
@@ -131,8 +131,9 @@ as edges. In the example below, we compute features from a Laplacian-of-Gaussian
     feature_data = extract_features(
         image="path to image",
         mask="path to mask",
+        new_spacing=1.0,
         base_discretisation_method="fixed_bin_size",
-        base_discretisation_bin_width=25
+        base_discretisation_bin_width=25.0,
         filter_kernels="laplacian_of_gaussian",
         laplacian_of_gaussian_sigma=2.0
     )
@@ -149,6 +150,7 @@ features and intensity histogram features.
     feature_data = extract_features(
         image="path to image",
         mask="path to mask",
+        new_spacing=1.0,
         base_feature_families="none",
         response_map_feature_families=["statistics", "intensity_histogram"],
         filter_kernels="laplacian_of_gaussian",
