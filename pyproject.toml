@@ -36,6 +36,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/oncoray/mirp"
+Documentation = "https://oncoray.github.io/mirp/"
 Changelog = "https://github.com/oncoray/mirp/blob/master/NEWS.md"
 
 [project.optional-dependencies]
