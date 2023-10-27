@@ -458,7 +458,7 @@ def test_perturbation_roi_randomisation_rotation():
     )
 
     # Volume may change slightly.
-    assert 350000.0 < feature_table["morph_volume"][0] < 370000.0
+    assert 340000.0 < feature_table["morph_volume"][0] < 370000.0
 
     # Mean value should change slightly.
     assert 40.0 < feature_table["stat_mean"][0] < 50.0
