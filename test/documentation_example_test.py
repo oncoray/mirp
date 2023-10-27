@@ -1,10 +1,10 @@
 import os
+import numpy as np
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_extract_features_examples():
-
     from mirp import extract_features
 
     # Simple example.
@@ -113,3 +113,39 @@ def test_extract_features_examples():
     assert feature_data[0]["image_voxel_size_x"][0] == 1.0
     assert feature_data[0]["image_voxel_size_y"][0] == 1.0
     assert feature_data[0]["image_voxel_size_z"][0] == 1.0
+
+
+def test_deeplearning_preprocessing():
+    from mirp import deep_learning_preprocessing
+
+    processed_data = deep_learning_preprocessing(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        crop_size=[50, 224, 224]
+    )
+
+    image = processed_data[0][0][0]
+    mask = processed_data[0][1][0]
+
+    assert np.any(image > -1000.0)
+    assert np.any(mask)
+
+
+def test_image_metadata_extraction():
+    from mirp import extract_image_parameters
+
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image")
+    )
+
+    assert len(image_parameters) == 1
+
+
+def test_mask_label_extraction():
+    from mirp import extract_mask_labels
+
+    mask_labels = extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm")
+    )
+
+    assert len(mask_labels) == 1

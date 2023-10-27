@@ -20,7 +20,7 @@ MIRP can be used to crop images, e.g. to make them conform to the input of convo
 
     processed_data = deep_learning_preprocessing(
         image="path to image",
-        mask="path to mask,
+        mask="path to mask",
         crop_size=[50, 224, 224]
     )
 
