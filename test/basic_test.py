@@ -158,7 +158,9 @@ def test_xml_configurations():
     assert all(data["sample_name"].values == ["STS_002", "STS_003"])
     assert all(data["image_modality"].values == "pet")
     assert all(data["image_mask_name"].values == "GTV_Mass_PET")
-    assert all(data["image_voxel_size"].values == 3.0)
+    assert all(data["image_voxel_size_x"].values == 3.0)
+    assert all(data["image_voxel_size_y"].values == 3.0)
+    assert all(data["image_voxel_size_z"].values == 3.0)
 
     # Clean up
     os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
