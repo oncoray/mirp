@@ -68,6 +68,10 @@ class ResegmentationSettingsClass:
         self.intensity_range: None | tuple[Any, Any] = tuple(resegmentation_intensity_range) if \
             resegmentation_intensity_range is not None else None
 
+        # Set default value.
+        if resegmentation_sigma is None:
+            resegmentation_sigma = 3.0
+
         # Check that sigma is not negative.
         if resegmentation_sigma < 0.0:
             raise ValueError(f"The resegmentation_sigma parameter can not be negative. Found: {resegmentation_sigma}")
