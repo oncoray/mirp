@@ -2,16 +2,21 @@ import numpy as np
 import copy
 
 from typing import Union, List
-from mirp.imageProcess import calculate_features
-from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import GaussianTransformedImage
+from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
-from mirp.importSettings import SettingsClass
-from mirp.roiClass import RoiClass
+from mirp.settings.settingsGeneric import SettingsClass
 
 
-class GaussianFilter:
+class GaussianFilter(GenericFilter):
 
     def __init__(self, settings: SettingsClass, name: str):
+        super().__init__(
+            settings=settings,
+            name=name
+        )
+
         self.sigma = settings.img_transform.gaussian_sigma
         self.sigma_cutoff = settings.img_transform.gaussian_sigma_truncate
         self.mode = settings.img_transform.gaussian_boundary_condition
@@ -27,10 +32,7 @@ class GaussianFilter:
                 self.riesz_steered = True
                 self.riesz_sigma = settings.img_transform.riesz_filter_tensor_sigma
 
-        # In-slice (2D) or 3D filtering
-        self.by_slice = settings.img_transform.by_slice
-
-    def _generate_object(self):
+    def generate_object(self):
         # Generator for transformation objects.
         sigma = copy.deepcopy(self.sigma)
         if not isinstance(sigma, list):
@@ -58,63 +60,34 @@ class GaussianFilter:
 
                     yield filter_object
 
-    def apply_transformation(self, img_obj: ImageClass,
-                             roi_list: List[RoiClass],
-                             settings: SettingsClass,
-                             compute_features: bool = False,
-                             extract_images: bool = False,
-                             file_path: Union[None, str] = None):
-        """Run feature extraction for transformed data"""
+    def transform(self, image: GenericImage) -> GaussianTransformedImage:
+        # Create placeholder Gaussian response map.
+        response_map = GaussianTransformedImage(
+            image_data=None,
+            sigma_parameter=self.sigma,
+            sigma_cutoff_parameter=self.sigma_cutoff,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
 
-        feature_list = []
-
-        # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object():
-
-            # Create a response map.
-            response_map = filter_object.transform(img_obj=img_obj)
-
-            # Export the image.
-            if extract_images:
-                response_map.export(file_path=file_path)
-
-            # Compute features.
-            if compute_features:
-                feature_list += [calculate_features(img_obj=response_map,
-                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
-                                                    settings=settings.img_transform.feature_settings,
-                                                    append_str=response_map.spat_transform + "_")]
-
-            del response_map
-
-        return feature_list
-
-    def transform(self, img_obj: ImageClass):
-        """
-        Transform image by calculating the laplacian of the gaussian second derivatives
-        :param img_obj: image object
-
-        :return:
-        """
-
-        # Copy base image
-        respone_map = img_obj.copy(drop_image=True)
-
-        # Set spatial transformation string for transformed object
-        respone_map.set_spatial_transform("gauss_s" + str(self.sigma))
-
-        # Skip transform in case the input image is missing
-        if img_obj.is_missing:
-            return respone_map
+        if image.is_empty():
+            return response_map
 
         # Calculate sigma for current image
-        vox_sigma = np.divide(np.full(shape=3, fill_value=self.sigma), img_obj.spacing)
+        voxel_sigma = np.divide(
+            np.full(shape=3, fill_value=self.sigma),
+            np.array(image.image_spacing))
 
         # Apply filters
-        respone_map.set_voxel_grid(voxel_grid=self.transform_grid(voxel_grid=img_obj.get_voxel_grid(),
-                                                                  sigma=vox_sigma))
+        response_map.set_voxel_grid(voxel_grid=self.transform_grid(
+            voxel_grid=image.get_voxel_grid(),
+            sigma=voxel_sigma)
+        )
 
-        return respone_map
+        return response_map
 
     def transform_grid(self,
                        voxel_grid: np.array,

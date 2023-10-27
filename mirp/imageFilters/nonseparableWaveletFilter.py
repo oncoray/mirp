@@ -4,18 +4,20 @@ import numpy as np
 import scipy.fft as fft
 
 from typing import List, Union
-from mirp.imageClass import ImageClass
-from mirp.imageProcess import calculate_features
-from mirp.importSettings import SettingsClass
-from mirp.roiClass import RoiClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import NonSeparableWaveletTransformedImage
+from mirp.settings.settingsGeneric import SettingsClass
+from mirp.imageFilters.genericFilter import GenericFilter
 
 
-class NonseparableWaveletFilter:
+class NonseparableWaveletFilter(GenericFilter):
 
     def __init__(self, settings: SettingsClass, name: str):
 
-        # In-slice (2D) or 3D wavelet filters
-        self.by_slice = settings.img_transform.by_slice
+        super().__init__(
+            settings=settings,
+            name=name
+        )
 
         # Set wavelet family
         self.wavelet_family: Union[str, List[str]] = settings.img_transform.nonseparable_wavelet_families
@@ -41,7 +43,7 @@ class NonseparableWaveletFilter:
         # Set response.
         self.response = settings.img_transform.nonseparable_wavelet_response
 
-    def _generate_object(self):
+    def generate_object(self):
         # Generator for transformation objects.
         wavelet_family = copy.deepcopy(self.wavelet_family)
         if not isinstance(wavelet_family, list):
@@ -75,66 +77,35 @@ class NonseparableWaveletFilter:
 
                         yield filter_object
 
-    def apply_transformation(self,
-                             img_obj: ImageClass,
-                             roi_list: List[RoiClass],
-                             settings: SettingsClass,
-                             compute_features: bool = False,
-                             extract_images: bool = False,
-                             file_path=None):
-        """Run feature computation and/or image extraction for transformed data"""
-        feature_list = []
+    def transform(self, image: GenericImage) -> NonSeparableWaveletTransformedImage:
+        # Create placeholder non-separable wavelet response map.
+        response_map = NonSeparableWaveletTransformedImage(
+            image_data=None,
+            wavelet_family=self.wavelet_family,
+            decomposition_level=self.decomposition_level,
+            response_type=self.response,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
 
-        # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object():
-
-            # Create a response map.
-            response_map = filter_object.transform(img_obj=img_obj)
-
-            # Export the image.
-            if extract_images:
-                response_map.export(file_path=file_path)
-
-            # Compute features.
-            if compute_features:
-                feature_list += [calculate_features(img_obj=response_map,
-                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
-                                                    settings=settings.img_transform.feature_settings,
-                                                    append_str=response_map.spat_transform + "_")]
-
-            del response_map
-
-        return feature_list
-
-    def transform(self,
-                  img_obj: ImageClass):
-
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Prepare the string for the spatial transformation.
-        spatial_transform_string = ["wavelet", self.wavelet_family]
-        spatial_transform_string += ["level", str(self.decomposition_level)]
-
-        # Set the name of the transformation.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
-        # Skip transformation in case the input image is missing
-        if img_obj.is_missing:
+        if image.is_empty():
             return response_map
 
         # Create voxel grid
-        img_wavelet_grid = self.convolve(voxel_grid=img_obj.get_voxel_grid())
+        response_voxel_grid = self.convolve(voxel_grid=image.get_voxel_grid())
 
         # Store the voxel grid in the ImageObject.
-        response_map.set_voxel_grid(voxel_grid=img_wavelet_grid)
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
 
         return response_map
 
     def shannon_filter(self, filter_size):
         """
         Set up the shannon filter in the Fourier domain.
-        @param filter_size: Size of the filter. By default equal to the size of the image.
+        @param filter_size: Size of the filter. By default, equal to the size of the image.
         """
 
         # Get the distance grid.
@@ -154,7 +125,7 @@ class NonseparableWaveletFilter:
     def simoncelli_filter(self, filter_size):
         """
         Set up the simoncelli filter in the Fourier domain.
-        @param filter_size: Size of the filter. By default equal to the size of the image.
+        @param filter_size: Size of the filter. By default, equal to the size of the image.
         """
 
         # Get the distance grid.
@@ -199,7 +170,16 @@ class NonseparableWaveletFilter:
         distance_grid = [(distance_grid[ii] - center_pos) / center_pos for ii, center_pos in enumerate(grid_center)]
 
         # Compute the distances in the grid.
-        distance_grid = np.linalg.norm(distance_grid)
+        if len(filter_shape) == 2:
+            distance_grid = np.sqrt(np.sum(
+                np.power(np.meshgrid(distance_grid[0], distance_grid[1]), 2.0), axis=0)
+            )
+        elif len(filter_shape) == 3:
+            distance_grid = np.sqrt(np.sum(
+                np.power(np.meshgrid(distance_grid[0], distance_grid[1], distance_grid[2]), 2.0), axis=0)
+            )
+        else:
+            raise ValueError("Filter shape should have 2 or 3 dimensions.")
 
         # Set the Nyquist frequency
         decomposed_max_frequency = 1.0 / 2.0 ** (self.decomposition_level - 1.0)

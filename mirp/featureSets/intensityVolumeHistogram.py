@@ -1,51 +1,54 @@
 import numpy as np
 import pandas as pd
 
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
-from mirp.importSettings import FeatureExtractionSettingsClass
+from typing import Tuple, Optional
+
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import TransformedImage
+from mirp.masks.baseMask import BaseMask
 
 
-def get_intensity_volume_histogram_features(img_obj: ImageClass,
-                                            roi_obj: RoiClass,
-                                            settings: FeatureExtractionSettingsClass):
+def get_intensity_volume_histogram_features(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass
+) -> pd.DataFrame:
     """
-    Extract intensity-volume histogram features for the given ROI
-    :param img_obj: image object
-    :param roi_obj: roi object with the requested ROI mask
-    :param settings: settings object
-    :return: pandas DataFrame with feature values
+    Extract intensity-volume histogram features for the given mask.
     """
 
     # Create intensity-volume histogram
-    df_ivh, n_bins = get_intensity_volume_histogram(img_obj=img_obj,
-                                                    roi_obj=roi_obj,
-                                                    settings=settings)
+    df_ivh, n_bins = get_intensity_volume_histogram(
+        image=image,
+        mask=mask,
+        settings=settings
+    )
 
     # Extract intensity volume histogram features from the intensity volume histogram
-    df_feat = compute_intensity_volume_histogram_features(df_ivh=df_ivh,
-                                                          n_bins=n_bins,
-                                                          settings=settings)
+    df_feat = compute_intensity_volume_histogram_features(
+        df_ivh=df_ivh,
+        n_bins=n_bins,
+        settings=settings
+    )
 
     return df_feat
 
 
-def get_intensity_volume_histogram(img_obj: ImageClass,
-                                   roi_obj: RoiClass,
-                                   settings: FeatureExtractionSettingsClass):
+def get_intensity_volume_histogram(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass
+) -> Tuple[Optional[pd.DataFrame], int]:
     """
-    Determines the intensity-volume histogram (IVH) for the given ROI
-    :param img_obj: image object
-    :param roi_obj: roi object containing the requested ROI mask
-    :param settings: settings object
-    :return: pandas DataFrame containing the IVH, number of bins
+    Determines the intensity-volume histogram (IVH) for the given mask.
     """
-
     import copy
+    from mirp.images.ctImage import CTImage
+    from mirp.images.petImage import PETImage
 
     # Convert image volume to table
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj,
-                                         intensity_mask=True)
+    df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     # Skip further processing if df_img is None due to missing input image and/or ROI
     if df_img is None:
@@ -62,25 +65,29 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
     n_v = len(df_his)
 
     # Get the range of grey levels
-    if roi_obj.g_range is None:
+    if mask.intensity_range is None:
         g_range_loc = np.array([np.nan, np.nan])
     else:
-        g_range_loc = copy.deepcopy(roi_obj.g_range)
+        g_range_loc = copy.deepcopy(np.array(mask.intensity_range))
 
     # Get the discretisation method
-    if img_obj.spat_transform == "base":
-        ivh_discr_method = settings.ivh_discretisation_method
-    else:
+    if isinstance(image, TransformedImage):
         ivh_discr_method = "fixed_bin_number"
+    else:
+        ivh_discr_method = settings.ivh_discretisation_method
 
     # Set missing discretisation methods based on modality
     if ivh_discr_method == "none":
-        if img_obj.modality == "CT":
-            ivh_discr_method = "none"
-        elif img_obj.modality == "PT":
+        if isinstance(image, CTImage):
+            pass
+        elif isinstance(image, PETImage):
             ivh_discr_method = "fixed_bin_size"
         else:
-            ivh_discr_method = "fixed_bin_number"
+            levels = np.unique(df_his.g)
+            if np.all(np.fmod(levels, 1.0) == 0.0):
+                ivh_discr_method = "none"
+            else:
+                ivh_discr_method = "fixed_bin_number"
 
     if ivh_discr_method == "none":
         # Calculation without transformation
@@ -102,8 +109,9 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
-                               ignore_index=True)
+            df_his = pd.concat(
+                [df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                ignore_index=True)
 
         del levels, miss_level, n_miss
 
@@ -121,10 +129,12 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
 
         # Set missing bin width based on the modality
         if bin_width is None:
-            if img_obj.modality == "CT":
+            if isinstance(image, CTImage):
                 bin_width = 1.0
-            elif img_obj.modality == "PT":
+            elif isinstance(image, PETImage):
                 bin_width = 0.1
+            else:
+                raise ValueError("bin_width has not been set.")
 
         # Get the number of bins
         n_bins = np.ceil((g_range_loc[1] - g_range_loc[0]) / bin_width) + 1.0
@@ -132,7 +142,8 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         # Bin voxels
         df_his.g = np.floor((df_his.g - g_range_loc[0]) / (bin_width * 1.0)) + 1.0
 
-        # Set voxels with grey level lower than 0.0 to 1.0. This may occur with non-roi voxels and voxels with the minimum intensity
+        # Set voxels with grey level lower than 0.0 to 1.0. This may occur with non-mask voxels
+        # and voxels with the minimum intensity
         df_his.loc[df_his["g"] <= 0.0, "g"] = 1.0
 
         # Create histogram by grouping by intensity level and counting bin size
@@ -143,8 +154,9 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
-                               ignore_index=True)
+            df_his = pd.concat(
+                [df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                ignore_index=True)
 
         del levels, miss_level, n_miss
 
@@ -169,9 +181,6 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         if n_bins is None:
             n_bins = 1000.0
 
-        # Calculate bin size
-        # bin_size = (g_range_loc[1] - g_range_loc[0]) / n_bins
-
         # Update grey level range
         df_his.loc[:, "g"] = np.floor(n_bins * (df_his["g"] - g_range_loc[0]) / (g_range_loc[1] - g_range_loc[0])) + 1.0
 
@@ -187,8 +196,9 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
-                               ignore_index=True)
+            df_his = pd.concat(
+                [df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],
+                ignore_index=True)
 
         del levels, miss_level, n_miss
 
@@ -196,7 +206,7 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
         g_range_loc[0] = 1.0
         g_range_loc[1] = n_bins
     else:
-        raise ValueError("%s is not a valid IVH discretisation method.", ivh_discr_method)
+        raise ValueError(f"{ivh_discr_method} is not a valid IVH discretisation method.")
 
     # Order histogram table by increasing grey level
     df_his = df_his.sort_values(by="g")
@@ -210,11 +220,15 @@ def get_intensity_volume_histogram(img_obj: ImageClass,
     return df_his, n_bins
 
 
-def compute_intensity_volume_histogram_features(df_ivh, n_bins, settings):
+def compute_intensity_volume_histogram_features(
+        df_ivh: Optional[pd.DataFrame],
+        n_bins: int,
+        settings: FeatureExtractionSettingsClass):
     """
     Definitions of intensity-volume histogram features
     :param df_ivh: intensity volume histogram as created using the get_intensity_volume_histogram function
     :param n_bins: number of bins in the histogram
+    :param settings: Set of settings.
     :return: pandas DataFrame with feature values
     """
 

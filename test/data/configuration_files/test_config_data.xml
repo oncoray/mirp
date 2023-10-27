@@ -1,0 +1,48 @@
+<root>
+    <config>
+        <paths>
+            <!--A path to an image file or a path to a directory containing image files.-->
+            <image></image>
+            <!--A path to a mask file, a path to a directory containing mask files. -->
+            <mask></mask>
+            <!--Name of expected sample names. This is used to select specific image files. If None, no image files are
+            filtered based on the corresponding sample name (if known).-->
+            <sample_name>STS_002,STS_003</sample_name>
+        </paths>
+        <!-- Data tags can be added multiple times -->
+        <data>
+            <!--Pattern to match image files against. The matches are exact. Use wildcard symbols ("*") to
+            match varying structures. The sample name (if part of the file name) can also be specified using "#". For
+            example, image_name = '#_*_image' would find John_Doe in John_Doe_CT_image.nii or John_Doe_001_image.nii.
+            File extensions do not need to be specified. If None, file names are not used for filtering files and
+            setting sample names.-->
+            <image_name></image_name>
+            <!--The type of file that is expected. If None, the file type is not used for filtering files. "itk"
+            comprises "nifti" and "nrrd" file types. Options: dicom, nifti, nrrd, numpy, itk-->
+            <image_file_type>dicom</image_file_type>
+            <!--The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+            DICOM files contain metadata concerning modality. Options: ct, pet, pt, mri, mr, or generic.-->
+            <image_modality>pet</image_modality>
+            <!--Fixed directory substructure where image files are located. If None, the directory substructure is not used
+            for filtering files.-->
+            <image_sub_folder>PET/dicom/image</image_sub_folder>
+            <!--Pattern to match mask files against. The matches are exact. Use wildcard symbols ("*") to match varying
+            structures. The sample name (if part of the file name) can also be specified using "#". For example,
+            mask_name = '#_*_mask' would find John_Doe in John_Doe_CT_mask.nii or John_Doe_001_mask.nii. File extensions
+            do not need to be specified. If None, file names are not used for filtering files and setting sample names.-->
+            <mask_name></mask_name>
+            <!--The type of file that is expected. If None, the file type is not used for filtering files.
+            "itk" comprises "nifti" and "nrrd" file types.  Options: dicom, nifti, nrrd, numpy, itk-->
+            <mask_file_type>dicom</mask_file_type>
+            <!--The type of modality that is expected. If None, modality is not used for filtering files.
+            Note that only DICOM files contain metadata concerning modality. Masks from non-DICOM files are considered to
+            be "generic_mask". Options: rtstruct, seg, generic_mask-->
+            <mask_modality>rtstruct</mask_modality>
+            <!--Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
+            filtering files.-->
+            <mask_sub_folder>PET/dicom/mask</mask_sub_folder>
+            <!--Name of the regions of interest that should be assessed.-->
+            <roi_name>GTV_Mass_PET</roi_name>
+        </data>
+    </config>
+</root>

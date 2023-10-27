@@ -4,18 +4,20 @@ import numpy as np
 import pandas as pd
 
 from mirp.featureSets.utilities import get_neighbour_directions, is_list_all_none, coord2Index, get_intensity_value, rep
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
-from mirp.importSettings import FeatureExtractionSettingsClass
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 
 
-def get_ngtdm_features(img_obj: ImageClass,
-                       roi_obj: RoiClass,
-                       settings: FeatureExtractionSettingsClass):
-    """Extract neighbourhood grey tone difference-based features from the intensity roi"""
+def get_ngtdm_features(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass
+) -> pd.DataFrame:
+    """Extract neighbourhood grey tone difference-based features from the intensity mask"""
 
     # Get a table of the roi intensity mask
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+    df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     if df_img is None:
         # In case the input image or ROI are missing.
@@ -23,8 +25,8 @@ def get_ngtdm_features(img_obj: ImageClass,
         img_dims = None
     else:
         # Default case with input image and ROI available
-        n_slices = img_obj.size[0]
-        img_dims = np.array(img_obj.size)
+        n_slices = image.image_dimension[0]
+        img_dims = np.array(image.image_dimension)
 
     # Generate an empty feature list
     feat_list = []
@@ -42,39 +44,43 @@ def get_ngtdm_features(img_obj: ImageClass,
             for ii_slice in np.arange(0, n_slices):
 
                 # Perform analysis per slice
-                ngtdm_list += [GreyToneDifferenceMatrix(spatial_method=ii_spatial.lower(),
-                                                        slice_id=ii_slice)]
+                ngtdm_list += [GreyToneDifferenceMatrix(
+                    spatial_method=ii_spatial.lower(),
+                    slice_id=ii_slice)]
 
         # Perform 3D analysis
         elif ii_spatial.lower() == "3d":
             # Perform analysis on the entire volume
-            ngtdm_list += [GreyToneDifferenceMatrix(spatial_method=ii_spatial.lower(),
-                                                    slice_id=None)]
+            ngtdm_list += [GreyToneDifferenceMatrix(
+                spatial_method=ii_spatial.lower(),
+                slice_id=None)]
 
         else:
             raise ValueError("Spatial methods for NGTDM should be \"2d\", \"2.5d\" or \"3d\".")
 
         # Calculate size zone matrices
         for ngtdm in ngtdm_list:
-            ngtdm.calculate_matrix(df_img=df_img,
-                                   img_dims=img_dims)
+            ngtdm.calculate_matrix(
+                df_img=df_img,
+                img_dims=img_dims)
 
         # Merge matrices according to the given method
-        upd_list = combine_matrices(ngtdm_list=ngtdm_list,
-                                    spatial_method=ii_spatial.lower())
+        upd_list = combine_matrices(
+            ngtdm_list=ngtdm_list,
+            spatial_method=ii_spatial.lower())
 
         # Calculate features
         feat_run_list = []
         for ngtdm in upd_list:
-            feat_run_list += [ngtdm.compute_features(g_range=roi_obj.g_range)]
+            feat_run_list += [ngtdm.compute_features(g_range=np.array(mask.intensity_range))]
 
         # Average feature values
         feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
 
     # Merge feature tables into a single table
-    df_feat = pd.concat(feat_list, axis=1)
+    feature_data = pd.concat(feat_list, axis=1)
 
-    return df_feat
+    return feature_data
 
 
 def combine_matrices(ngtdm_list, spatial_method):
@@ -104,10 +110,11 @@ def combine_matrices(ngtdm_list, spatial_method):
         # Check if any matrix has been created
         if is_list_all_none(sel_matrix_list):
             # No matrix was created
-            use_list += [GreyToneDifferenceMatrix(spatial_method=spatial_method,
-                                                  slice_id=None,
-                                                  matrix=None,
-                                                  n_v=0.0)]
+            use_list += [GreyToneDifferenceMatrix(
+                spatial_method=spatial_method,
+                slice_id=None,
+                matrix=None,
+                n_v=0.0)]
         else:
             # Merge neighbourhood grey tone difference matrices
             merge_ngtdm = pd.concat(sel_matrix_list, axis=0)
@@ -119,10 +126,11 @@ def combine_matrices(ngtdm_list, spatial_method):
                 merge_n_v += ngtdm_list[ngtdm_id].n_v
 
             # Create new neighbourhood grey tone difference matrix
-            use_list += [GreyToneDifferenceMatrix(spatial_method=spatial_method,
-                                                  slice_id=None,
-                                                  matrix=merge_ngtdm,
-                                                  n_v=merge_n_v)]
+            use_list += [GreyToneDifferenceMatrix(
+                spatial_method=spatial_method,
+                slice_id=None,
+                matrix=merge_ngtdm,
+                n_v=merge_n_v)]
 
     else:
         use_list = None
@@ -141,7 +149,7 @@ class GreyToneDifferenceMatrix:
         # Spatial analysis method (2d, 2.5d, 3d)
         self.spatial_method = spatial_method
 
-        # Place holders
+        # Placeholders
         self.matrix = matrix
         self.n_v = n_v
 
@@ -177,7 +185,9 @@ class GreyToneDifferenceMatrix:
             df_ngtdm = df_ngtdm.reset_index(drop=True)
 
         else:
-            raise ValueError("The spatial method for neighbourhood grey tone difference matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
+            raise ValueError(
+                "The spatial method for neighbourhood grey tone difference matrices should be "
+                "one of \"2d\", \"2.5d\" or \"3d\".")
 
         # Set grey level of voxels outside ROI to NaN
         df_ngtdm.loc[df_ngtdm.roi_int_mask == False, "g"] = np.nan
@@ -188,10 +198,11 @@ class GreyToneDifferenceMatrix:
 
         for k in np.arange(0, np.shape(nbrs)[1]):
             # Determine potential transitions from valid voxels
-            df_ngtdm["to_index"] = coord2Index(x=df_ngtdm.x.values + nbrs[2, k],
-                                               y=df_ngtdm.y.values + nbrs[1, k],
-                                               z=df_ngtdm.z.values + nbrs[0, k],
-                                               dims=img_dims)
+            df_ngtdm["to_index"] = coord2Index(
+                x=df_ngtdm.x.values + nbrs[2, k],
+                y=df_ngtdm.y.values + nbrs[1, k],
+                z=df_ngtdm.z.values + nbrs[0, k],
+                dims=img_dims)
 
             # Get grey level value from transitions
             df_ngtdm["to_g"] = get_intensity_value(x=df_ngtdm.g.values, index=df_ngtdm.to_index.values)
@@ -214,7 +225,8 @@ class GreyToneDifferenceMatrix:
 
         # Drop superfluous columns
         df_ngtdm = df_ngtdm.drop(
-            labels=["index_id", "x", "y", "z", "g_sum", "n_nbrs", "to_index", "to_g", "g_nbr_avg", "roi_int_mask"], axis=1)
+            labels=["index_id", "x", "y", "z", "g_sum", "n_nbrs", "to_index", "to_g", "g_nbr_avg", "roi_int_mask"],
+            axis=1)
 
         # Sum s over voxels
         df_ngtdm = df_ngtdm.groupby(by="g")
@@ -268,9 +280,14 @@ class GreyToneDifferenceMatrix:
         miss_level = levels[np.logical_not(np.in1d(levels, df_pi.i))]
         n_miss = len(miss_level)
         if n_miss > 0:
-            df_pi = pd.concat([df_pi, pd.DataFrame({"i": miss_level, "s": np.zeros(n_miss), "n": np.zeros(n_miss),
-                                                    "pi": np.zeros(n_miss)})],
-                              ignore_index=True)
+            df_pi = pd.concat([
+                df_pi,
+                pd.DataFrame({
+                    "i": miss_level,
+                    "s": np.zeros(n_miss),
+                    "n": np.zeros(n_miss),
+                    "pi": np.zeros(n_miss)})
+            ], ignore_index=True)
 
         del levels, miss_level, n_miss
 

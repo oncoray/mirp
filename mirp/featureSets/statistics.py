@@ -1,22 +1,25 @@
 import numpy as np
 import pandas as pd
 
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
 
-def get_intensity_statistics_features(img_obj, roi_obj):
+
+def get_intensity_statistics_features(image: GenericImage, mask: BaseMask):
     """
     Extract intensity statistics features for the given ROI
-    :param img_obj: image object
-    :param roi_obj: roi object with the requested ROI mask
+    :param image: image object
+    :param mask: mask object with the requested ROI mask
     :return: pandas DataFrame with feature values
     """
 
     # Convert image volume to table
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+    df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     # Extract features
-    df_feat = compute_intensity_statistics_features(df_img=df_img)
+    feature_data = compute_intensity_statistics_features(df_img=df_img)
 
-    return df_feat
+    return feature_data
 
 
 def compute_intensity_statistics_features(df_img):

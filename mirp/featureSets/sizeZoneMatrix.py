@@ -4,26 +4,28 @@ import numpy as np
 import pandas as pd
 
 from mirp.featureSets.utilities import is_list_all_none
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
-from mirp.importSettings import FeatureExtractionSettingsClass
-from mirp.utilities import real_ndim
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.utilities.utilities import real_ndim
 
 
-def get_szm_features(img_obj: ImageClass,
-                     roi_obj: RoiClass,
-                     settings: FeatureExtractionSettingsClass):
+def get_szm_features(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass
+) -> pd.DataFrame:
     """Extract size zone matrix-based features from the intensity roi"""
 
     # Generate an empty feature list
     feat_list = []
 
-    if img_obj.is_missing or roi_obj.roi_intensity is None:
+    if image.is_empty() or mask.roi_intensity is None:
         # In case the input image or ROI are missing.
         n_slices = 1
     else:
         # Default case with input image and ROI available
-        n_slices = img_obj.size[0]
+        n_slices = image.image_dimension[0]
 
     # Iterate over spatial arrangements
     for ii_spatial in settings.glszm_spatial_method:
@@ -38,23 +40,27 @@ def get_szm_features(img_obj: ImageClass,
             for ii_slice in np.arange(0, n_slices):
 
                 # Perform analysis per slice
-                szm_list += [SizeZoneMatrix(spatial_method=ii_spatial.lower(),
-                                            slice_id=ii_slice)]
+                szm_list += [SizeZoneMatrix(
+                    spatial_method=ii_spatial.lower(),
+                    slice_id=ii_slice)]
 
         # Perform 3D analysis
         if ii_spatial.lower() == "3d":
             # Perform analysis on the entire volume
-            szm_list += [SizeZoneMatrix(spatial_method=ii_spatial.lower(),
-                                        slice_id=None)]
+            szm_list += [SizeZoneMatrix(
+                spatial_method=ii_spatial.lower(),
+                slice_id=None)]
 
         # Calculate size zone matrices
         for szm in szm_list:
-            szm.calculate_matrix(img_obj=img_obj,
-                                 roi_obj=roi_obj)
+            szm.calculate_matrix(
+                image=image,
+                mask=mask)
 
         # Merge matrices according to the given method
-        upd_list = combine_matrices(szm_list=szm_list,
-                                    spatial_method=ii_spatial.lower())
+        upd_list = combine_matrices(
+            szm_list=szm_list,
+            spatial_method=ii_spatial.lower())
 
         # Calculate features
         feat_run_list = []
@@ -65,9 +71,9 @@ def get_szm_features(img_obj: ImageClass,
         feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
 
     # Merge feature tables into a single table
-    df_feat = pd.concat(feat_list, axis=1)
+    feature_data = pd.concat(feat_list, axis=1)
 
-    return df_feat
+    return feature_data
 
 
 def combine_matrices(szm_list, spatial_method):
@@ -128,7 +134,7 @@ class SizeZoneMatrix:
         # Spatial analysis method (2d, 2.5d, 3d)
         self.spatial_method = spatial_method
 
-        # Place holders
+        # Placeholders
         self.matrix = matrix
         self.n_v = n_v
 
@@ -139,7 +145,69 @@ class SizeZoneMatrix:
         self.n_v = 0
         self.matrix = None
 
-    def calculate_matrix(self, img_obj, roi_obj):
+    def calculate_matrix(
+            self,
+            image: GenericImage,
+            mask: BaseMask):
+
+        # Check if the input image and roi exist
+        if image.is_empty() or mask.roi_intensity is None:
+            self.set_empty()
+            return
+
+        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLSZM.
+        if not np.any(mask.roi_intensity.get_voxel_grid()):
+            self.set_empty()
+            return
+
+        from skimage.measure import label
+
+        # Define neighbour directions
+        if self.spatial_method == "3d":
+            connectivity = 3
+            img_vol = copy.deepcopy(image.get_voxel_grid())
+            roi_vol = copy.deepcopy(mask.roi_intensity.get_voxel_grid())
+
+        elif self.spatial_method in ["2d", "2.5d"]:
+            connectivity = 2
+            img_vol = image.get_voxel_grid()[self.slice, :, :]
+            roi_vol = mask.roi_intensity.get_voxel_grid()[self.slice, :, :]
+        else:
+            raise ValueError(
+                "The spatial method for grey level size zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
+
+        # Check dimensionality and update connectivity if necessary.
+        connectivity = min([connectivity, real_ndim(img_vol)])
+
+        # Set voxels outside roi to 0.0
+        img_vol[~roi_vol] = 0.0
+
+        # Count the number of voxels within the roi
+        self.n_v = np.sum(roi_vol)
+
+        # Label all connected voxels with the same label.
+        img_label = label(img_vol, background=0, connectivity=connectivity)
+
+        # Generate data frame
+        df_szm = pd.DataFrame({
+            "g": np.ravel(img_vol),
+            "vol_id": np.ravel(img_label),
+            "in_roi": np.ravel(roi_vol)
+        })
+
+        # Remove all non-roi entries and count occurrence of combinations of volume id and grey level
+        df_szm = df_szm[df_szm.in_roi].groupby(by=["g", "vol_id"]).size().reset_index(name="zone_size")
+
+        # Count the number of co-occurring sizes and grey values
+        df_szm = df_szm.groupby(by=["g", "zone_size"]).size().reset_index(name="n")
+
+        # Rename columns
+        df_szm.columns = ["i", "s", "n"]
+
+        # Add matrix to object
+        self.matrix = df_szm
+
+    def calculate_matrix_deprecated(self, img_obj, roi_obj):
 
         # Check if the input image and roi exist
         if img_obj.is_missing or roi_obj.roi_intensity is None:
@@ -197,9 +265,11 @@ class SizeZoneMatrix:
     def compute_features(self):
 
         # Create feature table
-        feat_names = ["szm_sze", "szm_lze", "szm_lgze", "szm_hgze", "szm_szlge", "szm_szhge", "szm_lzlge", "szm_lzhge",
-                      "szm_glnu", "szm_glnu_norm", "szm_zsnu", "szm_zsnu_norm", "szm_z_perc",
-                      "szm_gl_var", "szm_zs_var", "szm_zs_entr"]
+        feat_names = [
+            "szm_sze", "szm_lze", "szm_lgze", "szm_hgze", "szm_szlge", "szm_szhge", "szm_lzlge", "szm_lzhge",
+            "szm_glnu", "szm_glnu_norm", "szm_zsnu", "szm_zsnu_norm", "szm_z_perc",
+            "szm_gl_var", "szm_zs_var", "szm_zs_entr"
+        ]
         df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
         df_feat.columns = feat_names
 

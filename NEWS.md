@@ -1,3 +1,67 @@
+# Version 2.0.0
+
+## Major changes
+
+- MIRP was previously configured using two `xml` files: [`config_data.xml`](mirp/config_data.xml) for configuring
+  directories, data to be read, etc., and [`config_settings.xml`](mirp/config_settings.xml) for configuring experiments.
+  While these two files can still be used, MIRP can now be configured directly, without using these files.
+
+- The main functions of MIRP (`mainFunctions.py`) have all been re-implemented.
+  - `mainFunctions.extract_features` is now `extractFeaturesAndImages.extract_features` (functional form) or
+    `extractFeaturesAndImages.extract_features_generator` (generator). The replacements allow for both writing
+    feature values to a directory and returning them as function output. 
+  - `mainFunctions.extract_images_to_nifti` is now `extractFeaturesAndImages.extract_images` (functional form) or
+     `extractFeaturesAndImages.extract_images_generator` (generator). The replacements allow for both writing 
+     images to a directory (e.g., in NIfTI or numpy format) and returning them as function output.
+  - `mainFunctions.extract_images_for_deep_learning` has been replaced by 
+    `deepLearningPreprocessing.deep_learning_preprocessing` (functional form) and 
+    `deepLearningPreprocessing.deep_learning_preprocessing_generator` (generator).
+  - `mainFunctions.get_file_structure_parameters` and `mainFunctions.parse_file_structure` are deprecated, as the
+    the file import system used in version 2 no longer requires a rigid directory structure.
+  - `mainFunctions.get_roi_labels` is now `extractMaskLabels.extract_mask_labels`.
+  - `mainFunctions.get_image_acquisition_parameters` is now `extractImageParameters.extract_image_parameters`.
+
+- MIRP previously relied on `ImageClass` and `RoiClass` objects. These have been completely replaced by `GenericImage`
+  (and its subclasses, e.g. `CTImage`) and `BaseMask` objects, respectively. New image modalities can be added as
+  subclass of `GenericImage` in the `mirp.images` submodule.
+
+- File import, e.g. from DICOM or NIfTI files, in was previously implemented in an ad-hoc manner, and required a rigid
+  directory structure. Now, file import is implemented using an object-oriented approach, and directory structures 
+  are more flexible. File import of new modalities can be implemented as a relevant subclass of `ImageFile`.
+
+- MIRP uses type hinting, and makes use of the `Self` type hint introduced in Python 3.11. MIRP therefore requires 
+  Python 3.11 or later.
+
+## Minor changes
+- MIRP now uses the `ray` package for parallel processing.
+
+# Version 1.3.0 (dev - unreleased)
+
+## Minor changes
+- `SimpleITK` has been removed as a dependency. Handling of non-DICOM imaging is now done through `itk` itself.
+- Rotation - as a perturbation or augmentation operation - is now performed as part of the interpolation process. 
+  Previously, rotation was implemented using `scipy.ndimage.rotate`. This, combined with any translation or 
+  interpolation operation would involve two interpolation steps. Aside from removing a computationally intensive 
+  step, this also prevents unnecessary image degradation through the interpolation process. The new implementation 
+  operates using affine matrix transformations.
+- Discretisation of intensities after filtering (i.e. intensities of response maps) now uses a *fixed bin number* 
+  method with 16 bins by default. Previously, no default was set, which could lead to unintended results. These 
+  parameters can be manually specified using the `response_map_discretisation_method`, 
+  `response_map_discretisation_bin_width`, and `response_map_discretisation_n_bins` arguments; or alternatively 
+  using the `discretisation_method`, `discretisation_bin_width` and `discretisation_n_bins` parameters of the 
+  `img_transform` section of the settings configuration file. 
+
+## Fixes
+
+- Fixed a deprecation warning caused by `slic` of the `scikit-image` module.
+- Fixed incorrect merging of contours of the same region of interest (ROI) in the same slice. Previously, each contour 
+  was converted to a mask individually, and merged with the segmentation mask using `OR` operations. This functions 
+  perfectly for contours that represent separate objects spatially. However, holes in RTSTRUCT objects are not 
+  always represented by a single contour. They can also be represented by a separate contour (of the same region of 
+  interest) that is contained within a larger contour. For those RTSTRUCT objects, holes would disappear. This has 
+  now been fixed by first collecting all contours of a ROI for each slice, prior to converted them to a segmentation 
+  mask.
+
 # Version 1.2.0
 
 ## Major changes

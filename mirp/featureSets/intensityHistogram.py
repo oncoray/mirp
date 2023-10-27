@@ -3,20 +3,20 @@ import copy
 import numpy as np
 import pandas as pd
 
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
 
-def get_intensity_histogram_features(img_obj, roi_obj):
+
+def get_intensity_histogram_features(image: GenericImage, mask: BaseMask) -> pd.DataFrame:
     """
-    Extract intensity histogram features for the given ROI
-    :param img_obj: image object
-    :param roi_obj: roi object with the requested ROI mask
-    :return: pandas DataFrame with feature values
+    Extract intensity histogram features for the given mask.
     """
 
     # Convert image volume to table
-    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+    df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)
 
     # Extract features
-    df_feat = compute_intensity_histogram_features(df_img=df_img, g_range=roi_obj.g_range)
+    df_feat = compute_intensity_histogram_features(df_img=df_img, g_range=np.array(mask.intensity_range))
 
     return df_feat
 
@@ -25,10 +25,12 @@ def compute_intensity_histogram_features(df_img, g_range):
     """Definitions for intensity histogram features"""
 
     # Create feature table
-    feat_names = ["ih_mean", "ih_var", "ih_skew", "ih_kurt", "ih_median",
-                  "ih_min", "ih_p10", "ih_p90", "ih_max", "ih_mode", "ih_iqr", "ih_range",
-                  "ih_mad", "ih_rmad", "ih_medad", "ih_cov", "ih_qcod", "ih_entropy", "ih_uniformity",
-                  "ih_max_grad", "ih_max_grad_g", "ih_min_grad", "ih_min_grad_g"]
+    feat_names = [
+        "ih_mean", "ih_var", "ih_skew", "ih_kurt", "ih_median",
+        "ih_min", "ih_p10", "ih_p90", "ih_max", "ih_mode", "ih_iqr", "ih_range",
+        "ih_mad", "ih_rmad", "ih_medad", "ih_cov", "ih_qcod", "ih_entropy", "ih_uniformity",
+        "ih_max_grad", "ih_max_grad_g", "ih_min_grad", "ih_min_grad_g"
+    ]
     df_feat = pd.DataFrame(np.full(shape=(1, len(feat_names)), fill_value=np.nan))
     df_feat.columns = feat_names
 
@@ -170,5 +172,22 @@ def compute_intensity_histogram_features(df_img, g_range):
 
     # Minimum histogram gradient grey level
     df_feat["ih_min_grad_g"] = df_his.g[df_his.grad.idxmin()]
+
+    return df_feat
+
+
+def get_intensity_histogram_features_deprecated(img_obj, roi_obj):
+    """
+    Extract intensity histogram features for the given ROI
+    :param img_obj: image object
+    :param roi_obj: roi object with the requested ROI mask
+    :return: pandas DataFrame with feature values
+    """
+
+    # Convert image volume to table
+    df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj, intensity_mask=True)
+
+    # Extract features
+    df_feat = compute_intensity_histogram_features(df_img=df_img, g_range=roi_obj.g_range)
 
     return df_feat

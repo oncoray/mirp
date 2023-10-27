@@ -1,0 +1,248 @@
+<root>
+    <config>
+        <general>
+            <!-- Configuration string that may be added to distinguish different configuration -->
+            <config_str>"test_config"</config_str>
+            <!-- Whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
+            largest slice (Largest). Default: False -->
+            <by_slice>False</by_slice>
+        </general>
+        <img_interpolate>
+            <!-- Voxel spacing after interpolation. Units are defined by the headers of the image files. Every
+            value represents the spacing that will be applied in all directions. Non-uniform voxel spacing may also
+            be provided, but requires 3 values for z, y, and x directions (if by_slice = False) or 2 values for y and
+            x directions (otherwise). -->
+            <new_spacing>3.0</new_spacing>
+            <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear), 2, 3
+            (cubic), 4, 5 -->
+            <spline_order>3</spline_order>
+            <!-- Anti-aliasing filter to reduce aliasing artefacts when down-sampling. Enabled by default (True). -->
+            <anti_aliasing>False</anti_aliasing>
+            <!-- Smoothing parameter beta for anti-aliasing filter. Must be in range (0.0, 1.0]. At 1.0 no
+            anti-aliasing is performed. Default is 0.98. -->
+            <smoothing_beta></smoothing_beta>
+        </img_interpolate>
+        <roi_interpolate>
+            <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear), 2 (cubic),
+            3, 4, 5. Nearest neighbour or linear interpolation (default) are recommended. -->
+            <spline_order>1</spline_order>
+            <!-- Threshold for ROIS with partial volumes after interpolation. Default: 0.5 -->
+            <incl_threshold></incl_threshold>
+        </roi_interpolate>
+        <post_processing>
+            <!-- Type of algorithm used to produce an approximate mask of the tissue. Can be none, range (requires
+            intensity values), relative_range (default; requires fractions). -->
+            <tissue_mask_type></tissue_mask_type>
+            <!-- Range values for creating an approximate mask of the tissue. Required for range and relative range
+            options. Default: 0.02, 1.0 (relative_range); 0.0, nan (range; effectively none) -->
+            <tissue_mask_range></tissue_mask_range>
+            <!-- Whether N4 bias field correction should be performed. Disabled by default (False); only applicable
+            to  MR imaging. If a tissue mask is created, this is used to determine  -->
+            <bias_field_correction></bias_field_correction>
+            <!-- Number of fitting levels for N4 bias field correction. Default: 3 -->
+            <n_fitting_levels></n_fitting_levels>
+            <!-- Max number of iterations for each of the fitting levels for N4 bias field correction. Default: 100,
+            100, 100 -->
+            <n_max_iterations></n_max_iterations>
+            <!-- Convergence threshold for N4 bias field correction. Default: 0.001 -->
+            <convergence_threshold></convergence_threshold>
+            <!-- Algorithm used to normalise intensities in the image. Will use only intensities in voxels masked by
+            the  tissue mask. Can be none (default), range (maps to an intensity range), relative_range (maps to a
+            range  of relative intensities), quantile_range (maps to a range of relative intensities based on
+            intensity percentiles), standardisation (performs z-normalisation). -->
+            <intensity_normalisation></intensity_normalisation>
+            <!-- Intensity range for range, relative_range and quantile_range normalisation. -->
+            <intensity_normalisation_range></intensity_normalisation_range>
+            <!-- Intensity saturation after normalisation. Values outside the given range are limited to this range.
+             You may define two values for lower and upper boundary respectively. Default: [np.nan, np.nan] (no
+             saturation). -->
+            <intensity_normalisation_saturation></intensity_normalisation_saturation>
+        </post_processing>
+        <vol_adapt>
+            <!-- Whether the image may be cut to only maintain the interesting parts. Default: False. Setting this to
+             True speeds up calculations and saves memory. -->
+            <crop_around_roi>False</crop_around_roi>
+            <!-- Distance (in mm) around the ROI mask that should be maintained when cropping. Default: 150 mm. -->
+            <crop_distance></crop_distance>
+            <!-- Number of times noise is randomly added to the image. Used in noise addition image perturbations.
+            Default: 0 -->
+            <noise_repetitions></noise_repetitions>
+            <!-- Manually provided noise level in intensity units. If left unset, noise is determined from the image
+             itself. -->
+            <noise_level></noise_level>
+            <!-- Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
+            plane. Used in the rotation image perturbation. Default: 0.0.-->
+            <rotation_angles></rotation_angles>
+            <!-- Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid
+             to shift slightly and interpolate at different points. Used in translation perturbations. Default: 0.0.-->
+            <translation_fraction></translation_fraction>
+            <!-- Growth/shrinkage of the ROI mask. Interpretations depends on the roi_adapt_size tag. If "distance":
+            growth/shrinkage in world dimension units. If "fraction": growth/shrinkage in volume fraction.
+             Default: 0.0 (no changes)-->
+            <roi_adapt_size></roi_adapt_size>
+            <!-- Type of growth/shrinkage. Can be either fraction or distance (default). fraction is used in the volume
+            growth/shrinkage image perturbation. -->
+            <roi_adapt_type></roi_adapt_type>
+            <!-- Limit to shrinkage of the ROI by distance-based adaptations. Fraction of the original volume.
+            Default: 0.8 (but not used unless roi_adapt_size!=0.0 and roi_adapt_type=distance) -->
+            <roi_adapt_max_erosion></roi_adapt_max_erosion>
+            <!-- Supervoxel-based contour randomisation repetitions for image perturbation. Default: 0 -->
+            <roi_random_rep></roi_random_rep>
+            <!-- There are several settings for roi bulk/rim and heterogeneity-based supervoxel selection  that are
+            not documented here. -->
+        </vol_adapt>
+        <roi_resegment>
+            <!-- Intensity threshold for threshold-based re-segmentation (threshold and range). If set, requires two
+             values for lower and upper range respectively. The upper range value can also be nan for half-open
+             ranges. -->
+            <intensity_range>-1000,400</intensity_range>
+            <!-- Number of standard deviations for outlier-based intensity re-segmentation. 3 is a common setting. -->
+            <sigma></sigma>
+        </roi_resegment>
+        <feature_extr>
+            <!-- Set of feature families to be computed from the image. Default is all. -->
+            <feature_families>all</feature_families>
+            <!-- Discretisation algorithm. Can be none, fixed_bin_number and/or fixed_bin_size. Combinations are
+            possible. No default. -->
+            <discretisation_method>fixed_bin_number,fixed_bin_size</discretisation_method>
+            <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. Multiple values are possible. -->
+            <discretisation_bin_width>25</discretisation_bin_width>
+            <!-- Bin number for the fixed_bin_number algorithm. Multiple values are possible. -->
+            <discretisation_n_bins>12</discretisation_n_bins>
+            <!-- Discretisation algorithm for the intensity-volume histogram. Can be none, fixed_bin_number and/or
+            fixed_bin_size. If unset, the image modality determines the algorithm.-->
+            <ivh_discretisation_method>fixed_bin_number</ivh_discretisation_method>
+            <!-- Bin number for the fixed_bin_number algorithm. Default: 1000 -->
+            <ivh_discretisation_n_bins></ivh_discretisation_n_bins>
+            <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. -->
+            <ivh_discr_bin_width></ivh_discr_bin_width>
+            <!-- Distance (in voxels) for GLCM for determining the neighbourhood. -->
+            <glcm_distance>1.0</glcm_distance>
+            <!-- Determines how cooccurrence matrices are merged. One "2d_average", "2d_slice_merge",
+             "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge".
+              Default: "2d_slice_merge" (by_slice = True), "3d_volume_merge" (by_slice = False) -->
+			<glcm_spatial_method>3d_volume_merge</glcm_spatial_method>
+            <!-- Determines how run length matrices are merged. One "2d_average", "2d_slice_merge",
+             "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge".
+              Default: "2d_slice_merge" (by_slice = True), "3d_volume_merge" (by_slice = False) -->
+			<glrlm_spatial_method>3d_volume_merge</glrlm_spatial_method>
+            <!-- Calculate GLSZM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<glszm_spatial_method>3d</glszm_spatial_method>
+            <!-- Calculate GLDZM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<gldzm_spatial_method>3d</gldzm_spatial_method>
+            <!-- Calculate NGTDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<ngtdm_spatial_method>3d</ngtdm_spatial_method>
+            <!-- Distance (in voxels) for NGLDM for determining the neighbourhood. -->
+            <ngldm_distance>1.0</ngldm_distance>
+            <!-- Difference level (alpha) for NGLDM -->
+            <ngldm_difference_level>0.0</ngldm_difference_level>
+            <!-- Calculate NGLDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
+			<ngldm_spatial_method>3d</ngldm_spatial_method>
+        </feature_extr>
+        <img_transform>
+            <!-- Filter kernels to apply. Options: gabor, laplacian_of_gaussian, laws, mean, separable_wavelet,
+            nonseparable_wavelet. See documentation for additional filter kernels. -->
+            <filter_kernels></filter_kernels>
+             <!-- Boundary conditions, i.e. how to calculate the filter response for voxels that are less than the
+            filter width removed from the volume edge. This is the general setting. -->
+            <boundary_condition></boundary_condition>
+            <!-- Family of features to computed from response maps. Default: statistical. -->
+            <feature_families></feature_families>
+            <!-- Discretisation algorithm for response maps. Can be none (default), fixed_bin_number and/or
+            fixed_bin_size. Combinations are possible.-->
+            <discretisation_method></discretisation_method>
+             <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. Multiple values are possible. Not
+             recommended as for most filter kernels, intensity units have no intrinsic meaning. -->
+            <discretisation_bin_width></discretisation_bin_width>
+             <!-- Bin number for the fixed_bin_number algorithm. Multiple values are possible. -->
+            <discretisation_n_bins></discretisation_n_bins>
+            <!-- Separable wavelet kernel to be used. The name must match a wavelet implemented in the pywavelets
+            module. -->
+            <separable_wavelet_families></separable_wavelet_families>
+            <!-- Wavelet filter set to be used (for separable wavelets), e.g. LLL. LLH. Default: all. -->
+            <separable_wavelet_set></separable_wavelet_set>
+            <!-- Decomposition level of the response map: 1 (default) or greater integer. -->
+            <separable_wavelet_decomposition_level></separable_wavelet_decomposition_level>
+            <!-- Create rotationally invariant wavelet response maps; True or False -->
+            <separable_wavelet_rotation_invariance></separable_wavelet_rotation_invariance>
+            <!-- Pooling method used for rotationally invariant wavelet response maps for separable wavelets.
+            Default: max -->
+            <separable_wavelet_pooling_method></separable_wavelet_pooling_method>
+            <!-- Boundary condition for separable wavelets. Supersedes generic boundary condition tag. -->
+            <separable_wavelet_boundary_condition></separable_wavelet_boundary_condition>
+            <!-- Non-separable wavelet kernel to be used. "shannon" and "simoncelli" are supported. -->
+            <nonseparable_wavelet_families></nonseparable_wavelet_families>
+            <!-- Decomposition level of the response map for non-separable wavelets: 1 (default) or greater integer. -->
+            <nonseparable_wavelet_decomposition_level></nonseparable_wavelet_decomposition_level>
+            <!-- Type of response map created by nonseparable wavelet filters. Default: "real" -->
+            <nonseparable_wavelet_response></nonseparable_wavelet_response>
+            <!-- Boundary condition for non-separable wavelets. Supersedes generic boundary condition tag. -->
+            <nonseparable_wavelet_boundary_condition></nonseparable_wavelet_boundary_condition>
+            <!-- Laplacian of Gaussian sigma (in mm). This specifies the width of the Gaussian filter by
+            its standard deviation. -->
+            <laplacian_of_gaussian_sigma></laplacian_of_gaussian_sigma>
+            <!-- Number of standard deviations o allow before truncating the Gaussian filter -->
+            <laplacian_of_gaussian_kernel_truncate></laplacian_of_gaussian_kernel_truncate>
+            <!-- Pooling method used to combine Laplacian of Gaussian response maps for different sigma values.
+            Default: none -->
+            <laplacian_of_gaussian_pooling_method></laplacian_of_gaussian_pooling_method>
+            <!-- Boundary condition for Laplacian of Gaussian kernels. Supersedes generic boundary condition tag. -->
+            <laplacian_of_gaussian_boundary_condition></laplacian_of_gaussian_boundary_condition>
+            <!-- Gaussian sigma (in mm). This specifies the width of the Gaussian filter by its standard deviation. -->
+            <gaussian_sigma></gaussian_sigma>
+            <!-- Number of standard deviations to allow before truncating the Gaussian filter. Default: 4.0 -->
+            <gaussian_kernel_truncate></gaussian_kernel_truncate>
+            <!-- Boundary condition for Gaussian kernels. Supersedes generic boundary condition tag. -->
+            <gaussian_kernel_boundary_condition></gaussian_kernel_boundary_condition>
+            <!-- Calculate specific laws kernels, e.g. L5S5E5, E5E5E5. No default.-->
+            <laws_kernel></laws_kernel>
+            <!-- Calculate laws texture energy image, or just the response map; True (default) or False -->
+            <laws_calculate_energy></laws_calculate_energy>
+            <!-- Delta for chebyshev distance between centetr voxel and neighbourhood boundary used to calculate
+            texture energy: integer, default: 7-->
+            <laws_delta></laws_delta>
+            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
+            <laws_rotation_invariance></laws_rotation_invariance>
+            <!-- Pooling method used for rotationally invariant Laws response maps and energy images; max (default)
+            or mean. -->
+            <laws_pooling_method></laws_pooling_method>
+            <!-- Boundary condition for Laws kernels. Supersedes generic boundary condition tag. -->
+            <laws_boundary_condition></laws_boundary_condition>
+            <!-- Gabor kernel sigma (in mm). Together with gamma, this specifies the width of the filter. -->
+            <gabor_sigma></gabor_sigma>
+            <!-- Number of standard deviations at which the filter should be truncated. -->
+            <gabor_kernel_truncate></gabor_kernel_truncate>
+            <!-- Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
+            relative to x-axis for 0-angle Gabor kernel. -->
+            <gabor_gamma></gabor_gamma>
+            <!-- Wavelength of the oscillator (in mm) -->
+            <gabor_lambda></gabor_lambda>
+            <!-- Initial angle of the Gabor filter. Defined in degrees. Default: 0.0 -->
+            <gabor_theta></gabor_theta>
+            <!-- Angle step size for in-plane rotational invariance. Defined in degrees. Default: None (no stepping) -->
+            <gabor_theta_step></gabor_theta_step>
+            <!-- Type of response map created by Gabor filters. Gabor kernels consist of complex numbers, and the
+            direct response map will be complex as well. The complex-valued response map is converted to a
+            real-valued response map using the specified method; one of modulus (default), argument, real,
+            imaginary -->
+            <gabor_response></gabor_response>
+             <!-- Create rotationally invariant Gabor response maps by stacking 2D response over orthogonal planes;
+             True (default for 3D) or False. Not possible for 2D analysis (by_slice). -->
+            <gabor_rotation_invariance></gabor_rotation_invariance>
+            <!-- Pooling method used for rotationally invariant response maps for gabor kernels; max (default)
+             or mean. -->
+            <gabor_pooling_method></gabor_pooling_method>
+            <!-- Boundary condition for Gabor kernels. Supersedes generic boundary condition tag. -->
+            <gabor_boundary_condition></gabor_boundary_condition>
+            <!-- Filter size in voxel units for mean filter. -->
+            <mean_filter_kernel_size></mean_filter_kernel_size>
+            <!-- Boundary condition for mean filter kernels. Supersedes generic boundary condition tag. -->
+            <mean_filter_boundary_condition></mean_filter_boundary_condition>
+            <!-- Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
+             vector, e.g. 0,0,1. Note: order is (z, y, x).-->
+            <riesz_filter_order></riesz_filter_order>
+            <!--Sigma for Gaussian filter used in steerable Riesz transformation. -->
+            <riesz_filter_tensor_sigma></riesz_filter_tensor_sigma>
+        </img_transform>
+    </config>
+</root>

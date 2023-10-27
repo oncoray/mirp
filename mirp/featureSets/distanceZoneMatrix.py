@@ -4,26 +4,27 @@ import pandas as pd
 import copy
 
 from mirp.featureSets.utilities import is_list_all_none
-from mirp.imageClass import ImageClass
-from mirp.roiClass import RoiClass
-from mirp.importSettings import FeatureExtractionSettingsClass
-from mirp.utilities import real_ndim
+from mirp.images.genericImage import GenericImage
+from mirp.masks.baseMask import BaseMask
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.utilities.utilities import real_ndim
 
 
-def get_dzm_features(img_obj: ImageClass,
-                     roi_obj: RoiClass,
-                     settings: FeatureExtractionSettingsClass):
+def get_dzm_features(
+        image: GenericImage,
+        mask: BaseMask,
+        settings: FeatureExtractionSettingsClass):
     """Extract size zone matrix-based features from the intensity roi"""
 
     # Generate an empty feature list
     feat_list = []
 
-    if img_obj.is_missing or roi_obj.roi_intensity is None or roi_obj.roi_morphology is None:
+    if image.is_empty() or mask.roi_intensity is None or mask.roi_morphology is None:
         # In case the input image or ROI masks are missing.
         n_slices = 1
     else:
         # Default case with input image and ROI available
-        n_slices = img_obj.size[0]
+        n_slices = image.image_dimension[0]
 
     # Iterate over spatial arrangements
     for ii_spatial in settings.gldzm_spatial_method:
@@ -35,41 +36,47 @@ def get_dzm_features(img_obj: ImageClass,
         if ii_spatial.lower() in ["2d", "2.5d"]:
 
             # Convert image to table
-            df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj,
-                                                 intensity_mask=True,
-                                                 distance_map=True,
-                                                 by_slice=True)
+            df_img = mask.as_pandas_dataframe(
+                image=image,
+                intensity_mask=True,
+                distance_map=True,
+                by_slice=True)
 
             # Iterate over slices
             for ii_slice in np.arange(0, n_slices):
 
                 # Perform analysis per slice
-                dzm_list += [DistanceZoneMatrix(spatial_method=ii_spatial.lower(),
-                                                slice_id=ii_slice)]
+                dzm_list += [DistanceZoneMatrix(
+                    spatial_method=ii_spatial.lower(),
+                    slice_id=ii_slice)]
 
         # Perform 3D analysis
         elif ii_spatial.lower() == "3d":
 
             # Convert image to table
-            df_img = roi_obj.as_pandas_dataframe(img_obj=img_obj,
-                                                 intensity_mask=True,
-                                                 distance_map=True)
+            df_img = mask.as_pandas_dataframe(
+                image=image,
+                intensity_mask=True,
+                distance_map=True)
 
             # Perform analysis on the entire volume
-            dzm_list += [DistanceZoneMatrix(spatial_method=ii_spatial.lower(),
-                                            slice_id=None)]
+            dzm_list += [DistanceZoneMatrix(
+                spatial_method=ii_spatial.lower(),
+                slice_id=None)]
         else:
             raise ValueError("Spatial methods for DZM should be \"2d\", \"2.5d\" or \"3d\".")
 
         # Calculate size zone matrices
         for dzm in dzm_list:
-            dzm.calculate_matrix(img_obj=img_obj,
-                                 roi_obj=roi_obj,
-                                 df_img=df_img)
+            dzm.calculate_matrix(
+                image=image,
+                mask=mask,
+                df_img=df_img)
 
         # Merge matrices according to the given method
-        upd_list = combine_matrices(dzm_list=dzm_list,
-                                    spatial_method=ii_spatial.lower())
+        upd_list = combine_matrices(
+            dzm_list=dzm_list,
+            spatial_method=ii_spatial.lower())
 
         # Calculate features
         feat_run_list = []
@@ -80,9 +87,9 @@ def get_dzm_features(img_obj: ImageClass,
         feat_list += [pd.concat(feat_run_list, axis=0).mean(axis=0, skipna=True).to_frame().transpose()]
 
     # Merge feature tables into a single table
-    df_feat = pd.concat(feat_list, axis=1)
+    feature_data = pd.concat(feat_list, axis=1)
 
-    return df_feat
+    return feature_data
 
 
 def combine_matrices(dzm_list, spatial_method):
@@ -140,7 +147,7 @@ class DistanceZoneMatrix:
         # Spatial analysis method (2d, 2.5d, 3d)
         self.spatial_method = spatial_method
 
-        # Place holders
+        # Placeholders
         self.matrix = matrix
         self.n_v = n_v
 
@@ -151,14 +158,76 @@ class DistanceZoneMatrix:
         self.n_v = 0
         self.matrix = None
 
-    def calculate_matrix(self, img_obj, roi_obj, df_img):
+    def calculate_matrix(
+            self,
+            image: GenericImage,
+            mask: BaseMask,
+            df_img: pd.DataFrame):
+
+        # Check if the input image and roi exist
+        if image.is_empty() or mask.roi_intensity is None or df_img is None:
+            self.set_empty()
+            return
+
+        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLDZM.
+        if not np.any(mask.roi_intensity.get_voxel_grid()):
+            self.set_empty()
+            return
+
+        from skimage.measure import label
+
+        # Define neighbour directions
+        if self.spatial_method == "3d":
+            connectivity = 3
+            img_vol = copy.deepcopy(image.get_voxel_grid())
+            roi_vol = copy.deepcopy(mask.roi_intensity.get_voxel_grid())
+            df_dzm = copy.deepcopy(df_img)
+
+        elif self.spatial_method in ["2d", "2.5d"]:
+            connectivity = 2
+            img_vol = image.get_voxel_grid()[self.slice, :, :]
+            roi_vol = mask.roi_intensity.get_voxel_grid()[self.slice, :, :]
+            df_dzm = copy.deepcopy(df_img[df_img.z == self.slice])
+
+        else:
+            raise ValueError(
+                "The spatial method for grey level distance zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
+
+        # Check dimensionality and update connectivity if necessary.
+        connectivity = min([connectivity, real_ndim(img_vol)])
+
+        # Set voxels outside the roi to 0.0
+        img_vol[~roi_vol] = 0.0
+
+        # Count the number of voxels within the roi
+        self.n_v = np.sum(roi_vol)
+
+        # Label all connected voxels with the same grey level
+        img_label = label(img_vol, background=0, connectivity=connectivity)
+
+        # Add group labels
+        df_dzm["vol_id"] = np.ravel(img_label)
+
+        # Select minimum group distance for unique groups
+        df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].agg(np.min).reset_index().rename(columns={"border_distance": "d"})
+
+        # Count occurrence of grey level and distance
+        df_dzm = df_dzm.groupby(by=["g", "d"]).size().reset_index(name="n")
+
+        # Rename columns
+        df_dzm.columns = ["i", "d", "n"]
+
+        # Add matrix to object
+        self.matrix = df_dzm
+
+    def calculate_matrix_deprecated(self, img_obj, roi_obj, df_img):
 
         # Check if the input image and roi exist
         if img_obj.is_missing or roi_obj.roi_intensity is None or df_img is None:
             self.set_empty()
             return
 
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLDM.
+        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLDZM.
         if not np.any(roi_obj.roi_intensity.get_voxel_grid()):
             self.set_empty()
             return
@@ -184,7 +253,7 @@ class DistanceZoneMatrix:
         # Check dimensionality and update connectivity if necessary.
         connectivity = min([connectivity, real_ndim(img_vol)])
 
-        # Set voxels outside of roi to 0.0
+        # Set voxels outside the roi to 0.0
         img_vol[~roi_vol] = 0.0
 
         # Count the number of voxels within the roi
@@ -197,7 +266,6 @@ class DistanceZoneMatrix:
         df_dzm["vol_id"] = np.ravel(img_label)
 
         # Select minimum group distance for unique groups
-        # df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].agg({"d": np.min}).reset_index()
         df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].agg(np.min).reset_index().rename(columns={"border_distance": "d"})
 
         # Count occurrence of grey level and distance

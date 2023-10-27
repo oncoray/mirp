@@ -2,16 +2,21 @@ import numpy as np
 import copy
 
 from typing import Union, List
-from mirp.imageProcess import calculate_features
-from mirp.imageClass import ImageClass
+from mirp.images.genericImage import GenericImage
+from mirp.images.transformedImage import GaborTransformedImage
+from mirp.imageFilters.genericFilter import GenericFilter
 from mirp.imageFilters.utilities import pool_voxel_grids, FilterSet2D
-from mirp.importSettings import SettingsClass
-from mirp.roiClass import RoiClass
+from mirp.settings.settingsGeneric import SettingsClass
 
 
-class GaborFilter:
+class GaborFilter(GenericFilter):
 
     def __init__(self, settings: SettingsClass, name: str):
+
+        super().__init__(
+            settings=settings,
+            name=name
+        )
 
         # Sigma parameter that determines filter width.
         self.sigma: Union[None, float, List[float]] = settings.img_transform.gabor_sigma
@@ -40,9 +45,6 @@ class GaborFilter:
         # Boundary conditions.
         self.mode = settings.img_transform.gabor_boundary_condition
 
-        # In-slice (2D) or 3D filtering.
-        self.by_slice = settings.img_transform.by_slice
-
         # Riesz transformation settings.
         self.riesz_order: Union[None, List[int], List[List[int]]] = None
         self.riesz_steered: bool = False
@@ -60,7 +62,7 @@ class GaborFilter:
         else:
             self.stack_axis: Union[int, List[int]] = [0, 1, 2]
 
-    def _generate_object(self, allow_pooling: bool = False):
+    def generate_object(self, allow_pooling: bool = True):
         # Generator for transformation objects.
         sigma = copy.deepcopy(self.sigma)
         if not isinstance(sigma, list):
@@ -121,66 +123,26 @@ class GaborFilter:
 
                                     yield filter_object
 
-    def apply_transformation(self,
-                             img_obj: ImageClass,
-                             roi_list: List[RoiClass],
-                             settings: SettingsClass,
-                             compute_features: bool = False,
-                             extract_images: bool = False,
-                             file_path: str = None):
-        """Run feature extraction for transformed data"""
+    def transform(self, image: GenericImage) -> GaborTransformedImage:
+        # Create placeholder Gabor response map.
+        response_map = GaborTransformedImage(
+            image_data=None,
+            sigma_parameter=self.sigma,
+            gamma_parameter=self.gamma,
+            lambda_parameter=self.lambda_parameter,
+            theta_parameter=self.theta,
+            pool_theta=self.pool_theta,
+            response_type=self.response_type,
+            rotation_invariance=self.rotation_invariance,
+            pooling_method=self.pooling_method,
+            boundary_condition=self.mode,
+            riesz_order=self.riesz_order,
+            riesz_steering=self.riesz_steered,
+            riesz_sigma_parameter=self.riesz_sigma,
+            template=image
+        )
 
-        feature_list = []
-
-        # Iterate over generated filter objects with unique settings.
-        for filter_object in self._generate_object(allow_pooling=True):
-
-            # Create a response map.
-            response_map = filter_object.transform(img_obj=img_obj)
-
-            # Export the image.
-            if extract_images:
-                response_map.export(file_path=file_path)
-
-            # Compute features.
-            if compute_features:
-                feature_list += [calculate_features(img_obj=response_map,
-                                                    roi_list=[roi_obj.copy() for roi_obj in roi_list],
-                                                    settings=settings.img_transform.feature_settings,
-                                                    append_str=response_map.spat_transform + "_")]
-
-            del response_map
-
-        return feature_list
-
-    def transform(self, img_obj: ImageClass):
-        """
-        Transform image by calculating the laplacian of the gaussian second derivatives
-        :param img_obj: image object
-        :return:
-        """
-
-        # Copy base image
-        response_map = img_obj.copy(drop_image=True)
-
-        # Prepare the string for the spatial transformation.
-        spatial_transform_string = ["gabor",
-                                    "s", str(self.sigma),
-                                    "g", str(self.gamma),
-                                    "l", str(self.lambda_parameter)]
-
-        if not self.pool_theta:
-            spatial_transform_string += ["t", str(self.theta)]
-
-        spatial_transform_string += ["2D" if self.by_slice else "3D"]
-
-        if self.rotation_invariance and not self.by_slice:
-            spatial_transform_string += ["invar"]
-
-        # Set the name of the transformation.
-        response_map.set_spatial_transform("_".join(spatial_transform_string))
-
-        if img_obj.is_missing:
+        if image.is_empty():
             return response_map
 
         # Set response voxel grid.
@@ -188,15 +150,17 @@ class GaborFilter:
 
         # Initialise iterator ii to avoid IDE warnings.
         ii = 0
-        for ii, pooled_filter_object in enumerate(self._generate_object(allow_pooling=False)):
+        for ii, pooled_filter_object in enumerate(self.generate_object(allow_pooling=False)):
             # Generate transformed voxel grid.
-            pooled_voxel_grid = pooled_filter_object.transform_grid(voxel_grid=img_obj.get_voxel_grid(),
-                                                                    spacing=img_obj.spacing)
+            pooled_voxel_grid = pooled_filter_object.transform_grid(
+                voxel_grid=image.get_voxel_grid(),
+                spacing=np.array(image.image_spacing))
 
             # Pool voxel grids.
-            response_voxel_grid = pool_voxel_grids(x1=response_voxel_grid,
-                                                   x2=pooled_voxel_grid,
-                                                   pooling_method=self.pooling_method)
+            response_voxel_grid = pool_voxel_grids(
+                x1=response_voxel_grid,
+                x2=pooled_voxel_grid,
+                pooling_method=self.pooling_method)
 
         if self.pooling_method == "mean":
             # Perform final pooling step for mean pooling.
@@ -207,13 +171,16 @@ class GaborFilter:
 
         return response_map
 
-    def transform_grid(self,
-                       voxel_grid: np.ndarray,
-                       spacing: np.array):
+    def transform_grid(
+            self,
+            voxel_grid: np.ndarray,
+            spacing: np.array):
 
         # Get in-plane spacing, i.e. not stack_axis.
-        spacing: float = max([current_spacing for ii, current_spacing in enumerate(spacing.tolist())
-                              if not ii == self.stack_axis])
+        spacing: float = max([
+            current_spacing for ii, current_spacing in enumerate(spacing.tolist())
+            if not ii == self.stack_axis
+        ])
 
         # Convert sigma from physical units to voxel units.
         sigma: float = self.sigma / spacing
@@ -223,8 +190,10 @@ class GaborFilter:
         theta = np.deg2rad(self.theta)
 
         # Get size of the voxelgrid as filter size.
-        x_size = y_size = max([current_shape for ii, current_shape in enumerate(voxel_grid.shape)
-                              if not ii == self.stack_axis])
+        x_size = y_size = max([
+            current_shape for ii, current_shape in enumerate(voxel_grid.shape)
+            if not ii == self.stack_axis
+        ])
 
         # Ensure that size is uneven.
         x_size = int(1 + 2 * np.floor(x_size / 2.0))
@@ -249,16 +218,18 @@ class GaborFilter:
                               * (2.0 * np.pi * x) / lambda_p)
 
         # Create filter
-        gabor_filter = FilterSet2D(gabor_filter,
-                                   riesz_order=self.riesz_order,
-                                   riesz_steered=self.riesz_steered,
-                                   riesz_sigma=self.riesz_sigma)
+        gabor_filter = FilterSet2D(
+            gabor_filter,
+            riesz_order=self.riesz_order,
+            riesz_steered=self.riesz_steered,
+            riesz_sigma=self.riesz_sigma)
 
         # Convolve gabor filter with the image.
-        response_map = gabor_filter.convolve(voxel_grid=voxel_grid,
-                                             mode=self.mode,
-                                             response=self.response_type,
-                                             axis=self.stack_axis)
+        response_map = gabor_filter.convolve(
+            voxel_grid=voxel_grid,
+            mode=self.mode,
+            response=self.response_type,
+            axis=self.stack_axis)
 
         # Compute the convolution
         return response_map

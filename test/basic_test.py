@@ -1,15 +1,16 @@
-# The aim of this test-set is to test basic functionality in the presence of edge-cases.
-
 import os
-import pytest
 
 import numpy as np
 import pandas as pd
 
-from mirp.experimentClass import ExperimentClass
-from mirp.importSettings import SettingsClass, GeneralSettingsClass, ImagePostProcessingClass,\
-    ImageInterpolationSettingsClass, RoiInterpolationSettingsClass, ResegmentationSettingsClass,\
-    ImagePerturbationSettingsClass, ImageTransformationSettingsClass, FeatureExtractionSettingsClass
+from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
+from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
+from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
+from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.settingsGeneral import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -20,31 +21,39 @@ def test_orientation():
     """
     Test internal representation of image objects using the orientation phantom.
     """
+    from mirp.importData.readData import read_image
+    from mirp.importData.importImage import import_image
 
-    from mirp.imageRead import load_image
-    image_object, roi_list = load_image(
-        image_folder=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image"),
-        modality="CT",
-        roi_folder=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "mask"),
-        roi_names="mask")
+    image_list = import_image(
+        image=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image", "orientation.nii.gz")
+    )
+
+    image = read_image(image=image_list[0])
 
     # Assert minimum and maximum values in the voxel grid.
-    assert np.min(image_object.get_voxel_grid()) == 0.0
-    assert np.max(image_object.get_voxel_grid()) == 141.0
+    assert np.min(image.get_voxel_grid()) == 0.0
+    assert np.max(image.get_voxel_grid()) == 141.0
 
     # Check dimensions. MIRP expects a (z, y, x) orientation.
-    assert np.array_equal(image_object.size, np.array([64, 48, 32]))
+    assert np.array_equal(image.image_dimension, (64, 48, 32))
 
     # Check orientation. The minimum value should be in the origin, and the maximum value in the most distal voxel.
-    assert image_object.get_voxel_grid()[0, 0, 0] == 0.0
-    assert image_object.get_voxel_grid()[-1, -1, -1] == 141.0
+    assert image.get_voxel_grid()[0, 0, 0] == 0.0
+    assert image.get_voxel_grid()[-1, -1, -1] == 141.0
 
     # Check if origin and spacing match initial values.
-    assert np.array_equal(image_object.origin, np.array([0.0, 1.0, 2.0]))
-    assert np.array_equal(image_object.spacing, np.array([0.5, 1.0, 1.5]))
+    assert np.array_equal(image.image_origin, (0.0, 1.0, 2.0))
+    assert np.array_equal(image.image_spacing, (0.5, 1.0, 1.5))
+
+    # Check if the affine matrix is correct.
+    assert np.array_equal(
+        image.image_orientation, np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+    )
 
 
-def _setup_experiment(image, roi, **kwargs):
+def run_experiment(image, roi, **kwargs):
+    from mirp.extractFeaturesAndImages import extract_features
+
     by_slice = False
 
     # Configure settings.
@@ -61,15 +70,22 @@ def _setup_experiment(image, roi, **kwargs):
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
         no_approximation=True,
+        base_feature_families="all",
         base_discretisation_method=["fixed_bin_number", "fixed_bin_size"],
         base_discretisation_n_bins=12,
         base_discretisation_bin_width=25.0,
         ivh_discretisation_method="fixed_bin_number",
         glcm_distance=[1.0],
-        glcm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
-                             "3d_average", "3d_volume_merge"],
-        glrlm_spatial_method=["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge",
-                              "3d_average", "3d_volume_merge"],
+        glcm_spatial_method=[
+            "2d_average", "2d_slice_merge",
+            "2.5d_direction_merge", "2.5d_volume_merge",
+            "3d_average", "3d_volume_merge"
+        ],
+        glrlm_spatial_method=[
+            "2d_average", "2d_slice_merge",
+            "2.5d_direction_merge", "2.5d_volume_merge",
+            "3d_average", "3d_volume_merge"
+        ],
         glszm_spatial_method=["2d", "2.5d", "3d"],
         gldzm_spatial_method=["2d", "2.5d", "3d"],
         ngtdm_spatial_method=["2d", "2.5d", "3d"],
@@ -87,34 +103,67 @@ def _setup_experiment(image, roi, **kwargs):
         general_settings=general_settings,
         post_process_settings=ImagePostProcessingClass(),
         img_interpolate_settings=image_interpolation_settings,
-        roi_interpolate_settings=RoiInterpolationSettingsClass(),
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
         roi_resegment_settings=ResegmentationSettingsClass(**kwargs),
         perturbation_settings=ImagePerturbationSettingsClass(),
         img_transform_settings=image_transformation_settings,
         feature_extr_settings=feature_computation_parameters
     )
 
-    experiment = ExperimentClass(
-        modality="CT",
-        subject="_".join([image, roi]),
-        cohort=None,
-        write_path=None,
-        image_folder=os.path.join(CURRENT_DIR, "data", "misc_images", image, "image"),
-        roi_folder=os.path.join(CURRENT_DIR, "data", "misc_images", image, "mask"),
-        roi_reg_img_folder=None,
-        image_file_name_pattern=None,
-        registration_image_file_name_pattern=None,
-        roi_names=[roi],
-        data_str=None,
-        provide_diagnostics=False,
-        settings=settings,
-        compute_features=True,
-        extract_images=False,
-        plot_images=False,
-        keep_images_in_memory=False
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "misc_images", image, "image"),
+        image_modality="CT",
+        mask=os.path.join(CURRENT_DIR, "data", "misc_images", image, "mask"),
+        mask_name=roi,
+        settings=settings
     )
 
-    return experiment
+    data = data[0]
+    return data
+
+
+def test_xml_configurations():
+    # Read the data settings xml file, and update path to image and mask.
+    from xml.etree import ElementTree as ElemTree
+    from mirp.extractFeaturesAndImages import extract_features
+
+    # Remove temporary data xml file if it exists.
+    if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):
+        os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+
+    # Load xml.
+    tree = ElemTree.parse(os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_data.xml"))
+    paths_branch = tree.getroot()
+
+    # Update paths in xml file.
+    for image in paths_branch.iter("image"):
+        image.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
+    for mask in paths_branch.iter("mask"):
+        mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
+
+    # Save as temporary xml file.
+    tree.write(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"),
+        settings=os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_settings.xml")
+    )
+
+    data = pd.concat(data)
+    assert len(data) == 2
+    assert all(data["sample_name"].values == ["STS_002", "STS_003"])
+    assert all(data["image_modality"].values == "pet")
+    assert all(data["image_mask_name"].values == "GTV_Mass_PET")
+    assert all(data["image_voxel_size_x"].values == 3.0)
+    assert all(data["image_voxel_size_y"].values == 3.0)
+    assert all(data["image_voxel_size_z"].values == 3.0)
+
+    # Clean up
+    os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
 
 
 def test_edge_cases_basic_pipeline():
@@ -138,29 +187,23 @@ def test_edge_cases_basic_pipeline():
     for image in images:
         for roi in rois:
             # Setup experiment.
-            experiment = _setup_experiment(image=image, roi=roi)
+            data = run_experiment(image=image, roi=roi)
 
             # Test
             if roi == "empty_mask":
-                with pytest.raises(ValueError) as excinfo:
-                    experiment.process()
-
-                assert "is not a mask consisting of 0s and 1s" in str(excinfo.value)
+                assert data is None
 
             else:
-                data = experiment.process()
                 assert isinstance(data, pd.DataFrame)
 
     # Test ROI that becomes empty after re-segmentation
     for image in images:
         # Resegmentation
-        experiment = _setup_experiment(
+        data = run_experiment(
             image=image,
             roi="full_mask",
-            resegmentation_method="range",
             resegmentation_intensity_range=[100.0, 200.0]
         )
 
         # Setup experiment.
-        data = experiment.process()
         assert isinstance(data, pd.DataFrame)
