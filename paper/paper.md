@@ -12,9 +12,7 @@ authors:
     orcid: 0000-0002-0342-9545
     affiliation: "2, 3, 4"
 affiliations:
-  - name: National Center for Tumor Diseases (NCT/UCC) Dresden, Germany: German Cancer Research Center (DKFZ), 
-      Heidelberg, Germany; Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität 
-      Dresden, Dresden, Germany, and; Helmholtz Association/Helmholtz-Zentrum Dresden–Rossendorf (HZDR), Dresden, Germany
+  - name: "National Center for Tumor Diseases (NCT/UCC) Dresden, Germany: German Cancer Research Center (DKFZ), Heidelberg, Germany; Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität Dresden, Dresden, Germany, and; Helmholtz Association/Helmholtz-Zentrum Dresden–Rossendorf (HZDR), Dresden, Germany"
     index: 1
   - name: OncoRay—National Center for Radiation Research in Oncology, Faculty of Medicine and University Hospital 
       Carl Gustav Carus, Technische Universität Dresden, Helmholtz-Zentrum Dresden–Rossendorf, Dresden, Germany
