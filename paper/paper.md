@@ -1,19 +1,3 @@
-Instructions
-------------
-
-OSS welcomes submissions from broadly diverse research areas. For this reason, we require that authors include in the paper some sentences that explain the software functionality and domain of use to a non-specialist reader. We also require that authors explain the research applications of the software. The paper should be between 250-1000 words. Authors submitting papers significantly longer than 1000 words may be asked to reduce the length of their paper.
-
-Your paper should include:
-
-- [x] A list of the authors of the software and their affiliations, using the correct format (see the example below). 
-- [x] A summary describing the high-level functionality and purpose of the software for a diverse, non-specialist 
-  audience. 
-- [x] A Statement of need section that clearly illustrates the research purpose of the software and places it in the 
-  context of related work. 
-- [ ] A list of key references, including to other software addressing related needs. Note that the references should include full names of venues, e.g., journals and conferences, not abbreviations only understood in the context of a specific discipline. 
-- [ ] Mention (if applicable) a representative set of past or ongoing research projects using the software and recent scholarly publications enabled by it. 
-- [ ] Acknowledgement of any financial support.
-
 ---
 title: 'MIRP: A Python package for standardised radiomics'
 tags:
@@ -28,14 +12,19 @@ authors:
     orcid: 0000-0002-0342-9545
     affiliation: "2, 3, 4"
 affiliations:
- - name: National Center for Tumor Diseases (NCT/UCC) Dresden, Germany: German Cancer Research Center (DKFZ), Heidelberg, Germany; Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität Dresden, Dresden, Germany, and; Helmholtz Association/Helmholtz-Zentrum Dresden–Rossendorf (HZDR), Dresden, Germany
-   index: 1
- - name: OncoRay—National Center for Radiation Research in Oncology, Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität Dresden, Helmholtz-Zentrum Dresden–Rossendorf, Dresden, Germany
-   index: 2
- - name: German Cancer Research Center (DKFZ), Heidelberg and German Cancer Consortium (DKTK) Partner Site Dresden, Dresden, Germany
-   index: 3
- - name: Department of Radiotherapy and Radiation Oncology, Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität Dresden, Dresden, Germany
-   index: 4
+  - name: National Center for Tumor Diseases (NCT/UCC) Dresden, Germany: German Cancer Research Center (DKFZ), 
+      Heidelberg, Germany; Faculty of Medicine and University Hospital Carl Gustav Carus, Technische Universität 
+      Dresden, Dresden, Germany, and; Helmholtz Association/Helmholtz-Zentrum Dresden–Rossendorf (HZDR), Dresden, Germany
+    index: 1
+  - name: OncoRay—National Center for Radiation Research in Oncology, Faculty of Medicine and University Hospital 
+      Carl Gustav Carus, Technische Universität Dresden, Helmholtz-Zentrum Dresden–Rossendorf, Dresden, Germany
+    index: 2
+  - name: German Cancer Research Center (DKFZ), Heidelberg and German Cancer Consortium (DKTK) Partner Site Dresden, 
+      Dresden, Germany
+    index: 3
+  - name: Department of Radiotherapy and Radiation Oncology, Faculty of Medicine and University Hospital Carl Gustav 
+      Carus, Technische Universität Dresden, Dresden, Germany
+    index: 4
 date: 30 October 2023
 bibliography: paper.bib
 ---
