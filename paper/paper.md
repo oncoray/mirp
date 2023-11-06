@@ -29,14 +29,14 @@ bibliography: paper.bib
 
 # Summary
 
-Medical imaging provides non-invasive anatomical and functional visualisation of the human body. It is used for 
-diagnostics, prognostics and treatment planning. Many current uses of medical imaging involve 
-qualitative or semi-quantitive assessment by experts. Radiomics seeks  to automate analysis of medical imaging for 
-clinical decision support. At its core, radiomics  involves the extraction and machine learning-based analysis of 
+Medical imaging provides non-invasive anatomical and functional visualisation of the human body. It is used 
+clinically for diagnostics, prognostics and treatment planning. Many current uses of medical imaging involve 
+qualitative or semi-quantitive assessment by experts. Radiomics seeks to automate analysis of medical imaging for 
+clinical decision support. At its core, radiomics involves the extraction and machine learning-based analysis of 
 quantitive features from medical images. However, very few--if any--radiomics tools have been translated to the 
 clinic [@Huang2022-mi]. One of the essential prerequisites for translation is reproducibility and validation in 
 external settings [@OConnor2017-iv]. This can be facilitated through the use of standardised radiomics software. 
-Here we present `mirp`, a Python  package for standardised processing of medical imaging and computation of 
+Here we present `mirp`, a Python package for standardised processing of medical imaging and computation of 
 quantitative features. Researchers can use `mirp` for their own radiomics analyses or to reproduce and validate 
 radiomics of others.
 
@@ -46,10 +46,10 @@ Lack of standardised radiomics software is one of the reasons for poor translati
 The Image Biomarker Standardisation Initiative has created reference standards for radiomics software: 1. a 
 reference standard for basic image processing and feature extraction steps [@Zwanenburg2020-go]; and 2. a reference 
 standard for image filters [TODO:ADD WHEN PUBLISHED]. There is currently a lack of fully IBSI-compliant radiomics 
-packages in Python. Python is important for the radiomics field as commonly used machine learning and deep learning 
-packages such as `scikit-learn` and `pytorch`  are interfaced using Python. `mirp` facilitates both by offering a 
+packages in Python. Python is important for the radiomics field because commonly used machine learning and deep 
+learning packages such as `scikit-learn` and `pytorch` are interfaced using Python. `mirp` facilitates both by offering a 
 user-friendly API for standardised image processing and feature extraction for machine learning-based radiomics, and 
-standardised image processing for deep  learning-based radiomics.
+standardised image processing for deep learning-based radiomics.
 
 `mirp` is intended to be used by researchers in the radiomics field to perform their own radiomics analyses on the 
 one hand, and to externally reproduce and validate results of other researchers. It was originally created in 2016 and 
@@ -74,12 +74,16 @@ The above are implemented as functions. `mirp.deep_learning_preprocessing`, `mir
 These functions also have generator-variants that yield output one-by-one. 
 
 `mirp` supports all standard medical imaging formats, notably DICOM, NIfTI and NRRD. It also supports `numpy` arrays 
-as a generic fallback option. **FINAL SENTENCE ON MIRP**
+as a generic fallback option.
+
+In conclusion, `mirp` offers a much-needed solution for standardized radiomics. With its user-friendly Python 
+interface, researchers can conduct radiomics analyses and, crucially, reproduce and validate the work of others, 
+bringing us one step closer to harnessing the full potential of medical imaging in improving patient care.
 
 # Alternatives
 
-`mirp` is not the only package available for image processing and feature extraction. Commonly used alternatives are 
-listed in Table 1.
+`mirp` is not the only package available for image processing and feature extraction for radiomics analyses. Commonly 
+used alternatives are listed in Table 1.
 
 |                          | `mirp`                                    | `pyradiomics`                                        | `CERR`                                 | `LIFEx`                               | `radiomics`                                       |
 |--------------------------|-------------------------------------------|------------------------------------------------------|----------------------------------------|---------------------------------------|---------------------------------------------------| 
