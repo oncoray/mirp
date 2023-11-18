@@ -51,7 +51,7 @@ def test_extract_mask_labels_seg():
     mask_labels = extract_mask_labels(
         mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
     )
-    assert mask_labels.roi_label.values
+    assert set(mask_labels.roi_label.values) == {"Liver", "Liver Remnant", "Hepatic", "Portal", "Tumor_1", "Tumor_2"}
 
     # Multiple masks
     mask_labels = extract_mask_labels(
@@ -59,4 +59,6 @@ def test_extract_mask_labels_seg():
         mask_sub_folder="mask"
     )
 
-    assert mask_labels.roi_label.values
+    assert "Tumor_8" in set(mask_labels.roi_label.values)
+    assert "Tumor_1" in set(mask_labels.roi_label.values)
+    assert "Liver" in set(mask_labels.roi_label.values)
