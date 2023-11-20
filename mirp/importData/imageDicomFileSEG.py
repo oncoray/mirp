@@ -117,8 +117,9 @@ class MaskDicomFileSEG(MaskDicomFile):
         for ii, roi_number in enumerate(roi_number_present):
             frames = frame_list[ii]
 
-            # Acquire image orientation.
+            # Acquire mask origin, mask spacing, orientation and dimension.
             mask_origin = self._get_mask_origin(frames=frames)
+            mask_spacing = self._get_mask_spacing(frames=frames)
 
             pass
 
@@ -149,21 +150,21 @@ class MaskDicomFileSEG(MaskDicomFile):
             if roi_index == current_roi_number:
                 yield ii
 
-    def _get_mask_origin(self, frames) -> pd.DataFrame:
+    def _get_mask_origin(self, frames: list[int]) -> tuple[float, ...]:
         mask_origin = None
 
         # Check if a Shared Functional Groups Sequence exists.
         if has_pydicom_meta_tag(self.image_metadata, tag=(0x5200, 0x9229)):
             if has_pydicom_meta_tag(self.image_metadata[(0x5200, 0x9229)][0], tag=(0x0020, 0x9113)):
                 mask_origin = get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata,
+                    dcm_seq=self.image_metadata[(0x5200, 0x9229)][0][(0x0020, 0x9113)][0],
                     tag=(0x0020, 0x0032),
                     tag_type="mult_float",
                     default=None
                 )
 
         if mask_origin is not None:
-            return mask_origin[::-1]
+            return tuple(mask_origin[::-1])
 
         # Check that the Per-Frame Functional Groups Sequence exists.
         if not has_pydicom_meta_tag(self.image_metadata, tag=(0x5200, 0x9230)):
@@ -225,7 +226,91 @@ class MaskDicomFileSEG(MaskDicomFile):
         mask_position = mask_position.iloc[0]
 
         # Order ascending position (DICOM: z increases from feet to head)
-        return
+        return tuple([mask_position.position_z, mask_position.position_y, mask_position.position_x])
+
+    def _get_mask_spacing(self, frames: list[int]) -> tuple[float, ...]:
+        mask_spacing = None
+
+        # Check if a Shared Functional Groups Sequence exists.
+        if has_pydicom_meta_tag(self.image_metadata, tag=(0x5200, 0x9229)):
+            if has_pydicom_meta_tag(self.image_metadata[(0x5200, 0x9229)][0], tag=(0x0028, 0x9110)):
+                pixel_spacing = get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata[(0x5200, 0x9229)][0][(0x0028, 0x9110)][0],
+                    tag=(0x0028, 0x0030),
+                    tag_type="mult_float",
+                    default=None
+                )
+
+                slice_spacing = get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata[(0x5200, 0x9229)][0][(0x0028, 0x9110)][0],
+                    tag=(0x0018, 0x0088),
+                    tag_type="float",
+                    default=None
+                )
+
+                if pixel_spacing is not None and slice_spacing is not None:
+                    mask_spacing = pixel_spacing + [slice_spacing]
+
+        if mask_spacing is not None:
+            return tuple(mask_spacing[::-1])
+
+        # Isolate Functional Groups Sequence for each frame.
+        frame_functional_groups = [
+            frame_functional_group
+            for ii, frame_functional_group in enumerate(self.image_metadata[(0x5200, 0x9230)])
+            if ii in frames
+        ]
+
+        if not len(frame_functional_groups) == len(frames):
+            raise ValueError(
+                f"The DICOM SEG file ({self.file_path}) does not have the same number of per-frame functional group "
+                f"sequences ({len(frame_functional_groups)}) as the expected number of frames containing a part of "
+                f"the segmentation ({len(frames)}."
+            )
+
+        mask_spacing_x = None
+        mask_spacing_y = None
+        mask_spacing_z = None
+        for ii, frame_functional_group in enumerate(frame_functional_groups):
+            if not has_pydicom_meta_tag(frame_functional_group, tag=(0x0028, 0x9110)):
+                raise ValueError(
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
+                    f"a Pixel Measure Sequence (0020, 9110) to determine the mask spacing."
+                )
+
+            pixel_spacing = get_pydicom_meta_tag(
+                dcm_seq=frame_functional_group[(0x0028, 0x9110)][0],
+                tag=(0x0028, 0x0030),
+                tag_type="mult_float",
+                default=None
+            )
+
+            slice_spacing = get_pydicom_meta_tag(
+                dcm_seq=frame_functional_group[(0x0028, 0x9110)][0],
+                tag=(0x0018, 0x0088),
+                tag_type="float",
+                default=None
+            )
+
+            if pixel_spacing is None or slice_spacing is None:
+                raise ValueError(
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
+                    f"a complete Pixel Measure Sequence (0020, 9110) to determine the mask spacing."
+                )
+
+            if mask_spacing_x is None or mask_spacing_y is None or mask_spacing_z is None:
+                mask_spacing_x = pixel_spacing[0]
+                mask_spacing_y = pixel_spacing[1]
+                mask_spacing_z = slice_spacing
+            elif not (mask_spacing_x == pixel_spacing[0] and mask_spacing_y == pixel_spacing[1] and mask_spacing_z ==
+                      slice_spacing):
+                raise ValueError(
+                    f"Inconsistent spacing detected for one or more frames of the DICOM SEG file ({self.file_path})."
+                )
+            else:
+                pass
+
+        return tuple([mask_spacing_z, mask_spacing_y, mask_spacing_x])
 
     def export_roi_labels(self):
 
