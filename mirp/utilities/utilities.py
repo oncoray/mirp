@@ -2,13 +2,6 @@ import os
 import numpy as np
 
 
-def get_version():
-    with open(os.path.join("../..", 'VERSION.txt')) as version_file:
-        version = version_file.read().strip()
-
-    return version
-
-
 def makedirs_check(path):
     """
     Checks if the given path is an existing directory
