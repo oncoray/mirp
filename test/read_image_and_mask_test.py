@@ -269,7 +269,7 @@ def test_read_dicom_image_and_seg_mask_stack():
 
     image, roi_list = read_image_and_masks(image=image_list[0])
     assert isinstance(image, CTImage)
-    assert len(roi_list) == 5
+    assert len(roi_list) == 6
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "Liver"
 
