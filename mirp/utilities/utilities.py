@@ -2,16 +2,6 @@ import os
 import numpy as np
 
 
-def makedirs_check(path):
-    """
-    Checks if the given path is an existing directory
-    structure, otherwise creates it.
-    """
-
-    if not os.path.isdir(path):
-        os.makedirs(path)
-
-
 def real_ndim(x: np.ndarray):
     """
     Determine dimensionality of an array based on its shape. This is unlike the ndim method, which shows the number
