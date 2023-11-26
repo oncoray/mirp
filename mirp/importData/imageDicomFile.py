@@ -2,7 +2,7 @@ import os.path
 import hashlib
 import numpy as np
 
-from typing import Union, List, Tuple, Dict
+from typing import Any
 
 from pydicom import dcmread
 from warnings import warn
@@ -15,19 +15,20 @@ from mirp.importData.utilities import supported_image_modalities, stacking_dicom
 class ImageDicomFile(ImageFile):
     def __init__(
             self,
-            file_path: Union[None, str] = None,
-            dir_path: Union[None, str] = None,
-            sample_name: Union[None, str, List[str]] = None,
-            file_name: Union[None, str] = None,
-            image_name: Union[None, str] = None,
-            image_modality: Union[None, str] = None,
-            image_file_type: Union[None, str] = None,
-            image_data: Union[None, np.ndarray] = None,
-            image_origin: Union[None, Tuple[float, ...]] = None,
-            image_orientation: Union[None, np.ndarray] = None,
-            image_spacing: Union[None, Tuple[float, ...]] = None,
-            image_dimensions: Union[None, Tuple[int, ...]] = None,
-            **kwargs):
+            file_path: None | str = None,
+            dir_path: None | str = None,
+            sample_name: None | str | list[str] = None,
+            file_name: None | str = None,
+            image_name: None | str = None,
+            image_modality: None | str = None,
+            image_file_type: None | str = None,
+            image_data: None | np.ndarray = None,
+            image_origin: None | tuple[float, ...] = None,
+            image_orientation: None | np.ndarray = None,
+            image_spacing: None | tuple[float, ...] = None,
+            image_dimensions: None | tuple[int, ...] = None,
+            **kwargs
+    ):
 
         super().__init__(
             file_path=file_path,
@@ -46,9 +47,9 @@ class ImageDicomFile(ImageFile):
         )
 
         # These are set using the 'complete' method.
-        self.series_instance_uid: Union[None, str] = None
-        self.frame_of_reference_uid: Union[None, str] = None
-        self.sop_instance_uid: Union[None, str] = None
+        self.series_instance_uid: None | str = None
+        self.frame_of_reference_uid: None | str = None
+        self.sop_instance_uid: None | str = None
 
     def is_stackable(self, stack_images: str):
         """
@@ -59,7 +60,7 @@ class ImageDicomFile(ImageFile):
         """
         return True
 
-    def get_identifiers(self, as_hash=False) -> Union[Dict, bytes]:
+    def get_identifiers(self, as_hash=False) -> dict[str, Any] | bytes:
         """
         General identifiers for images. Compared to other
         :return: a dictionary with identifiers.
@@ -160,6 +161,7 @@ class ImageDicomFile(ImageFile):
         from mirp.importData.imageDicomFileCT import ImageDicomFileCT
         from mirp.importData.imageDicomFileMR import ImageDicomFileMR
         from mirp.importData.imageDicomFilePT import ImageDicomFilePT
+        from mirp.importData.ImageDicomFileRTDOSE import ImageDicomFileRTDose
 
         # Load metadata so that the modality tag can be read.
         self.load_metadata()
@@ -175,6 +177,8 @@ class ImageDicomFile(ImageFile):
             file_class = ImageDicomFilePT
         elif modality == "mr":
             file_class = ImageDicomFileMR
+        elif modality == "rtdose":
+            file_class = ImageDicomFileRTDose
         else:
             # This will return a base class, which will fail to pass the modality check.
             return self
