@@ -1,6 +1,6 @@
 import copy
 import numpy as np
-from typing import Optional, Union, Tuple, List, Dict, Any, Self
+from typing import Any, Self
 
 import pandas as pd
 
@@ -52,7 +52,7 @@ class GenericImage(BaseImage):
         self.discretisation_bin_width = discretisation_bin_width
 
         # Slice identifiers.
-        self.slice_id: Optional[int] = None
+        self.slice_id: None | int = None
 
     def copy(self, drop_image=False) -> Self:
         image = copy.deepcopy(self)
@@ -111,7 +111,10 @@ class GenericImage(BaseImage):
 
         return image
 
-    def get_slices(self, slice_number: Union[None, int, List[int]] = None) -> Union[None, Self, List[Self]]:
+    def get_slices(
+            self,
+            slice_number: None | int | list[int] = None
+    ) -> None | Self | list[Self]:
 
         image_list = []
         return_list = True
@@ -153,7 +156,7 @@ class GenericImage(BaseImage):
         self.image_data = voxel_grid
         self.image_dimension = tuple(voxel_grid.shape)
 
-    def get_voxel_grid(self) -> Union[None, np.ndarray]:
+    def get_voxel_grid(self) -> None | np.ndarray:
         return self.image_data
 
     def update_image_data(self):
@@ -191,15 +194,16 @@ class GenericImage(BaseImage):
 
     def interpolate(
             self,
-            by_slice: Optional[bool] = None,
-            interpolate: Optional[bool] = None,
-            new_spacing: Optional[Tuple[float, ...]] = None,
-            translation: Optional[Union[float, Tuple[float, ...]]] = (0.0, 0.0, 0.0),
-            rotation: Optional[float] = 0.0,
-            spline_order: Optional[int] = None,
-            anti_aliasing: Optional[bool] = None,
-            anti_aliasing_smoothing_beta: Optional[float] = None,
-            settings: Optional[SettingsClass] = None):
+            by_slice: None | bool = None,
+            interpolate: None | bool = None,
+            new_spacing: None | tuple[float, ...] = None,
+            translation: None | float | tuple[float, ...] = (0.0, 0.0, 0.0),
+            rotation: None | float = 0.0,
+            spline_order: None | int = None,
+            anti_aliasing: None | bool = None,
+            anti_aliasing_smoothing_beta: None | float = None,
+            settings: None | SettingsClass = None
+    ):
 
         if self.separate_slices is not None:
             by_slice = self.separate_slices
@@ -260,7 +264,7 @@ class GenericImage(BaseImage):
         if by_slice:
             translation[0] = 0.0
 
-        translation: Tuple[float, ...] = tuple(translation)
+        translation: tuple[float, ...] = tuple(translation)
 
         return self._interpolate(
             by_slice=by_slice,
@@ -281,8 +285,8 @@ class GenericImage(BaseImage):
             self,
             by_slice: bool,
             interpolate: bool,
-            new_spacing: Tuple[float, ...],
-            translation: Tuple[float, ...],
+            new_spacing: tuple[float, ...],
+            translation: tuple[float, ...],
             rotation: float,
             spline_order: int,
             anti_aliasing: bool,
@@ -434,10 +438,10 @@ class GenericImage(BaseImage):
     def register(
             self,
             image,
-            spline_order: Optional[int] = None,
-            anti_aliasing: Optional[bool] = None,
-            anti_aliasing_smoothing_beta: Optional[float] = None,
-            settings: Optional[SettingsClass] = None
+            spline_order: None | int = None,
+            anti_aliasing: None | bool = None,
+            anti_aliasing_smoothing_beta: None | float = None,
+            settings: None | SettingsClass = None
     ):
         if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
             raise ValueError("None of the parameters for registration can be set.")
@@ -742,10 +746,10 @@ class GenericImage(BaseImage):
 
     def normalise_intensities(
             self,
-            normalisation_method: Optional[str] = "none",
-            intensity_range: Optional[Tuple[Any, Any]] = None,
-            saturation_range: Optional[Tuple[Any, Any]] = None,
-            mask: Optional[np.ndarray] = None
+            normalisation_method: None | str = "none",
+            intensity_range: None | tuple[Any, Any] = None,
+            saturation_range: None | tuple[Any, Any] = None,
+            mask: None | np.ndarray = None
     ) -> Self:
         """
         Normalises image intensities
@@ -1045,7 +1049,8 @@ class GenericImage(BaseImage):
 
     def get_supervoxels(
             self,
-            intensity_range: Tuple[float]):
+            intensity_range: tuple[float]
+    ):
         """Extracts supervoxels from an image"""
 
         from skimage.segmentation import slic
@@ -1106,7 +1111,7 @@ class GenericImage(BaseImage):
     def write(
             self,
             dir_path: str,
-            file_name: Optional[str] = None,
+            file_name: None | str = None,
             file_format: str = "nifti"
     ):
         """ Writes the image to a file """
@@ -1155,7 +1160,7 @@ class GenericImage(BaseImage):
             image_data = self.get_voxel_grid()
             np.save(file_path, image_data)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = []
 
         # Sample name
@@ -1201,7 +1206,7 @@ class GenericImage(BaseImage):
     def export(
             self,
             export_format: str = "dict"
-    ) -> Union[None, np.ndarray, Dict[str, Any], Self]:
+    ) -> None | np.ndarray | dict[str, Any] | Self:
 
         if self.is_empty():
             return None
@@ -1220,7 +1225,7 @@ class GenericImage(BaseImage):
         else:
             raise ValueError(f"The current value of export_format was not recognised: {export_format}")
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         attributes = []
 
         # Sample name
@@ -1260,7 +1265,7 @@ class GenericImage(BaseImage):
 
         return dict(attributes)
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         feature_name_suffix = []
         if self.discretisation_method is not None:
             if self.discretisation_method == "none":

@@ -560,7 +560,7 @@ def has_pydicom_meta_tag(
 
 def set_pydicom_meta_tag(
         dcm_seq: FileDataset | Dataset,
-        tag: tuple[hex, hex] | list[hex] | Tag,
+        tag: tuple[hex, hex] | list[hex],
         value: Any,
         force_vr: None | str = None):
     # Check tag
@@ -569,9 +569,6 @@ def set_pydicom_meta_tag(
 
     elif isinstance(tag, list):
         tag = Tag(tag[0], tag[2])
-
-    elif isinstance(tag, Tag):
-        pass
 
     else:
         raise TypeError(f"Metadata tag {tag} is not a pydicom Tag, or can be parsed to one.")

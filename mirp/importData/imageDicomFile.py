@@ -268,7 +268,7 @@ class ImageDicomFile(ImageFile):
 
     def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
-            # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
+            # Orientation needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
 
