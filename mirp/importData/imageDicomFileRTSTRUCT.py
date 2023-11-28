@@ -161,12 +161,28 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if current_roi_number not in roi_number_present:
                 continue
 
-            # Get image data.
-            image_data = self.convert_contour_to_mask(
-                roi_contour_sequence=roi_contour_sequence,
-                image=image,
-                disconnected_segments=disconnected_segments
-            )
+            # Determine strategy for converting contours to mask objects.
+            if not self._convert_contour_using_image(
+                    roi_contour_sequence=roi_contour_sequence,
+                    image=image
+            ):
+                # Set up image based on contours.
+                temporary_image = self._create_image_from_contour(
+                    roi_contour_sequence=roi_contour_sequence
+                )
+
+                image_data = self.convert_contour_to_mask(
+                    roi_contour_sequence=roi_contour_sequence,
+                    image=temporary_image,
+                    disconnected_segments=disconnected_segments
+                )
+            else:
+                # Use associated image directly.
+                image_data = self.convert_contour_to_mask(
+                    roi_contour_sequence=roi_contour_sequence,
+                    image=image,
+                    disconnected_segments=disconnected_segments
+                )
 
             if image_data is None:
                 continue
@@ -209,13 +225,26 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         return mask_list
 
+    def _convert_contour_using_image(
+            self,
+            roi_contour_sequence: pydicom.Dataset,
+            image: ImageFile
+    ) -> bool:
+        ...
+
+    def _create_image_from_contour(
+            self,
+            roi_contour_sequence: pydicom.Dataset
+    ) -> np.ndarray:
+        ...
+    
     def convert_contour_to_mask(
             self,
             roi_contour_sequence: pydicom.Dataset,
             image: ImageFile,
             draw_method: str = "ray_cast",
             disconnected_segments: str = "keep_as_is"
-    ) -> Union[None, np.ndarray]:
+    ) -> None | np.ndarray:
 
         if image is None:
             return None
