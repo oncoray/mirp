@@ -17,7 +17,7 @@ def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
         modality = modality.lower()
 
     if modality is None:
-        return ["ct", "pt", "mr", "generic"]
+        return ["ct", "pt", "mr", "rtdose", "generic"]
 
     elif modality == "ct":
         return ["ct"]
@@ -27,6 +27,9 @@ def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
 
     elif modality in ["mr", "mri"]:
         return ["mr"]
+
+    elif modality in ["rtdose"]:
+        return ["rtdose"]
 
     elif modality == "generic":
         return ["generic"]
