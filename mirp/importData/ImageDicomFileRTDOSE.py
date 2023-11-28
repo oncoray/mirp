@@ -1,6 +1,10 @@
+import warnings
+import os
+
 import numpy as np
 
 from typing import Any
+from pydicom import dcmread
 from mirp.importData.imageDicomFile import ImageDicomFile
 from mirp.importData.utilities import get_pydicom_meta_tag
 
@@ -39,13 +43,109 @@ class ImageDicomFileRTDose(ImageDicomFile):
         )
 
     def is_stackable(self, stack_images: str):
-        return True
+        return False
 
     def create(self):
         return self
 
+    def _complete_image_orientation(self, force=False):
+        if self.image_orientation is None:
+
+            # This is orientation for x and y directions.
+            orientation = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0020, 0x0037),
+                tag_type="mult_float"
+            )
+
+            # If Grid Frame Offset Vector (3004,000C) is present and its first element is zero, this Attribute contains
+            # an array of n elements indicating the plane location of the data in the right-handed image coordinate
+            # system, relative to the position of the first dose plane transmitted, i.e., the point at which Image
+            # Position (patient) (0020,0032) is defined, with positive offsets in the direction of the cross product of
+            # the row and column directions.
+
+            # First compute z-orientation.
+            z_orientation = np.cross(orientation[0:3], orientation[3:6])
+
+            # Then determine the direction of then z-orientation. First get Grid Frame Offset Vector.
+            z_spacing = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x3004, 0x000C),
+                tag_type="mult_float"
+            )
+            if np.any(np.array(z_spacing) < 0.0):
+                z_orientation = -1.0 * z_orientation
+
+            orientation += list(z_orientation)
+
+            self.image_orientation = np.reshape(orientation[::-1], [3, 3])
+
+    def _complete_image_spacing(self, force=False):
+        if self.image_spacing is None:
+
+            # Get pixel-spacing.
+            spacing = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0030), tag_type="mult_float")
+
+            # Get Grid Frame Offset Vector
+            z_spacing = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x3004, 0x000C),
+                tag_type="mult_float"
+            )
+
+            if len(z_spacing) > 1:
+                # DICOM file contains multiple frames.
+                z_spacing = np.unique(np.diff(z_spacing))
+                if len(z_spacing) > 1:
+                    raise ValueError(
+                        f"Spacing of radiation dose grid in {self.file_path} is inconsistent: {', '.join(z_spacing)}"
+                    )
+            else:
+                # DICOM file contains only a single frame. Use a default 1.0 mm value.
+                z_spacing = 1.0
+                warnings.warn(
+                    f"Radiation dose grid in {self.file_path} only contains a single frame (slice). A default frame "
+                    f"spacing of 1.0 mm is assumed. Within-plane spacing is not affected."
+                )
+
+            spacing += [np.abs(z_spacing)[0]]
+
+            self.image_spacing = tuple(spacing[::-1])
+
+    def _complete_image_dimensions(self, force=False):
+        if self.image_dimension is None:
+            dimensions = tuple([
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x008), tag_type="int"),
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x010), tag_type="int"),
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x011), tag_type="int")
+            ])
+
+            self.image_dimension = dimensions
+
     def load_data(self, **kwargs):
-        self.image_data = self.load_data_generic()
+        if self.image_data is not None:
+            return self.image_data
+
+        if self.file_path is not None and not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The image file could not be found at the expected location: {self.file_path}"
+            )
+
+        if self.file_path is None:
+            raise ValueError(f"A path to a file was expected, but not present.")
+
+        # Load metadata.
+        self.load_metadata()
+
+        # Read
+        dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
+        image_data = dcm.pixel_array.astype(np.float32)
+
+        # Update data with dose grid scaling
+        dose_grid_scaling = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x3004, 0x000E), tag_type="float", default=1.0)
+        image_data = image_data * dose_grid_scaling
+
+        self.image_data = image_data
 
     def export_metadata(self, self_only: bool = False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
@@ -57,86 +157,50 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
         dcm_meta_data = []
 
-        # # Scanner type
-        # scanner_type = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0008, 0x1090),
-        #     tag_type="str"
-        # )
-        # if scanner_type is not None:
-        #     dcm_meta_data += [("scanner_type", scanner_type)]
-        #
-        # # Scanner manufacturer
-        # manufacturer = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0008, 0x0070),
-        #     tag_type="str"
-        # )
-        # if manufacturer is not None:
-        #     dcm_meta_data += [("manufacturer", manufacturer)]
-        #
-        # # Image type
-        # image_type = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0008, 0x0008),
-        #     tag_type="str"
-        # )
-        # if image_type is not None:
-        #     dcm_meta_data += [("image_type", image_type)]
-        #
-        # # Convolution kernel
-        # kernel = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0018, 0x1210),
-        #     tag_type="str"
-        # )
-        # if kernel is not None:
-        #     dcm_meta_data += [("kernel", kernel)]
-        #
-        # # Peak kilo voltage output
-        # kvp = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0018, 0x0060),
-        #     tag_type="float"
-        # )
-        # if kvp is not None:
-        #     dcm_meta_data += [("kvp", kvp)]
-        #
-        # # Tube current in mA
-        # tube_current = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0018, 0x1151),
-        #     tag_type="float"
-        # )
-        # if tube_current is not None:
-        #     dcm_meta_data += [("tube_current", tube_current)]
-        #
-        # # Exposure time in milliseconds
-        # exposure_time = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0018, 0x1150),
-        #     tag_type="float"
-        # )
-        # if exposure_time is not None:
-        #     dcm_meta_data += [("exposure_time", exposure_time)]
-        #
-        # # Radiation exposure in mAs
-        # exposure = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0018, 0x1152),
-        #     tag_type="float"
-        # )
-        # if exposure is not None:
-        #     dcm_meta_data += [("exposure", exposure_time)]
-        #
-        # # Contrast/bolus agent
-        # contrast_agent = get_pydicom_meta_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0018, 0x0010),
-        #     tag_type="str"
-        # )
-        # if contrast_agent is not None:
-        #     dcm_meta_data += [("contrast_agent", contrast_agent)]
+        # Manufacturer
+        manufacturer = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0070),
+            tag_type="str"
+        )
+        if manufacturer is not None:
+            dcm_meta_data += [("manufacturer", manufacturer)]
+
+        # Dose Units
+        dose_units = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x3004, 0x0002),
+            tag_type="str"
+        )
+        if dose_units is not None:
+            dcm_meta_data += [("dose_units", dose_units)]
+
+        # Dose Type
+        dose_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x3004, 0x0004),
+            tag_type="str"
+        )
+        if dose_type is not None:
+            dcm_meta_data += [("dose_type", dose_type)]
+
+        # Dose comment
+        dose_comment = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x3004, 0x0006),
+            tag_type="str"
+        )
+        if dose_comment is not None:
+            dcm_meta_data += [("dose_comment", dose_comment)]
+
+        # Dose summation type
+        dose_summation_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x3004, 0x000a),
+            tag_type="str"
+        )
+        if dose_summation_type is not None:
+            dcm_meta_data += [("dose_summation_type", dose_summation_type)]
 
         metadata.update(dict(dcm_meta_data))
         return metadata

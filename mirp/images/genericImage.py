@@ -94,6 +94,7 @@ class GenericImage(BaseImage):
         from mirp.images.ctImage import CTImage
         from mirp.images.petImage import PETImage
         from mirp.images.mrImage import MRImage
+        from mirp.images.rtdoseImage import RTDoseImage
 
         if self.modality == "ct":
             image = CTImage(image_data=self.image_data)
@@ -101,6 +102,8 @@ class GenericImage(BaseImage):
             image = PETImage(image_data=self.image_data)
         elif self.modality in ["mr", "mri"]:
             image = MRImage(image_data=self.image_data)
+        elif self.modality in ["rtdose"]:
+            image = RTDoseImage(image_data=self.image_data)
         elif self.modality == "generic":
             return self
         else:
