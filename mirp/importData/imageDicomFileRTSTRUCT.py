@@ -228,8 +228,60 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def _convert_contour_using_image(
             self,
             roi_contour_sequence: pydicom.Dataset,
-            image: ImageFile
+            image: None | ImageFile
     ) -> bool:
+        """
+        Determine whether the image should be used as reference for creating the mask. In general, if the contours
+        can be directly mapped to slices, the image can be used as reference.
+
+        Parameters
+        ----------
+        roi_contour_sequence: pydicom.Dataset
+            DICOM ROI Contour Sequence read using pydicom.
+        image: ImageFile
+            Reference image
+
+        Returns
+        -------
+        bool
+            Boolean value that determines whether the image can be used as reference for creating the segmentation
+            mask (`True`) or an image should be generated based on contour data (`False`).
+        """
+
+        from mirp.importData.imageDicomFile import ImageDicomFile
+        from mirp.importData.imageDicomFileStack import ImageDicomFileStack
+
+        # In absence of an image, attempt to generate a reference segmentation mask using the ROI contour data
+        # directly.
+        if image is None:
+            return False
+
+        # Get series instance UID
+        reference_series_instance_uid = None
+        if isinstance(image, ImageDicomFile) or isinstance(image, ImageDicomFileStack):
+            reference_series_instance_uid = image.series_instance_uid
+
+        # Get SOP instance UID.
+        reference_sop_instance_uid = None
+        if isinstance(image, ImageDicomFile) and image.sop_instance_uid is not None:
+            reference_sop_instance_uid = [image.sop_instance_uid]
+        elif isinstance(image, ImageDicomFileStack) and image.sop_instance_uid is not None:
+            reference_sop_instance_uid = image.sop_instance_uid
+
+        # Convert contours in the contour sequence to internal contour objects.
+        contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
+        if contour_objects is None:
+            return True
+
+        # Convert contour points (world space) to voxel space.
+        contour_objects = [contour.to_voxel_coordinates(image=image) for contour in contour_objects]
+
+        # Check that within each plane a) each z-coordinate is constant, and b) maps to an integer value (i.e. the
+        # slice number in the reference image).
+        ...
+
+        # Check that, if a mask is spread across multiple slices, at least two slices are adjacent OR the contours
+        # refer to the series instance UID or to the SOP instance UID.
         ...
 
     def _create_image_from_contour(
