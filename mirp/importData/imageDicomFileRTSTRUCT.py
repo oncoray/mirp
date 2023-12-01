@@ -1,3 +1,4 @@
+import copy
 import warnings
 
 import numpy as np
@@ -359,8 +360,68 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             use_orientation: bool,
             use_position: bool
     ) -> ImageFile:
-        ...
-    
+        # Local copy of image.
+        image = image.copy()
+
+        # Convert contours in the contour sequence to internal contour objects.
+        contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
+        use_orientation = False
+        # Determine orientation from roi contours.
+        if not use_orientation:
+
+            points = np.vstack([sub_contour for sub_contour in contour_objects[0].contour])
+            svd = np.linalg.svd(points.T - np.mean(points.T, axis=1, keepdims=True))
+
+            # Extract the left singular U vectors.
+            mask_orientation = svd.U[:, (2, 1, 0)]
+
+            # Check right-handedness
+            if np.linalg.det(mask_orientation) == -1.0:
+                for ii in range(3):
+                    if np.sum(mask_orientation[:, ii]) < 0.0:
+                        mask_orientation[:, ii] *= -1.0
+
+        else:
+            mask_orientation = copy.deepcopy(image.image_orientation)
+
+        if not use_position:
+            # Convert to normalised space: all segments are projected into their planes.
+            contours = [
+                image.to_voxel_coordinates(
+                    x=sub_contour.T,
+                    origin=np.array([0.0, 0.0, 0.0]),
+                    orientation=mask_orientation,
+                    spacing=np.array([1.0, 1.0, 1.0])
+                ).T
+                for contour in contour_objects
+                for sub_contour in contour.contour
+            ]
+
+            # Determine sample spacing.
+            mask_z_spacing = np.min(np.diff(np.unique(np.vstack(contours)[:, 0])))
+            mask_y_spacing = image.image_spacing[1]
+            mask_x_spacing = image.image_spacing[2]
+            mask_spacing = tuple([mask_z_spacing, mask_y_spacing, mask_x_spacing])
+
+            # Determine origin.
+            mask_z_origin = np.min(np.unique(np.vstack(contours)[:, 0]))
+            mask_y_origin = np.min(np.unique(np.vstack(contours)[:, 1])) - mask_y_spacing
+            mask_x_origin = np.min(np.unique(np.vstack(contours)[:, 2])) - mask_x_spacing
+            mask_origin = tuple([mask_z_origin, mask_y_origin, mask_x_origin])
+
+            # TODO: Determine dimensions.
+            
+        else:
+            mask_spacing = copy.deepcopy(image.image_spacing)
+            mask_origin = copy.deepcopy(image.image_origin)
+            mask_dimension = copy.deepcopy(image.image_dimension)
+
+        # Update image
+        image.image_spacing = mask_spacing
+        image.image_origin = mask_origin
+        image.image_dimension = mask_dimension
+        image.image_orientation = mask_orientation
+
     def convert_contour_to_mask(
             self,
             roi_contour_sequence: pydicom.Dataset,

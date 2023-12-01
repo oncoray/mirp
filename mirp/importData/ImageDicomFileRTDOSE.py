@@ -52,31 +52,14 @@ class ImageDicomFileRTDose(ImageDicomFile):
         if self.image_orientation is None:
 
             # This is orientation for x and y directions.
-            orientation = get_pydicom_meta_tag(
+            orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
                 tag_type="mult_float"
             )
 
-            # If Grid Frame Offset Vector (3004,000C) is present and its first element is zero, this Attribute contains
-            # an array of n elements indicating the plane location of the data in the right-handed image coordinate
-            # system, relative to the position of the first dose plane transmitted, i.e., the point at which Image
-            # Position (patient) (0020,0032) is defined, with positive offsets in the direction of the cross product of
-            # the row and column directions.
-
             # First compute z-orientation.
-            z_orientation = np.cross(orientation[0:3], orientation[3:6])
-
-            # Then determine the direction of then z-orientation. First get Grid Frame Offset Vector.
-            z_spacing = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x3004, 0x000C),
-                tag_type="mult_float"
-            )
-            if np.any(np.array(z_spacing) < 0.0):
-                z_orientation = -1.0 * z_orientation
-
-            orientation += list(z_orientation)
+            orientation += list(np.cross(orientation[0:3], orientation[3:6]))
 
             self.image_orientation = np.reshape(orientation[::-1], [3, 3])
 
@@ -108,7 +91,7 @@ class ImageDicomFileRTDose(ImageDicomFile):
                     f"spacing of 1.0 mm is assumed. Within-plane spacing is not affected."
                 )
 
-            spacing += [np.abs(z_spacing)[0]]
+            spacing += [z_spacing[0]]
 
             self.image_spacing = tuple(spacing[::-1])
 
