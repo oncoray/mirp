@@ -1,3 +1,4 @@
+import copy
 import warnings
 
 import numpy as np
@@ -161,12 +162,33 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if current_roi_number not in roi_number_present:
                 continue
 
-            # Get image data.
-            image_data = self.convert_contour_to_mask(
+            # Determine strategy for converting contours to mask objects.
+            use_reference_image, use_orientation, use_position = self._convert_contour_using_image(
                 roi_contour_sequence=roi_contour_sequence,
-                image=image,
-                disconnected_segments=disconnected_segments
+                image=image
             )
+
+            if not use_reference_image:
+                # Set up image based on contours.
+                temporary_image = self._create_image_from_contour(
+                    roi_contour_sequence=roi_contour_sequence,
+                    image=image,
+                    use_orientation=use_orientation,
+                    use_position=use_position
+                )
+
+                image_data = self.convert_contour_to_mask(
+                    roi_contour_sequence=roi_contour_sequence,
+                    image=temporary_image,
+                    disconnected_segments=disconnected_segments
+                )
+            else:
+                # Use associated image directly.
+                image_data = self.convert_contour_to_mask(
+                    roi_contour_sequence=roi_contour_sequence,
+                    image=image,
+                    disconnected_segments=disconnected_segments
+                )
 
             if image_data is None:
                 continue
@@ -209,13 +231,211 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         return mask_list
 
+    def _convert_contour_using_image(
+            self,
+            roi_contour_sequence: pydicom.Dataset,
+            image: None | ImageFile
+    ) -> tuple[bool, bool, bool]:
+        """
+        Determine whether the image should be used as reference for creating the mask. In general, if the contours
+        can be directly mapped to slices, the image can be used as reference.
+
+        Parameters
+        ----------
+        roi_contour_sequence: pydicom.Dataset
+            DICOM ROI Contour Sequence read using pydicom.
+        image: ImageFile
+            Reference image
+
+        Returns
+        -------
+        bool
+            Boolean value that determines whether the image can be used as reference for creating the segmentation
+            mask (`True`) or an image should be generated based on contour data (`False`).
+        """
+
+        from mirp.importData.imageDicomFile import ImageDicomFile
+        from mirp.importData.imageDicomFileStack import ImageDicomFileStack
+
+        # In absence of an image, attempt to generate a reference segmentation mask using the ROI contour data
+        # directly.
+        if image is None:
+            return False, False, False
+
+        # Get series instance UID
+        reference_series_instance_uid = None
+        if isinstance(image, ImageDicomFile) or isinstance(image, ImageDicomFileStack):
+            reference_series_instance_uid = image.series_instance_uid
+
+        series_uid_correct = False
+        if reference_series_instance_uid is not None:
+            series_uid_correct = self.series_instance_uid == reference_series_instance_uid
+
+        # Get SOP instance UID.
+        reference_sop_instance_uid = None
+        if isinstance(image, ImageDicomFile) and image.sop_instance_uid is not None:
+            reference_sop_instance_uid = [image.sop_instance_uid]
+        elif isinstance(image, ImageDicomFileStack) and image.sop_instance_uid is not None:
+            reference_sop_instance_uid = image.sop_instance_uid
+
+        sop_uid_correct = False
+        if reference_sop_instance_uid is not None:
+            referenced_sop_uids = []
+
+            # Extract the SOP instance UIDs from images that are referenced to from the contour sequence.
+            for contour_sequence in roi_contour_sequence[(0x3006, 0x0040)]:
+                if has_pydicom_meta_tag(dcm_seq=contour_sequence, tag=(0x3006, 0x0016)):
+                    for contour_image_sequence in contour_sequence[(0x3006, 0x0016)]:
+                        referenced_sop_uids += [
+                            get_pydicom_meta_tag(
+                                dcm_seq=contour_image_sequence,
+                                tag=(0x0008, 0x1155),
+                                tag_type="str"
+                            )
+                        ]
+
+            # Extract the SOP instance UIDs from images that are referenced to from the referenced frame of reference
+            # sequence.
+            if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x3006, 0x0010)):
+                if has_pydicom_meta_tag(dcm_seq=self.image_metadata[(0x3006, 0x0010)][0], tag=(0x3006, 0x0012)):
+                    for rt_referenced_series_sequence in self.image_metadata[(0x3006, 0x0010)][0][(0x3006, 0x0012)][0][(0x3006, 0x0014)]:
+                        for contour_image_sequence in rt_referenced_series_sequence[(0x3006, 0x0016)]:
+                            referenced_sop_uids += [
+                                get_pydicom_meta_tag(
+                                    dcm_seq=contour_image_sequence,
+                                    tag=(0x0008, 0x1155),
+                                    tag_type="str"
+                                )
+                            ]
+
+            referenced_sop_uids = [referenced_sop_uid for referenced_sop_uid in referenced_sop_uids if referenced_sop_uid is not None]
+            if len(referenced_sop_uids) > 1:
+                sop_uid_correct = set(reference_sop_instance_uid) >= set(referenced_sop_uids)
+
+        # Convert contours in the contour sequence to internal contour objects.
+        contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
+        if contour_objects is None:
+            return True, True, True
+
+        # Convert contour points (world space) to voxel space.
+        contour_objects = [contour.to_voxel_coordinates(image=image) for contour in contour_objects]
+
+        # Check that within each plane a) each z-coordinate is constant, and b) maps to an integer value (i.e. the
+        # slice number in the reference image).
+        orientation_correct = True
+        position_correct = True
+        for contour in contour_objects:
+            for sub_contour in contour.contour:
+                # Check position
+                slice_position = sub_contour[0, 0]
+                if not np.allclose(sub_contour[:, 0], slice_position):
+                    orientation_correct = False
+                if not np.isclose(np.round(slice_position), slice_position):
+                    position_correct = False
+
+        if not orientation_correct:
+            return False, orientation_correct, position_correct
+        if not position_correct:
+            return False, orientation_correct, position_correct
+
+        # Check that, if a mask is spread across multiple slices, at least two slices are adjacent OR the contours
+        # refer to the series instance UID or to the SOP instance UID.
+        slice_position = [sub_contour[0, 0] for contour in contour_objects for sub_contour in contour.contour]
+        slice_position = np.unique(slice_position)
+
+        # In case only one slice is present, we should attempt to compute differences.
+        if len(slice_position) == 1:
+            return True, True, True
+
+        # Check if all slices are non-adjacent.
+        if not np.isclose(np.min(np.diff(slice_position)), 1.0) and not sop_uid_correct and not series_uid_correct:
+            return False, True, False
+
+        return True, True, True
+
+    def _create_image_from_contour(
+            self,
+            roi_contour_sequence: pydicom.Dataset,
+            image: ImageFile,
+            use_orientation: bool,
+            use_position: bool
+    ) -> ImageFile:
+        # Local copy of image.
+        image = image.copy()
+
+        # Convert contours in the contour sequence to internal contour objects.
+        contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
+        use_orientation = False
+
+        # Determine orientation from roi contours.
+        if not use_orientation:
+
+            points = np.vstack([sub_contour for sub_contour in contour_objects[0].contour])
+            svd = np.linalg.svd(points.T - np.mean(points.T, axis=1, keepdims=True))
+
+            # Extract the left singular U vectors.
+            mask_orientation = svd.U[:, (2, 1, 0)]
+
+            # Check right-handedness
+            if np.linalg.det(mask_orientation) == -1.0:
+                for ii in range(3):
+                    if np.sum(mask_orientation[:, ii]) < 0.0:
+                        mask_orientation[:, ii] *= -1.0
+
+        else:
+            mask_orientation = copy.deepcopy(image.image_orientation)
+
+        if not use_position:
+            # Convert to normalised space: all segments are projected into their planes.
+            contours = [
+                image.to_voxel_coordinates(
+                    x=sub_contour.T,
+                    origin=np.array([0.0, 0.0, 0.0]),
+                    orientation=mask_orientation,
+                    spacing=np.array([1.0, 1.0, 1.0])
+                ).T
+                for contour in contour_objects
+                for sub_contour in contour.contour
+            ]
+
+            # Determine sample spacing.
+            mask_z_spacing = np.min(np.diff(np.unique(np.vstack(contours)[:, 0])))
+            mask_y_spacing = image.image_spacing[1]
+            mask_x_spacing = image.image_spacing[2]
+            mask_spacing = tuple([mask_z_spacing, mask_y_spacing, mask_x_spacing])
+
+            # Determine origin.
+            mask_z_origin = np.min(np.unique(np.vstack(contours)[:, 0]))
+            mask_y_origin = np.min(np.unique(np.vstack(contours)[:, 1])) - mask_y_spacing
+            mask_x_origin = np.min(np.unique(np.vstack(contours)[:, 2])) - mask_x_spacing
+            mask_origin = tuple([mask_z_origin, mask_y_origin, mask_x_origin])
+
+            # Determine dimensions.
+            mask_z_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 0])) - mask_z_origin) / mask_z_spacing))
+            mask_y_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 1])) - mask_y_origin) / mask_y_spacing)) + 1
+            mask_x_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 2])) - mask_x_origin) / mask_x_spacing)) + 1
+            mask_dimension = tuple([mask_z_dimension, mask_y_dimension, mask_x_dimension])
+            
+        else:
+            mask_spacing = copy.deepcopy(image.image_spacing)
+            mask_origin = copy.deepcopy(image.image_origin)
+            mask_dimension = copy.deepcopy(image.image_dimension)
+
+        # Update image
+        image.image_spacing = mask_spacing
+        image.image_origin = mask_origin
+        image.image_dimension = mask_dimension
+        image.image_orientation = mask_orientation
+
+        return image
+
     def convert_contour_to_mask(
             self,
             roi_contour_sequence: pydicom.Dataset,
             image: ImageFile,
             draw_method: str = "ray_cast",
             disconnected_segments: str = "keep_as_is"
-    ) -> Union[None, np.ndarray]:
+    ) -> None | np.ndarray:
 
         if image is None:
             return None

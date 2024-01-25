@@ -260,14 +260,11 @@ On occasion, input should be more selective. This can be done by specifying addi
 
 * Select mask files based on mask modality using ``mask_modality``:
     MIRP can filter mask files based on the modality of the mask. Aside form generic masks, MIRP specifically checks for
-    radiotherapy structure (RTSTRUCT) files.
+    DICOM radiotherapy structure (RTSTRUCT) and DICOM segmentation (SEG) files.
 
     .. note::
         Only DICOM images contain metadata concerning mask modality. Masks from other file types are interpreted as
         ``"generic_mask"`` by default and cannot be filtered using ``mask_modality``.
-
-    .. note::
-        Support for DICOM segmentation (SEG) files is being implemented.
 
 * Select the specific regions of interest using ``roi_name``:
     A mask file may contain multiple masks. By default, MIRP will assess all masks in a file. The ``roi_name`` argument

@@ -236,7 +236,7 @@ def test_read_numpy_image_and_mask_online():
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
 
-def test_read_dicom_image_and_mask_stack():
+def test_read_dicom_image_and_rtstruct_mask_stack():
     # Simple test.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
@@ -298,6 +298,71 @@ def test_read_dicom_image_and_mask_stack():
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "gtv"
+
+
+def test_read_dicom_image_and_seg_mask_stack():
+    # Simple test.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 6
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "Liver"
+
+    # With roi name specified.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name="Liver"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "Liver"
+
+    # With roi name not appearing.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name="some_roi"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 0
+
+    # Multiple roi names of which one is present.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name=["Liver", "some_roi", "another_roi"]
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "Liver"
+
+    # Multiple roi names, with dictionary to set labels.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name={"Tumor_1": "lesion_1", "Tumor_2": "lesion_2", "3": "another_roi"}
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 2
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "lesion_1"
+    assert roi_list[1].roi_name == "lesion_2"
 
 
 def test_read_dicom_image_and_mask_modality_specific():
