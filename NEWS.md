@@ -1,3 +1,19 @@
+# Version 2.0.1
+
+## Minor changes
+
+- Randomisation in MIRP now uses the generator-based methods in `numpy.random`, replacing the legacy functions.
+  The generator is seeded so that results are reproducible. The seed depends on input image, mask and configuration
+  parameters, if applicable. 
+
+## Fixes
+
+- Numpy arrays can now be used as direct input without throwing a `FileNotFoundError`.
+- Relaxed check on orientation matrix when importing images, preventing errors when the l2-norm is around 1.000 but not
+  to high precision.
+- To prevent high loads through internal multithreading in `numpy` and other libraries when using `ray` for parallel
+  processing, each ray thread is now initialised with environment parameters that prevent multi-threading.
+
 # Version 2.0.0
 
 ## Major changes
