@@ -383,7 +383,7 @@ class ImageFile(BaseImage):
 
         # Check that image orientation has a l2-norm of 1.0.
         if self.image_orientation is not None:
-            l2_norm = np.around(np.linalg.norm(self.image_orientation, ord=2), decimals=6)
+            l2_norm = np.around(np.linalg.norm(self.image_orientation, ord=2), decimals=3)
             if not l2_norm == 1.0:
                 if raise_error:
                     raise ValueError(
