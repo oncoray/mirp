@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.extractFeaturesAndImages &mdash; mirp 2.0.0 documentation</title>
+  <title>mirp.extractFeaturesAndImages &mdash; mirp 2.0.1 documentation</title>
       <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -12,7 +12,7 @@
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=51b770b3"></script>
+        <script src="../../_static/documentation_options.js?v=f5cff4aa"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -413,6 +413,10 @@
 
 <span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
 <span class="k">def</span> <span class="nf">_ray_extractor</span><span class="p">(</span><span class="n">workflow</span><span class="p">:</span> <span class="n">StandardWorkflow</span><span class="p">,</span> <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;dict&quot;</span><span class="p">):</span>
+    <span class="c1"># Limit internal threading by third-party libraries.</span>
+    <span class="kn">from</span> <span class="nn">mirp.utilities.parallel</span> <span class="kn">import</span> <span class="n">limit_inner_threads</span>
+    <span class="n">limit_inner_threads</span><span class="p">()</span>
+
     <span class="k">return</span> <span class="n">workflow</span><span class="o">.</span><span class="n">standard_extraction</span><span class="p">(</span><span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">)</span>
 
 
@@ -603,7 +607,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Alex Zwanenburg.</p>
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

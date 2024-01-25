@@ -138,6 +138,10 @@ def _ray_extractor(
         image_export_format: str = "numpy",
         write_file_format: str = "numpy"
 ):
+    # Limit internal threading by third-party libraries.
+    from mirp.utilities.parallel import limit_inner_threads
+    limit_inner_threads()
+
     return workflow.deep_learning_conversion(
         output_slices=output_slices,
         crop_size=crop_size,

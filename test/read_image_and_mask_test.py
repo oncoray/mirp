@@ -1,4 +1,5 @@
 import os.path
+import numpy as np
 
 from mirp.importData.importImageAndMask import import_image_and_mask
 from mirp.importData.readData import read_image_and_masks
@@ -194,6 +195,45 @@ def test_read_numpy_image_and_mask_stack():
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "gtv"
+
+
+def test_read_numpy_image_and_mask_online():
+    """
+    Test reading numpy arrays that are provided directly as input.
+    """
+
+    # Simple test.
+    image = np.load(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "image", "STS_001_image.npy"))
+    mask = np.load(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "mask", "STS_001_mask.npy"))
+
+    image_list = import_image_and_mask(
+        image=image,
+        mask=mask
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, GenericImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+
+    # With roi name specified.
+    image = np.load(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "image", "STS_001_image.npy"))
+    mask = np.load(
+        os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy", "mask", "STS_001_mask.npy"))
+
+    image_list = import_image_and_mask(
+        image=image,
+        mask=mask,
+        roi_name="1"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, GenericImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
 
 def test_read_dicom_image_and_mask_stack():

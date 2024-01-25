@@ -130,6 +130,7 @@ class ImageNumpyFile(ImageFile):
     def load_data(self, **kwargs):
         if self.image_data is not None:
             self.update_image_data()
+            return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
@@ -146,6 +147,7 @@ class MaskNumpyFile(ImageNumpyFile, MaskFile):
     def load_data(self, **kwargs):
         if self.image_data is not None:
             self.update_image_data()
+            return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
