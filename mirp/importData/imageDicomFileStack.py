@@ -20,9 +20,6 @@ class ImageDicomFileStack(ImageFileStack):
         self.series_instance_uid: None | str = None
         self.frame_of_reference_uid: None | str = None
 
-        # Placeholder for sop_instance_uid of objects contained in the stack.
-        self.sop_instance_uid: None | list[str] = None
-
         # Add type hint.
         self.image_file_objects: list[ImageDicomFile] = self.image_file_objects
 
@@ -167,8 +164,6 @@ class ImageDicomFileStack(ImageFileStack):
         if self.image_dimension is None:
             self.image_dimension = tuple([len(position_table), n_y, n_x])
 
-        if self.sop_instance_uid is None:
-            self.sop_instance_uid = [image.sop_instance_uid for image in self.image_file_objects]
         if self.frame_of_reference_uid is None:
             self.frame_of_reference_uid = self.image_file_objects[0].frame_of_reference_uid
         if self.series_instance_uid is None:

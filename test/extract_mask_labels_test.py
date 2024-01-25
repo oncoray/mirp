@@ -43,22 +43,8 @@ def test_extract_mask_labels_rtstruct():
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         mask_sub_folder=os.path.join("CT", "dicom", "mask")
     )
+
     assert all(x == "GTV_Mass_CT" for x in mask_labels.roi_label.values)
 
-
-def test_extract_mask_labels_seg():
-    # Single mask.
-    mask_labels = extract_mask_labels(
-        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
-    )
-    assert set(mask_labels.roi_label.values) == {"Liver", "Liver Remnant", "Hepatic", "Portal", "Tumor_1", "Tumor_2"}
-
-    # Multiple masks
-    mask_labels = extract_mask_labels(
-        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg"),
-        mask_sub_folder="mask"
-    )
-
-    assert "Tumor_8" in set(mask_labels.roi_label.values)
-    assert "Tumor_1" in set(mask_labels.roi_label.values)
-    assert "Liver" in set(mask_labels.roi_label.values)
+    # TODO: Mask with multiple labels
+    ...

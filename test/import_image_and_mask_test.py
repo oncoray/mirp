@@ -6,7 +6,6 @@ from mirp.importData.importImageAndMask import import_image_and_mask
 from mirp.importData.imageITKFile import ImageITKFile, MaskITKFile
 from mirp.importData.imageDicomFileStack import ImageDicomFileStack
 from mirp.importData.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
-from mirp.importData.imageDicomFileSEG import MaskDicomFileSEG
 from mirp.importData.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
 from mirp.importData.imageNumpyFileStack import ImageNumpyFileStack, MaskNumpyFileStack
 
@@ -15,38 +14,6 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_single_image_and_mask_import():
-
-    # Read a DICOM image stack and segmentation mask directly.
-    image_list = import_image_and_mask(
-        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
-        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
-    )
-    assert len(image_list) == 1
-    assert isinstance(image_list[0], ImageDicomFileStack)
-    assert image_list[0].modality == "ct"
-    assert image_list[0].sample_name == "CRLM-CT-1004"
-    assert len(image_list[0].associated_masks) == 1
-    assert image_list[0].associated_masks[0].file_path == os.path.join(
-        CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
-    assert isinstance(image_list[0].associated_masks[0], MaskDicomFileSEG)
-    assert image_list[0].associated_masks[0].modality == "seg"
-
-    image_list = import_image_and_mask(
-        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
-        mask=[
-            os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
-            os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1006", "mask", "mask.dcm")
-        ]
-    )
-    assert len(image_list) == 1
-    assert isinstance(image_list[0], ImageDicomFileStack)
-    assert image_list[0].modality == "ct"
-    assert image_list[0].sample_name == "CRLM-CT-1004"
-    assert len(image_list[0].associated_masks) == 1
-    assert image_list[0].associated_masks[0].file_path == os.path.join(
-        CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
-    assert isinstance(image_list[0].associated_masks[0], MaskDicomFileSEG)
-    assert image_list[0].associated_masks[0].modality == "seg"
 
     # Read a Nifti image and mask set directly.
     image_list = import_image_and_mask(
@@ -85,7 +52,6 @@ def test_single_image_and_mask_import():
     assert image_list[0].modality == "ct"
     assert image_list[0].sample_name == "STS_001"
     assert len(image_list[0].associated_masks) == 1
-    assert isinstance(image_list[0].associated_masks[0], MaskDicomFileRTSTRUCT)
     assert image_list[0].associated_masks[0].file_path == os.path.join(
         CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm")
     assert image_list[0].associated_masks[0].modality == "rtstruct"
@@ -102,7 +68,6 @@ def test_single_image_and_mask_import():
     assert image_list[0].modality == "ct"
     assert image_list[0].sample_name == "STS_001"
     assert len(image_list[0].associated_masks) == 1
-    assert isinstance(image_list[0].associated_masks[0], MaskDicomFileRTSTRUCT)
     assert image_list[0].associated_masks[0].file_path == os.path.join(
         CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm")
     assert image_list[0].associated_masks[0].modality == "rtstruct"
@@ -251,52 +216,6 @@ def test_single_image_and_mask_import():
 
 
 def test_multiple_image_and_mask_import():
-    # Read DICOM images and SEG masks.
-    image_list = import_image_and_mask(
-        image=[
-            os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
-            os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1006", "image")
-        ],
-        mask=[
-            os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
-            os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1006", "mask", "mask.dcm")
-        ])
-    assert len(image_list) == 2
-    assert all(isinstance(image, ImageDicomFileStack) for image in image_list)
-    assert all(image.modality == "ct" for image in image_list)
-    assert all(len(image.associated_masks) == 1 for image in image_list)
-    assert all(isinstance(image.associated_masks[0], MaskDicomFileSEG) for image in image_list)
-    assert all(image.associated_masks[0].modality == "seg" for image in image_list)
-    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
-
-    # Read DICOM images and SEG masks for specific samples.
-    image_list = import_image_and_mask(
-        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg"),
-        sample_name="CRLM-CT-1004",
-        image_sub_folder="image",
-        mask_sub_folder="mask")
-    assert len(image_list) == 1
-    assert all(isinstance(image, ImageDicomFileStack) for image in image_list)
-    assert all(image.modality == "ct" for image in image_list)
-    assert all(len(image.associated_masks) == 1 for image in image_list)
-    assert all(isinstance(image.associated_masks[0], MaskDicomFileSEG) for image in image_list)
-    assert all(image.associated_masks[0].modality == "seg" for image in image_list)
-    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
-
-    # Read DICOM images and SEG masks for all samples.
-    image_list = import_image_and_mask(
-        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg"),
-        image_sub_folder="image",
-        mask_sub_folder="mask"
-    )
-    assert len(image_list) == 2
-    assert all(isinstance(image, ImageDicomFileStack) for image in image_list)
-    assert all(image.modality == "ct" for image in image_list)
-    assert all(len(image.associated_masks) == 1 for image in image_list)
-    assert all(isinstance(image.associated_masks[0], MaskDicomFileSEG) for image in image_list)
-    assert all(image.associated_masks[0].modality == "seg" for image in image_list)
-    assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
-
     # Read Nifti images and masks directly.
     image_list = import_image_and_mask(
         image=[

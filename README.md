@@ -54,8 +54,8 @@ For advanced users and developers, the following changes are relevant:
 
 MIRP can be used to compute quantitative features from regions of interest in images in an IBSI-compliant manner 
 using a standardized workflow This requires both images and masks. MIRP can process DICOM, NIfTI, NRRD and numpy 
-images. Masks are DICOM radiotherapy structure sets (RTSTRUCT), DICOM segmentations (SEG), or volumetric data with 
-integer labels (e.g. 1, 2, etc.).
+images. Masks are DICOM radiotherapy structure sets (RTSTRUCT), or volumetric data with integer labels (e.g. 1, 2, 
+etc.).
 
 Below is a minimal working example for extracting features from a single image file and its mask.
 
