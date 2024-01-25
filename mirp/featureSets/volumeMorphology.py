@@ -1,3 +1,4 @@
+import hashlib
 import numpy as np
 import pandas as pd
 
@@ -212,6 +213,11 @@ def get_volumetric_morphological_features(
     elif n_v_int >= 1000:
         # Use monte carlo approach to estimate geospatial features
 
+        m = hashlib.sha1(usedforsecurity=False)
+        m = image.update_hash(m=m)
+        m = mask.roi_morphology.update_hash(m=m)
+        randomiser = np.random.default_rng(int(m.hexdigest(), 16))
+
         # Create lists for storing feature values
         moran_list, geary_list = [], []
 
@@ -224,7 +230,7 @@ def get_volumetric_morphological_features(
         while tol_sem > tol_aim:
 
             # Select a small random subset of 100 points in the volume
-            curr_points = np.random.choice(n_v_int, size=100, replace=False)
+            curr_points = randomiser.choice(n_v_int, size=100, replace=False)
 
             # Calculate Moran's I and Geary's C for the point subset
             moran_i, geary_c = geospatial(df_int=df_int.loc[curr_points, :], spacing=mask.roi_intensity.image_spacing)

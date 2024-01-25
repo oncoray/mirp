@@ -1,38 +1,4 @@
-import os
 import numpy as np
-
-
-def check_string(input_string):
-    """Updates string characters that may lead to errors when written."""
-    input_string = input_string.replace(" ", "_")
-    input_string = input_string.replace(",", "_")
-    input_string = input_string.replace(";", "_")
-    input_string = input_string.replace(":", "_")
-    input_string = input_string.replace("\"", "_")
-    input_string = input_string.replace("=", "_equal_")
-    input_string = input_string.replace(">", "_greater_")
-    input_string = input_string.replace("<", "_smaller_")
-    input_string = input_string.replace("&", "_and_")
-    input_string = input_string.replace("|", "_or_")
-
-    return input_string
-
-
-def get_version():
-    with open(os.path.join("../..", 'VERSION.txt')) as version_file:
-        version = version_file.read().strip()
-
-    return version
-
-
-def makedirs_check(path):
-    """
-    Checks if the given path is an existing directory
-    structure, otherwise creates it.
-    """
-
-    if not os.path.isdir(path):
-        os.makedirs(path)
 
 
 def real_ndim(x: np.ndarray):
