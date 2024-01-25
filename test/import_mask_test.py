@@ -5,6 +5,7 @@ import pytest
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 from mirp.importData.importMask import import_mask
 from mirp.importData.imageITKFile import MaskITKFile
+from mirp.importData.imageDicomFileSEG import MaskDicomFileSEG
 from mirp.importData.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
 from mirp.importData.imageNumpyFile import MaskNumpyFile
 from mirp.importData.imageNumpyFileStack import MaskNumpyFileStack
@@ -14,6 +15,25 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_single_mask_import():
+
+    # Read a DICOM SEG file directly.
+    mask_list = import_mask(
+        os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
+    )
+    assert len(mask_list) == 1
+    assert isinstance(mask_list[0], MaskDicomFileSEG)
+    assert mask_list[0].modality == "seg"
+    assert mask_list[0].sample_name == "CRLM-CT-1004"
+
+    # Read a DICOM RTSTRUCT file for a specific sample.
+    mask_list = import_mask(
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg"),
+        sample_name="CRLM-CT-1004",
+        mask_sub_folder=os.path.join("mask"))
+    assert len(mask_list) == 1
+    assert isinstance(mask_list[0], MaskDicomFileSEG)
+    assert mask_list[0].sample_name == "CRLM-CT-1004"
+    assert mask_list[0].modality == "seg"
 
     # Read a Nifti image directly.
     mask_list = import_mask(
@@ -92,7 +112,7 @@ def test_single_mask_import():
     assert isinstance(mask_list[0], MaskITKFile)
     assert mask_list[0].modality == "generic_mask"
 
-    # Read a numpy file by specifying the image name.
+    # Read a numpy file by specifying the mask name.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "numpy"),
         mask_name="*mask")
@@ -110,6 +130,28 @@ def test_single_mask_import():
 
 
 def test_multiple_mask_import():
+
+    # Read DICOM SEG files.
+    mask_list = import_mask([
+        os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1006", "mask", "mask.dcm")
+    ])
+    assert len(mask_list) == 2
+    assert all(isinstance(mask_object, MaskDicomFileSEG) for mask_object in mask_list)
+    assert all(mask_object.modality == "seg" for mask_object in mask_list)
+    assert mask_list[0].sample_name == "CRLM-CT-1004"
+    assert mask_list[1].sample_name == "CRLM-CT-1006"
+
+    # Read DICOM SEG files for specific samples.
+    mask_list = import_mask(
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg"),
+        sample_name=["CRLM-CT-1006"],
+        mask_sub_folder="mask")
+    assert len(mask_list) == 1
+    assert all(isinstance(mask_object, MaskDicomFileSEG) for mask_object in mask_list)
+    assert all(mask_object.modality == "seg" for mask_object in mask_list)
+    assert mask_list[0].sample_name == "CRLM-CT-1006"
+
     # Read Nifti masks directly.
     mask_list = import_mask([
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_002", "CT", "nifti", "mask", "mask.nii.gz"),

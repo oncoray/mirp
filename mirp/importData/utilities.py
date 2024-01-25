@@ -2,7 +2,7 @@ import datetime
 import os.path
 import fnmatch
 import math
-from typing import Union, List, Tuple, Optional, Any, Iterable
+from typing import Any, Iterable
 from os.path import split
 
 import numpy as np
@@ -11,13 +11,13 @@ from pydicom import FileDataset, Dataset, datadict
 from pydicom.tag import Tag
 
 
-def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
+def supported_image_modalities(modality: None | str = None) -> list[str]:
 
     if isinstance(modality, str):
         modality = modality.lower()
 
     if modality is None:
-        return ["ct", "pt", "mr", "generic"]
+        return ["ct", "pt", "mr", "rtdose", "generic"]
 
     elif modality == "ct":
         return ["ct"]
@@ -27,6 +27,9 @@ def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
 
     elif modality in ["mr", "mri"]:
         return ["mr"]
+
+    elif modality in ["rtdose"]:
+        return ["rtdose"]
 
     elif modality == "generic":
         return ["generic"]
@@ -38,11 +41,11 @@ def supported_image_modalities(modality: Union[None, str] = None) -> List[str]:
             f"and can always be used.")
 
 
-def stacking_dicom_image_modalities() -> List[str]:
+def stacking_dicom_image_modalities() -> list[str]:
     return ["ct", "pt", "mr"]
 
 
-def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
+def supported_mask_modalities(modality: None | str = None) -> list[str]:
 
     if isinstance(modality, str):
         modality = modality.lower()
@@ -65,7 +68,7 @@ def supported_mask_modalities(modality: Union[None, str] = None) -> List[str]:
             f"{', '.join(supported_mask_modalities(None))}. The generic modality can always be used.")
 
 
-def supported_file_types(file_type: Union[None, str] = None) -> List[str]:
+def supported_file_types(file_type: None | str = None) -> list[str]:
 
     if isinstance(file_type, str):
         modality = file_type.lower()
@@ -106,9 +109,9 @@ def flatten_list(unflattened_list):
 
 
 def bare_file_name(
-        x: Union[str, List[str]],
-        file_extension: Union[str, List[str]]
-) -> Union[str, List[str]]:
+        x: str | list[str],
+        file_extension: str | list[str]
+) -> str | list[str]:
     """
     Strips provided extensions from the name of a file.
     :param x: One or more filenames or path to file names.
@@ -141,10 +144,10 @@ def bare_file_name(
 
 
 def match_file_name(
-        x: Union[str, List[str]],
-        pattern: Union[str, List[str]],
-        file_extension: Union[None, str, List[str]]
-) -> Union[bool, List[bool]]:
+        x: str | list[str],
+        pattern: str | list[str],
+        file_extension: None | str | list[str]
+) -> bool | list[bool]:
     """
     Determine if any filename matches the provided pattern. fnmatch is used for matching, which allows for wildcards.
     :param x: a string or path that is the filename or a path to the file.
@@ -183,8 +186,8 @@ def match_file_name(
 def isolate_sample_name(
         x: str,
         pattern: str,
-        file_extenstion: Union[None, str, List[str]]
-) -> Union[None, str]:
+        file_extenstion: None | str | list[str]
+) -> None | str:
 
     # Pattern should only contain one sample name placeholder (#).
     if pattern.count("#") != 1:
@@ -223,7 +226,7 @@ def isolate_sample_name(
     return x
 
 
-def path_to_parts(x: str) -> List[str]:
+def path_to_parts(x: str) -> list[str]:
     """
     Split a path into its components.
 
@@ -252,8 +255,8 @@ def path_to_parts(x: str) -> List[str]:
 
 def dir_structure_contains_directory(
         x: str,
-        pattern: Union[str, List[str]],
-        ignore_dir: Union[None, str, List[str]]
+        pattern: str | list[str],
+        ignore_dir: None | str | list[str]
 ) -> bool:
     """
     Identify if a path contains a directory matches any of pattern.
@@ -274,7 +277,7 @@ def dir_structure_contains_directory(
             current_ignore_dir = path_to_parts(current_ignore_dir)
 
             # Find matching sequential elements.
-            match_index: List[Union[None, int]] = [None for ii in range(len(current_ignore_dir))]
+            match_index: list[None | int] = [None for ii in range(len(current_ignore_dir))]
             for jj, ignore_elem in enumerate(current_ignore_dir):
                 if match_index[0] is None:
                     if jj > 0:
@@ -309,9 +312,9 @@ def dir_structure_contains_directory(
 
 
 def compute_file_distance(
-        x: Union[None, str],
-        y: Union[None, str]
-):
+        x: None | str,
+        y: None | str
+) -> int | Any:
     if x is None or y is None:
         return math.inf
 
@@ -329,7 +332,7 @@ def compute_file_distance(
 
 def parse_image_correction(
         dcm_seq: pydicom.Dataset,
-        tag: Tuple[hex, hex],
+        tag: tuple[hex, hex],
         correction_abbr: str
 ) -> bool:
     """
@@ -378,10 +381,10 @@ def parse_image_correction(
 
 
 def convert_dicom_time(
-        datetime_str: Optional[str] = None,
-        date_str: Optional[str] = None,
-        time_str: Optional[str] = None
-) -> Optional[datetime.datetime]:
+        datetime_str: None | str = None,
+        date_str: None | str = None,
+        time_str: None | str = None
+) -> None | datetime.datetime:
     """
     Converts DICOM date, time or datetime string to a datetime.datetime object to facilitate use in Python.
 
@@ -456,9 +459,9 @@ def convert_dicom_time(
 
 def get_pydicom_meta_tag(
         dcm_seq: pydicom.Dataset,
-        tag: Tuple[hex, hex],
-        tag_type: Optional[str] = None,
-        default: Optional[Any] = None,
+        tag: tuple[hex, hex],
+        tag_type: None | str = None,
+        default: Any = None,
         test_tag: bool = False
 ) -> Any:
     """
@@ -547,21 +550,25 @@ def get_pydicom_meta_tag(
     return tag_value
 
 
-def has_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag):
+def has_pydicom_meta_tag(
+        dcm_seq: FileDataset | Dataset,
+        tag: tuple[hex, hex]
+) -> Any:
 
     return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
 
 
-def set_pydicom_meta_tag(dcm_seq: Union[FileDataset, Dataset], tag, value, force_vr=None):
+def set_pydicom_meta_tag(
+        dcm_seq: FileDataset | Dataset,
+        tag: tuple[hex, hex] | list[hex],
+        value: Any,
+        force_vr: None | str = None):
     # Check tag
     if isinstance(tag, tuple):
         tag = Tag(tag[0], tag[1])
 
     elif isinstance(tag, list):
         tag = Tag(tag[0], tag[2])
-
-    elif isinstance(tag, Tag):
-        pass
 
     else:
         raise TypeError(f"Metadata tag {tag} is not a pydicom Tag, or can be parsed to one.")
