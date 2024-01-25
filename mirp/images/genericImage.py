@@ -1,4 +1,6 @@
 import copy
+import hashlib
+
 import numpy as np
 from typing import Optional, Union, Tuple, List, Dict, Any, Self
 
@@ -558,12 +560,17 @@ class GenericImage(BaseImage):
         if np.isnan(noise_level) or noise_level < 0.0:
             return
 
-        # Add Gaussian noise to image
-        voxel_grid = self.get_voxel_grid()
-        voxel_grid += np.random.normal(loc=0.0, scale=noise_level, size=self.image_dimension)
-
         # Set noise level in image
         self.noise_level = noise_level
+
+        # Start random generator..
+        m = hashlib.sha1(usedforsecurity=False)
+        m = self.update_hash(m=m)
+        randomiser = np.random.default_rng(int(m.hexdigest(), 16))
+
+        # Add Gaussian noise to image
+        voxel_grid = self.get_voxel_grid()
+        voxel_grid += randomiser.normal(loc=0.0, scale=noise_level, size=self.image_dimension)
 
         # Update image.
         self.set_voxel_grid(voxel_grid=voxel_grid)

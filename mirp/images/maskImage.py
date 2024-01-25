@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import warnings
 
 import numpy as np
@@ -368,6 +369,9 @@ class MaskImage(GenericImage):
         if self.is_empty_mask():
             return
 
+        # Set alteration size.
+        self.alteration_size = fractional_change
+
         # Set geometrical structure. For 2D, the structures in different slices are set to 0.
         geom_struct = ndi.generate_binary_structure(3, 1)
         if by_slice:
@@ -397,12 +401,17 @@ class MaskImage(GenericImage):
             # Replace previous mask by the current mask.
             previous_mask = current_mask
 
+        # Start randomiser.
+        m = hashlib.sha1(usedforsecurity=False)
+        m = self.update_hash(m=m)
+        randomiser = np.random.default_rng(int(m.hexdigest(), 16))
+
         # Randomly add/remove border voxels until desired growth/shrinkage is achieved
         if not current_volume / initial_volume - 1.0 == fractional_change:
             additional_vox = np.abs(int(np.floor(initial_volume * (1.0 + fractional_change) - np.sum(previous_mask))))
             if additional_vox > 0:
                 border_voxel_ind = np.array(np.where(np.logical_xor(previous_mask, current_mask)))
-                select_ind = np.random.choice(a=border_voxel_ind.shape[1], size=additional_vox, replace=False)
+                select_ind = randomiser.choice(a=border_voxel_ind.shape[1], size=additional_vox, replace=False)
                 border_voxel_ind = border_voxel_ind[:, select_ind]
                 if fractional_change > 0.0:
                     previous_mask[border_voxel_ind[0, :], border_voxel_ind[1, :], border_voxel_ind[2, :]] = True
@@ -411,8 +420,6 @@ class MaskImage(GenericImage):
 
         # Set the new roi
         self.set_voxel_grid(voxel_grid=previous_mask)
-
-        self.alteration_size = fractional_change
 
     def randomise_mask(
             self,
@@ -481,9 +488,14 @@ class MaskImage(GenericImage):
         # Initialise list of randomised masks.
         randomised_masks = []
 
+        # Start randomiser.
+        m = hashlib.sha1(usedforsecurity=False)
+        m = self.update_hash(m=m)
+        randomiser = np.random.default_rng(int(m.hexdigest(), 16))
+
         for ii in range(repetitions):
             # Draw random numbers between 0.0 and 1.0.
-            random_inclusion = np.random.random(size=len(overlap_fractions))
+            random_inclusion = randomiser.random(size=len(overlap_fractions))
 
             # Select those segments where the random number is less than the overlap fraction - i.e. the fraction is the
             # probability of selecting the supervoxel.
