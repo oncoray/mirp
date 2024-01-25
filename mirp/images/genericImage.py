@@ -1283,3 +1283,13 @@ class GenericImage(BaseImage):
             x.columns += feature_name_suffix
 
         return x
+
+    def update_hash(self, m):
+        # Hash the image object itself.
+        m.update(self.get_voxel_grid().tobytes())
+
+        # Hash the image attributes.
+        image_attributes = self.get_export_attributes()
+        m.update(str(image_attributes).encode())
+
+        return m
