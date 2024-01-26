@@ -4,6 +4,10 @@
 
 - Added support for SEG DICOM files for segmentation.
 
+## Fixes
+
+- Providing a mask consisting of boolean values in a numpy array no longer incorrectly throws an error.
+
 # Version 2.0.1
 
 ## Minor changes

@@ -925,6 +925,7 @@ class MaskFile(ImageFile):
                         f"values (False). No voxels were found with True values to identify segmentation masks.",
                         UserWarning
                     )
+            return True
 
         if np.issubdtype(self.image_data.dtype, np.integer):
             if np.any(self.image_data < 0):
