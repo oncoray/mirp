@@ -189,6 +189,30 @@ class BaseMask:
             roi_mask[largest_slice_index, :, :] = self.roi_morphology.get_voxel_grid()[largest_slice_index, :, :]
             self.roi_morphology.set_voxel_grid(voxel_grid=roi_mask)
 
+    def select_largest_region(self):
+        """Crops to the largest region."""
+        import skimage.measure
+
+        if self.is_empty():
+            return
+
+        # Label regions
+        roi_label_mask, n_regions = skimage.measure.label(self.roi.get_voxel_grid(), connectivity=2, return_num=True)
+
+        # Determine size of regions
+        roi_sizes = np.zeros(n_regions)
+        for ii in np.arange(start=0, stop=n_regions):
+            roi_sizes[ii] = np.sum(roi_label_mask == ii + 1)
+
+        # Select largest region
+        roi_mask = roi_label_mask == np.argmax(roi_sizes) + 1
+        self.roi.set_voxel_grid(voxel_grid=roi_mask)
+
+        if self.roi_intensity is not None:
+            self.roi_intensity.set_voxel_grid(voxel_grid=np.logical_and(self.roi_intensity.get_voxel_grid(), roi_mask))
+        if self.roi_morphology is not None:
+            self.roi_morphology.set_voxel_grid(voxel_grid=np.logical_and(self.roi_morphology.get_voxel_grid(), roi_mask))
+            
     def generate_masks(self):
         """"Generate roi intensity and morphology masks"""
 
