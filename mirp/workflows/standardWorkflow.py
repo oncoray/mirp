@@ -73,6 +73,7 @@ class StandardWorkflow(BaseWorkflow):
         from mirp.imageProcess.alterMask import alter_mask
         from mirp.imageProcess.randomiseMask import randomise_mask
         from mirp.imageProcess.splitMask import split_masks
+        from mirp.importData.utilities import flatten_list
 
         # Configure logger
         logging.basicConfig(
@@ -103,14 +104,6 @@ class StandardWorkflow(BaseWorkflow):
 
         # Set 2D or 3D processing.
         image.separate_slices = self.settings.general.by_slice
-
-        # Select the axial slice with the largest portion of the ROI.
-        if self.settings.general.select_slice == "largest" and self.settings.general.by_slice:
-            [mask.select_largest_slice() for mask in masks]
-
-        # Crop slice stack
-        if self.settings.perturbation.crop_around_roi:
-            image, masks = crop(image=image, masks=masks, boundary=self.settings.perturbation.crop_distance)
 
         # Extract diagnostic features from initial image and rois
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
@@ -159,12 +152,35 @@ class StandardWorkflow(BaseWorkflow):
             anti_aliasing=self.settings.img_interpolate.anti_aliasing,
             anti_aliasing_smoothing_beta=self.settings.img_interpolate.smoothing_beta
         )
+
+        # Register masks to the interpolated images. Before registrations, masks may be oblique, and may not have a
+        # one-to-one correspondence with the image space.
         [mask.register(
                 image=image,
                 spline_order=self.settings.roi_interpolate.spline_order,
                 anti_aliasing=self.settings.img_interpolate.anti_aliasing,
                 anti_aliasing_smoothing_beta=self.settings.img_interpolate.smoothing_beta
             ) for mask in masks]
+
+        # Merge masks.
+        if self.settings.general.mask_merge:
+            masks = [masks[0].merge(masks)]
+
+        # Split masks.
+        if self.settings.general.mask_split:
+            masks = flatten_list([mask.split_mask() for mask in masks])
+
+        # Select largest region in each mask.
+        if self.settings.general.mask_select_largest_region:
+            [mask.select_largest_region() for mask in masks]
+
+        # Select the axial slice with the largest portion of the ROI.
+        if self.settings.general.mask_select_largest_slice:
+            [mask.select_largest_slice() for mask in masks]
+
+        # Crop slice stack
+        if self.settings.perturbation.crop_around_roi:
+            image, masks = crop(image=image, masks=masks, boundary=self.settings.perturbation.crop_distance)
 
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
 
