@@ -159,10 +159,79 @@ class BaseMask:
                 anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
             )
 
+    def merge(self, masks: list[Self]) -> Self:
+        """Merge masks"""
+
+        roi_mask = np.zeros(self.roi.image_dimension, dtype=bool)
+        roi_name = []
+        for mask in masks:
+            # Skip empty masks.
+            if mask.roi.is_empty():
+                continue
+
+            roi_mask = np.logical_or(roi_mask, mask.roi.get_voxel_grid())
+            roi_name += [mask.roi_name]
+
+        self.roi.set_voxel_grid(voxel_grid=roi_mask)
+        self.roi_name = " + ".join(roi_name)
+
+        if self.roi_intensity is not None:
+            roi_mask = np.zeros(self.roi_intensity.image_dimension, dtype=bool)
+            for mask in masks:
+                # Skip empty masks.
+                if mask.roi_intensity.is_empty():
+                    continue
+
+                roi_mask = np.logical_or(roi_mask, mask.roi_intensity.get_voxel_grid())
+
+            self.roi_intensity.set_voxel_grid(voxel_grid=roi_mask)
+
+        if self.roi_morphology is not None:
+            roi_mask = np.zeros(self.roi_morphology.image_dimension, dtype=bool)
+            for mask in masks:
+                # Skip empty masks.
+                if mask.roi_morphology.is_empty():
+                    continue
+
+                roi_mask = np.logical_or(roi_mask, mask.roi_morphology.get_voxel_grid())
+
+            self.roi_morphology.set_voxel_grid(voxel_grid=roi_mask)
+
+        return self
+
+    def split_mask(self) -> list[Self]:
+        """Split mask into multiple masks."""
+        import skimage.measure
+
+        if self.is_empty():
+            return [self]
+
+        # Label regions
+        roi_label_mask, n_regions = skimage.measure.label(self.roi.get_voxel_grid(), connectivity=2, return_num=True)
+
+        if n_regions == 1:
+            return [self]
+
+        new_masks = []
+        for ii in np.arange(start=0, stop=n_regions):
+            roi_mask = roi_label_mask == ii + 1
+
+            new_mask = self.copy(drop_image=True)
+            new_mask.roi.set_voxel_grid(roi_mask)
+            if self.roi_intensity is not None:
+                new_mask.roi_intensity.set_voxel_grid(voxel_grid=np.logical_and(roi_mask, self.roi_intensity.get_voxel_grid()))
+            if self.roi_morphology is not None:
+                new_mask.roi_morphology.set_voxel_grid(voxel_grid=np.logical_and(roi_mask, self.roi_morphology.get_voxel_grid()))
+
+            new_mask.roi_name += f"-{ii + 1}"
+
+            new_masks += [new_mask]
+
+        return new_masks
+
     def select_largest_slice(self):
         """Crops to the largest slice."""
 
-        # Do not crop if there is nothing to crop
         if self.is_empty():
             return
 
