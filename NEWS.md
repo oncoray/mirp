@@ -1,3 +1,9 @@
+# Version 2.1.0
+
+## Major changes
+
+- Added support for SEG DICOM files for segmentation.
+
 # Version 2.0.1
 
 ## Minor changes
