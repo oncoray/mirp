@@ -1,4 +1,4 @@
-from typing import Union
+import warnings
 
 
 class GeneralSettingsClass:
@@ -8,9 +8,22 @@ class GeneralSettingsClass:
 
     Parameters
     ----------
-    by_slice: str or bool, optional, default: False
-        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest").
+    by_slice: bool, optional, default: False
+        Defines whether image processing and computations should be performed in 2D (True) or 3D (False).
+
+    mask_merge: bool, optional, default: False
+        Defines whether multiple mask objects should be combined into a single mask.
+
+    mask_split: bool, optional, default: False
+        Defines whether a mask that contains multiple regions should be split into separate mask objects.
+
+    mask_select_largest_region: bool, optional, default: False
+        Defines whether the largest region within a mask object should be selected. For example, in a mask that
+        contains multiple separate lesions. ``mask_select_largest_region = True`` will remove all but the largest
+        lesion.
+
+    mask_select_largest_slice: bool, optional, default: False
+        Defines whether the largest slice within a mask object should be selected.
 
     config_str: str, optional
         Sets a configuration string, which can be used to differentiate results obtained using other settings.
@@ -25,35 +38,30 @@ class GeneralSettingsClass:
 
     def __init__(
             self,
-            by_slice: Union[str, bool] = False,
+            by_slice: bool = False,
+            mask_merge: bool = False,
+            mask_split: bool = False,
+            mask_select_largest_region: bool = False,
+            mask_select_largest_slice: bool = False,
             config_str: str = "",
             no_approximation: bool = False,
             **kwargs):
 
-        # Parse and check slice information.
-        if isinstance(by_slice, str):
-            if by_slice.lower() in ["true", "t", "1"]:
-                by_slice = True
-                select_slice = "all"
-            elif by_slice.lower() in ["false", "f", "0"]:
-                by_slice = False
-                select_slice = "all"
-            elif by_slice.lower() in ["largest"]:
-                by_slice = True
-                select_slice = "largest"
-            else:
-                raise ValueError(
-                    f"The by_slice parameter should be true, false, t, f, 1, 0 or largest. Found: {by_slice}")
-
-        elif isinstance(by_slice, bool):
-            select_slice = "all"
-
-        else:
-            raise ValueError("The by_slice parameter should be a string or boolean.")
+        if not isinstance(by_slice, bool):
+            raise ValueError("The by_slice parameter should be a boolean.")
 
         # Set by_slice and select_slice parameters.
         self.by_slice: bool = by_slice
-        self.select_slice: str = select_slice
+
+        self.mask_merge = mask_merge
+        self.mask_split = mask_split
+        self.mask_select_largest_region = mask_select_largest_region
+
+        if mask_select_largest_slice and not by_slice:
+            warnings.warn("A 2D approach is used as the largest slice is selected.", UserWarning)
+            self.by_slice = True
+
+        self.mask_select_largest_slice = mask_select_largest_slice
 
         # Set configuration string.
         self.config_str: str = config_str

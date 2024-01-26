@@ -212,7 +212,7 @@ class BaseMask:
             self.roi_intensity.set_voxel_grid(voxel_grid=np.logical_and(self.roi_intensity.get_voxel_grid(), roi_mask))
         if self.roi_morphology is not None:
             self.roi_morphology.set_voxel_grid(voxel_grid=np.logical_and(self.roi_morphology.get_voxel_grid(), roi_mask))
-            
+
     def generate_masks(self):
         """"Generate roi intensity and morphology masks"""
 

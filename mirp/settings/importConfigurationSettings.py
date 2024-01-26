@@ -111,9 +111,14 @@ def import_configuration_settings(
 
         if general_branch is not None:
             general_settings = GeneralSettingsClass(
-                by_slice=str2type(general_branch.find("by_slice"), "str", False),
+                by_slice=str2type(general_branch.find("by_slice"), "bool", False),
+                mask_merge=str2type(general_branch.find("mask_merge"), "bool", False),
+                mask_split=str2type(general_branch.find("mask_split"), "bool", False),
+                mask_select_largest_region=str2type(general_branch.find("mask_select_largest_region"), "bool", False),
+                mask_select_largest_slice=str2type(general_branch.find("mask_select_largest_slice"), "bool", False),
                 config_str=str2type(general_branch.find("config_str"), "str", ""),
-                no_approximation=str2type(general_branch.find("no_approximation"), "bool", False))
+                no_approximation=str2type(general_branch.find("no_approximation"), "bool", False)
+            )
 
         else:
             general_settings = GeneralSettingsClass()
