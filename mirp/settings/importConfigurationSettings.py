@@ -2,6 +2,7 @@ import copy
 import warnings
 from typing import Union, List
 from xml.etree.ElementTree import ElementTree, Element
+from xml.etree import ElementTree as ElemTree
 
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
@@ -111,7 +112,7 @@ def import_configuration_settings(
         raise FileNotFoundError(f"The settings file could not be found at {path}.")
 
     # Load xml
-    tree = ElementTree.parse(path)
+    tree = ElemTree.parse(path)
     root = tree.getroot()
 
     # Empty list for settings
