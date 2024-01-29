@@ -27,7 +27,7 @@ def setting_def(
     return {
         "argument_key": arg_key,
         "xml_key": xml_key,
-        "class_key": arg_key,
+        "class_key": class_key,
         "typing": typing,
         "to_list": to_list,
         "test_value": test
