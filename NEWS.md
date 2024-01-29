@@ -21,6 +21,8 @@
 ## Fixes
 
 - Providing a mask consisting of boolean values in a numpy array no longer incorrectly throws an error.
+- Configuration parameters from `xml` files are now processed in the same manner as parameters defined as function 
+  arguments. The same default values are now used, independent of the parameter source.
 
 # Version 2.0.1
 
