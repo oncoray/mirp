@@ -1,5 +1,7 @@
 import warnings
 from dataclasses import dataclass
+from typing import Any
+from mirp.settings.utilities import setting_def
 
 
 @dataclass
@@ -70,3 +72,15 @@ class GeneralSettingsClass:
 
         # Set approximation of features.
         self.no_approximation: bool = no_approximation
+
+
+def get_general_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def("by_slice", "bool", test=True),
+        setting_def("mask_merge", "bool", test=True),
+        setting_def("mask_split", "bool", test=True),
+        setting_def("mask_select_largest_region", "bool", test=True),
+        setting_def("mask_select_largest_slice", "bool", test=True),
+        setting_def("config_str", "str", test="test_config"),
+        setting_def("no_approximation", "bool", test=True)
+    ]
