@@ -9,7 +9,7 @@ from mirp.settings.settingsImageTransformation import ImageTransformationSetting
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
 from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
-from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
+from mirp.settings.settingsImageProcessing import ImagePostProcessingClass, get_post_processing_settings
 from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
 from mirp.settings.settingsGeneral import GeneralSettingsClass, get_general_settings
 from mirp.settings.utilities import str2list, str2type, read_node, update_settings_from_branch
@@ -29,10 +29,15 @@ def import_configuration_generator(
             settings=get_general_settings()
         )
 
+        # Post-processing settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("post_processing"),
+            settings=get_post_processing_settings()
+        )
+
     # Create settings class.
-    settings = SettingsClass(
-        general_settings=GeneralSettingsClass(**kwargs)
-    )
+    settings = SettingsClass(**kwargs)
 
     yield settings
 

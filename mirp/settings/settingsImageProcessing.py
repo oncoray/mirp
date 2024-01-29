@@ -1,7 +1,8 @@
-from typing import Union, List, Tuple
-from dataclasses import dataclass
-
 import numpy as np
+
+from typing import Union, List, Tuple, Any
+from dataclasses import dataclass
+from mirp.settings.utilities import setting_def
 
 
 @dataclass
@@ -313,3 +314,18 @@ class ImagePostProcessingClass:
 
         # Set tissue_mask_range.
         self.tissue_mask_range: Tuple[float, ...] = tuple(tissue_mask_range)
+
+
+def get_post_processing_settings() -> list[dict[str, Any]]:
+
+    return [
+        setting_def("bias_field_correction", "bool", test=True),
+        setting_def("bias_field_correction_n_fitting_levels", "int", class_key="n_fitting_levels", test=2),
+        setting_def("bias_field_correction_n_max_iterations", "bool", class_key="n_max_iterations", to_list=True, test=[1000, 1000]),
+        setting_def("bias_field_convergence_threshold", "float", class_key="convergence_threshold", test=0.1),
+        setting_def("intensity_normalisation", "str", test="relative_range"),
+        setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
+        setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),
+        setting_def("tissue_mask_type", "str", test="range"),
+        setting_def("tissue_mask_range", "float", to_list=True, test=[0.00, 10.00])
+    ]
