@@ -1,3 +1,5 @@
+import copy
+
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.settings.settingsGeneral import GeneralSettingsClass
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
@@ -79,10 +81,16 @@ class SettingsClass:
             img_transform_settings: None | ImageTransformationSettingsClass = None,
             **kwargs
     ):
+        kwargs = copy.deepcopy(kwargs)
+
         # General settings.
         if general_settings is None:
             general_settings = GeneralSettingsClass(**kwargs)
         self.general = general_settings
+
+        # Remove by_slice and no_approximation from the keyword arguments to avoid double passing.
+        kwargs.pop("by_slice", None)
+        kwargs.pop("no_approximation", None)
 
         # Image interpolation settings.
         if img_interpolate_settings is None:
