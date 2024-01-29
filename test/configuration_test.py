@@ -20,7 +20,14 @@ def test_general_settings_configuration():
     settings_definitions = get_general_settings()
 
     # All default settings.
-    ...
+    tree = ElemTree.parse(temp_file)
+
+    settings_keyword = list(import_configuration_generator())[0]
+    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_direct = SettingsClass()
+
+    assert settings_keyword == settings_xml
+    assert settings_keyword == settings_direct
 
     # Test alternative settings.
     for parameter in settings_definitions:
@@ -43,7 +50,7 @@ def test_general_settings_configuration():
         # Prepare kwargs.
         kwargs = dict([(argument_key, test_value)])
 
-        # Configuration using xml and keyword arguments.
+        # Test configurations using different sources.
         settings_keyword = list(import_configuration_generator(**kwargs))[0]
         settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
         settings_direct = SettingsClass(**kwargs)
