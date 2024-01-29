@@ -6,6 +6,34 @@ from xml.etree import ElementTree as ElemTree
 import numpy as np
 
 
+def setting_def(
+        arg_key: str,
+        typing: str,
+        to_list: bool = False,
+        xml_key: None | str | list[str] = None,
+        class_key: None | str = None,
+        test: Any = None
+) -> dict[str, Any]:
+
+    if xml_key is None:
+        xml_key = arg_key
+
+    if class_key is None:
+        class_key = arg_key
+
+    if typing not in ["int", "float", "bool", "str", "path"]:
+        raise TypeError(f"typing has an incorrect type: ", typing)
+
+    return {
+        "argument_key": arg_key,
+        "xml_key": xml_key,
+        "class_key": arg_key,
+        "typing": typing,
+        "to_list": to_list,
+        "test_value": test
+    }
+
+
 def str2list(strx, data_type, default=None):
     """ Function for splitting strings read from the xml file """
 
