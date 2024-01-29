@@ -1,5 +1,6 @@
-from typing import Iterable
+from typing import Iterable, Any
 from dataclasses import dataclass
+from mirp.settings.utilities import setting_def
 
 
 @dataclass
@@ -145,6 +146,15 @@ class ImageInterpolationSettingsClass:
         return new_spacing
 
 
+def get_image_interpolation_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def("new_spacing", "float", to_list=True, test=[1.0, 1.0, 1.0]),
+        setting_def("spline_order", "int", test=2),
+        setting_def("anti_aliasing", "bool", test=False),
+        setting_def("smoothing_beta", "float", test=0.75)
+    ]
+
+
 @dataclass
 class MaskInterpolationSettingsClass:
     """
@@ -190,3 +200,11 @@ class MaskInterpolationSettingsClass:
                 f"Found: {roi_interpolation_mask_inclusion_threshold}")
 
         self.incl_threshold = roi_interpolation_mask_inclusion_threshold
+
+
+def get_mask_interpolation_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def("roi_spline_order", "int", xml_key="spline_order", class_key="spline_order", test=2),
+        setting_def("roi_interpolation_mask_inclusion_threshold", "float", xml_key="incl_threshold",
+                    class_key="incl_threshold", test=0.25)
+    ]
