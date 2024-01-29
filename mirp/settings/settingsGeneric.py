@@ -132,3 +132,26 @@ class SettingsClass:
                 )
             )
         self.img_transform = img_transform_settings
+
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+
+        if self.general != other.general:
+            return False
+        if self.img_interpolate != other.img_interpolate:
+            return False
+        if self.roi_interpolate != other.roi_interpolate:
+            return False
+        if self.post_process != other.post_process:
+            return False
+        if self.perturbation != other.perturbation:
+            return False
+        if self.roi_resegment != other.roi_resegment:
+            return False
+        if self.feature_extr != other.feature_extr:
+            return False
+        if self.img_transform != other.img_transform:
+            return False
+
+        return True

@@ -1,6 +1,8 @@
 from typing import Iterable
+from dataclasses import dataclass
 
 
+@dataclass
 class ImageInterpolationSettingsClass:
     """
     Parameters related to image interpolating / resampling. Images in a dataset are typically resampled to uniform
@@ -143,6 +145,7 @@ class ImageInterpolationSettingsClass:
         return new_spacing
 
 
+@dataclass
 class MaskInterpolationSettingsClass:
     """
     Parameters related to mask interpolation / resampling. MIRP registers the mask to an interpolated image based,

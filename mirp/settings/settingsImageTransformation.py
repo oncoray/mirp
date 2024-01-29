@@ -1,11 +1,13 @@
 import copy
 from typing import Union, List
+from dataclasses import dataclass
 
 import numpy as np
 
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 
 
+@dataclass
 class ImageTransformationSettingsClass:
     """
     Parameters related to image transformation using filters. Many parameters are conditional on the selected image

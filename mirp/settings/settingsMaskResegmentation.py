@@ -1,8 +1,10 @@
 from typing import Any
+from dataclasses import dataclass
 
 import numpy as np
 
 
+@dataclass
 class ResegmentationSettingsClass:
     """
     Parameters related to mask resegmentation. Resegmentation is used to remove parts of the mask that correspond to

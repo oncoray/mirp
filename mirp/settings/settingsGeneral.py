@@ -1,6 +1,8 @@
 import warnings
+from dataclasses import dataclass
 
 
+@dataclass
 class GeneralSettingsClass:
     """
     Set of overall process parameters. The most important parameter here is ``by_slice`` which affects how images are

@@ -1,8 +1,10 @@
 from typing import Union, List, Tuple
+from dataclasses import dataclass
 
 import numpy as np
 
 
+@dataclass
 class ImagePostProcessingClass:
     """
     Parameters related to image processing. Note that parameters concerning image perturbation / augmentation and

@@ -1,6 +1,8 @@
 from typing import Union, List
+from dataclasses import dataclass
 
 
+@dataclass
 class FeatureExtractionSettingsClass:
     """
     Parameters related to feature computation. Many are conditional on the type of features that will be computed (

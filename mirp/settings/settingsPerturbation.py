@@ -1,6 +1,8 @@
 from typing import Union, List
+from dataclasses import dataclass
 
 
+@dataclass
 class ImagePerturbationSettingsClass:
     """
     Parameters related to image and mask perturbation / augmentation. By default images and masks are not perturbed or
