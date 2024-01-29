@@ -1,7 +1,7 @@
 import copy
 import warnings
 from typing import Union, List
-from xml.etree import ElementTree as ElemTree
+from xml.etree.ElementTree import ElementTree, Element
 
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
@@ -10,8 +10,30 @@ from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
 from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
 from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
-from mirp.settings.settingsGeneral import GeneralSettingsClass
-from mirp.settings.utilities import str2list, str2type, read_node
+from mirp.settings.settingsGeneral import GeneralSettingsClass, get_general_settings
+from mirp.settings.utilities import str2list, str2type, read_node, update_settings_from_branch
+
+
+def import_configuration_generator(
+    xml_tree: None | Element = None,
+    **kwargs
+):
+    kwargs = copy.deepcopy(kwargs)
+
+    if isinstance(xml_tree, Element):
+        # General settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("general"),
+            settings=get_general_settings()
+        )
+
+    # Create settings class.
+    settings = SettingsClass(
+        general_settings=GeneralSettingsClass(**kwargs)
+    )
+
+    yield settings
 
 
 def import_configuration_settings(
@@ -89,7 +111,7 @@ def import_configuration_settings(
         raise FileNotFoundError(f"The settings file could not be found at {path}.")
 
     # Load xml
-    tree = ElemTree.parse(path)
+    tree = ElementTree.parse(path)
     root = tree.getroot()
 
     # Empty list for settings
