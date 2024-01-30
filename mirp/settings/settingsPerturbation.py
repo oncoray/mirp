@@ -234,7 +234,7 @@ def get_perturbation_settings() -> list[dict[str, Any]]:
             xml_key=["translation_fraction", "translate_frac"], class_key="translation_fraction", test=[0.25, 0.75]
         ),
         setting_def(
-            "perturbation_roi_adapt_type", "str", xml_key="roi_adapt_type", class_key="roi_adapt_size",
+            "perturbation_roi_adapt_type", "str", xml_key="roi_adapt_type", class_key="roi_adapt_type",
             test="fraction"
         ),
         setting_def(
@@ -246,12 +246,12 @@ def get_perturbation_settings() -> list[dict[str, Any]]:
             class_key="max_volume_erosion", test=0.2
         ),
         setting_def(
-            "perturbation_randomise_roi_repetitions", "int", xml_key="roi_randomise_repetitions",
+            "perturbation_randomise_roi_repetitions", "int", xml_key="roi_random_rep",
             class_key="roi_random_rep", test=100
         ),
         setting_def(
             "roi_split_boundary_size", "float", to_list=True, xml_key="roi_boundary_size",
-            class_key="roi_boundary_size", test=[2, 5]
+            class_key="roi_boundary_size", test=[2.0, 5.0]
         ),
         setting_def(
             "roi_split_max_erosion", "float", xml_key=["roi_split_max_erosion", "bulk_min_vol_fract"],
