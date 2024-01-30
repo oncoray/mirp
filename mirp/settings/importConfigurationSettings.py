@@ -7,7 +7,7 @@ from xml.etree import ElementTree as ElemTree
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
+from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass, get_mask_resegmentation_settings
 from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass, get_perturbation_settings
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass, get_post_processing_settings
 from mirp.settings.settingsInterpolation import (ImageInterpolationSettingsClass, MaskInterpolationSettingsClass,
@@ -38,17 +38,17 @@ def import_configuration_generator(
         )
 
         # Image interpolation settings
-        update_settings_from_branch(
-            kwargs=kwargs,
-            branch=xml_tree.find("img_interpolate"),
-            settings=get_image_interpolation_settings()
-        )
-
         if xml_tree.find("img_interpolate") is not None and xml_tree.find("img_interpolate").find("new_non_iso_spacing") is not None:
             warnings.warn(
                 f"The new_non_iso_spacing tag has been deprecated. Use the new_spacing tag instead.",
                 DeprecationWarning
             )
+
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("img_interpolate"),
+            settings=get_image_interpolation_settings()
+        )
 
         # Mask interpolation settings
         update_settings_from_branch(
@@ -62,6 +62,13 @@ def import_configuration_generator(
             kwargs=kwargs,
             branch=xml_tree.find("vol_adapt"),
             settings=get_perturbation_settings()
+        )
+
+        # Mask resegmentation settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("roi_resegment"),
+            settings=get_mask_resegmentation_settings()
         )
 
     # Create settings class.
