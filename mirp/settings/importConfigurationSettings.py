@@ -6,7 +6,7 @@ from xml.etree import ElementTree as ElemTree
 
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass, get_feature_extraction_settings
 from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass, get_mask_resegmentation_settings
 from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass, get_perturbation_settings
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass, get_post_processing_settings
@@ -69,6 +69,30 @@ def import_configuration_generator(
             kwargs=kwargs,
             branch=xml_tree.find("roi_resegment"),
             settings=get_mask_resegmentation_settings()
+        )
+
+        # Feature extraction settings
+        if xml_tree.find("feature_extr") is not None and xml_tree.find("feature_extr").find("glcm_merge_method") is not None:
+            warnings.warn(
+                "The glcm_merge_method tag has been deprecated. Use the glcm_spatial_method tag instead. This takes"
+                " the following values: `2d_average`, `2d_slice_merge`, '2.5d_direction_merge', '2.5d_volume_merge',"
+                " '3d_average', and `3d_volume_merge`",
+                DeprecationWarning
+            )
+
+        if xml_tree.find("feature_extr") is not None and xml_tree.find("feature_extr").find("glrlm_merge_method") is not None:
+            warnings.warn(
+                "The glrlm_merge_method tag has been deprecated. Use the glrlm_spatial_method tag instead. This "
+                "takes the following values: `2d_average`, `2d_slice_merge`, '2.5d_direction_merge', "
+                "'2.5d_volume_merge', '3d_average', and `3d_volume_merge`",
+                DeprecationWarning
+            )
+
+        # Feature extraction settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("feature_extr"),
+            settings=get_feature_extraction_settings()
         )
 
     # Create settings class.
