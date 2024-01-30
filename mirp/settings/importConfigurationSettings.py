@@ -1,7 +1,7 @@
 import copy
 import warnings
 from typing import Union, List
-from xml.etree.ElementTree import ElementTree, Element
+from xml.etree.ElementTree import Element
 from xml.etree import ElementTree as ElemTree
 
 from mirp.settings.settingsGeneric import SettingsClass
@@ -10,7 +10,8 @@ from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsCla
 from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
 from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass, get_post_processing_settings
-from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.settingsInterpolation import (ImageInterpolationSettingsClass, MaskInterpolationSettingsClass,
+                                                 get_image_interpolation_settings, get_mask_interpolation_settings)
 from mirp.settings.settingsGeneral import GeneralSettingsClass, get_general_settings
 from mirp.settings.utilities import str2list, str2type, read_node, update_settings_from_branch
 
@@ -34,6 +35,26 @@ def import_configuration_generator(
             kwargs=kwargs,
             branch=xml_tree.find("post_processing"),
             settings=get_post_processing_settings()
+        )
+
+        # Image interpolation settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("img_interpolate"),
+            settings=get_image_interpolation_settings()
+        )
+
+        if xml_tree.find("img_interpolate") is not None and xml_tree.find("img_interpolate").find("new_non_iso_spacing") is not None:
+            warnings.warn(
+                f"The new_non_iso_spacing tag has been deprecated. Use the new_spacing tag instead.",
+                DeprecationWarning
+            )
+
+        # Mask interpolation settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("roi_interpolate"),
+            settings=get_mask_interpolation_settings()
         )
 
     # Create settings class.
