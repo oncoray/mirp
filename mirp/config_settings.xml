@@ -15,6 +15,9 @@
             <mask_select_largest_region></mask_select_largest_region>
             <!-- Defines whether the largest slice within a mask object should be selected. Default: False -->
             <mask_select_largest_slice></mask_select_largest_slice>
+            <!-- Defines whether any approximation can be made to speed up image processing and feature processing.
+            Default: True -->
+            <no_approximation></no_approximation>
         </general>
         <img_interpolate>
             <!-- Voxel spacing after interpolation. Units are defined by the headers of the image files. Every
