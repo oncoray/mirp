@@ -8,7 +8,7 @@ from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
-from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
+from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass, get_perturbation_settings
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass, get_post_processing_settings
 from mirp.settings.settingsInterpolation import (ImageInterpolationSettingsClass, MaskInterpolationSettingsClass,
                                                  get_image_interpolation_settings, get_mask_interpolation_settings)
@@ -55,6 +55,13 @@ def import_configuration_generator(
             kwargs=kwargs,
             branch=xml_tree.find("roi_interpolate"),
             settings=get_mask_interpolation_settings()
+        )
+
+        # Perturbation settings
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("vol_adapt"),
+            settings=get_perturbation_settings()
         )
 
     # Create settings class.

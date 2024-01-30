@@ -9,3 +9,4 @@ test/data/temp
 /mirp.egg-info/
 /dist/
 docs_source/build/*
+test/data/configuration_files/settings.xml
