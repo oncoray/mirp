@@ -1,7 +1,6 @@
 import warnings
-import xml.etree
 from typing import Union, List, Any
-from xml.etree.ElementTree import ElementTree, Element
+from xml.etree.ElementTree import Element
 
 import numpy as np
 
@@ -35,14 +34,16 @@ def setting_def(
 
 
 def update_settings_from_branch(
-        kwargs: None | dict[str, Any],
+        kwargs: dict[str, Any],
         branch: None | Element,
         settings: list[dict[str, Any]]
 ):
+    from mirp.importData.utilities import flatten_list
+
     if branch is None:
         return
 
-    # Iterate over all parameter in settings.
+    # Iterate over all parameter in settings and update kwargs.
     for parameter in settings:
         is_parameter_set = False
 
@@ -74,6 +75,18 @@ def update_settings_from_branch(
             # If the parameter is set, stop iterating over the branch.
             if is_parameter_set:
                 break
+
+    # Check if any user-defined xml key is actually not a valid xml key.
+    available_xml_keys = set(flatten_list([parameter["xml_key"] for parameter in settings]))
+    observed_xml_keys = set([elem.tag for elem in branch.iter()])
+    observed_xml_keys.remove(branch.tag)
+    unknown_xml_keys = observed_xml_keys - available_xml_keys
+
+    if len(unknown_xml_keys) > 0:
+        raise ValueError(
+            f"The following xml keys have been deprecated or misspelled, and are not used by mirp: "
+            f"{', '.join([str(xml_key) for xml_key in unknown_xml_keys])}"
+        )
 
 
 def str2list(strx, data_type, default=None):
