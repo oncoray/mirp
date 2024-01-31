@@ -167,7 +167,10 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 roi_contour_sequence=roi_contour_sequence,
                 image=image
             )
-
+            # TODO: TEST ONLY - REMOVE
+            use_reference_image = False
+            use_orientation = False
+            # use_position = False
             if not use_reference_image:
                 # Set up image based on contours.
                 temporary_image = self._create_image_from_contour(
@@ -310,7 +313,12 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if len(referenced_sop_uids) > 1:
                 sop_uid_correct = set(reference_sop_instance_uid) >= set(referenced_sop_uids)
 
-        # Convert contours in the contour sequence to internal contour objects.
+        # If the reference SOP UID matches those found in the RT structure set: use these.
+        if sop_uid_correct:
+            return True, True, True
+
+        # From here on, the SOP reference UIDs do not match, and we need to figure out if the RT structures
+        # still align. First, convert contours in the contour sequence to internal contour objects.
         contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
         if contour_objects is None:
             return True, True, True
@@ -363,7 +371,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         # Convert contours in the contour sequence to internal contour objects.
         contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
-        use_orientation = False
 
         # Determine orientation from roi contours.
         if not use_orientation:
@@ -375,7 +382,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             mask_orientation = svd.U[:, (2, 1, 0)]
 
             # Check right-handedness
-            if np.linalg.det(mask_orientation) == -1.0:
+            if np.around(np.linalg.det(mask_orientation), 6) == -1.0:
                 for ii in range(3):
                     if np.sum(mask_orientation[:, ii]) < 0.0:
                         mask_orientation[:, ii] *= -1.0
