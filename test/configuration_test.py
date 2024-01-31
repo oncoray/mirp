@@ -41,6 +41,12 @@ def test_general_settings_configuration():
         tree = ElemTree.parse(temp_file)
         branch = tree.getroot().find("config").find("general")
 
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
+
         for xml_data in branch.iter(xml_key):
             if test_value is list:
                 xml_data.text = ", ".join([str(x) for x in test_value])
@@ -98,6 +104,12 @@ def test_post_processing_settings_configuration():
         test_value = parameter["test_value"]
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
+
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
 
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):
@@ -165,6 +177,12 @@ def test_interpolation_settings_configuration():
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
 
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
+
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):
             if isinstance(test_value, list):
@@ -181,6 +199,12 @@ def test_interpolation_settings_configuration():
         test_value = parameter["test_value"]
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
+
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
 
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):
@@ -261,6 +285,12 @@ def test_perturbation_settings_configuration():
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
 
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
+
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):
             if isinstance(test_value, list):
@@ -329,6 +359,12 @@ def test_mask_resegmentation_settings_configuration():
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
 
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
+
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):
             if isinstance(test_value, list):
@@ -396,6 +432,12 @@ def test_feature_extraction_settings_configuration():
         test_value = parameter["test_value"]
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
+
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
 
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):
@@ -467,6 +509,12 @@ def test_image_transformation_settings_configuration():
         test_value = parameter["test_value"]
         argument_key = parameter["argument_key"]
         xml_key = parameter["xml_key"]
+
+        # Check that the xml_key is present in the branch.
+        if isinstance(xml_key, list):
+            assert not all(branch.find(x) is None for x in xml_key)
+        else:
+            assert branch.find(xml_key) is not None
 
         # Prepare xml file.
         for xml_data in branch.iter(xml_key):

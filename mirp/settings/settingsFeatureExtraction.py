@@ -19,6 +19,9 @@ class FeatureExtractionSettingsClass:
         Disables approximation of features, such as Geary's c-measure. Can be True or False (default). See
         :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
+    ibsi_compliant: bool, optional, default: True
+        Limits computation of features to those features that have a reference value in the IBSI reference standard.
+
     base_feature_families: str or list of str, optional, default: "none"
         Determines the feature families for which features are computed. Radiomics features are implemented as
         defined in the IBSI reference manual. The following feature families are currently present, and can be added
