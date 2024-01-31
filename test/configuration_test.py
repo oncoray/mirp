@@ -430,3 +430,85 @@ def test_feature_extraction_settings_configuration():
 
     if os.path.exists(temp_file):
         os.remove(temp_file)
+
+
+def test_image_transformation_settings_configuration():
+    from xml.etree import ElementTree as ElemTree
+    from mirp import get_settings_xml
+    from mirp.settings.settingsImageTransformation import get_image_transformation_settings
+    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.settingsGeneric import SettingsClass
+
+    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
+
+    # Remove temporary data xml file if it exists.
+    if os.path.exists(temp_file):
+        os.remove(temp_file)
+    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+
+    settings_definitions = get_image_transformation_settings()
+
+    # All default settings.
+    tree = ElemTree.parse(temp_file)
+
+    settings_keyword = list(import_configuration_generator())[0]
+    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_direct = SettingsClass()
+
+    assert settings_keyword == settings_xml
+    assert settings_keyword == settings_direct
+
+    kwargs = []
+    branch = tree.getroot().find("config").find("img_transform")
+
+    # Test alternative settings.
+    for parameter in settings_definitions:
+
+        test_value = parameter["test_value"]
+        argument_key = parameter["argument_key"]
+        xml_key = parameter["xml_key"]
+
+        # Prepare xml file.
+        for xml_data in branch.iter(xml_key):
+            if isinstance(test_value, list):
+                xml_data.text = ", ".join([str(x) for x in test_value])
+            elif test_value is None:
+                continue
+            else:
+                xml_data.text = str(test_value)
+
+        # Prepare kwargs.
+        kwargs += [(argument_key, test_value)]
+
+    # Test configurations using different sources.
+    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
+    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_direct = SettingsClass(**dict(kwargs))
+
+    assert settings_keyword == settings_xml
+    assert settings_keyword == settings_direct
+
+    # Check parameters.
+    for parameter in settings_definitions:
+        test_value = parameter["test_value"]
+        class_key = parameter["class_key"]
+        argument_key = parameter["argument_key"]
+
+        if test_value is None:
+            continue
+
+        if argument_key in ["response_map_feature_families", "response_map_discretisation_method",
+                            "response_map_discretisation_n_bins", "response_map_discretisation_bin_width"]:
+            if isinstance(test_value, list):
+                assert list(getattr(settings_keyword.img_transform.feature_settings, class_key)) == test_value
+            else:
+                assert getattr(settings_keyword.img_transform.feature_settings, class_key) == test_value
+        elif class_key == "riesz_order":
+            assert list(getattr(settings_keyword.img_transform, class_key)) == [test_value]
+        elif isinstance(test_value, list):
+            assert list(getattr(settings_keyword.img_transform, class_key)) == test_value
+        else:
+            assert getattr(settings_keyword.img_transform, class_key) == test_value
+
+    if os.path.exists(temp_file):
+        os.remove(temp_file)
