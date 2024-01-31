@@ -103,8 +103,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def to_object(
             self,
             image: Union[None, ImageFile],
-            disconnected_segments: str = "keep_as_is",
-            **kwargs) -> Optional[List[BaseMask]]:
+            **kwargs
+    ) -> Optional[List[BaseMask]]:
 
         if image is None:
             raise TypeError(
@@ -179,15 +179,13 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
                 image_data = self.convert_contour_to_mask(
                     roi_contour_sequence=roi_contour_sequence,
-                    image=temporary_image,
-                    disconnected_segments=disconnected_segments
+                    image=temporary_image
                 )
             else:
                 # Use associated image directly.
                 image_data = self.convert_contour_to_mask(
                     roi_contour_sequence=roi_contour_sequence,
-                    image=image,
-                    disconnected_segments=disconnected_segments
+                    image=image
                 )
 
             if image_data is None:
@@ -433,8 +431,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             self,
             roi_contour_sequence: pydicom.Dataset,
             image: ImageFile,
-            draw_method: str = "ray_cast",
-            disconnected_segments: str = "keep_as_is"
+            draw_method: str = "ray_cast"
     ) -> None | np.ndarray:
 
         if image is None:
@@ -519,21 +516,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         for ii in np.arange(len(slice_list)):
             slice_id = slice_list[ii]
             roi_mask[slice_id, :, :] = np.logical_or(roi_mask[slice_id, :, :], mask_list[ii])
-
-        if disconnected_segments == "keep_largest":
-            # Check if the created roi mask consists of multiple, separate segments, and keep only the largest.
-            import skimage.measure
-
-            # Label regions
-            roi_label_mask, n_regions = skimage.measure.label(roi_mask, connectivity=2, return_num=True)
-
-            # Determine size of regions
-            roi_sizes = np.zeros(n_regions)
-            for ii in np.arange(start=0, stop=n_regions):
-                roi_sizes[ii] = np.sum(roi_label_mask == ii + 1)
-
-            # Select largest region
-            roi_mask = roi_label_mask == np.argmax(roi_sizes) + 1
 
         return roi_mask
 
