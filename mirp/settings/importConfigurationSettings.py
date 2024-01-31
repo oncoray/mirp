@@ -5,7 +5,7 @@ from xml.etree.ElementTree import Element
 from xml.etree import ElementTree as ElemTree
 
 from mirp.settings.settingsGeneric import SettingsClass
-from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
+from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass, get_image_transformation_settings
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass, get_feature_extraction_settings
 from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass, get_mask_resegmentation_settings
 from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass, get_perturbation_settings
@@ -88,11 +88,31 @@ def import_configuration_generator(
                 DeprecationWarning
             )
 
-        # Feature extraction settings
         update_settings_from_branch(
             kwargs=kwargs,
             branch=xml_tree.find("feature_extr"),
             settings=get_feature_extraction_settings()
+        )
+
+        # Image transformation settings
+        if xml_tree.find("img_transform") is not None and xml_tree.find("img_transform").find("log_average") is not None:
+            warnings.warn(
+                "The log_average tag has been deprecated. Use the laplacian_of_gaussian_pooling_method tag "
+                "instead with the value `mean` to emulate log_average=True.",
+                DeprecationWarning
+            )
+
+        if xml_tree.find("img_transform") is not None and xml_tree.find("img_transform").find("riesz_steered") is not None:
+            warnings.warn(
+                "The riesz_steered tag has been deprecated. Steerable Riesz filter are now identified by the name "
+                "of the filter kernel (filter_kernels parameter).",
+                DeprecationWarning
+            )
+
+        update_settings_from_branch(
+            kwargs=kwargs,
+            branch=xml_tree.find("img_transform"),
+            settings=get_image_transformation_settings()
         )
 
     # Create settings class.
