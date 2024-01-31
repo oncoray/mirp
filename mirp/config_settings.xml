@@ -222,8 +222,6 @@
             <laws_boundary_condition></laws_boundary_condition>
             <!-- Gabor kernel sigma (in mm). Together with gamma, this specifies the width of the filter. -->
             <gabor_sigma></gabor_sigma>
-            <!-- Number of standard deviations at which the filter should be truncated. -->
-            <gabor_kernel_truncate></gabor_kernel_truncate>
             <!-- Eccentricity parameter of the Gaussian envelope of the Gabor kernel. Defines width of y-axis
             relative to x-axis for 0-angle Gabor kernel. -->
             <gabor_gamma></gabor_gamma>
