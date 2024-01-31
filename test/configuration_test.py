@@ -7,7 +7,7 @@ def test_general_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsGeneral import get_general_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -22,8 +22,8 @@ def test_general_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -57,8 +57,8 @@ def test_general_settings_configuration():
         kwargs = dict([(argument_key, test_value)])
 
         # Test configurations using different sources.
-        settings_keyword = list(import_configuration_generator(**kwargs))[0]
-        settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+        settings_keyword = create_settings_object(**kwargs)
+        settings_xml = create_settings_object(tree.getroot().find("config"))
         settings_direct = SettingsClass(**kwargs)
 
         assert settings_keyword == settings_xml
@@ -73,7 +73,7 @@ def test_post_processing_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsImageProcessing import get_post_processing_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -88,8 +88,8 @@ def test_post_processing_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -122,8 +122,8 @@ def test_post_processing_settings_configuration():
         kwargs += [(argument_key, test_value)]
 
     # Test configurations using different sources.
-    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object(**dict(kwargs))
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass(**dict(kwargs))
 
     assert settings_keyword == settings_xml
@@ -147,7 +147,7 @@ def test_interpolation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsInterpolation import get_image_interpolation_settings, get_mask_interpolation_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -160,8 +160,8 @@ def test_interpolation_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -217,8 +217,8 @@ def test_interpolation_settings_configuration():
         kwargs += [(argument_key, test_value)]
 
     # Test configurations using different sources.
-    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object(**dict(kwargs))
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass(**dict(kwargs))
 
     assert settings_keyword == settings_xml
@@ -253,7 +253,7 @@ def test_perturbation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsPerturbation import get_perturbation_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -268,8 +268,8 @@ def test_perturbation_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -302,8 +302,8 @@ def test_perturbation_settings_configuration():
         kwargs += [(argument_key, test_value)]
 
     # Test configurations using different sources.
-    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object(**dict(kwargs))
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass(**dict(kwargs))
 
     assert settings_keyword == settings_xml
@@ -327,7 +327,7 @@ def test_mask_resegmentation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsMaskResegmentation import get_mask_resegmentation_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -342,8 +342,8 @@ def test_mask_resegmentation_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -376,8 +376,8 @@ def test_mask_resegmentation_settings_configuration():
         kwargs += [(argument_key, test_value)]
 
     # Test configurations using different sources.
-    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object(**dict(kwargs))
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass(**dict(kwargs))
 
     assert settings_keyword == settings_xml
@@ -401,7 +401,7 @@ def test_feature_extraction_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsFeatureExtraction import get_feature_extraction_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -416,8 +416,8 @@ def test_feature_extraction_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -450,8 +450,8 @@ def test_feature_extraction_settings_configuration():
         kwargs += [(argument_key, test_value)]
 
     # Test configurations using different sources.
-    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object(**dict(kwargs))
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass(**dict(kwargs))
 
     assert settings_keyword == settings_xml
@@ -478,7 +478,7 @@ def test_image_transformation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.settingsImageTransformation import get_image_transformation_settings
-    from mirp.settings.importConfigurationSettings import import_configuration_generator
+    from mirp.settings.importConfigurationSettings import create_settings_object
     from mirp.settings.settingsGeneric import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
@@ -493,8 +493,8 @@ def test_image_transformation_settings_configuration():
     # All default settings.
     tree = ElemTree.parse(temp_file)
 
-    settings_keyword = list(import_configuration_generator())[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object()
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass()
 
     assert settings_keyword == settings_xml
@@ -529,8 +529,8 @@ def test_image_transformation_settings_configuration():
         kwargs += [(argument_key, test_value)]
 
     # Test configurations using different sources.
-    settings_keyword = list(import_configuration_generator(**dict(kwargs)))[0]
-    settings_xml = list(import_configuration_generator(tree.getroot().find("config")))[0]
+    settings_keyword = create_settings_object(**dict(kwargs))
+    settings_xml = create_settings_object(tree.getroot().find("config"))
     settings_direct = SettingsClass(**dict(kwargs))
 
     assert settings_keyword == settings_xml

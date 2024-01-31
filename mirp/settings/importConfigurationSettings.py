@@ -16,7 +16,7 @@ from mirp.settings.settingsGeneral import GeneralSettingsClass, get_general_sett
 from mirp.settings.utilities import str2list, str2type, read_node, update_settings_from_branch
 
 
-def import_configuration_generator(
+def create_settings_object(
     xml_tree: None | Element = None,
     **kwargs
 ):
@@ -118,7 +118,7 @@ def import_configuration_generator(
     # Create settings class.
     settings = SettingsClass(**kwargs)
 
-    yield settings
+    return settings
 
 
 def import_configuration_settings(
