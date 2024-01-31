@@ -137,7 +137,8 @@ class SettingsClass:
                     by_slice=general_settings.by_slice,
                     no_approximation=general_settings.no_approximation,
                     **kwargs
-                )
+                ),
+                **kwargs
             )
         self.img_transform = img_transform_settings
 
