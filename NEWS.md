@@ -2,7 +2,7 @@
 
 ## Major changes
 
-- Added support for SEG DICOM files for segmentation.
+- Added support for SEG DICOM files for segmentation
 
 - It is now possible to combine and split masks, and to select the largest mask or mask slice, as part of the image
   processing workflow. Masks can be combines by setting `mask_merge = True`, which merges all available masks for an
@@ -17,6 +17,9 @@
   These mask operations are implemented in the following order: combination -> splitting -> largest region -> 
   largest slice.
 
+- Masks from an RT-structure file that shares a frame of reference with an image but does not have a one-to-one 
+  mapping to its voxel space can now be processed. This facilitates processing of masks from RT structure sets that 
+  are, e.g., defined on CT images but applied to co-registered PET imaging, or from one MR sequence to another. 
 
 ## Fixes
 
@@ -25,6 +28,7 @@
   arguments. The same default values are now used, independent of the parameter source. This fixes a known issue where
   outlier-based resegmentation would occur by default using `xml` files, whereas the intended default is that no
   resegmentation takes place.
+- Masks can now be exported to the file system without throwing an error.
 
 # Version 2.0.1
 
