@@ -1153,12 +1153,13 @@ class GenericImage(BaseImage):
 
         if file_format == "nifti":
             image_data = self.get_voxel_grid()
-            if np.issubdtype(self.image_data.dtype, bool):
+            if np.issubdtype(image_data.dtype, bool):
                 cast_type = np.uint8
-            elif np.issubdtype(self.image_data.dtype, float):
+            elif np.issubdtype(image_data.dtype, float):
                 cast_type = float
             else:
-                cast_type = self.image_data.dtype
+                cast_type = image_data.dtype
+
             image_data = itk.GetImageFromArray(image_data.astype(cast_type))
             image_data.SetOrigin(np.array(self.image_origin)[::-1])
             image_data.SetSpacing(np.array(self.image_spacing)[::-1])
