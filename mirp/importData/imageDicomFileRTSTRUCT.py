@@ -383,11 +383,84 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             # Extract the left singular U vectors.
             mask_orientation = svd.U[:, (2, 1, 0)]
 
-            # Check right-handedness
-            if np.around(np.linalg.det(mask_orientation), 6) == -1.0:
-                for ii in range(3):
-                    if np.sum(mask_orientation[:, ii]) < 0.0:
-                        mask_orientation[:, ii] *= -1.0
+            # Check right-handedness of orientation. When the orientation matrix is right-handed
+            # (i.e. conforms to a standard coordinate system), its determinant should be 1.0. If not, we need to flip
+            # one component (preferably the z-component.)
+            if not np.around(np.linalg.det(mask_orientation), 6) == 1.0:
+                mask_orientation = np.matmul(
+                    mask_orientation, np.array([[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+                )
+            # The orientation matrix is now right-handed. However, to correctly set the position of the origin, we need
+            # to orient the orientation matrix so that a positive increase in voxel translates yields a positive
+            # position. The orientation matrix can be oriented in 8 different ways, of which one yields the expected
+            # result. That is, we need to find a 3 x 3 rotation matrix B so that AB (1, 1, 1)^T > (0, 0, 0)^T,
+            # with A the current orientation matrix. We use the matrix product AB as the orientation matrix
+            # in subsequent steps.
+
+            # B takes one of eight forms, being the inverse of right-handed orientation matrix corresponding to each of
+            # the 8 vertices of a regular cube.
+            vertex_matrices = [
+                # 1. (0, 0, 0)
+                np.array([
+                    [1.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                    [0.0, 0.0, 1.0]
+                ]),
+                # 2. (0, 0, 1)
+                np.array([
+                    [1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0],
+                    [0.0, -1.0, 0.0]
+                ]),
+                # 3. (0, 1, 0)
+                np.array([
+                    [1.0, 0.0, 0.0],
+                    [0.0, 0.0, -1.0],
+                    [0.0, 1.0, 0.0]
+                ]),
+                # 4. (0, 1, 1)
+                np.array([
+                    [1.0, 0.0, 0.0],
+                    [0.0, -1.0, 0.0],
+                    [0.0, 0.0, -1.0]
+                ]),
+                # 5. (1, 0, 0)
+                np.array([
+                    [-1.0, 0.0, 0.0],
+                    [0.0, 0.0, 1.0],
+                    [0.0, 1.0, 0.0]
+                ]),
+                # 6. (1, 0, 1)
+                np.array([
+                    [-1.0, 0.0, 0.0],
+                    [0.0, 1.0, 0.0],
+                    [0.0, 0.0, -1.0]
+                ]),
+                # 7. (1, 1, 0)
+                np.array([
+                    [-1.0, 0.0, 0.0],
+                    [0.0, -1.0, 0.0],
+                    [0.0, 0.0, 1.0]
+                ]),
+                # 8. (1, 1, 0)
+                np.array([
+                    [-1.0, 0.0, 0.0],
+                    [0.0, 0.0, -1.0],
+                    [0.0, -1.0, 0.0]
+                ])
+            ]
+            for vertex_matrix in vertex_matrices:
+                # Because the vertex matrices are orthonormal, the inverse of a vertex matrix V is its transpose, i.e.
+                # V^-1 = V^T. Thus B = V^T, and we test A V^T (1, 1, 1)^T > (0, 0, 0)^T
+                position_vector = np.matmul(
+                    np.matmul(mask_orientation, np.transpose(vertex_matrix)),
+                    np.transpose(np.array([1.0, 1.0, 1.0]))
+                )
+                # If a positive increase in voxel units corresponds to a positive increase in pseudo-world space, we
+                # have found the correct rotation for the orientation matrix.
+                if np.all(position_vector > 0.0):
+                    mask_orientation = np.matmul(mask_orientation, np.transpose(vertex_matrix))
+                    break
 
         else:
             mask_orientation = copy.deepcopy(image.image_orientation)
