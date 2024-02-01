@@ -167,13 +167,10 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 roi_contour_sequence=roi_contour_sequence,
                 image=image
             )
-            # TODO: TEST ONLY - REMOVE
-            use_reference_image = False
-            use_orientation = False
-            # use_position = False
+
             if not use_reference_image:
                 # Set up image based on contours.
-                temporary_image = self._create_image_from_contour(
+                image = self._create_image_from_contour(
                     roi_contour_sequence=roi_contour_sequence,
                     image=image,
                     use_orientation=use_orientation,
@@ -182,7 +179,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
                 image_data = self.convert_contour_to_mask(
                     roi_contour_sequence=roi_contour_sequence,
-                    image=temporary_image
+                    image=image
                 )
             else:
                 # Use associated image directly.
@@ -190,8 +187,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     roi_contour_sequence=roi_contour_sequence,
                     image=image
                 )
-
-            raise AssertionError("Assert that you have removed the code to force generation of temporary images.")
 
             if image_data is None:
                 continue
