@@ -191,6 +191,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     image=image
                 )
 
+            raise AssertionError("Assert that you have removed the code to force generation of temporary images.")
+
             if image_data is None:
                 continue
 
