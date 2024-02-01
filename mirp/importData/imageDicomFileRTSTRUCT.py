@@ -462,6 +462,11 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     mask_orientation = np.matmul(mask_orientation, np.transpose(vertex_matrix))
                     break
 
+            # Ensure that the orientation matrix is normalised, i.e. the L2 norm is 1.0.
+            l2_norm = np.around(np.linalg.norm(mask_orientation, ord=2), decimals=6)
+            if l2_norm != 1.0:
+                mask_orientation = mask_orientation / l2_norm
+
         else:
             mask_orientation = copy.deepcopy(image.image_orientation)
 
