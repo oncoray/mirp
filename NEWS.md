@@ -22,7 +22,9 @@
 
 - Providing a mask consisting of boolean values in a numpy array no longer incorrectly throws an error.
 - Configuration parameters from `xml` files are now processed in the same manner as parameters defined as function 
-  arguments. The same default values are now used, independent of the parameter source.
+  arguments. The same default values are now used, independent of the parameter source. This fixes a known issue where
+  outlier-based resegmentation would occur by default using `xml` files, whereas the intended default is that no
+  resegmentation takes place.
 
 # Version 2.0.1
 
