@@ -37,3 +37,6 @@ def test_basic_ct_feature_extraction():
     assert len([file for file in file_names if file.endswith(".csv")]) == 1
     assert len([file for file in file_names if file.endswith(".nii.gz")]) == 2
     assert len([file for file in file_names if "mask" in file]) == 1
+
+    if os.path.exists(write_dir):
+        shutil.rmtree(write_dir)
