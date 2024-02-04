@@ -83,6 +83,7 @@ class ImageDicomFileRTDose(ImageDicomFile):
                     raise ValueError(
                         f"Spacing of radiation dose grid in {self.file_path} is inconsistent: {', '.join(z_spacing)}"
                     )
+                z_spacing = z_spacing[0]
             else:
                 # DICOM file contains only a single frame. Use a default 1.0 mm value.
                 z_spacing = 1.0
@@ -91,7 +92,13 @@ class ImageDicomFileRTDose(ImageDicomFile):
                     f"spacing of 1.0 mm is assumed. Within-plane spacing is not affected."
                 )
 
-            spacing += [z_spacing[0]]
+            if z_spacing < 0.0:
+                self.image_orientation = np.matmul(
+                    self.image_orientation, [[-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+                )
+                z_spacing = np.abs(z_spacing)
+
+            spacing += [z_spacing]
 
             self.image_spacing = tuple(spacing[::-1])
 

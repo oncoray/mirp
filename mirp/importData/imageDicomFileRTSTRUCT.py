@@ -336,8 +336,9 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 if not np.isclose(np.round(slice_position), slice_position):
                     position_correct = False
 
+        # If the orientation is not correct, the position should be revised as well.
         if not orientation_correct:
-            return False, orientation_correct, position_correct
+            return False, False, False
         if not position_correct:
             return False, orientation_correct, position_correct
 
@@ -369,14 +370,17 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         # Convert contours in the contour sequence to internal contour objects.
         contour_objects = self._collect_contours(roi_contour_sequence=roi_contour_sequence)
 
-        # Determine orientation from roi contours.
-        if not use_orientation:
-
+        if use_orientation:
+            mask_orientation = copy.deepcopy(image.image_orientation)
+        else:
             points = np.vstack([sub_contour for sub_contour in contour_objects[0].contour])
             svd = np.linalg.svd(points.T - np.mean(points.T, axis=1, keepdims=True))
 
             # Extract the left singular U vectors.
             mask_orientation = svd.U[:, (2, 1, 0)]
+        # Determine orientation from roi contours.
+        if not use_orientation:
+
 
             # Check right-handedness of orientation. When the orientation matrix is right-handed
             # (i.e. conforms to a standard coordinate system), its determinant should be 1.0. If not, we need to flip
@@ -463,7 +467,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 mask_orientation = mask_orientation / l2_norm
 
         else:
-            mask_orientation = copy.deepcopy(image.image_orientation)
+
 
         if not use_position:
             # Convert to normalised space: all segments are projected into their planes.
