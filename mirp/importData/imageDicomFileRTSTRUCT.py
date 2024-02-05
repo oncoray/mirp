@@ -469,7 +469,11 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             mask_orientation = mask_orientation / l2_norm
 
         if not use_position:
-            # Convert to normalised space: all segments are projected into their planes.
+            # Spacing, origin and dimensions are actually easiest to define in voxel space, because that space is
+            # orthonormal. If the mask space is positioned in an oblique manner, e.g. rotated in the x-y plane, the
+            # world-space coordinates of contours do not directly translate into these characteristics. For conversion,
+            # We use the orientation determined above, and a default origin of (0, 0, 0) and a unitary spacing, for
+            # conversion to voxel coordinates.
             contours = [
                 image.to_voxel_coordinates(
                     x=sub_contour.T,
@@ -481,17 +485,25 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 for sub_contour in contour.contour
             ]
 
-            # Determine sample spacing.
+            # Determine sample spacing. Note that because of unitary sample spacing during conversion from world space
+            # to voxel space, the image spacing corresponds directly to world coordinates, e.g. a 1.0 voxel step in any
+            # direction is a translation of 1.0 in world space in physical units.
             mask_z_spacing = np.min(np.diff(np.unique(np.vstack(contours)[:, 0])))
             mask_y_spacing = image.image_spacing[1]
             mask_x_spacing = image.image_spacing[2]
             mask_spacing = tuple([mask_z_spacing, mask_y_spacing, mask_x_spacing])
 
-            # Determine origin.
+            # Determine origin. This is the translation with regard to the current origin in voxel space. This value is
+            # then converted back to world space and used as the origin.
             mask_z_origin = np.min(np.unique(np.vstack(contours)[:, 0]))
             mask_y_origin = np.min(np.unique(np.vstack(contours)[:, 1])) - mask_y_spacing
             mask_x_origin = np.min(np.unique(np.vstack(contours)[:, 2])) - mask_x_spacing
-            mask_origin = tuple([mask_z_origin, mask_y_origin, mask_x_origin])
+            mask_origin = tuple(image.to_world_coordinates(
+                x=np.array([mask_z_origin, mask_y_origin, mask_x_origin]),
+                origin=np.array([0.0, 0.0, 0.0]),
+                orientation=mask_orientation,
+                spacing=np.array([1.0, 1.0, 1.0])
+            ))
 
             # Determine dimensions.
             mask_z_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 0])) - mask_z_origin) / mask_z_spacing)) + 1
