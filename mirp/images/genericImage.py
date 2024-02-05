@@ -168,11 +168,21 @@ class GenericImage(BaseImage):
         pass
 
     def show(self, mask=None):
+        import matplotlib.pyplot as plt
+        from mirp.images.utilities import InteractivePlot
+
         if self.is_empty():
             return
 
-        import matplotlib.pyplot as plt
-        from mirp.images.utilities import InteractivePlot
+        if mask is not None:
+            # Ensure that the mask is registered to the image.
+            mask = mask.copy()
+            mask.register(
+                image=self,
+                spline_order=1,
+                anti_aliasing=False,
+                anti_aliasing_smoothing_beta=0.98
+            )
 
         figure, axes = plt.subplots()
 
@@ -180,7 +190,8 @@ class GenericImage(BaseImage):
         tracker = InteractivePlot(
             axes=axes,
             image=self,
-            mask=mask)
+            mask=mask
+        )
 
         figure.canvas.mpl_connect('scroll_event', tracker.onscroll)
         plt.show()
