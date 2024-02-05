@@ -244,6 +244,7 @@ On occasion, input should be more selective. This can be done by specifying addi
     * Computed tomography (CT): ``"ct"``
     * Positron emission tomography (PET): ``"pet"`` or ``"pt"``
     * Magnetic resonance imaging (MRI): ``"mri"`` or ``"mr"``
+    * Radiotherapy dose (RTDOSE): ``"rtdose"``
 
     Images from other modalities are currently not fully supported, and a default ``"generic"`` image modality will
     be assigned.
@@ -265,6 +266,13 @@ On occasion, input should be more selective. This can be done by specifying addi
     .. note::
         Only DICOM images contain metadata concerning mask modality. Masks from other file types are interpreted as
         ``"generic_mask"`` by default and cannot be filtered using ``mask_modality``.
+
+    .. note::
+        Since version ``2.1.0`` MIRP does not require that images and masks have the exact same dimensions, origin,
+        spacing and orientation, with the exception of numpy images and masks. This is explicitly true for DICOM
+        radiotherapy structure (RTSTRUCT) sets. These are either mapped to the corresponding image if image slices
+        are referenced in the structure set, or use internal data to generate a voxel-based mask. However, images and
+        their masks should share the same frame of reference.
 
 * Select the specific regions of interest using ``roi_name``:
     A mask file may contain multiple masks. By default, MIRP will assess all masks in a file. The ``roi_name`` argument

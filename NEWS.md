@@ -2,7 +2,9 @@
 
 ## Major changes
 
-- Added support for SEG DICOM files for segmentation
+- Added support for SEG DICOM files for segmentation.
+
+- Added support for processing RTDOSE files.
 
 - It is now possible to combine and split masks, and to select the largest mask or mask slice, as part of the image
   processing workflow. Masks can be combines by setting `mask_merge = True`, which merges all available masks for an
