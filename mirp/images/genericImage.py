@@ -446,7 +446,8 @@ class GenericImage(BaseImage):
             spline_order: None | int = None,
             anti_aliasing: None | bool = None,
             anti_aliasing_smoothing_beta: None | float = None,
-            settings: None | SettingsClass = None
+            settings: None | SettingsClass = None,
+            mode: str = "nearest"
     ):
         if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
             raise ValueError("None of the parameters for registration can be set.")
@@ -462,7 +463,8 @@ class GenericImage(BaseImage):
             image=image,
             spline_order=spline_order,
             anti_aliasing=anti_aliasing,
-            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta,
+            mode=mode
         )
 
     def _register(
@@ -470,7 +472,8 @@ class GenericImage(BaseImage):
             image,
             spline_order: int,
             anti_aliasing: bool,
-            anti_aliasing_smoothing_beta: float
+            anti_aliasing_smoothing_beta: float,
+            mode: str = "nearest"
     ):
         """Register this image with another image."""
 
@@ -530,7 +533,7 @@ class GenericImage(BaseImage):
             input=self.get_voxel_grid().astype(float),
             coordinates=grid_coordinates,
             order=spline_order,
-            mode="nearest"
+            mode=mode
         )
 
         # Restore form.
