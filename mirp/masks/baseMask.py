@@ -142,21 +142,24 @@ class BaseMask:
             image=image,
             spline_order=spline_order,
             anti_aliasing=anti_aliasing,
-            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta,
+            mode="constant"
         )
         if self.roi_intensity is not None:
             self.roi_intensity.register(
                 image=image,
                 spline_order=spline_order,
                 anti_aliasing=anti_aliasing,
-                anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+                anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta,
+                mode="constant"
             )
         if self.roi_morphology is not None:
             self.roi_morphology.register(
                 image=image,
                 spline_order=spline_order,
                 anti_aliasing=anti_aliasing,
-                anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+                anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta,
+                mode="constant"
             )
 
     def merge(self, masks: list[Self]) -> Self:
