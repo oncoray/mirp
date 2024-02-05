@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 from mirp.images.rtdoseImage import RTDoseImage
 from mirp.masks.baseMask import BaseMask
@@ -15,9 +16,9 @@ def test_basic_rtdose_feature_extraction():
         write_images=False,
         export_images=True,
         image_export_format="native",
-        image=os.path.join(CURRENT_DIR, "data", "rtdose_images", "VS-SEG-001", "rtdose"),
-        mask=os.path.join(CURRENT_DIR, "data", "rtdose_images", "VS-SEG-001", "mask"),
-        roi_name="TV",
+        image=os.path.join(CURRENT_DIR, "data", "rtdose_images", "Pancreas-CT-CB_001", "rtdose"),
+        mask=os.path.join(CURRENT_DIR, "data", "rtdose_images", "Pancreas-CT-CB_001", "mask"),
+        roi_name="ROI",
         base_feature_families="statistics"
     )
 
@@ -26,8 +27,8 @@ def test_basic_rtdose_feature_extraction():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert feature_data["stat_max"].values[0] == 250.0
-    assert feature_data["stat_min"].values[0] == -1000.0
+    assert np.around(feature_data["stat_max"].values[0], 0) == 74.0
+    assert np.around(feature_data["stat_min"].values[0], 0) == 7.0
 
     assert isinstance(image, RTDoseImage)
     assert isinstance(mask, BaseMask)

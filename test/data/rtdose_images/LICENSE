@@ -1,23 +1,23 @@
 License
 
-The Vestibular-Schwannoma-SEG collection is distributed under the Creative Commons Attribution 4.0 International License (https://creativecommons.org/licenses/by/4.0/). 
+The Pancreatic-CT-CBCT-SEG collection is distributed under the Creative Commons Attribution 4.0 International License (https://creativecommons.org/licenses/by/4.0/). 
 By downloading the data, you agree to abide by terms of this license.
 
 _____________________________
 
 Data Citation
 
-Shapey, J., Kujawa, A., Dorent, R., Wang, G., Bisdas, S., Dimitriadis, A., Grishchuck, D., Paddick, I., Kitchen, N., Bradford, R., Saeed, S., Ourselin, S., & Vercauteren, T. (2021). Segmentation of Vestibular Schwannoma from Magnetic Resonance Imaging: An Open Annotated Dataset and Baseline Algorithm [Data set]. The Cancer Imaging Archive. https://doi.org/10.7937/TCIA.9YTJ-5Q73 
+Hong, J., Reyngold, M., Crane, C., Cuaron, J., Hajj, C., Mann, J., Zinovoy, M., LoCastro, E., Apte, A., Mageras, G. CT and cone-beam CT of ablative radiation therapy for pancreatic cancer with expert organ-at-risk contours. Sci Data 9, 637 (2022). https://doi.org/10.1038/s41597-022-01758-9 
 
 Publication Citation
 
-Shapey, J., Kujawa, A., Dorent, R., Wang, G., Dimitriadis, A., Grishchuk, D., Paddick, I., Kitchen, N., Bradford, R., Saeed, S. R., Bisdas, S., Ourselin, S., & Vercauteren, T. (2021). Segmentation of vestibular schwannoma from MRI, an open annotated dataset and baseline algorithm. In Scientific Data (Vol. 8, Issue 1). Springer Science and Business Media LLC. https://doi.org/10.1038/s41597-021-01064-w
+Han, X., Hong, J., Reyngold, M., Crane, C., Cuaron, J., Hajj, C., Mann, J., Zinovoy, M., Greer, H., Yorke, E., Mageras, G., & Niethammer, M. (2021). Deep-learning-based image registration and automatic segmentation of organs-at-risk in cone-beam CT scans from high-dose radiation treatment of pancreatic cancer. Medical Physics, 48(6), 3084–3095. https://doi.org/10.1002/mp.14906
 
 TCIA Citation
 
 Clark, K., Vendt, B., Smith, K., Freymann, J., Kirby, J., Koppel, P., Moore, S., Phillips, S., Maffitt, D., Pringle, M., Tarbox, L., & Prior, F. (2013). The Cancer Imaging Archive (TCIA): Maintaining and Operating a Public Information Repository. Journal of Digital Imaging, 26(6), 1045–1057. https://doi.org/10.1007/s10278-013-9622-7
-_____________________________
 
+_____________________________
 Data Usage Policy
 
 Any user accessing TCIA data must agree to:
