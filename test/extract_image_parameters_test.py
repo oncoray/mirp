@@ -71,6 +71,6 @@ def test_extract_image_parameters_dicom():
 
     # Read single RTDOSE image.
     image_parameters = extract_image_parameters(
-        image=os.path.join(CURRENT_DIR, "data", "rtdose_images", "VS-SEG-001", "rtdose")
+        image=os.path.join(CURRENT_DIR, "data", "rtdose_images", "Pancreas-CT-CB_001", "rtdose")
     )
     assert len(image_parameters) == 1
