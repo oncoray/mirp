@@ -495,7 +495,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             mask_origin = tuple([mask_z_origin, mask_y_origin, mask_x_origin])
 
             # Determine dimensions.
-            mask_z_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 0])) - mask_z_origin) / mask_z_spacing))
+            mask_z_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 0])) - mask_z_origin) / mask_z_spacing)) + 1
             mask_y_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 1])) - mask_y_origin) / mask_y_spacing)) + 1
             mask_x_dimension = int(np.ceil((np.max(np.unique(np.vstack(contours)[:, 2])) - mask_x_origin) / mask_x_spacing)) + 1
             mask_dimension = tuple([mask_z_dimension, mask_y_dimension, mask_x_dimension])
