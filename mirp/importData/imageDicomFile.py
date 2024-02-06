@@ -272,13 +272,15 @@ class ImageDicomFile(ImageFile):
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
 
-            orientation = get_pydicom_meta_tag(
+            orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
-                tag_type="mult_float")
-            orientation += [0.0, 0.0, 1.0]
+                tag_type="mult_float"
+            )
 
-            self.image_orientation = np.reshape(orientation[::-1], [3, 3])
+            # First compute z-orientation.
+            orientation += list(np.cross(orientation[0:3], orientation[3:6]))
+            self.image_orientation = np.reshape(orientation[::-1], [3, 3], order="F")
 
     def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:

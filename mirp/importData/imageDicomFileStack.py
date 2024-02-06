@@ -63,12 +63,23 @@ class ImageDicomFileStack(ImageFileStack):
         self._complete_sample_name()
 
         position_table = self._get_origin_position_table()
+        # Set image orientation.
+        # First read orientation (Xx, Xy, Xz, Yx, Yy, Yz) from metadata.
+        image_orientation: list[float] = get_pydicom_meta_tag(
+            dcm_seq=self.image_file_objects[0].image_metadata,
+            tag=(0x0020, 0x0037),
+            tag_type="mult_float"
+        )
+        image_orientation += list(np.cross(image_orientation[0:3], image_orientation[3:6]))
 
         # Sort image file objects.
         self.image_file_objects = [
             self.image_file_objects[position_table.original_object_order[ii]]
             for ii in range(len(position_table))
         ]
+        # Revert to z, y, x order and reshape to matrix.
+        if self.image_orientation is None:
+            self.image_orientation = np.reshape(image_orientation[::-1], [3, 3], order="F")
 
         if self.image_origin is None:
             # Set image origin.
@@ -123,20 +134,6 @@ class ImageDicomFileStack(ImageFileStack):
         if self.image_spacing is None:
             self.image_spacing = tuple([image_slice_spacing, image_pixel_spacing[1], image_pixel_spacing[0]])
 
-        # Read orientation (Xx, Xy, Xz, Yx, Yy, Yz) from metadata.
-        image_orientation = get_pydicom_meta_tag(
-            dcm_seq=self.image_file_objects[0].image_metadata,
-            tag=(0x0020, 0x0037),
-            tag_type="mult_float")
-
-        # Add (Zx, Zy, Zz)
-        z_orientation = np.array([
-            np.around(np.min(np.diff(position_table.position_x.values)), 5),
-            np.around(np.min(np.diff(position_table.position_y.values)), 5),
-            np.around(np.min(np.diff(position_table.position_z.values)), 5)
-        ]) / image_slice_spacing
-
-        image_orientation += list(z_orientation)
 
         # Revert to z, y, x order and reshape to matrix.
         if self.image_orientation is None:

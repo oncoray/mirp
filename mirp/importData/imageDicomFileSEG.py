@@ -323,16 +323,8 @@ class MaskDicomFileSEG(MaskDicomFile):
                 )
 
         if mask_orientation is not None:
-            position_table = self._get_origin_position_table(frames=frames)
-            z_orientation = np.array([
-                np.around(np.min(np.diff(position_table.position_x.values)), 5),
-                np.around(np.min(np.diff(position_table.position_y.values)), 5),
-                np.around(np.min(np.diff(position_table.position_z.values)), 5)
-            ]) / spacing[0]
-
-            mask_orientation += list(z_orientation)
-
-            return np.reshape(mask_orientation[::-1], [3, 3])
+            mask_orientation += list(np.cross(mask_orientation[0:3], mask_orientation[3:6]))
+            return np.reshape(mask_orientation[::-1], [3, 3], order="F")
 
         # Isolate Functional Groups Sequence for each frame.
         frame_functional_groups = [
@@ -379,16 +371,8 @@ class MaskDicomFileSEG(MaskDicomFile):
             else:
                 pass
 
-        position_table = self._get_origin_position_table(frames=frames)
-        z_orientation = np.array([
-            np.around(np.min(np.diff(position_table.position_x.values)), 5),
-            np.around(np.min(np.diff(position_table.position_y.values)), 5),
-            np.around(np.min(np.diff(position_table.position_z.values)), 5)
-        ]) / spacing[0]
-
-        mask_orientation += list(z_orientation)
-
-        return np.reshape(mask_orientation[::-1], [3, 3])
+        mask_orientation += list(np.cross(mask_orientation[0:3], mask_orientation[3:6]))
+        return np.reshape(mask_orientation[::-1], [3, 3], order="F")
 
     def _get_mask_slice_number(
             self,
