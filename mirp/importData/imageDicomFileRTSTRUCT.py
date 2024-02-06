@@ -573,28 +573,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if len(slice_list) == 0:
             return None
 
-        # Match slices in image.
-        known_slice_positions = image.get_slice_position()
-        slice_list = [
-            self._match_slice_position(
-                slice_position=slice_position,
-                known_position=known_slice_positions,
-                image_spacing_z=image.image_spacing[0]
-            )
-            for slice_position in slice_list
-        ]
-
-        # Retain mask and slice indices for slices that were matched.
-        mask_list = [
-            mask_list[ii]
-            for ii, slice_position in enumerate(slice_list)
-            if slice_position is not None
-        ]
-        slice_list = [slice_position for slice_position in slice_list if slice_position is not None]
-
-        if len(slice_list) == 0:
-            return None
-
         # Check for out-of-range slices.
         mask_list = [mask_list[ii] for ii, _ in enumerate(mask_list) if slice_list[ii] >= 0]
         slice_list = [slice_id for slice_id in slice_list if slice_id >= 0]
