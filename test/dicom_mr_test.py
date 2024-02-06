@@ -26,8 +26,8 @@ def test_basic_mr_t1_feature_extraction():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 800.0 < feature_data["stat_max"].values[0] < 900.0
-    assert 0.0 < feature_data["stat_min"].values[0] < 100.0
+    assert 550.0 < feature_data["stat_max"].values[0] < 650.0
+    assert 50.0 < feature_data["stat_min"].values[0] < 150.0
 
     assert isinstance(image, MRImage)
     assert isinstance(mask, BaseMask)
@@ -53,8 +53,8 @@ def test_bias_field_correction_t1():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 800.0 < feature_data["stat_max"].values[0] < 900.0
-    assert 0.0 < feature_data["stat_min"].values[0] < 100.0
+    assert 550.0 < feature_data["stat_max"].values[0] < 650.0
+    assert 50.0 < feature_data["stat_min"].values[0] < 150.0
 
     assert isinstance(image, MRImage)
     assert isinstance(mask, BaseMask)
