@@ -26,18 +26,6 @@ class ImageDicomFileStack(ImageFileStack):
         # Add type hint.
         self.image_file_objects: list[ImageDicomFile] = self.image_file_objects
 
-    def get_slice_position(self) -> np.ndarray:
-
-        position_table = self._get_origin_position_table()
-
-        # Compute the distance between the origins of the slices. This is the slice spacing.
-        image_slice_spacing = np.sqrt(
-            np.power(np.diff(position_table.position_x.values), 2.0) +
-            np.power(np.diff(position_table.position_y.values), 2.0) +
-            np.power(np.diff(position_table.position_z.values), 2.0))
-
-        return np.cumsum(np.insert(np.around(image_slice_spacing, 5), 0, 0.0))
-
     def associate_with_mask(
             self,
             mask_list,

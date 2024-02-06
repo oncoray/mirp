@@ -33,16 +33,6 @@ class BaseImage:
         # Set sample name.
         self.sample_name = sample_name
 
-    def get_slice_position(self) -> np.ndarray:
-        if self.image_spacing is None:
-            raise ValueError("The image_spacing attribute has not been set.")
-        if self.image_dimension is None:
-            raise ValueError("The image_dimension attribute has not been set.")
-
-        slice_distance = self.image_spacing[0]
-        slice_positions = [0.0] + [slice_distance] * (self.image_dimension[0] - 1)
-        return np.cumsum(slice_positions)
-
     def is_isotropic(self, by_slice: bool) -> bool:
         if by_slice:
             spacing = np.array(self.image_spacing)[1, 2]
