@@ -62,7 +62,6 @@ class ImageDicomFileStack(ImageFileStack):
         self._complete_modality()
         self._complete_sample_name()
 
-        position_table = self._get_origin_position_table()
         # Set image orientation.
         # First read orientation (Xx, Xy, Xz, Yx, Yy, Yz) from metadata.
         image_orientation: list[float] = get_pydicom_meta_tag(
@@ -72,23 +71,51 @@ class ImageDicomFileStack(ImageFileStack):
         )
         image_orientation += list(np.cross(image_orientation[0:3], image_orientation[3:6]))
 
-        # Sort image file objects.
-        self.image_file_objects = [
-            self.image_file_objects[position_table.original_object_order[ii]]
-            for ii in range(len(position_table))
-        ]
         # Revert to z, y, x order and reshape to matrix.
         if self.image_orientation is None:
             self.image_orientation = np.reshape(image_orientation[::-1], [3, 3], order="F")
 
+        # Set image origin.
+        # The image origin is the origin of the first slice, i.e. the slice for which any negative shift in voxel
+        # space would increase distance from all other slice origins. Thus, one of the two outermost slices is the
+        # first slice.
+        position_table = self._get_origin_position_table()
+
+        # First, find the origins of the top and bottom layers:
+        outer_origin_0 = position_table.head(1)
+        outer_origin_0 = np.array([
+            outer_origin_0.position_z.values[0],
+            outer_origin_0.position_y.values[0],
+            outer_origin_0.position_x.values[0]
+        ])
+
+        outer_origin_1 = position_table.tail(1)
+        outer_origin_1 = np.array([
+            outer_origin_1.position_z.values[0],
+            outer_origin_1.position_y.values[0],
+            outer_origin_1.position_x.values[0]
+        ])
+
+        # Determine distance between bottom and top layers.
+        layer_distance = np.sqrt(np.sum(np.power(outer_origin_1 - outer_origin_0, 2.0)))
+
+        # Determine distance between the top layer and a layer outside below the volume, assuming that the bottom
+        # layer has the origin at outer_origin_0.
+        out_of_volume_layer = self.to_world_coordinates(
+            np.array([-1.0, 0.0, 0.0]),
+            origin=outer_origin_0,
+            spacing=(1.0, 1.0, 1.0)
+        )
+        oov_layer_distance = np.sqrt(np.sum(np.power(outer_origin_1 - out_of_volume_layer, 2.0)))
+
+        # If the distance between the origins of the top layer and the out-of-volume layer is indeed larger
+        # than the distance between top and bottom layer, the assumption that the origin is located at the bottom
+        # layer is correct. Otherwise, the origin lies at the top layer instead.
         if self.image_origin is None:
-            # Set image origin.
-            self.image_origin = tuple(get_pydicom_meta_tag(
-                dcm_seq=self.image_file_objects[0].image_metadata,
-                tag=(0x0020, 0x0032),
-                tag_type="mult_float",
-                default=np.array([0.0, 0.0, 0.0])
-            )[::-1])
+            if oov_layer_distance > layer_distance:
+                self.image_origin = tuple(outer_origin_0)
+            else:
+                self.image_origin = tuple(outer_origin_1)
 
         # Set image spacing
         # Compute the distance between the origins of the slices. This is the slice spacing.
@@ -134,10 +161,22 @@ class ImageDicomFileStack(ImageFileStack):
         if self.image_spacing is None:
             self.image_spacing = tuple([image_slice_spacing, image_pixel_spacing[1], image_pixel_spacing[0]])
 
+        # Sort image objects in order of ascending position in voxel space.
+        layer_positions = [
+            self.to_voxel_coordinates(
+                x=np.array(get_pydicom_meta_tag(
+                    dcm_seq=image_object.image_metadata,
+                    tag=(0x0020, 0x0032),
+                    tag_type="mult_float",
+                    default=np.array([0.0, 0.0, 0.0])
+                )[::-1])
+            )[0]
+            for image_object in self.image_file_objects
+        ]
 
-        # Revert to z, y, x order and reshape to matrix.
-        if self.image_orientation is None:
-            self.image_orientation = np.reshape(image_orientation[::-1], [3, 3])
+        # Determine how image objects should be sorted according to increasing layer positions.
+        new_order = np.argsort(layer_positions)
+        self.image_file_objects = [self.image_file_objects[ii] for ii in new_order]
 
         # Set image dimensions. First, find the number of rows (y) and columns (x) in the data set.
         n_x = get_pydicom_meta_tag(
