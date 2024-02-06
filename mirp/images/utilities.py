@@ -55,15 +55,18 @@ class InteractivePlot:
             # used as an overlay.
 
             # Create map and register
-            plt.register_cmap(cmap=LinearSegmentedColormap(
-                "mask_cm",
-                {
-                    'red': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
-                    'green': ((0.0, 0.0, 0.0), (1.0, 0.6, 0.6)),
-                    'blue': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
-                    'alpha': ((0.0, 0.0, 0.0), (1.0, 0.4, 0.4))
-                }
-            ))
+            plt.register_cmap(
+                cmap=LinearSegmentedColormap(
+                    "mask_cm",
+                    {
+                        'red': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                        'green': ((0.0, 0.0, 0.0), (1.0, 0.6, 0.6)),
+                        'blue': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                        'alpha': ((0.0, 0.0, 0.0), (1.0, 0.4, 0.4))
+                    }
+                ),
+                override_builtin=True
+            )
 
             self.mask_layer = self.axes.imshow(
                 self.mask_data[self.slice_index, :, :],
