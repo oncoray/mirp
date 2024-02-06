@@ -629,7 +629,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if get_pydicom_meta_tag(
                     dcm_seq=contour_sequence,
                     tag=(0x3006, 0x0042),
-                    tag_type="str") != "CLOSED_PLANAR":
+                    tag_type="str"
+            ) != "CLOSED_PLANAR":
                 continue
 
             # Check if contour data exists (3006, 0050)
@@ -650,13 +651,26 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     tag_type="mult_float",
                     default=[0.0, 0.0, 0.0]
                 ),
-                dtype=np.float64)
+                dtype=np.float64
+            )
 
             # Remove the offset from the data
             contour_data -= contour_offset
 
+            referenced_sop_uid = None
+            if has_pydicom_meta_tag(dcm_seq=contour_sequence, tag=(0x3006, 0x0016)):
+                for contour_image_sequence in contour_sequence[(0x3006, 0x0016)]:
+                    referenced_sop_uid = get_pydicom_meta_tag(
+                        dcm_seq=contour_image_sequence,
+                        tag=(0x0008, 0x1155),
+                        tag_type="str"
+                    )
+
             # Store as contour.
-            contour = ContourClass(contour=contour_data)
+            contour = ContourClass(
+                contour=contour_data,
+                reference_sop_uid=referenced_sop_uid
+            )
 
             # Add contour data to the contour list
             contour_objects += [contour]
