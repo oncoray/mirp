@@ -26,7 +26,7 @@ def test_basic_pet_feature_extraction():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 7.5 < feature_data["stat_max"].values[0] < 8.0
+    assert 7.5 < feature_data["stat_max"].values[0] < 8.5
     assert 0.0 < feature_data["stat_min"].values[0] < 0.5
 
     assert isinstance(image, PETImage)

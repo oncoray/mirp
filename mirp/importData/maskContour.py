@@ -8,7 +8,7 @@ from typing import Union, List
 
 class ContourClass:
 
-    def __init__(self, contour: np.ndarray):
+    def __init__(self, contour: np.ndarray, reference_sop_uid: str | None):
         # Convert contour to internal vertices, i.e. from (x, y, z) to (z, y, x)
         vertices = np.zeros(contour.shape, dtype=np.float64)
         vertices[:, 0] = contour[:, 2]
@@ -16,6 +16,7 @@ class ContourClass:
         vertices[:, 2] = contour[:, 0]
 
         self.contour = [vertices]
+        self.reference_sop_uid = reference_sop_uid
         self.representation = "world"
 
     def copy(self):

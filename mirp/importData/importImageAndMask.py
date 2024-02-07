@@ -54,7 +54,7 @@ def import_image_and_mask(
         The type of file that is expected. If None, the file type is not used for filtering files.
         "itk" comprises "nifti" and "nrrd" file types.
 
-    image_modality: {"ct", "pet", "pt", "mri", "mr", "generic"}, optional, default: None
+    image_modality: {"ct", "pet", "pt", "mri", "mr", "rtdose", "generic"}, optional, default: None
         The type of modality that is expected. If None, modality is not used for filtering files. Note that only
         DICOM files contain metadata concerning modality.
 

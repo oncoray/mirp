@@ -1,6 +1,9 @@
-from typing import Union, List
+from typing import Union, List, Any
+from dataclasses import dataclass
+from mirp.settings.utilities import setting_def
 
 
+@dataclass
 class FeatureExtractionSettingsClass:
     """
     Parameters related to feature computation. Many are conditional on the type of features that will be computed (
@@ -15,6 +18,9 @@ class FeatureExtractionSettingsClass:
     no_approximation: bool, optional, default: False
         Disables approximation of features, such as Geary's c-measure. Can be True or False (default). See
         :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
+
+    ibsi_compliant: bool, optional, default: True
+        Limits computation of features to those features that have a reference value in the IBSI reference standard.
 
     base_feature_families: str or list of str, optional, default: "none"
         Determines the feature families for which features are computed. Radiomics features are implemented as
@@ -589,3 +595,53 @@ class FeatureExtractionSettingsClass:
                 f"{', '.join([spatial_method for spatial_method in x if spatial_method in all_spatial_method])}")
 
         return x
+
+
+def get_feature_extraction_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def("ibsi_compliant", "bool", test=True),
+        setting_def(
+            "base_feature_families", "str", to_list=True, xml_key=["feature_families", "families"],
+            class_key="families", test=["all"]
+        ),
+        setting_def(
+            "base_discretisation_method", "str", to_list=True, xml_key=["discretisation_method", "discr_method"],
+            class_key="discretisation_method", test=["fixed_bin_size", "fixed_bin_number"]
+        ),
+        setting_def(
+            "base_discretisation_n_bins", "int", to_list=True, xml_key=["discretisation_n_bins", "discr_n_bins"],
+            class_key="discretisation_n_bins", test=[10, 33]
+        ),
+        setting_def(
+            "base_discretisation_bin_width", "float", to_list=True,
+            xml_key=["discretisation_bin_width", "discr_bin_width"], class_key="discretisation_bin_width",
+            test=[10.0, 34.0]
+        ),
+        setting_def(
+            "ivh_discretisation_method", "str", xml_key=["ivh_discretisation_method", "ivh_discr_method"],
+            class_key="ivh_discretisation_method", test="fixed_bin_size"
+        ),
+        setting_def(
+            "ivh_discretisation_n_bins", "int", xml_key=["ivh_discretisation_n_bins", "ivh_discr_n_bins"],
+            test=20
+        ),
+        setting_def(
+            "ivh_discretisation_bin_width", "float", xml_key=["ivh_discretisation_bin_width", "ivh_discr_bin_width"],
+            test=30.0
+        ),
+        setting_def("glcm_distance", "float", to_list=True, xml_key=["glcm_distance", "glcm_dist"], test=[2.0, 3.0]),
+        setting_def("glcm_spatial_method", "str", to_list=True, test=["2d_average", "2d_slice_merge"]),
+        setting_def("glrlm_spatial_method", "str", to_list=True, test=["2d_average", "2d_slice_merge"]),
+        setting_def("glszm_spatial_method", "str", to_list=True, test=["2d", "2.5d"]),
+        setting_def("gldzm_spatial_method", "str", to_list=True, test=["2d", "2.5d"]),
+        setting_def("ngtdm_spatial_method", "str", to_list=True, test=["2d", "2.5d"]),
+        setting_def(
+            "ngldm_distance", "float", to_list=True, xml_key=["ngldm_distance", "ngldm_dist"],
+            class_key="ngldm_dist", test=[2.5, 3.5]
+        ),
+        setting_def(
+            "ngldm_difference_level", "float", to_list=True, xml_key=["ngldm_difference_level", "ngldm_diff_lvl"],
+            class_key="ngldm_diff_lvl", test=[1.0, 1.9]
+        ),
+        setting_def("ngldm_spatial_method", "str", to_list=True, test=["2d", "2.5d"])
+    ]

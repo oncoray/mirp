@@ -1,6 +1,9 @@
-from typing import Union, List
+from typing import Union, List, Any
+from dataclasses import dataclass
+from mirp.settings.utilities import setting_def
 
 
+@dataclass
 class ImagePerturbationSettingsClass:
     """
     Parameters related to image and mask perturbation / augmentation. By default images and masks are not perturbed or
@@ -209,3 +212,50 @@ class ImagePerturbationSettingsClass:
         self.translate_x: Union[None, float] = None
         self.translate_y: Union[None, float] = None
         self.translate_z: Union[None, float] = None
+
+
+def get_perturbation_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def("crop_around_roi", "bool", xml_key=["crop_around_roi", "resect"], test=True),
+        setting_def("crop_distance", "float", test=10.0),
+        setting_def(
+            "perturbation_noise_repetitions", "int", xml_key="noise_repetitions",
+            class_key="noise_repetitions", test=10
+        ),
+        setting_def(
+            "perturbation_noise_level", "float", xml_key="noise_level", class_key="noise_level", test=0.75
+        ),
+        setting_def(
+            "perturbation_rotation_angles", "float", to_list=True, xml_key=["rotation_angles", "rot_angles"],
+            class_key="rotation_angles", test=[-33.0, 33.0]
+        ),
+        setting_def(
+            "perturbation_translation_fraction", "float", to_list=True,
+            xml_key=["translation_fraction", "translate_frac"], class_key="translation_fraction", test=[0.25, 0.75]
+        ),
+        setting_def(
+            "perturbation_roi_adapt_type", "str", xml_key="roi_adapt_type", class_key="roi_adapt_type",
+            test="fraction"
+        ),
+        setting_def(
+            "perturbation_roi_adapt_size", "float", to_list=True, xml_key="roi_adapt_size",
+            class_key="roi_adapt_size", test=[0.8, 1.0, 1.2]
+        ),
+        setting_def(
+            "perturbation_roi_adapt_max_erosion", "float", xml_key=["roi_adapt_max_erosion", "eroded_vol_fract"],
+            class_key="max_volume_erosion", test=0.2
+        ),
+        setting_def(
+            "perturbation_randomise_roi_repetitions", "int", xml_key="roi_random_rep",
+            class_key="roi_random_rep", test=100
+        ),
+        setting_def(
+            "roi_split_boundary_size", "float", to_list=True, xml_key="roi_boundary_size",
+            class_key="roi_boundary_size", test=[2.0, 5.0]
+        ),
+        setting_def(
+            "roi_split_max_erosion", "float", xml_key=["roi_split_max_erosion", "bulk_min_vol_fract"],
+            class_key="max_bulk_volume_erosion", test=0.2
+        )
+    ]
+

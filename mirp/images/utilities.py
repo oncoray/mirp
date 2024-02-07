@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Optional, Union
+from matplotlib.colors import LinearSegmentedColormap
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
@@ -13,7 +13,8 @@ class InteractivePlot:
             self,
             axes: plt.Axes,
             image: GenericImage,
-            mask: Optional[Union[MaskImage, BaseMask]] = None):
+            mask: MaskImage | BaseMask | None = None
+    ):
 
         # Determine if a mask should be shown.
         show_mask = mask is not None and not mask.is_empty()
@@ -41,12 +42,41 @@ class InteractivePlot:
             np.max(self.image_data))
 
         # Create plot.
-        self.plot = self.axes.imshow(
+        self.image_layer = self.axes.imshow(
             self.image_data[self.slice_index, :, :],
             vmin=min_intensity,
             vmax=max_intensity,
             cmap=colour_map
         )
+
+        # Create mask.
+        if show_mask:
+            # Define color map. The custom color map goes from transparent black to semi-transparent green and is
+            # used as an overlay.
+
+            # Create map and register
+            plt.register_cmap(
+                cmap=LinearSegmentedColormap(
+                    "mask_cm",
+                    {
+                        'red': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                        'green': ((0.0, 0.0, 0.0), (1.0, 0.6, 0.6)),
+                        'blue': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                        'alpha': ((0.0, 0.0, 0.0), (1.0, 0.4, 0.4))
+                    }
+                ),
+                override_builtin=True
+            )
+
+            self.mask_layer = self.axes.imshow(
+                self.mask_data[self.slice_index, :, :],
+                vmin=0.0,
+                vmax=1.0,
+                cmap="mask_cm"
+            )
+        else:
+            self.mask_layer = None
+
         self.update()
 
     def onscroll(self, event):
@@ -62,6 +92,10 @@ class InteractivePlot:
         self.update()
 
     def update(self):
-        self.plot.set_data(self.image_data[self.slice_index, :, :])
         self.axes.set_title(f"slice {self.slice_index + 1}")
-        self.plot.axes.figure.canvas.draw()
+        self.image_layer.set_data(self.image_data[self.slice_index, :, :])
+        self.image_layer.axes.figure.canvas.draw()
+
+        if self.mask_layer is not None:
+            self.mask_layer.set_data(self.mask_data[self.slice_index, :, :])
+            self.mask_layer.axes.figure.canvas.draw()

@@ -1,9 +1,92 @@
 import warnings
-import xml.etree
-from typing import Union, List
-from xml.etree import ElementTree as ElemTree
+from typing import Union, List, Any
+from xml.etree.ElementTree import Element
 
 import numpy as np
+
+
+def setting_def(
+        arg_key: str,
+        typing: str,
+        to_list: bool = False,
+        xml_key: None | str | list[str] = None,
+        class_key: None | str = None,
+        test: Any = None
+) -> dict[str, Any]:
+
+    if xml_key is None:
+        xml_key = arg_key
+
+    if class_key is None:
+        class_key = arg_key
+
+    if typing not in ["int", "float", "bool", "str", "path"]:
+        raise TypeError(f"typing has an incorrect type: ", typing)
+
+    return {
+        "argument_key": arg_key,
+        "xml_key": xml_key,
+        "class_key": class_key,
+        "typing": typing,
+        "to_list": to_list,
+        "test_value": test
+    }
+
+
+def update_settings_from_branch(
+        kwargs: dict[str, Any],
+        branch: None | Element,
+        settings: list[dict[str, Any]]
+):
+    from mirp.importData.utilities import flatten_list
+
+    if branch is None:
+        return
+
+    # Iterate over all parameter in settings and update kwargs.
+    for parameter in settings:
+        is_parameter_set = False
+
+        xml_key = parameter["xml_key"]
+        if isinstance(xml_key, str):
+            xml_key = [xml_key]
+
+        # Iterate over all allowed xml tags for the current parameter, try to match the tag with one appearing in the
+        # branch and then update kwargs with its contents.
+        for current_xml_key in xml_key:
+            for elem in branch.iter():
+                if elem.tag == current_xml_key:
+                    if elem.text is None:
+                        continue
+
+                    if parameter["to_list"]:
+                        kwargs.update(dict([(
+                            parameter["argument_key"],
+                            str2list(elem.text, data_type=parameter["typing"])
+                        )]))
+                    else:
+                        kwargs.update(dict([(
+                            parameter["argument_key"],
+                            str2type(elem.text, data_type=parameter["typing"])
+                        )]))
+
+                    is_parameter_set = True
+                    break
+            # If the parameter is set, stop iterating over the branch.
+            if is_parameter_set:
+                break
+
+    # Check if any user-defined xml key is actually not a valid xml key.
+    available_xml_keys = set(flatten_list([parameter["xml_key"] for parameter in settings]))
+    observed_xml_keys = set([elem.tag for elem in branch.iter()])
+    observed_xml_keys.remove(branch.tag)
+    unknown_xml_keys = observed_xml_keys - available_xml_keys
+
+    if len(unknown_xml_keys) > 0:
+        raise ValueError(
+            f"The following xml keys have been deprecated or misspelled, and are not used by mirp: "
+            f"{', '.join([str(xml_key) for xml_key in unknown_xml_keys])}"
+        )
 
 
 def str2list(strx, data_type, default=None):
@@ -18,7 +101,7 @@ def str2list(strx, data_type, default=None):
         return [default]
 
     # If strx is an element, read string
-    if type(strx) is ElemTree.Element:
+    if type(strx) is Element:
         strx = strx.text
 
     # Repeat check
@@ -57,7 +140,7 @@ def str2type(strx, data_type, default=None):
         return default
 
     # If strx is an element, read string
-    if isinstance(strx, ElemTree.Element):
+    if isinstance(strx, Element):
         strx = strx.text
 
     # Strip white characters.
@@ -93,7 +176,7 @@ def str2type(strx, data_type, default=None):
         return strx
 
 
-def read_node(tree: xml.etree.ElementTree.Element,
+def read_node(tree: Element,
               node: Union[str, List[str]],
               deprecated_node: Union[None, str, List[str]] = None):
     """

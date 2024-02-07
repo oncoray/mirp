@@ -195,9 +195,9 @@ MIRP processes and analyses images and masks. There are multiple ways to provide
       .. warning::
         While it is possible to provide multiple masks for each image, in practice there is no safe way to do so. The
         only way to associate image and masks is by their image dimension, which may be the same for different images.
-        with its masks, e.g. on sample name or frame of reference. Hence, providing one mask per image is recommended.
-        MIRP will treat image and mask lists of equal length as being sorted by element, and associate the first mask
-        with the first image, the second mask with the second image, and so forth.
+        Hence, providing one mask per image is recommended. MIRP will treat image and mask lists of equal length as
+        being sorted by element, and associate the first mask with the first image, the second mask with the second
+        image, and so forth.
 
 * By specifying the configuration in a stand-alone data ``xml`` file. An empty copy of the ``xml`` file can be
   created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the``xml`` file are the same as the
@@ -241,9 +241,14 @@ On occasion, input should be more selective. This can be done by specifying addi
 * Select image files based on image modality using ``image_modality``:
     MIRP can filter image files based on the image modality. Aside from generic image modality, MIRP specifically
     checks for the following modalities:
+
     * Computed tomography (CT): ``"ct"``
+
     * Positron emission tomography (PET): ``"pet"`` or ``"pt"``
+
     * Magnetic resonance imaging (MRI): ``"mri"`` or ``"mr"``
+
+    * Radiotherapy dose (RTDOSE): ``"rtdose"``
 
     Images from other modalities are currently not fully supported, and a default ``"generic"`` image modality will
     be assigned.
@@ -260,14 +265,18 @@ On occasion, input should be more selective. This can be done by specifying addi
 
 * Select mask files based on mask modality using ``mask_modality``:
     MIRP can filter mask files based on the modality of the mask. Aside form generic masks, MIRP specifically checks for
-    radiotherapy structure (RTSTRUCT) files.
+    DICOM radiotherapy structure (RTSTRUCT) and DICOM segmentation (SEG) files.
 
     .. note::
         Only DICOM images contain metadata concerning mask modality. Masks from other file types are interpreted as
         ``"generic_mask"`` by default and cannot be filtered using ``mask_modality``.
 
     .. note::
-        Support for DICOM segmentation (SEG) files is being implemented.
+        Since version ``2.1.0`` MIRP does not require that images and masks have the exact same dimensions, origin,
+        spacing and orientation, with the exception of numpy images and masks. This is explicitly true for DICOM
+        radiotherapy structure (RTSTRUCT) sets. These are either mapped to the corresponding image if image slices
+        are referenced in the structure set, or use internal data to generate a voxel-based mask. However, images and
+        their masks should share the same frame of reference.
 
 * Select the specific regions of interest using ``roi_name``:
     A mask file may contain multiple masks. By default, MIRP will assess all masks in a file. The ``roi_name`` argument

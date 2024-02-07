@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.settingsGeneric &mdash; mirp 2.0.1 documentation</title>
+  <title>mirp.settings.settingsGeneric &mdash; mirp 2.1.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -12,7 +12,7 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=f5cff4aa"></script>
+        <script src="../../../_static/documentation_options.js?v=20623aea"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -74,7 +74,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mirp.settings.settingsGeneric</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">mirp.settings.settingsFeatureExtraction</span> <span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">mirp.settings.settingsFeatureExtraction</span> <span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
 <span class="kn">from</span> <span class="nn">mirp.settings.settingsGeneral</span> <span class="kn">import</span> <span class="n">GeneralSettingsClass</span>
 <span class="kn">from</span> <span class="nn">mirp.settings.settingsImageProcessing</span> <span class="kn">import</span> <span class="n">ImagePostProcessingClass</span>
 <span class="kn">from</span> <span class="nn">mirp.settings.settingsImageTransformation</span> <span class="kn">import</span> <span class="n">ImageTransformationSettingsClass</span>
@@ -157,10 +159,16 @@
             <span class="n">img_transform_settings</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">ImageTransformationSettingsClass</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
         <span class="c1"># General settings.</span>
         <span class="k">if</span> <span class="n">general_settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">general_settings</span> <span class="o">=</span> <span class="n">GeneralSettingsClass</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">general</span> <span class="o">=</span> <span class="n">general_settings</span>
+
+        <span class="c1"># Remove by_slice and no_approximation from the keyword arguments to avoid double passing.</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;by_slice&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;no_approximation&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="c1"># Image interpolation settings.</span>
         <span class="k">if</span> <span class="n">img_interpolate_settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -203,13 +211,32 @@
         <span class="k">if</span> <span class="n">img_transform_settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">img_transform_settings</span> <span class="o">=</span> <span class="n">ImageTransformationSettingsClass</span><span class="p">(</span>
                 <span class="n">by_slice</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">by_slice</span><span class="p">,</span>
-                <span class="n">response_map_feature_settings</span><span class="o">=</span><span class="n">FeatureExtractionSettingsClass</span><span class="p">(</span>
-                    <span class="n">by_slice</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">by_slice</span><span class="p">,</span>
-                    <span class="n">no_approximation</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">no_approximation</span><span class="p">,</span>
-                    <span class="o">**</span><span class="n">kwargs</span>
-                <span class="p">)</span>
+                <span class="o">**</span><span class="n">kwargs</span>
             <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span> <span class="o">=</span> <span class="n">img_transform_settings</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span> <span class="o">=</span> <span class="n">img_transform_settings</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">general</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">general</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_interpolate</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">img_interpolate</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_interpolate</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">roi_interpolate</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">post_process</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">post_process</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">perturbation</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">perturbation</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">roi_resegment</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">roi_resegment</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_extr</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">feature_extr</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">img_transform</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
 
 </pre></div>
 

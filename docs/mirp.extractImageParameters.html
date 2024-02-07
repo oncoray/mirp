@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Extract image metadata &mdash; mirp 2.0.1 documentation</title>
+  <title>Extract image metadata &mdash; mirp 2.1.0 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -13,7 +13,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=f5cff4aa"></script>
+        <script src="_static/documentation_options.js?v=20623aea"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -125,7 +125,7 @@ File extensions do not need to be specified. If None, file names are not used fo
 setting sample names.</p></li>
 <li><p><strong>image_file_type</strong> (<em>{&quot;dicom&quot;</em><em>, </em><em>&quot;nifti&quot;</em><em>, </em><em>&quot;nrrd&quot;</em><em>, </em><em>&quot;numpy&quot;</em><em>, </em><em>&quot;itk&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of file that is expected. If None, the file type is not used for filtering files.
 “itk” comprises “nifti” and “nrrd” file types.</p></li>
-<li><p><strong>image_modality</strong> (<em>{&quot;ct&quot;</em><em>, </em><em>&quot;pet&quot;</em><em>, </em><em>&quot;pt&quot;</em><em>, </em><em>&quot;mri&quot;</em><em>, </em><em>&quot;mr&quot;</em><em>, </em><em>&quot;generic&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of modality that is expected. If None, modality is not used for filtering files. Note that only
+<li><p><strong>image_modality</strong> (<em>{&quot;ct&quot;</em><em>, </em><em>&quot;pet&quot;</em><em>, </em><em>&quot;pt&quot;</em><em>, </em><em>&quot;mri&quot;</em><em>, </em><em>&quot;mr&quot;</em><em>, </em><em>&quot;rtdose&quot;</em><em>, </em><em>&quot;generic&quot;}</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – The type of modality that is expected. If None, modality is not used for filtering files. Note that only
 DICOM files contain metadata concerning modality.</p></li>
 <li><p><strong>image_sub_folder</strong> (<em>str</em><em>, </em><em>optional</em><em>, </em><em>default: None</em>) – Fixed directory substructure where image files are located. If None, the directory substructure is not used
 for filtering files.</p></li>

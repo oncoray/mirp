@@ -1,3 +1,5 @@
+import copy
+
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.settings.settingsGeneral import GeneralSettingsClass
 from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
@@ -79,10 +81,16 @@ class SettingsClass:
             img_transform_settings: None | ImageTransformationSettingsClass = None,
             **kwargs
     ):
+        kwargs = copy.deepcopy(kwargs)
+
         # General settings.
         if general_settings is None:
             general_settings = GeneralSettingsClass(**kwargs)
         self.general = general_settings
+
+        # Remove by_slice and no_approximation from the keyword arguments to avoid double passing.
+        kwargs.pop("by_slice", None)
+        kwargs.pop("no_approximation", None)
 
         # Image interpolation settings.
         if img_interpolate_settings is None:
@@ -125,10 +133,29 @@ class SettingsClass:
         if img_transform_settings is None:
             img_transform_settings = ImageTransformationSettingsClass(
                 by_slice=general_settings.by_slice,
-                response_map_feature_settings=FeatureExtractionSettingsClass(
-                    by_slice=general_settings.by_slice,
-                    no_approximation=general_settings.no_approximation,
-                    **kwargs
-                )
+                **kwargs
             )
         self.img_transform = img_transform_settings
+
+    def __eq__(self, other):
+        if self.__class__ != other.__class__:
+            return False
+
+        if self.general != other.general:
+            return False
+        if self.img_interpolate != other.img_interpolate:
+            return False
+        if self.roi_interpolate != other.roi_interpolate:
+            return False
+        if self.post_process != other.post_process:
+            return False
+        if self.perturbation != other.perturbation:
+            return False
+        if self.roi_resegment != other.roi_resegment:
+            return False
+        if self.feature_extr != other.feature_extr:
+            return False
+        if self.img_transform != other.img_transform:
+            return False
+
+        return True

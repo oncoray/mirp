@@ -1,11 +1,14 @@
 import copy
-from typing import Union, List
+from typing import Union, List, Any
+from dataclasses import dataclass
 
 import numpy as np
 
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.utilities import setting_def
 
 
+@dataclass
 class ImageTransformationSettingsClass:
     """
     Parameters related to image transformation using filters. Many parameters are conditional on the selected image
@@ -327,7 +330,7 @@ class ImageTransformationSettingsClass:
     def __init__(
             self,
             by_slice: bool,
-            response_map_feature_settings: Union[FeatureExtractionSettingsClass, None],
+            response_map_feature_settings: FeatureExtractionSettingsClass | None = None,
             response_map_feature_families: Union[None, str, List[str]] = "statistical",
             response_map_discretisation_method: Union[None, str, List[str]] = "fixed_bin_number",
             response_map_discretisation_n_bins: Union[None, int, List[int]] = 16,
@@ -414,31 +417,31 @@ class ImageTransformationSettingsClass:
         ] for ii in response_map_feature_families]
 
         if not all(valid_families):
-            raise ValueError(f"One or more families in the base_feature_families parameter were not recognised: "
-                             f"{', '.join([response_map_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}")
+            raise ValueError(
+                f"One or more families in the base_feature_families parameter were not recognised: "
+                f"{', '.join([response_map_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}"
+            )
 
         # Create a temporary feature settings object. If response_map_feature_settings is not present, this object is
         # used. Otherwise, response_map_feature_settings is copied, and then updated.
-        temp_feature_settings = FeatureExtractionSettingsClass(
-            by_slice=by_slice,
-            no_approximation=False,
-            base_feature_families=response_map_feature_families,
-            base_discretisation_method=response_map_discretisation_method,
-            base_discretisation_bin_width=response_map_discretisation_bin_width,
-            base_discretisation_n_bins=response_map_discretisation_n_bins)
+        if response_map_feature_settings is None:
 
-        if response_map_feature_settings is not None:
-            filter_feature_settings = copy.deepcopy(response_map_feature_settings)
-            filter_feature_settings.families = temp_feature_settings.families
-            filter_feature_settings.discretisation_method = temp_feature_settings.discretisation_method
-            filter_feature_settings.discretisation_n_bins = temp_feature_settings.discretisation_n_bins
-            filter_feature_settings.discretisation_bin_width = temp_feature_settings.discretisation_bin_width
+            kwargs = copy.deepcopy(kwargs)
+            kwargs.update({
+                "base_feature_families": response_map_feature_families,
+                "base_discretisation_method": response_map_discretisation_method,
+                "base_discretisation_bin_width": response_map_discretisation_bin_width,
+                "base_discretisation_n_bins": response_map_discretisation_n_bins
+            })
 
-        else:
-            filter_feature_settings = temp_feature_settings
+            response_map_feature_settings = FeatureExtractionSettingsClass(
+                by_slice=by_slice,
+                no_approximation=False,
+                **kwargs
+            )
 
         # Set feature settings.
-        self.feature_settings: FeatureExtractionSettingsClass = filter_feature_settings
+        self.feature_settings: FeatureExtractionSettingsClass = response_map_feature_settings
 
         # Check boundary condition.
         self.boundary_condition = boundary_condition
@@ -1103,3 +1106,98 @@ class ImageTransformationSettingsClass:
             x = [x]
 
         return x is not None and any(filter_kernel.startswith("riesz_steered") for filter_kernel in x)
+
+
+def get_image_transformation_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def(
+            "response_map_feature_families", "str", to_list=True, xml_key="feature_families",
+            class_key="families", test=["statistical", "glcm"]
+        ),
+        setting_def(
+            "response_map_discretisation_method", "str", to_list=True, xml_key="discretisation_method",
+            class_key="discretisation_method", test=["fixed_bin_size", "fixed_bin_number"]
+        ),
+        setting_def(
+            "response_map_discretisation_n_bins", "int", to_list=True, xml_key="discretisation_n_bins",
+            class_key="discretisation_n_bins", test=[10, 33]
+        ),
+        setting_def(
+            "response_map_discretisation_bin_width", "float", to_list=True, xml_key="discretisation_bin_width",
+            class_key="discretisation_bin_width", test=[10.0, 34.0]
+        ),
+        setting_def(
+            "filter_kernels", "float", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
+            class_key="spatial_filters", test=[
+                "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
+                "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
+                "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean"
+            ]
+        ),
+        setting_def("boundary_condition", "str", test="nearest"),
+        setting_def("separable_wavelet_families", "str", to_list=True, test=["coif4", "coif5"]),
+        setting_def(
+            "separable_wavelet_set", "str", to_list=True, class_key="separable_wavelet_filter_set",
+            test=["hhh", "lll"]
+        ),
+        setting_def("separable_wavelet_stationary", "bool", test=False),
+        setting_def("separable_wavelet_decomposition_level", "int", to_list=True, test=[1, 2]),
+        setting_def("separable_wavelet_rotation_invariance", "bool", test=False),
+        setting_def("separable_wavelet_pooling_method", "str", test="mean"),
+        setting_def("separable_wavelet_boundary_condition", "str", test="constant"),
+        setting_def("nonseparable_wavelet_families", "str", to_list=True, test=["simoncelli", "shannon"]),
+        setting_def("nonseparable_wavelet_decomposition_level", "int", to_list=True, test=[1, 2]),
+        setting_def("nonseparable_wavelet_response", "str", test="magnitude"),
+        setting_def("nonseparable_wavelet_boundary_condition", "str", test="constant"),
+        setting_def("gaussian_sigma", "float", to_list=True, test=[1.0, 3.0]),
+        setting_def("gaussian_kernel_truncate", "float", class_key="gaussian_sigma_truncate", test=10.0),
+        setting_def(
+            "gaussian_kernel_boundary_condition", "str", class_key="gaussian_boundary_condition", test="constant"
+        ),
+        setting_def(
+            "laplacian_of_gaussian_sigma", "float", to_list=True,
+            xml_key=["laplacian_of_gaussian_sigma", "log_sigma"], class_key="log_sigma", test=[1.0, 3.0]
+        ),
+        setting_def(
+            "laplacian_of_gaussian_kernel_truncate", "float",
+            xml_key=["laplacian_of_gaussian_kernel_truncate", "log_sigma_truncate"], class_key="log_sigma_truncate",
+            test=10.0
+        ),
+        setting_def("laplacian_of_gaussian_pooling_method", "str", class_key="log_pooling_method", test="mean"),
+        setting_def(
+            "laplacian_of_gaussian_boundary_condition", "str", class_key="log_boundary_condition", test="constant"
+        ),
+        setting_def("laws_kernel", "str", to_list=True, test=["l5e5s5", "w5r5l3"]),
+        setting_def(
+            "laws_compute_energy", "bool", xml_key="laws_calculate_energy",
+            class_key="laws_calculate_energy", test=True
+        ),
+        setting_def("laws_delta", "int", to_list=True, test=[3, 5]),
+        setting_def(
+            "laws_rotation_invariance", "bool", xml_key=["laws_rotation_invariance", "laws_rot_invar"], test=False
+        ),
+        setting_def("laws_pooling_method", "str", test="mean"),
+        setting_def("laws_boundary_condition", "str", test="constant"),
+        setting_def("gabor_sigma", "float", to_list=True, test=[1.0, 3.0]),
+        setting_def("gabor_lambda", "float", to_list=True, test=[0.5, 2.0]),
+        setting_def("gabor_gamma", "float", to_list=True, test=[0.5, 0.75]),
+        setting_def("gabor_theta", "float", to_list=True, test=[5.0, 15.0]),
+        setting_def("gabor_theta_step", "float", test=None),
+        setting_def("gabor_response", "str", test="magnitude"),
+        setting_def(
+            "gabor_rotation_invariance", "bool", xml_key=["gabor_rotation_invariance", "gabor_rot_invar"], test=False
+        ),
+        setting_def("gabor_pooling_method", "str", test="mean"),
+        setting_def("gabor_boundary_condition", "str", test="constant"),
+        setting_def(
+            "mean_filter_kernel_size", "int", to_list=True, xml_key=["mean_filter_kernel_size", "mean_filter_size"],
+            class_key="mean_filter_size", test=[3, 7]
+        ),
+        setting_def("mean_filter_boundary_condition", "str", test="constant"),
+        setting_def(
+            "riesz_filter_order", "int", to_list=True, xml_key=["riesz_filter_order", "riesz_order"],
+            class_key="riesz_order", test=[2, 1, 0]
+        ),
+        setting_def("riesz_filter_tensor_sigma", "float", to_list=True, test=[3.0, 5.0])
+    ]

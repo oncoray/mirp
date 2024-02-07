@@ -2,7 +2,7 @@ import copy
 import hashlib
 
 import numpy as np
-from typing import Optional, Union, Tuple, List, Dict, Any, Self
+from typing import Any, Self
 
 import pandas as pd
 
@@ -54,7 +54,7 @@ class GenericImage(BaseImage):
         self.discretisation_bin_width = discretisation_bin_width
 
         # Slice identifiers.
-        self.slice_id: Optional[int] = None
+        self.slice_id: None | int = None
 
     def copy(self, drop_image=False) -> Self:
         image = copy.deepcopy(self)
@@ -96,6 +96,7 @@ class GenericImage(BaseImage):
         from mirp.images.ctImage import CTImage
         from mirp.images.petImage import PETImage
         from mirp.images.mrImage import MRImage
+        from mirp.images.rtdoseImage import RTDoseImage
 
         if self.modality == "ct":
             image = CTImage(image_data=self.image_data)
@@ -103,6 +104,8 @@ class GenericImage(BaseImage):
             image = PETImage(image_data=self.image_data)
         elif self.modality in ["mr", "mri"]:
             image = MRImage(image_data=self.image_data)
+        elif self.modality in ["rtdose"]:
+            image = RTDoseImage(image_data=self.image_data)
         elif self.modality == "generic":
             return self
         else:
@@ -113,7 +116,10 @@ class GenericImage(BaseImage):
 
         return image
 
-    def get_slices(self, slice_number: Union[None, int, List[int]] = None) -> Union[None, Self, List[Self]]:
+    def get_slices(
+            self,
+            slice_number: None | int | list[int] = None
+    ) -> None | Self | list[Self]:
 
         image_list = []
         return_list = True
@@ -155,18 +161,28 @@ class GenericImage(BaseImage):
         self.image_data = voxel_grid
         self.image_dimension = tuple(voxel_grid.shape)
 
-    def get_voxel_grid(self) -> Union[None, np.ndarray]:
+    def get_voxel_grid(self) -> None | np.ndarray:
         return self.image_data
 
     def update_image_data(self):
         pass
 
     def show(self, mask=None):
+        import matplotlib.pyplot as plt
+        from mirp.images.utilities import InteractivePlot
+
         if self.is_empty():
             return
 
-        import matplotlib.pyplot as plt
-        from mirp.images.utilities import InteractivePlot
+        if mask is not None:
+            # Ensure that the mask is registered to the image.
+            mask = mask.copy()
+            mask.register(
+                image=self,
+                spline_order=1,
+                anti_aliasing=False,
+                anti_aliasing_smoothing_beta=0.98
+            )
 
         figure, axes = plt.subplots()
 
@@ -174,7 +190,8 @@ class GenericImage(BaseImage):
         tracker = InteractivePlot(
             axes=axes,
             image=self,
-            mask=mask)
+            mask=mask
+        )
 
         figure.canvas.mpl_connect('scroll_event', tracker.onscroll)
         plt.show()
@@ -193,15 +210,16 @@ class GenericImage(BaseImage):
 
     def interpolate(
             self,
-            by_slice: Optional[bool] = None,
-            interpolate: Optional[bool] = None,
-            new_spacing: Optional[Tuple[float, ...]] = None,
-            translation: Optional[Union[float, Tuple[float, ...]]] = (0.0, 0.0, 0.0),
-            rotation: Optional[float] = 0.0,
-            spline_order: Optional[int] = None,
-            anti_aliasing: Optional[bool] = None,
-            anti_aliasing_smoothing_beta: Optional[float] = None,
-            settings: Optional[SettingsClass] = None):
+            by_slice: None | bool = None,
+            interpolate: None | bool = None,
+            new_spacing: None | tuple[float, ...] = None,
+            translation: None | float | tuple[float, ...] = (0.0, 0.0, 0.0),
+            rotation: None | float = 0.0,
+            spline_order: None | int = None,
+            anti_aliasing: None | bool = None,
+            anti_aliasing_smoothing_beta: None | float = None,
+            settings: None | SettingsClass = None
+    ):
 
         if self.separate_slices is not None:
             by_slice = self.separate_slices
@@ -262,7 +280,7 @@ class GenericImage(BaseImage):
         if by_slice:
             translation[0] = 0.0
 
-        translation: Tuple[float, ...] = tuple(translation)
+        translation: tuple[float, ...] = tuple(translation)
 
         return self._interpolate(
             by_slice=by_slice,
@@ -283,8 +301,8 @@ class GenericImage(BaseImage):
             self,
             by_slice: bool,
             interpolate: bool,
-            new_spacing: Tuple[float, ...],
-            translation: Tuple[float, ...],
+            new_spacing: tuple[float, ...],
+            translation: tuple[float, ...],
             rotation: float,
             spline_order: int,
             anti_aliasing: bool,
@@ -436,10 +454,11 @@ class GenericImage(BaseImage):
     def register(
             self,
             image,
-            spline_order: Optional[int] = None,
-            anti_aliasing: Optional[bool] = None,
-            anti_aliasing_smoothing_beta: Optional[float] = None,
-            settings: Optional[SettingsClass] = None
+            spline_order: None | int = None,
+            anti_aliasing: None | bool = None,
+            anti_aliasing_smoothing_beta: None | float = None,
+            settings: None | SettingsClass = None,
+            mode: str = "nearest"
     ):
         if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
             raise ValueError("None of the parameters for registration can be set.")
@@ -455,7 +474,8 @@ class GenericImage(BaseImage):
             image=image,
             spline_order=spline_order,
             anti_aliasing=anti_aliasing,
-            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta
+            anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta,
+            mode=mode
         )
 
     def _register(
@@ -463,7 +483,8 @@ class GenericImage(BaseImage):
             image,
             spline_order: int,
             anti_aliasing: bool,
-            anti_aliasing_smoothing_beta: float
+            anti_aliasing_smoothing_beta: float,
+            mode: str = "nearest"
     ):
         """Register this image with another image."""
 
@@ -523,7 +544,7 @@ class GenericImage(BaseImage):
             input=self.get_voxel_grid().astype(float),
             coordinates=grid_coordinates,
             order=spline_order,
-            mode="nearest"
+            mode=mode
         )
 
         # Restore form.
@@ -749,10 +770,10 @@ class GenericImage(BaseImage):
 
     def normalise_intensities(
             self,
-            normalisation_method: Optional[str] = "none",
-            intensity_range: Optional[Tuple[Any, Any]] = None,
-            saturation_range: Optional[Tuple[Any, Any]] = None,
-            mask: Optional[np.ndarray] = None
+            normalisation_method: None | str = "none",
+            intensity_range: None | tuple[Any, Any] = None,
+            saturation_range: None | tuple[Any, Any] = None,
+            mask: None | np.ndarray = None
     ) -> Self:
         """
         Normalises image intensities
@@ -1052,7 +1073,8 @@ class GenericImage(BaseImage):
 
     def get_supervoxels(
             self,
-            intensity_range: Tuple[float]):
+            intensity_range: tuple[float]
+    ):
         """Extracts supervoxels from an image"""
 
         from skimage.segmentation import slic
@@ -1113,7 +1135,7 @@ class GenericImage(BaseImage):
     def write(
             self,
             dir_path: str,
-            file_name: Optional[str] = None,
+            file_name: None | str = None,
             file_format: str = "nifti"
     ):
         """ Writes the image to a file """
@@ -1145,12 +1167,13 @@ class GenericImage(BaseImage):
 
         if file_format == "nifti":
             image_data = self.get_voxel_grid()
-            if np.issubdtype(self.image_data.dtype, bool):
+            if np.issubdtype(image_data.dtype, bool):
                 cast_type = np.uint8
-            elif np.issubdtype(self.image_data.dtype, float):
+            elif np.issubdtype(image_data.dtype, float):
                 cast_type = float
             else:
-                cast_type = self.image_data.dtype
+                cast_type = image_data.dtype
+
             image_data = itk.GetImageFromArray(image_data.astype(cast_type))
             image_data.SetOrigin(np.array(self.image_origin)[::-1])
             image_data.SetSpacing(np.array(self.image_spacing)[::-1])
@@ -1162,7 +1185,7 @@ class GenericImage(BaseImage):
             image_data = self.get_voxel_grid()
             np.save(file_path, image_data)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = []
 
         # Sample name
@@ -1208,7 +1231,7 @@ class GenericImage(BaseImage):
     def export(
             self,
             export_format: str = "dict"
-    ) -> Union[None, np.ndarray, Dict[str, Any], Self]:
+    ) -> None | np.ndarray | dict[str, Any] | Self:
 
         if self.is_empty():
             return None
@@ -1227,7 +1250,7 @@ class GenericImage(BaseImage):
         else:
             raise ValueError(f"The current value of export_format was not recognised: {export_format}")
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         attributes = []
 
         # Sample name
@@ -1267,7 +1290,7 @@ class GenericImage(BaseImage):
 
         return dict(attributes)
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         feature_name_suffix = []
         if self.discretisation_method is not None:
             if self.discretisation_method == "none":

@@ -1,8 +1,11 @@
 from typing import Any
+from dataclasses import dataclass
+from mirp.settings.utilities import setting_def
 
 import numpy as np
 
 
+@dataclass
 class ResegmentationSettingsClass:
     """
     Parameters related to mask resegmentation. Resegmentation is used to remove parts of the mask that correspond to
@@ -77,3 +80,13 @@ class ResegmentationSettingsClass:
             raise ValueError(f"The resegmentation_sigma parameter can not be negative. Found: {resegmentation_sigma}")
 
         self.sigma: float = resegmentation_sigma
+
+
+def get_mask_resegmentation_settings() -> list[dict[str, Any]]:
+    return [
+        setting_def(
+            "resegmentation_intensity_range", "float", to_list=True, xml_key=["intensity_range", "g_thresh"],
+            class_key="intensity_range", test=[-10.0, 30.0]
+        ),
+        setting_def("resegmentation_sigma", "float", xml_key="sigma", class_key="sigma", test=1.0)
+    ]

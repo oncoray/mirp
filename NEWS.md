@@ -1,3 +1,38 @@
+# Version 2.1.0
+
+## Major changes
+
+- Added support for SEG DICOM files for segmentation.
+
+- Added support for processing RTDOSE files.
+
+- It is now possible to combine and split masks, and to select the largest mask or mask slice, as part of the image
+  processing workflow. Masks can be combines by setting `mask_merge = True`, which merges all available masks for an
+  image into a single mask. This can be useful when, e.g., multiple regions of interest should be assessed as a single
+  (possibly internally disconnected) mask. Masks are split using `mask_split = True`, which separates every disconnected
+  region into its own mask that is assessed separately. This is used for splitting multiple lesions inside a single mask
+  into multiple separate masks. The largest region of interest in each mask is selected by 
+  `mask_select_largest_region = True`. This can be used when, e.g., only the largest lesion of multiple lesions should be
+  assessed. Sometimes, only the largest slice (i.e. the slice containing most of the voxels in a mask) should be
+  assessed. This is done using `mask_select_largest_slice = True`. This also forces `by_slice = True`.
+
+  These mask operations are implemented in the following order: combination -> splitting -> largest region -> 
+  largest slice.
+
+- Masks from an RT-structure file that shares a frame of reference with an image but does not have a one-to-one 
+  mapping to its voxel space can now be processed. This facilitates processing of masks from RT structure sets that 
+  are, e.g., defined on CT images but applied to co-registered PET imaging, or from one MR sequence to another. 
+
+## Fixes
+
+- Providing a mask consisting of boolean values in a numpy array no longer incorrectly throws an error.
+- Configuration parameters from `xml` files are now processed in the same manner as parameters defined as function 
+  arguments. The same default values are now used, independent of the parameter source. This fixes a known issue where
+  outlier-based resegmentation would occur by default using `xml` files, whereas the intended default is that no
+  resegmentation takes place.
+- Masks can now be exported to the file system without throwing an error.
+- DICOM files from frontal or sagittal view data are now correctly processed.
+
 # Version 2.0.1
 
 ## Minor changes
@@ -51,7 +86,7 @@
 ## Minor changes
 - MIRP now uses the `ray` package for parallel processing.
 
-# Version 1.3.0 (dev - unreleased)
+# Version 1.3.0
 
 ## Minor changes
 - `SimpleITK` has been removed as a dependency. Handling of non-DICOM imaging is now done through `itk` itself.
