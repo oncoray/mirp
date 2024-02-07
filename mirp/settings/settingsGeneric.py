@@ -133,11 +133,6 @@ class SettingsClass:
         if img_transform_settings is None:
             img_transform_settings = ImageTransformationSettingsClass(
                 by_slice=general_settings.by_slice,
-                response_map_feature_settings=FeatureExtractionSettingsClass(
-                    by_slice=general_settings.by_slice,
-                    no_approximation=general_settings.no_approximation,
-                    **kwargs
-                ),
                 **kwargs
             )
         self.img_transform = img_transform_settings

@@ -330,7 +330,7 @@ class ImageTransformationSettingsClass:
     def __init__(
             self,
             by_slice: bool,
-            response_map_feature_settings: Union[FeatureExtractionSettingsClass, None],
+            response_map_feature_settings: FeatureExtractionSettingsClass | None = None,
             response_map_feature_families: Union[None, str, List[str]] = "statistical",
             response_map_discretisation_method: Union[None, str, List[str]] = "fixed_bin_number",
             response_map_discretisation_n_bins: Union[None, int, List[int]] = 16,
@@ -417,31 +417,31 @@ class ImageTransformationSettingsClass:
         ] for ii in response_map_feature_families]
 
         if not all(valid_families):
-            raise ValueError(f"One or more families in the base_feature_families parameter were not recognised: "
-                             f"{', '.join([response_map_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}")
+            raise ValueError(
+                f"One or more families in the base_feature_families parameter were not recognised: "
+                f"{', '.join([response_map_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}"
+            )
 
         # Create a temporary feature settings object. If response_map_feature_settings is not present, this object is
         # used. Otherwise, response_map_feature_settings is copied, and then updated.
-        temp_feature_settings = FeatureExtractionSettingsClass(
-            by_slice=by_slice,
-            no_approximation=False,
-            base_feature_families=response_map_feature_families,
-            base_discretisation_method=response_map_discretisation_method,
-            base_discretisation_bin_width=response_map_discretisation_bin_width,
-            base_discretisation_n_bins=response_map_discretisation_n_bins)
+        if response_map_feature_settings is None:
 
-        if response_map_feature_settings is not None:
-            filter_feature_settings = copy.deepcopy(response_map_feature_settings)
-            filter_feature_settings.families = temp_feature_settings.families
-            filter_feature_settings.discretisation_method = temp_feature_settings.discretisation_method
-            filter_feature_settings.discretisation_n_bins = temp_feature_settings.discretisation_n_bins
-            filter_feature_settings.discretisation_bin_width = temp_feature_settings.discretisation_bin_width
+            kwargs = copy.deepcopy(kwargs)
+            kwargs.update({
+                "base_feature_families": response_map_feature_families,
+                "base_discretisation_method": response_map_discretisation_method,
+                "base_discretisation_bin_width": response_map_discretisation_bin_width,
+                "base_discretisation_n_bins": response_map_discretisation_n_bins
+            })
 
-        else:
-            filter_feature_settings = temp_feature_settings
+            response_map_feature_settings = FeatureExtractionSettingsClass(
+                by_slice=by_slice,
+                no_approximation=False,
+                **kwargs
+            )
 
         # Set feature settings.
-        self.feature_settings: FeatureExtractionSettingsClass = filter_feature_settings
+        self.feature_settings: FeatureExtractionSettingsClass = response_map_feature_settings
 
         # Check boundary condition.
         self.boundary_condition = boundary_condition

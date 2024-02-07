@@ -560,3 +560,4 @@ def test_image_transformation_settings_configuration():
 
     if os.path.exists(temp_file):
         os.remove(temp_file)
+
