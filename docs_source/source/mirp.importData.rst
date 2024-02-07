@@ -195,9 +195,9 @@ MIRP processes and analyses images and masks. There are multiple ways to provide
       .. warning::
         While it is possible to provide multiple masks for each image, in practice there is no safe way to do so. The
         only way to associate image and masks is by their image dimension, which may be the same for different images.
-        with its masks, e.g. on sample name or frame of reference. Hence, providing one mask per image is recommended.
-        MIRP will treat image and mask lists of equal length as being sorted by element, and associate the first mask
-        with the first image, the second mask with the second image, and so forth.
+        Hence, providing one mask per image is recommended. MIRP will treat image and mask lists of equal length as
+        being sorted by element, and associate the first mask with the first image, the second mask with the second
+        image, and so forth.
 
 * By specifying the configuration in a stand-alone data ``xml`` file. An empty copy of the ``xml`` file can be
   created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the``xml`` file are the same as the
@@ -241,9 +241,13 @@ On occasion, input should be more selective. This can be done by specifying addi
 * Select image files based on image modality using ``image_modality``:
     MIRP can filter image files based on the image modality. Aside from generic image modality, MIRP specifically
     checks for the following modalities:
+
     * Computed tomography (CT): ``"ct"``
+
     * Positron emission tomography (PET): ``"pet"`` or ``"pt"``
+
     * Magnetic resonance imaging (MRI): ``"mri"`` or ``"mr"``
+
     * Radiotherapy dose (RTDOSE): ``"rtdose"``
 
     Images from other modalities are currently not fully supported, and a default ``"generic"`` image modality will

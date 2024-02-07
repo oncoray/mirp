@@ -31,7 +31,7 @@
   outlier-based resegmentation would occur by default using `xml` files, whereas the intended default is that no
   resegmentation takes place.
 - Masks can now be exported to the file system without throwing an error.
-- DICOM files with frontal or sagittal view data are now correctly processed.
+- DICOM files from frontal or sagittal view data are now correctly processed.
 
 # Version 2.0.1
 
