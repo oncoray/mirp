@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.settingsFeatureExtraction &mdash; mirp 2.0.0 documentation</title>
+  <title>mirp.settings.settingsFeatureExtraction &mdash; mirp 2.1.0 documentation</title>
       <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -12,7 +12,7 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=51b770b3"></script>
+        <script src="../../../_static/documentation_options.js?v=20623aea"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -74,11 +74,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mirp.settings.settingsFeatureExtraction</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.utilities</span> <span class="kn">import</span> <span class="n">setting_def</span>
 
 
 <div class="viewcode-block" id="FeatureExtractionSettingsClass">
 <a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass">[docs]</a>
+<span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">FeatureExtractionSettingsClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters related to feature computation. Many are conditional on the type of features that will be computed (</span>
@@ -93,6 +96,9 @@
 <span class="sd">    no_approximation: bool, optional, default: False</span>
 <span class="sd">        Disables approximation of features, such as Geary&#39;s c-measure. Can be True or False (default). See</span>
 <span class="sd">        :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.</span>
+
+<span class="sd">    ibsi_compliant: bool, optional, default: True</span>
+<span class="sd">        Limits computation of features to those features that have a reference value in the IBSI reference standard.</span>
 
 <span class="sd">    base_feature_families: str or list of str, optional, default: &quot;none&quot;</span>
 <span class="sd">        Determines the feature families for which features are computed. Radiomics features are implemented as</span>
@@ -668,6 +674,56 @@
 
         <span class="k">return</span> <span class="n">x</span></div>
 
+
+
+<span class="k">def</span> <span class="nf">get_feature_extraction_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;ibsi_compliant&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;families&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;families&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;discr_method&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;discretisation_method&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span> <span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;discr_n_bins&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;discretisation_n_bins&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">33</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;discr_bin_width&quot;</span><span class="p">],</span> <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;discretisation_bin_width&quot;</span><span class="p">,</span>
+            <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">34.0</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ivh_discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ivh_discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;ivh_discr_method&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;ivh_discretisation_method&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ivh_discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ivh_discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;ivh_discr_n_bins&quot;</span><span class="p">],</span>
+            <span class="n">test</span><span class="o">=</span><span class="mi">20</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ivh_discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ivh_discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;ivh_discr_bin_width&quot;</span><span class="p">],</span>
+            <span class="n">test</span><span class="o">=</span><span class="mf">30.0</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glcm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;glcm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;glcm_dist&quot;</span><span class="p">],</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glcm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d_average&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_slice_merge&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glrlm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d_average&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_slice_merge&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glszm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;gldzm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;ngtdm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ngldm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ngldm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm_dist&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;ngldm_dist&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ngldm_difference_level&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ngldm_difference_level&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm_diff_lvl&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;ngldm_diff_lvl&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;ngldm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">])</span>
+    <span class="p">]</span>
 </pre></div>
 
            </div>
@@ -677,7 +733,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2023, Alex Zwanenburg.</p>
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
