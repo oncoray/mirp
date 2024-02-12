@@ -31,7 +31,7 @@ Medical imaging provides non-invasive anatomical and functional visualisation of
 clinically for diagnostic, prognostic, treatment planning and other purposes. Many current uses of medical imaging 
 involve qualitative or semi-quantitive assessment by experts. Radiomics seeks to automate analysis of medical imaging for 
 clinical decision support. At its core, radiomics involves the extraction and machine learning-based analysis of 
-quantitive features from medical images. However, very few--if any--radiomics tools have been translated to the 
+quantitive features from medical images [@Lambin2017-tf]. However, very few--if any--radiomics tools have been translated to the 
 clinic [@Huang2022-mi]. One of the essential prerequisites for translation is reproducibility and validation in 
 external settings [@OConnor2017-iv]. This can be facilitated through the use of standardised radiomics software. 
 Here we present `mirp`, a Python package for standardised processing of medical imaging and computation of 
@@ -41,23 +41,24 @@ radiomics analyses of others.
 # Statement of need
 
 Lack of standardised radiomics software is one of the reasons for poor translation of radiomics tools to the clinic.
-The Image Biomarker Standardisation Initiative has created reference standards for radiomics software: 1. a 
+The Image Biomarker Standardisation Initiative (IBSI) has created reference standards for radiomics software: 1. a 
 reference standard for basic image processing and feature extraction steps [@Zwanenburg2020-go]; and 2. a reference 
 standard for image filters [@Whybra2024-yb]. There is currently a lack of fully IBSI-compliant radiomics 
-packages in Python. Python is important for the radiomics field because commonly used machine learning and deep 
-learning packages such as `scikit-learn` and `pytorch` are interfaced using Python. `mirp` facilitates both by offering a 
-user-friendly API for standardised image processing and feature extraction for machine learning-based radiomics, and 
-standardised image processing for deep learning-based radiomics.
+packages in Python, which is important for the radiomics field because Python is used to interface with machine learning
+and deep learning packages such as `scikit-learn` and `pytorch`. `mirp` is intended to fill this gap. It provides a 
+user-friendly API for standardised image processing for deep learning-based radiomics as well as standardised 
+image processing and feature extraction for machine learning-based radiomics.
 
 `mirp` is intended to be used by researchers in the radiomics field to perform their own radiomics analyses on the 
 one hand, and to externally reproduce and validate results of other researchers. It was originally created in 2016 and 
-regularly updated to conform with the IBSI reference standards and to improve usability. Previous versions of `mirp` 
-were used by e.g. @Leger2017-si, @Zwanenburg2019-jg, @Shahzadi2022-wk and @Bettinelli2022-ml. The current 
-version (2.1.0) sees major improvements in user experience with a unified API, better documentation, and easier 
-installation using `pip`.
+regularly updated to conform with the IBSI reference standards and to improve usability. Previous versions of `mirp`
+were used by e.g. @Leger2017-si, @Zwanenburg2019-jg, @Shahzadi2022-wk and @Bettinelli2022-ml. Recently, `mirp` was used 
+as a radiomics engine for the `RadTract` Python package [@Neher2024-ze]. The latest major version (2) provides major
+improvements in user experience with a unified API, better documentation, and easier installation using `pip`.
 
 `mirp` follows an end-to-end design principle and abstracts away intermediate steps for the user. In this sense it 
-is not a toolkit such as `scikit-image` or `opencv`. The following functions are exposed to the user:
+is not a toolkit such as `scikit-image` or `opencv`, that offer a set of functions for performing different operations
+on images. Because of the end-to-end design, relatively few functions are exposed to the user:
 
 - `mirp.deep_learning_preprocessing`: For reading and processing images as input for deep learning networks.
 - `mirp.extract_features`: For reading and processing images, and computing radiomics features as input for machine 
@@ -68,9 +69,9 @@ is not a toolkit such as `scikit-image` or `opencv`. The following functions are
 - `mirp.extract_image_parameters`: For reading images and extracting their relevant metadata.
 - `mirp.extract_mask_labels`: For reading masks and extracting their labels.
 
-The above are implemented as functions. `mirp.deep_learning_preprocessing`, `mirp.extract_features`,
-`mirp.extract_images` and `mirp.extract_features_and_images` allow for parallel processing using the `ray` package. 
-These functions also have generator-variants that yield output one-by-one. 
+Of the above, `mirp.deep_learning_preprocessing`, `mirp.extract_features`, `mirp.extract_images` and 
+`mirp.extract_features_and_images` allow for parallel processing using the `ray` package. These functions also have 
+generator-based variants that yield output one-by-one. 
 
 `mirp` supports standard medical imaging formats as input, notably DICOM, NIfTI and NRRD. It also supports `numpy` 
 arrays as a generic fallback option, and has specific routines for handling computed tomography (CT), positron 
@@ -88,8 +89,8 @@ used alternatives are listed in Table 1.
 
 |                          | `mirp`                                    | `pyradiomics`                                        | `CERR`                                 | `LIFEx`                               | `radiomics`                                       |
 |--------------------------|-------------------------------------------|------------------------------------------------------|----------------------------------------|---------------------------------------|---------------------------------------------------| 
-| Version                  | 2.0.0                                     | 3.1.0                                                | unknown                                | 7.4.0                                 | unknown                                           |
-| Last updated             | 10/2023                                   | 5/2023                                               | 10/2023                                | 6/2023                                | 11/2019                                           |
+| Version                  | 2.1.0                                     | 3.1.0                                                | unknown                                | 7.4.0                                 | unknown                                           |
+| Last updated             | 2/2024                                    | 5/2023                                               | 2/2024                                 | 6/2023                                | 11/2019                                           |
 | License                  | EUPL-1.2                                  | BSD-3                                                | LGPL-2.1                               | custom                                | GPL-3.0                                           |
 | Programming language     | Python                                    | Python                                               | MATLAB                                 | Java                                  | MATLAB                                            |
 | IBSI-1 compliant         | yes                                       | partial                                              | yes                                    | yes                                   | no claim                                          |
