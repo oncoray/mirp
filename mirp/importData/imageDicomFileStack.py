@@ -19,6 +19,8 @@ class ImageDicomFileStack(ImageFileStack):
 
         self.series_instance_uid: None | str = None
         self.frame_of_reference_uid: None | str = None
+
+        # Placeholder for sop_instance_uid of objects contained in the stack.
         self.sop_instance_uid: None | list[str] = None
 
         # Add type hint.
@@ -189,12 +191,12 @@ class ImageDicomFileStack(ImageFileStack):
         if self.image_dimension is None:
             self.image_dimension = tuple([len(position_table), n_y, n_x])
 
+        if self.sop_instance_uid is None:
+            self.sop_instance_uid = [image.sop_instance_uid for image in self.image_file_objects]
         if self.frame_of_reference_uid is None:
             self.frame_of_reference_uid = self.image_file_objects[0].frame_of_reference_uid
         if self.series_instance_uid is None:
             self.series_instance_uid = self.image_file_objects[0].series_instance_uid
-        if self.sop_instance_uid is None:
-            self.sop_instance_uid = [x.sop_instance_uid for x in self.image_file_objects if x.sop_instance_uid is not None]
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)

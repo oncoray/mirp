@@ -333,11 +333,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 slice_position = sub_contour[0, 0]
                 if not np.allclose(sub_contour[:, 0], slice_position):
                     orientation_correct = False
-                    break
-
                 if not np.isclose(np.round(slice_position), slice_position):
                     position_correct = False
-                    break
 
         # If the orientation is not correct, the position should be revised as well.
         if not orientation_correct:
