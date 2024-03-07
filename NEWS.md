@@ -1,3 +1,11 @@
+# Version 2.1.1
+
+## Fixes
+
+- Internal representation of RTDOSE files is now present.
+
+- SOP reference UIDs are now extracted for dicom file stacks.
+
 # Version 2.1.0
 
 ## Major changes
