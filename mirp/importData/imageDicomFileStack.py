@@ -19,6 +19,7 @@ class ImageDicomFileStack(ImageFileStack):
 
         self.series_instance_uid: None | str = None
         self.frame_of_reference_uid: None | str = None
+        self.sop_instance_uid: None | list[str] = None
 
         # Add type hint.
         self.image_file_objects: list[ImageDicomFile] = self.image_file_objects
@@ -192,6 +193,8 @@ class ImageDicomFileStack(ImageFileStack):
             self.frame_of_reference_uid = self.image_file_objects[0].frame_of_reference_uid
         if self.series_instance_uid is None:
             self.series_instance_uid = self.image_file_objects[0].series_instance_uid
+        if self.sop_instance_uid is None:
+            self.sop_instance_uid = [x.sop_instance_uid for x in self.image_file_objects if x.sop_instance_uid is not None]
 
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
