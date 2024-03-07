@@ -9,6 +9,7 @@ from mirp.importData.imageGenericFile import ImageFile, MaskFile
 from mirp.importData.utilities import supported_file_types, supported_image_modalities, flatten_list
 from mirp.settings.importDataSettings import import_data_settings
 
+
 def import_image(
         image,
         sample_name: None | str | list[str] = None,
