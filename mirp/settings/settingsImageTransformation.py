@@ -1127,7 +1127,7 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             class_key="discretisation_bin_width", test=[10.0, 34.0]
         ),
         setting_def(
-            "filter_kernels", "float", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
+            "filter_kernels", "str", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
             class_key="spatial_filters", test=[
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
                 "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
