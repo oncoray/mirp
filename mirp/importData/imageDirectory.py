@@ -119,7 +119,7 @@ class ImageDirectory:
 
         if len(path_info) == 0:
             raise ValueError(
-                f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
+                f"The {self.image_directory} directory (and its subdirectories) did not contain any supported "
                 f"{self.object_type} files ({', '.join(allowed_file_extensions)})."
             )
 
@@ -181,7 +181,7 @@ class ImageDirectory:
                 ]
 
                 raise ValueError(
-                    f"One or more files ({', '.join(files_missing_sample_name)}) could not be linked to a sample name"
+                    f"One or more files ({', '.join(files_missing_sample_name)}) could not be linked to a sample name "
                     f"for checking. You may specify an image file name pattern using the {self.object_type}_name "
                     f"argument, e.g. {self.object_type}_name = '#_*_{self.object_type}' would find John_Doe in "
                     f"John_Doe_CT_{self.object_type}.nii or John_Doe_001_{self.object_type}.nii. Here, '#' indicates "
@@ -225,7 +225,7 @@ class ImageDirectory:
 
             if len(path_info) == 0:
                 raise ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories) do not contain any supported "
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain any supported "
                     f"{self.object_type} files ({', '.join(allowed_file_extensions)}) that contain the name pattern "
                     f"({self.image_name}). The name must match exactly. Use wildcard symbol (*) for "
                     f"partial matching, e.g. {'*' + self.image_name[0]}."

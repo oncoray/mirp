@@ -136,7 +136,9 @@ def import_image_and_mask(
     )
 
     if len(image_list) == 0:
-        raise ValueError(f"No images were present.")
+        raise ValueError(f"No images were found. Possible reasons are lack of images with the preferred modality.")
+    if len(mask_list) == 0:
+        raise ValueError(f"No masks were found. Possible reasons are lack of masks with the preferred modality.")
 
     # Determine association strategy, if this is unset.
     possible_association_strategy = set_association_strategy(
