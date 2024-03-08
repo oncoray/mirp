@@ -675,3 +675,92 @@ def test_failure_multiple_image_and_mask_import():
         )
     assert "not contain any supported mask files" in str(exception_info.value)
     assert "that contain the name pattern (false_mask)" in str(exception_info.value)
+
+def test_failure_multiple_image_and_mask_import_data_xml():
+    # Read the data settings xml file, and update path to image and mask.
+    from xml.etree import ElementTree as ElemTree
+    from mirp import get_data_xml
+
+    target_dir = os.path.join(CURRENT_DIR, "data", "temp")
+    target_file = os.path.join(target_dir, "data.xml")
+
+    # Start with a clean slate.
+    if os.path.exists(target_file):
+        os.remove(target_file)
+
+    get_data_xml(target_dir=target_dir)
+
+    # Load xml.
+    tree = ElemTree.parse(target_file)
+    paths_branch = tree.getroot()
+
+    # Set basic data in xml file.
+    for image in paths_branch.iter("image"):
+        image.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
+    for image_sub_folder in paths_branch.iter("image_sub_folder"):
+        image_sub_folder.text = str(r"CT/dicom/image")
+    for mask in paths_branch.iter("mask"):
+        mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
+    for mask_sub_folder in paths_branch.iter("mask_sub_folder"):
+        mask_sub_folder.text = str(r"CT/dicom/mask")
+
+    # Save as temporary xml file.
+    tree.write(target_file)
+
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # No matching file type.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_file_type="nifti",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "did not contain any supported image files" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # No matching image modality.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_modality="pet",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "No images were found" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # No matching mask modality.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            mask_modality="seg",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "No masks were found" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # Wrong image_name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_name="false_image",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "not contain any supported image files" in str(exception_info.value)
+    assert "that contain the name pattern (false_image)" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # Wrong mask_name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            mask_name="false_mask",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "not contain any supported mask files" in str(exception_info.value)
+    assert "that contain the name pattern (false_mask)" in str(exception_info.value)

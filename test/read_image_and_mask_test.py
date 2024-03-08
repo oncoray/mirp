@@ -409,4 +409,3 @@ def test_read_dicom_image_and_mask_data_xml():
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_PET"
-
