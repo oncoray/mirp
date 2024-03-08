@@ -581,3 +581,97 @@ def test_multiple_image_and_mask_import_flat():
     assert all(isinstance(image.associated_masks[0], MaskNumpyFileStack) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+
+
+def test_failure_multiple_image_and_mask_import():
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # No matching file type.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_file_type="nifti",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "did not contain any supported image files" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # No matching image modality.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_modality="pet",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "No images were found" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # No matching mask modality.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            mask_modality="seg",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "No masks were found" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # Wrong image_name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_name="false_image",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "not contain any supported image files" in str(exception_info.value)
+    assert "that contain the name pattern (false_image)" in str(exception_info.value)
+
+    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # Wrong mask_name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            mask_name="false_mask",
+            image_sub_folder=os.path.join("CT", "dicom", "image"),
+            mask_sub_folder=os.path.join("CT", "dicom", "mask")
+        )
+    assert "not contain any supported mask files" in str(exception_info.value)
+    assert "that contain the name pattern (false_mask)" in str(exception_info.value)
+
+    # Read Nifti image and masks for all samples, but with incorrect instructions.
+    # No matching sample name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_sub_folder=os.path.join("CT", "nifti", "image"),
+            sample_name="false_sample_name",
+            mask_sub_folder=os.path.join("CT", "nifti", "mask")
+        )
+    assert "could not be linked to a sample name for checking" in str(exception_info.value)
+
+    # Read Nifti image and masks for all samples, but with incorrect instructions.
+    # Wrong image_name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_sub_folder=os.path.join("CT", "nifti", "image"),
+            image_name="false_image",
+            mask_sub_folder=os.path.join("CT", "nifti", "mask")
+        )
+    assert "not contain any supported image files" in str(exception_info.value)
+    assert "that contain the name pattern (false_image)" in str(exception_info.value)
+
+    # Read Nifti image and masks for all samples, but with incorrect instructions.
+    # Wrong mask_name.
+    with pytest.raises(ValueError) as exception_info:
+        image_list = import_image_and_mask(
+            image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+            image_sub_folder=os.path.join("CT", "nifti", "image"),
+            mask_name="false_mask",
+            mask_sub_folder=os.path.join("CT", "nifti", "mask")
+        )
+    assert "not contain any supported mask files" in str(exception_info.value)
+    assert "that contain the name pattern (false_mask)" in str(exception_info.value)
