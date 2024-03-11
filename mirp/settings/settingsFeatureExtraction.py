@@ -1,4 +1,4 @@
-from typing import Union, List, Any
+from typing import Any
 from dataclasses import dataclass
 from mirp.settings.utilities import setting_def
 
@@ -194,22 +194,22 @@ class FeatureExtractionSettingsClass:
             by_slice: bool = False,
             no_approximation: bool = False,
             ibsi_compliant: bool = True,
-            base_feature_families: Union[None, str, List[str]] = "none",
-            base_discretisation_method: Union[None, str, List[str]] = None,
-            base_discretisation_n_bins: Union[None, int, List[int]] = None,
-            base_discretisation_bin_width: Union[None, float, List[float]] = None,
+            base_feature_families: None | str | list[str] = "none",
+            base_discretisation_method: None | str | list[str] = None,
+            base_discretisation_n_bins: None | int | list[int] = None,
+            base_discretisation_bin_width: None | float | list[float] = None,
             ivh_discretisation_method: str = "none",
-            ivh_discretisation_n_bins: Union[None, int] = 1000,
-            ivh_discretisation_bin_width: Union[None, float] = None,
-            glcm_distance: Union[float, List[float]] = 1.0,
-            glcm_spatial_method: Union[None, str, List[str]] = None,
-            glrlm_spatial_method: Union[None, str, List[str]] = None,
-            glszm_spatial_method: Union[None, str, List[str]] = None,
-            gldzm_spatial_method: Union[None, str, List[str]] = None,
-            ngtdm_spatial_method: Union[None, str, List[str]] = None,
-            ngldm_distance: Union[float, List[float]] = 1.0,
-            ngldm_difference_level: Union[float, List[float]] = 0.0,
-            ngldm_spatial_method: Union[None, str, List[str]] = None,
+            ivh_discretisation_n_bins: None | int = 1000,
+            ivh_discretisation_bin_width: None | float = None,
+            glcm_distance: float | list[float] = 1.0,
+            glcm_spatial_method: None | str | list[str] = None,
+            glrlm_spatial_method: None | str | list[str] = None,
+            glszm_spatial_method: None | str | list[str] = None,
+            gldzm_spatial_method: None | str | list[str] = None,
+            ngtdm_spatial_method: None | str | list[str] = None,
+            ngldm_distance: float | list[float] = 1.0,
+            ngldm_difference_level: float | list[float] = 0.0,
+            ngldm_spatial_method: None | str | list[str] = None,
             **kwargs
     ):
         # Set by slice.
@@ -229,7 +229,7 @@ class FeatureExtractionSettingsClass:
             base_feature_families = [base_feature_families]
 
         # Check which entries are valid.
-        valid_families: List[bool] = [ii in self.get_available_families() for ii in base_feature_families]
+        valid_families: list[bool] = [ii in self.get_available_families() for ii in base_feature_families]
 
         if not all(valid_families):
             raise ValueError(
@@ -237,7 +237,7 @@ class FeatureExtractionSettingsClass:
                 f"{', '.join([base_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}")
 
         # Set families.
-        self.families: List[str] = base_feature_families
+        self.families: list[str] = base_feature_families
 
         if not self.has_any_feature_family():
             self.families = ["none"]
@@ -308,9 +308,9 @@ class FeatureExtractionSettingsClass:
             base_discretisation_bin_width = None
 
         # Set discretisation method-related parameters.
-        self.discretisation_method: Union[None, List[str]] = base_discretisation_method
-        self.discretisation_n_bins: Union[None, List[int]] = base_discretisation_n_bins
-        self.discretisation_bin_width: Union[None, List[float]] = base_discretisation_bin_width
+        self.discretisation_method: None | list[str] = base_discretisation_method
+        self.discretisation_n_bins: None | list[int] = base_discretisation_n_bins
+        self.discretisation_bin_width: None | list[float] = base_discretisation_bin_width
 
         if self.has_ivh_family():
             if ivh_discretisation_method not in ["fixed_bin_size", "fixed_bin_number", "none"]:
@@ -356,9 +356,9 @@ class FeatureExtractionSettingsClass:
             ivh_discretisation_bin_width = None
 
         # Set parameters
-        self.ivh_discretisation_method: Union[None, str] = ivh_discretisation_method
-        self.ivh_discretisation_n_bins: Union[None, int] = ivh_discretisation_n_bins
-        self.ivh_discretisation_bin_width: Union[None, float] = ivh_discretisation_bin_width
+        self.ivh_discretisation_method: None | str = ivh_discretisation_method
+        self.ivh_discretisation_n_bins: None | int = ivh_discretisation_n_bins
+        self.ivh_discretisation_bin_width: None | float = ivh_discretisation_bin_width
 
         # Set GLCM attributes.
         if self.has_glcm_family():
@@ -385,8 +385,8 @@ class FeatureExtractionSettingsClass:
             glcm_distance = None
             glcm_spatial_method = None
 
-        self.glcm_distance: Union[None, List[float]] = glcm_distance
-        self.glcm_spatial_method: Union[None, List[str]] = glcm_spatial_method
+        self.glcm_distance: None | list[float] = glcm_distance
+        self.glcm_spatial_method: None | list[str] = glcm_spatial_method
 
         # Set GLRLM attributes.
         if self.has_glrlm_family():
@@ -397,7 +397,7 @@ class FeatureExtractionSettingsClass:
         else:
             glrlm_spatial_method = None
 
-        self.glrlm_spatial_method: Union[None, List[str]] = glrlm_spatial_method
+        self.glrlm_spatial_method: None | list[str] = glrlm_spatial_method
 
         # Set GLSZM attributes.
         if self.has_glszm_family():
@@ -407,7 +407,7 @@ class FeatureExtractionSettingsClass:
         else:
             glszm_spatial_method = None
 
-        self.glszm_spatial_method: Union[None, List[str]] = glszm_spatial_method
+        self.glszm_spatial_method: None | list[str] = glszm_spatial_method
 
         # Set GLDZM attributes.
         if self.has_gldzm_family():
@@ -418,7 +418,7 @@ class FeatureExtractionSettingsClass:
         else:
             gldzm_spatial_method = None
 
-        self.gldzm_spatial_method: Union[None, List[str]] = gldzm_spatial_method
+        self.gldzm_spatial_method: None | list[str] = gldzm_spatial_method
 
         # Set NGTDM attributes.
         if self.has_ngtdm_family():
@@ -429,7 +429,7 @@ class FeatureExtractionSettingsClass:
         else:
             ngtdm_spatial_method = None
 
-        self.ngtdm_spatial_method: Union[None, List[str]] = ngtdm_spatial_method
+        self.ngtdm_spatial_method: None | list[str] = ngtdm_spatial_method
 
         # Set NGLDM attributes
         if self.has_ngldm_family():
@@ -471,9 +471,9 @@ class FeatureExtractionSettingsClass:
             ngldm_distance = None
             ngldm_difference_level = None
 
-        self.ngldm_dist: Union[None, List[float]] = ngldm_distance
-        self.ngldm_diff_lvl: Union[None, List[float]] = ngldm_difference_level
-        self.ngldm_spatial_method: Union[None, List[str]] = ngldm_spatial_method
+        self.ngldm_dist: None | list[float] = ngldm_distance
+        self.ngldm_diff_lvl: None | list[float] = ngldm_difference_level
+        self.ngldm_spatial_method: None | list[str] = ngldm_spatial_method
 
     @staticmethod
     def get_available_families():

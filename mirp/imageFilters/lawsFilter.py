@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 
-from typing import List, Union
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import LawsTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
@@ -22,10 +21,10 @@ class LawsFilter(GenericFilter):
         self.energy_normalise = True
 
         # Set the filter name
-        self.laws_kernel: Union[None, str, List[str]] = settings.img_transform.laws_kernel
+        self.laws_kernel: None | str | list[str] = settings.img_transform.laws_kernel
 
         # Size of neighbourhood in chebyshev distance from center voxel
-        self.delta: Union[None, int, List[int]] = settings.img_transform.laws_delta
+        self.delta: None | int | list[int] = settings.img_transform.laws_delta
 
         # Whether Laws texture energy should be calculated
         self.calculate_energy = settings.img_transform.laws_calculate_energy
@@ -85,7 +84,7 @@ class LawsFilter(GenericFilter):
         response_voxel_grid = None
 
         # Get filter list.
-        filter_set_list: List[SeparableFilterSet] = self.get_filter_set().permute_filters(
+        filter_set_list: list[SeparableFilterSet] = self.get_filter_set().permute_filters(
             rotational_invariance=self.rotation_invariance)
 
         for ii, filter_set in enumerate(filter_set_list):

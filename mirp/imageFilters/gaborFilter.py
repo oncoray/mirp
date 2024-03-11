@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 
-from typing import Union, List
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import GaborTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
@@ -19,16 +18,16 @@ class GaborFilter(GenericFilter):
         )
 
         # Sigma parameter that determines filter width.
-        self.sigma: Union[None, float, List[float]] = settings.img_transform.gabor_sigma
+        self.sigma: None | float | list[float] = settings.img_transform.gabor_sigma
 
         # Eccentricity parameter
-        self.gamma: Union[None, float, List[float]] = settings.img_transform.gabor_gamma
+        self.gamma: None | float | list[float] = settings.img_transform.gabor_gamma
 
         # Wavelength parameter
-        self.lambda_parameter: Union[None, float, List[float]] = settings.img_transform.gabor_lambda
+        self.lambda_parameter: None | float | list[float] = settings.img_transform.gabor_lambda
 
         # Initial angle.
-        self.theta: Union[None, float, List[float], int, List[int]] = settings.img_transform.gabor_theta
+        self.theta: None | float | list[float] | int | list[int] = settings.img_transform.gabor_theta
 
         # Set whether theta is considered separate, or pooled.
         self.pool_theta: bool = settings.img_transform.gabor_pool_theta
@@ -46,9 +45,9 @@ class GaborFilter(GenericFilter):
         self.mode = settings.img_transform.gabor_boundary_condition
 
         # Riesz transformation settings.
-        self.riesz_order: Union[None, List[int], List[List[int]]] = None
+        self.riesz_order: None | list[int] | list[list[int]] = None
         self.riesz_steered: bool = False
-        self.riesz_sigma: Union[None, float, List[float]] = None
+        self.riesz_sigma: None | float | list[float] = None
         if settings.img_transform.has_riesz_filter(x=name):
             self.riesz_order = settings.img_transform.riesz_order
 
@@ -58,9 +57,9 @@ class GaborFilter(GenericFilter):
 
         # Set the axis orthogonal to the plane in which the Gabor kernel is applied.
         if self.by_slice or not self.rotation_invariance:
-            self.stack_axis: Union[int, List[int]] = [0]
+            self.stack_axis: int | list[int] = [0]
         else:
-            self.stack_axis: Union[int, List[int]] = [0, 1, 2]
+            self.stack_axis: int | list[int] = [0, 1, 2]
 
     def generate_object(self, allow_pooling: bool = True):
         # Generator for transformation objects.

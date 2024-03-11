@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import copy
-from typing import Optional, List, Tuple, Dict, Any, Union, Self
+from typing import Any, Self
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
@@ -21,20 +21,20 @@ class BaseMask:
         self.roi = MaskImage(**kwargs)
 
         # Define other types of masks.
-        self.roi_intensity: Optional[MaskImage] = None
-        self.roi_morphology: Optional[MaskImage] = None
+        self.roi_intensity: None | MaskImage = None
+        self.roi_morphology: None | MaskImage = None
 
         # Set name of the mask.
-        self.roi_name: Union[str, List[str]] = roi_name
+        self.roi_name: str | list[str] = roi_name
 
         # Set intensity range.
-        self.intensity_range: Tuple[Any, ...] = tuple([np.nan, np.nan])
+        self.intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
 
     def get_slices(
             self,
-            slice_number: Union[None, int, List[int]] = None,
+            slice_number: None | int | list[int] = None,
             primary_mask_only: bool = False
-    ) -> Union[None, Self, List[Self]]:
+    ) -> None | Self | list[Self]:
 
         mask_list = []
         return_list = True
@@ -102,8 +102,9 @@ class BaseMask:
 
     def interpolate(
             self,
-            image: Optional[GenericImage],
-            settings: SettingsClass):
+            image: None | GenericImage,
+            settings: SettingsClass
+    ):
         # Skip if image and/or mask is missing
         if self.is_empty():
             return
@@ -120,10 +121,10 @@ class BaseMask:
     def register(
             self,
             image: GenericImage,
-            spline_order: Optional[int] = None,
-            anti_aliasing: Optional[bool] = None,
-            anti_aliasing_smoothing_beta: Optional[float] = None,
-            settings: Optional[SettingsClass] = None
+            spline_order: None | int = None,
+            anti_aliasing: None | bool = None,
+            anti_aliasing_smoothing_beta: None | float = None,
+            settings: None | SettingsClass = None
     ):
         if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
             raise ValueError("None of the parameters for registration can be set.")
@@ -357,9 +358,9 @@ class BaseMask:
     def resegmentise_mask(
             self,
             image: GenericImage,
-            resegmentation_method: Optional[Union[str, List[str]]] = None,
-            intensity_range: Optional[Tuple[Any, Any]] = None,
-            sigma: Optional[float] = None
+            resegmentation_method: None | str | list[str] = None,
+            intensity_range: None | tuple[Any, Any] = None,
+            sigma: None | float = None
     ):
         # Resegmentation of the mask based on image intensities.
 
@@ -433,8 +434,8 @@ class BaseMask:
     def dilate(
             self,
             by_slice: bool,
-            distance: Optional[float] = None,
-            voxel_distance: Optional[float] = None
+            distance: None | float = None,
+            voxel_distance: None | float = None
     ):
         # Skip if the mask does not exist
         if self.roi is None:
@@ -450,8 +451,8 @@ class BaseMask:
             self,
             by_slice: bool,
             max_eroded_volume_fraction: float = 0.8,
-            distance: Optional[float] = None,
-            voxel_distance: Optional[float] = None
+            distance: None | float = None,
+            voxel_distance: None | float = None
     ):
         # Skip if the mask does not exist
         if self.roi is None:
@@ -467,7 +468,7 @@ class BaseMask:
     def fractional_volume_change(
             self,
             by_slice: bool,
-            fractional_change: Optional[float] = None
+            fractional_change: None | float = None
     ):
         # Skip if the mask does not exist
         if self.roi is None:
@@ -493,12 +494,12 @@ class BaseMask:
 
     def as_pandas_dataframe(
             self,
-            image: Optional[GenericImage],
+            image: None | GenericImage,
             intensity_mask: bool = False,
             morphology_mask: bool = False,
             distance_map: bool = False,
             by_slice: bool = False
-    ) -> Optional[pd.DataFrame]:
+    ) -> None | pd.DataFrame:
 
         # Check that the image and mask are present.
         if image.is_empty() or self.is_empty():
@@ -656,7 +657,7 @@ class BaseMask:
 
         return df
 
-    def get_center_position(self) -> List[Any]:
+    def get_center_position(self) -> list[Any]:
         """Identify location of the geometric center of the roi."""
         # Return a NaN if no roi is present
         if self.roi is None:
@@ -714,7 +715,7 @@ class BaseMask:
                 file_format=file_format
             )
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
 
         return self.roi.get_file_name_descriptor() + [self.roi_name]
 
@@ -722,7 +723,7 @@ class BaseMask:
             self,
             write_all=False,
             export_format: str = "dict"
-    ) -> Union[np.ndarray, List[np.ndarray], Dict[str, Any], Self]:
+    ) -> np.ndarray | list[np.ndarray] | dict[str, Any] | Self:
         if self.is_empty():
             return None
 
@@ -752,7 +753,7 @@ class BaseMask:
         else:
             raise ValueError(f"The current value of export_format was not recognised: {export_format}")
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         attributes = dict([("roi_name", self.roi_name)])
         attributes.update(self.roi.get_export_attributes())
 
