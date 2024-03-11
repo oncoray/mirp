@@ -1,5 +1,5 @@
 import copy
-from typing import Union, List, Any
+from typing import Any
 from dataclasses import dataclass
 
 import numpy as np
@@ -331,49 +331,49 @@ class ImageTransformationSettingsClass:
             self,
             by_slice: bool,
             response_map_feature_settings: FeatureExtractionSettingsClass | None = None,
-            response_map_feature_families: Union[None, str, List[str]] = "statistical",
-            response_map_discretisation_method: Union[None, str, List[str]] = "fixed_bin_number",
-            response_map_discretisation_n_bins: Union[None, int, List[int]] = 16,
-            response_map_discretisation_bin_width: Union[None, int, List[int]] = None,
-            filter_kernels: Union[None, str, List[str]] = None,
-            boundary_condition: Union[None, str] = "mirror",
-            separable_wavelet_families: Union[None, str, List[str]] = None,
-            separable_wavelet_set: Union[None, str, List[str]] = None,
+            response_map_feature_families: None | str | list[str] = "statistical",
+            response_map_discretisation_method: None | str | list[str] = "fixed_bin_number",
+            response_map_discretisation_n_bins: None | int | list[int] = 16,
+            response_map_discretisation_bin_width: None | int | list[float] = None,
+            filter_kernels: None | str | list[str] = None,
+            boundary_condition: None | str = "mirror",
+            separable_wavelet_families: None | str | list[str] = None,
+            separable_wavelet_set: None | str | list[str] = None,
             separable_wavelet_stationary: bool = True,
-            separable_wavelet_decomposition_level: Union[None, int, List[int]] = 1,
+            separable_wavelet_decomposition_level: None | int | list[int] = 1,
             separable_wavelet_rotation_invariance: bool = True,
             separable_wavelet_pooling_method: str = "max",
-            separable_wavelet_boundary_condition: Union[None, str] = None,
-            nonseparable_wavelet_families: Union[None, str, List[str]] = None,
-            nonseparable_wavelet_decomposition_level: Union[None, int, List[int]] = 1,
-            nonseparable_wavelet_response: Union[None, str] = "real",
-            nonseparable_wavelet_boundary_condition: Union[None, str] = None,
-            gaussian_sigma: Union[None, float, List[float]] = None,
-            gaussian_kernel_truncate: Union[None, float] = 4.0,
-            gaussian_kernel_boundary_condition: Union[None, str] = None,
-            laplacian_of_gaussian_sigma: Union[None, float, List[float]] = None,
-            laplacian_of_gaussian_kernel_truncate: Union[None, float] = 4.0,
+            separable_wavelet_boundary_condition: None | str = None,
+            nonseparable_wavelet_families: None | str | list[str] = None,
+            nonseparable_wavelet_decomposition_level: None | int | list[int] = 1,
+            nonseparable_wavelet_response: None | str = "real",
+            nonseparable_wavelet_boundary_condition: None | str = None,
+            gaussian_sigma: None | float | list[float] = None,
+            gaussian_kernel_truncate: None | float = 4.0,
+            gaussian_kernel_boundary_condition: None | str = None,
+            laplacian_of_gaussian_sigma: None | float | list[float] = None,
+            laplacian_of_gaussian_kernel_truncate: None | float = 4.0,
             laplacian_of_gaussian_pooling_method: str = "none",
-            laplacian_of_gaussian_boundary_condition: Union[None, str] = None,
-            laws_kernel: Union[None, str, List[str]] = None,
-            laws_delta: Union[int, List[int]] = 7,
+            laplacian_of_gaussian_boundary_condition: None | str = None,
+            laws_kernel: None | str | list[str] = None,
+            laws_delta: int | list[int] = 7,
             laws_compute_energy: bool = True,
             laws_rotation_invariance: bool = True,
             laws_pooling_method: str = "max",
-            laws_boundary_condition: Union[None, str] = None,
-            gabor_sigma: Union[None, float, List[float]] = None,
-            gabor_lambda: Union[None, float, List[float]] = None,
-            gabor_gamma: Union[None, float, List[float]] = 1.0,
-            gabor_theta: Union[None, float, List[float]] = 0.0,
-            gabor_theta_step: Union[None, float] = None,
+            laws_boundary_condition: None | str = None,
+            gabor_sigma: None | float | list[float] = None,
+            gabor_lambda: None | float | list[float] = None,
+            gabor_gamma: None | float | list[float] = 1.0,
+            gabor_theta: None | float | list[float] = 0.0,
+            gabor_theta_step: None | float = None,
             gabor_response: str = "modulus",
             gabor_rotation_invariance: bool = False,
             gabor_pooling_method: str = "max",
-            gabor_boundary_condition: Union[None, str] = None,
-            mean_filter_kernel_size: Union[None, int, List[int]] = None,
-            mean_filter_boundary_condition: Union[None, str] = None,
-            riesz_filter_order: Union[None, int, List[int]] = None,
-            riesz_filter_tensor_sigma: Union[None, float, List[float]] = None,
+            gabor_boundary_condition: None | str = None,
+            mean_filter_kernel_size: None | int | list[int] = None,
+            mean_filter_boundary_condition: None | str = None,
+            riesz_filter_order: None | int | list[int] = None,
+            riesz_filter_tensor_sigma: None | float | list[float] = None,
             **kwargs
     ):
         # Set by slice
@@ -388,14 +388,14 @@ class ImageTransformationSettingsClass:
 
         if filter_kernels is not None:
             # Check validity of the filter kernel names.
-            valid_kernels: List[bool] = [ii in self.get_available_image_filters() for ii in filter_kernels]
+            valid_kernels: list[bool] = [ii in self.get_available_image_filters() for ii in filter_kernels]
 
             if not all(valid_kernels):
                 raise ValueError(
                     f"One or more kernels are not implemented, or were spelled incorrectly: "
                     f"{', '.join([filter_kernel for ii, filter_kernel in enumerate(filter_kernels) if not valid_kernels[ii]])}")
 
-        self.spatial_filters: Union[None, List[str]] = filter_kernels
+        self.spatial_filters: None | list[str] = filter_kernels
 
         # Check families.
         if response_map_feature_families is None:
@@ -405,7 +405,7 @@ class ImageTransformationSettingsClass:
             response_map_feature_families = [response_map_feature_families]
 
         # Check which entries are valid.
-        valid_families: List[bool] = [ii in [
+        valid_families: list[bool] = [ii in [
             "li", "loc.int", "loc_int", "local_int", "local_intensity", "st", "stat", "stats", "statistics",
             "statistical", "ih", "int_hist", "int_histogram", "intensity_histogram",
             "ivh", "int_vol_hist", "intensity_volume_histogram", "cm", "glcm", "grey_level_cooccurrence_matrix",
@@ -474,8 +474,8 @@ class ImageTransformationSettingsClass:
             mean_filter_kernel_size = None
             mean_filter_boundary_condition = None
 
-        self.mean_filter_size: Union[None, List[int]] = mean_filter_kernel_size
-        self.mean_filter_boundary_condition: Union[None, str] = mean_filter_boundary_condition
+        self.mean_filter_size: None | list[int] = mean_filter_kernel_size
+        self.mean_filter_boundary_condition: None | str = mean_filter_boundary_condition
 
         # Check Gaussian kernel settings.
         if self.has_gaussian_filter():
@@ -499,9 +499,9 @@ class ImageTransformationSettingsClass:
             gaussian_kernel_truncate = None
             gaussian_kernel_boundary_condition = None
 
-        self.gaussian_sigma: Union[None, List[float]] = gaussian_sigma
-        self.gaussian_sigma_truncate: Union[None, float] = gaussian_kernel_truncate
-        self.gaussian_boundary_condition: Union[None, str] = gaussian_kernel_boundary_condition
+        self.gaussian_sigma: None | list[float] = gaussian_sigma
+        self.gaussian_sigma_truncate: None | float = gaussian_kernel_truncate
+        self.gaussian_boundary_condition: None | str = gaussian_kernel_boundary_condition
 
         # Check laplacian-of-gaussian filter settings
         if self.has_laplacian_of_gaussian_filter():
@@ -531,16 +531,15 @@ class ImageTransformationSettingsClass:
             laplacian_of_gaussian_pooling_method = None
             laplacian_of_gaussian_boundary_condition = None
 
-        self.log_sigma: Union[None, List[float]] = laplacian_of_gaussian_sigma
-        self.log_sigma_truncate: Union[None, float] = laplacian_of_gaussian_kernel_truncate
-        self.log_pooling_method: Union[None, str] = laplacian_of_gaussian_pooling_method
-        self.log_boundary_condition: Union[None, str] = laplacian_of_gaussian_boundary_condition
+        self.log_sigma: None | list[float] = laplacian_of_gaussian_sigma
+        self.log_sigma_truncate: None | float = laplacian_of_gaussian_kernel_truncate
+        self.log_pooling_method: None | str = laplacian_of_gaussian_pooling_method
+        self.log_boundary_condition: None | str = laplacian_of_gaussian_boundary_condition
 
         # Check Laws kernel filter settings
         if self.has_laws_filter():
             # Check kernel.
-            laws_kernel = self.check_laws_kernels(laws_kernel,
-                                                  "laws_kernel")
+            laws_kernel = self.check_laws_kernels(laws_kernel, "laws_kernel")
 
             # Check energy computation.
             if not isinstance(laws_compute_energy, bool):
@@ -583,12 +582,12 @@ class ImageTransformationSettingsClass:
             laws_pooling_method = None
             laws_boundary_condition = None
 
-        self.laws_calculate_energy: Union[None, bool] = laws_compute_energy
-        self.laws_kernel: Union[None, List[str]] = laws_kernel
-        self.laws_delta: Union[None, bool] = laws_delta
-        self.laws_rotation_invariance: Union[None, bool] = laws_rotation_invariance
-        self.laws_pooling_method: Union[None, str] = laws_pooling_method
-        self.laws_boundary_condition: Union[None, str] = laws_boundary_condition
+        self.laws_calculate_energy: None | bool = laws_compute_energy
+        self.laws_kernel: None | list[str] = laws_kernel
+        self.laws_delta: None | bool = laws_delta
+        self.laws_rotation_invariance: None | bool = laws_rotation_invariance
+        self.laws_pooling_method: None | str = laws_pooling_method
+        self.laws_boundary_condition: None | str = laws_boundary_condition
 
         # Check Gabor filter settings.
         if self.has_gabor_filter():
@@ -662,15 +661,15 @@ class ImageTransformationSettingsClass:
             gabor_pooling_method = None
             gabor_boundary_condition = None
 
-        self.gabor_sigma: Union[None, List[float]] = gabor_sigma
-        self.gabor_gamma: Union[None, List[float]] = gabor_gamma
-        self.gabor_lambda: Union[None, List[float]] = gabor_lambda
-        self.gabor_theta: Union[None, List[float], List[int]] = gabor_theta
-        self.gabor_pool_theta: Union[None, bool] = gabor_pool_theta
-        self.gabor_response: Union[None, str] = gabor_response
-        self.gabor_rotation_invariance: Union[None, str] = gabor_rotation_invariance
-        self.gabor_pooling_method: Union[None, str] = gabor_pooling_method
-        self.gabor_boundary_condition: Union[None, str] = gabor_boundary_condition
+        self.gabor_sigma: None | list[float] = gabor_sigma
+        self.gabor_gamma: None | list[float] = gabor_gamma
+        self.gabor_lambda: None | list[float] = gabor_lambda
+        self.gabor_theta: None | list[float] | list[int] = gabor_theta
+        self.gabor_pool_theta: None | bool = gabor_pool_theta
+        self.gabor_response: None | str = gabor_response
+        self.gabor_rotation_invariance: None | str = gabor_rotation_invariance
+        self.gabor_pooling_method: None | str = gabor_pooling_method
+        self.gabor_boundary_condition: None | str = gabor_boundary_condition
 
         # Check separable wavelet settings.
         if self.has_separable_wavelet_filter():
@@ -710,13 +709,13 @@ class ImageTransformationSettingsClass:
             separable_wavelet_pooling_method = None
             separable_wavelet_boundary_condition = None
 
-        self.separable_wavelet_families: Union[None, List[str]] = separable_wavelet_families
-        self.separable_wavelet_filter_set: Union[None, List[str]] = separable_wavelet_set
-        self.separable_wavelet_stationary: Union[None, bool] = separable_wavelet_stationary
-        self.separable_wavelet_decomposition_level: Union[None, List[int]] = separable_wavelet_decomposition_level
-        self.separable_wavelet_rotation_invariance: Union[None, bool] = separable_wavelet_rotation_invariance
-        self.separable_wavelet_pooling_method: Union[None, str] = separable_wavelet_pooling_method
-        self.separable_wavelet_boundary_condition: Union[None, str] = separable_wavelet_boundary_condition
+        self.separable_wavelet_families: None | list[str] = separable_wavelet_families
+        self.separable_wavelet_filter_set: None | list[str] = separable_wavelet_set
+        self.separable_wavelet_stationary: None | bool = separable_wavelet_stationary
+        self.separable_wavelet_decomposition_level: None | list[int] = separable_wavelet_decomposition_level
+        self.separable_wavelet_rotation_invariance: None | bool = separable_wavelet_rotation_invariance
+        self.separable_wavelet_pooling_method: None | str = separable_wavelet_pooling_method
+        self.separable_wavelet_boundary_condition: None | str = separable_wavelet_boundary_condition
 
         # Set parameters for non-separable wavelets.
         if self.has_nonseparable_wavelet_filter():
@@ -742,10 +741,10 @@ class ImageTransformationSettingsClass:
             nonseparable_wavelet_response = None
             nonseparable_wavelet_boundary_condition = None
 
-        self.nonseparable_wavelet_families: Union[None, List[str]] = nonseparable_wavelet_families
-        self.nonseparable_wavelet_decomposition_level: Union[None, List[int]] = nonseparable_wavelet_decomposition_level
-        self.nonseparable_wavelet_response: Union[None, str] = nonseparable_wavelet_response
-        self.nonseparable_wavelet_boundary_condition: Union[None, str] = nonseparable_wavelet_boundary_condition
+        self.nonseparable_wavelet_families: None | list[str] = nonseparable_wavelet_families
+        self.nonseparable_wavelet_decomposition_level: None | list[int] = nonseparable_wavelet_decomposition_level
+        self.nonseparable_wavelet_response: None | str = nonseparable_wavelet_response
+        self.nonseparable_wavelet_boundary_condition: None | str = nonseparable_wavelet_boundary_condition
 
         # Check Riesz filter orders.
         if self.has_riesz_filter():
@@ -760,8 +759,8 @@ class ImageTransformationSettingsClass:
         else:
             riesz_filter_tensor_sigma = None
 
-        self.riesz_order: Union[None, List[List[int]]] = riesz_filter_order
-        self.riesz_filter_tensor_sigma: Union[None, List[float]] = riesz_filter_tensor_sigma
+        self.riesz_order: None | list[list[int]] = riesz_filter_order
+        self.riesz_filter_tensor_sigma: None | list[float] = riesz_filter_tensor_sigma
 
     @staticmethod
     def get_available_image_filters():
@@ -905,7 +904,7 @@ class ImageTransformationSettingsClass:
 
         return x
 
-    def check_separable_wavelet_sets(self, x: Union[None, str, List[str]], var_name):
+    def check_separable_wavelet_sets(self, x: None | str | list[str], var_name: str):
         from itertools import product
 
         if x is None:
@@ -942,7 +941,7 @@ class ImageTransformationSettingsClass:
         # Return lowercase values.
         return [xx.lower() for xx in x]
 
-    def check_laws_kernels(self, x: Union[str, List[str]], var_name):
+    def check_laws_kernels(self, x: str | list[str], var_name: str):
         from itertools import product
 
         # Set implemented kernels.

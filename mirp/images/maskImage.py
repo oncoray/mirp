@@ -4,7 +4,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
-from typing import Optional, Union, List, Dict, Tuple, Any
+from typing import Any
 
 from mirp.images.genericImage import GenericImage
 from mirp.settings.settingsGeneric import SettingsClass
@@ -16,7 +16,7 @@ class MaskImage(GenericImage):
         # Declare local attributes first because these may be updated in super()__init__.
         self.image_encoded = False
         self.alteration_size: float = 0.0
-        self.slic_randomisation_id: Optional[int] = None
+        self.slic_randomisation_id: int | None = None
 
         super().__init__(**kwargs)
 
@@ -96,7 +96,7 @@ class MaskImage(GenericImage):
         if voxel_grid.dtype == bool:
             self.encode_voxel_grid()
 
-    def get_voxel_grid(self) -> Union[None, np.ndarray]:
+    def get_voxel_grid(self) -> None | np.ndarray:
         return self.decode_voxel_grid(in_place=False)
 
     def update_image_data(self):
@@ -168,8 +168,9 @@ class MaskImage(GenericImage):
     def dilate(
             self,
             by_slice: bool,
-            distance: Optional[float] = None,
-            voxel_distance: Optional[float] = None):
+            distance: float | None = None,
+            voxel_distance: float | None = None
+    ):
         from mirp.featureSets.utilities import rep
         import scipy.ndimage as ndi
 
@@ -264,8 +265,8 @@ class MaskImage(GenericImage):
             self,
             by_slice: bool,
             max_eroded_volume_fraction: float = 0.8,
-            distance: Optional[float] = None,
-            voxel_distance: Optional[float] = None
+            distance: float | None = None,
+            voxel_distance: float | None = None
     ):
         import scipy.ndimage as ndi
 
@@ -345,7 +346,7 @@ class MaskImage(GenericImage):
     def fractional_volume_change(
             self,
             by_slice: bool,
-            fractional_change: Optional[float] = None
+            fractional_change: float | None = None
     ):
         import scipy.ndimage as ndi
 
@@ -426,7 +427,7 @@ class MaskImage(GenericImage):
             image: GenericImage,
             boundary: float = 25.0,
             repetitions: int = 1,
-            intensity_range: Tuple[Any] = tuple([np.nan, np.nan]),
+            intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan]),
             by_slice: bool = False
     ):
         """Use SLIC to randomise the roi based on supervoxels"""
@@ -525,8 +526,8 @@ class MaskImage(GenericImage):
 
     def get_supervoxel_overlap(
             self,
-            image_segments: Optional[np.ndarray]
-    ) -> Tuple[Optional[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
+            image_segments: np.ndarray | None
+    ) -> tuple[np.ndarray | None, np.ndarray | None, np.ndarray | None]:
         """Determines overlap of supervoxels with other the region of interest"""
 
         # Return None in case image segments and/or mask are missing
@@ -560,11 +561,13 @@ class MaskImage(GenericImage):
 
         z_ind, y_ind, x_ind = np.where(self.get_voxel_grid())
 
-        return tuple([np.min(z_ind), np.max(z_ind)]),\
-               tuple([np.min(y_ind), np.max(y_ind)]),\
-               tuple([np.min(x_ind), np.max(x_ind)])
+        return (
+            tuple([np.min(z_ind), np.max(z_ind)]),
+            tuple([np.min(y_ind), np.max(y_ind)]),
+            tuple([np.min(x_ind), np.max(x_ind)])
+        )
 
-    def get_center_position(self) -> List[Any]:
+    def get_center_position(self) -> list[Any]:
         """Identify location of the geometric center of the roi."""
         # Return a NaN if no roi is present
         if self.is_empty():
@@ -575,7 +578,7 @@ class MaskImage(GenericImage):
 
         return [np.mean(z_ind), np.mean(y_ind), np.mean(x_ind)]
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         # Alteration size.
@@ -588,7 +591,7 @@ class MaskImage(GenericImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         attributes = super().get_export_attributes()
 
         # Alteration size.

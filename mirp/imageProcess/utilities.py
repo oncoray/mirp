@@ -37,8 +37,8 @@ def standard_image_process_checks(
 def set_intensity_range(
         image: GenericImage,
         mask: Optional[MaskImage] = None,
-        intensity_range: Optional[Tuple[Any]] = None
-) -> Tuple[float]:
+        intensity_range: tuple[Any, Any] | None = None
+) -> tuple[float, float]:
     if intensity_range is not None and not np.any(np.isnan(intensity_range)):
         return intensity_range
 

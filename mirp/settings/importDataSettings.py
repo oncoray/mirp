@@ -64,7 +64,9 @@ def import_data_settings(
             current_data_arguments = copy.deepcopy(data_arguments)
 
             if is_mask:
-                mask_name = str2list(data_branch.find("mask_name"), str)
+                mask_name = str2list(data_branch.find("mask_name"), "str")
+                if mask_name is not None and len(mask_name) == 1:
+                    mask_name = mask_name[0]
                 current_data_arguments += [("image_name", mask_name)]
 
                 mask_file_type = str2type(data_branch.find("mask_file_type"), "str")
@@ -81,6 +83,8 @@ def import_data_settings(
 
             else:
                 image_name = str2list(read_node(data_branch, ["image_name", "image_filename_pattern"]), "str")
+                if image_name is not None and len(image_name) == 1:
+                    image_name = image_name[0]
                 current_data_arguments += [("image_name", image_name)]
 
                 image_file_type = str2type(data_branch.find("image_file_type"), "str")
