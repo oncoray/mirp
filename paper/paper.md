@@ -87,19 +87,22 @@ bringing us one step closer to harnessing the full potential of medical imaging 
 `mirp` is not the only package available for image processing and feature extraction for radiomics analyses. Commonly 
 used alternatives are listed in Table 1.
 
-|                          | `mirp`                                    | `pyradiomics`                                        | `CERR`                                 | `LIFEx`                               | `radiomics`                                       |
-|--------------------------|-------------------------------------------|------------------------------------------------------|----------------------------------------|---------------------------------------|---------------------------------------------------| 
-| Version                  | 2.1.0                                     | 3.1.0                                                | unknown                                | 7.4.0                                 | unknown                                           |
-| Last updated             | 2/2024                                    | 5/2023                                               | 2/2024                                 | 6/2023                                | 11/2019                                           |
-| License                  | EUPL-1.2                                  | BSD-3                                                | LGPL-2.1                               | custom                                | GPL-3.0                                           |
-| Programming language     | Python                                    | Python                                               | MATLAB                                 | Java                                  | MATLAB                                            |
-| IBSI-1 compliant         | yes                                       | partial                                              | yes                                    | yes                                   | no claim                                          |
-| IBSI-2 compliant         | yes                                       | no claim                                             | yes                                    | yes                                   | no claim                                          |
-| Graphical user interface | no                                        | no                                                   | yes                                    | yes                                   | no                                                |
-| Website                  | [GitHub](https://github.com/oncoray/mirp) | [GitHub](https://github.com/AIM-Harvard/pyradiomics) | [GitHub](https://github.com/cerr/CERR) | [website](https://www.lifexsoft.org/) | [GitHub](https://github.com/mvallieres/radiomics) | 
+|                      | `mirp`                                    | `pyradiomics`                                        | `CERR`                                 | `LIFEx`                               | `radiomics`                                          |
+|----------------------|-------------------------------------------|------------------------------------------------------|----------------------------------------|---------------------------------------|------------------------------------------------------| 
+| Version              | 2.1.1                                     | 3.1.0                                                | unknown                                | 7.4.0                                 | unknown                                              |
+| Last updated         | 3/2024                                    | 5/2023                                               | 2/2024                                 | 6/2023                                | 11/2019                                              |
+| License              | EUPL-1.2                                  | BSD-3                                                | LGPL-2.1                               | custom                                | GPL-3.0                                              |
+| Programming language | Python                                    | Python                                               | MATLAB                                 | Java                                  | MATLAB                                               |
+| IBSI-1 compliant     | yes                                       | partial                                              | yes                                    | yes                                   | no claim                                             |
+| IBSI-2 compliant     | yes                                       | no claim                                             | yes                                    | yes                                   | no claim                                             |
+| Interface            | high-level API                            | high-level API, Docker                               | GUI, high-level API                    | GUI, low-level API                    | low-level API                                        |
+| Website              | [GitHub](https://github.com/oncoray/mirp) | [GitHub](https://github.com/AIM-Harvard/pyradiomics) | [GitHub](https://github.com/cerr/CERR) | [website](https://www.lifexsoft.org/) | [GitHub](https://github.com/mvallieres/radiomics)    | 
+| Publication          |                                           | [@Van_Griethuysen2017-qp]                            | [@Apte2018-sf]                         | [@Nioche2018-jr]                      | [@Vallieres2015-ui, @Vallieres2017-ye, @Zhou2017-zk] | 
+
 Table 1: Comparison of `mirp` with other popular alternatives. Note that compliance with the first and second 
 set of reference standards of the Image Biomarker Standardisation Initiative (IBSI-1 and IBSI-2, respectively) is 
-based on claims of the developers, and not verified by the authors.
+based on claims of the developers, and not verified by the authors. API: application programming interface; 
+GUI: graphical user interface.
 
 # Acknowledgements
 
