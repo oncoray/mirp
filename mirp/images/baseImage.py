@@ -1,7 +1,6 @@
 import copy
 
 import numpy as np
-from typing import Union
 
 
 class BaseImage:
@@ -62,9 +61,9 @@ class BaseImage:
     def to_world_coordinates(
             self,
             x: np.ndarray,
-            origin: Union[None, np.ndarray] = None,
-            orientation: Union[None, np.ndarray] = None,
-            spacing: Union[None, np.ndarray] = None,
+            origin: None | np.ndarray = None,
+            orientation: None | np.ndarray = None,
+            spacing: None | np.ndarray = None,
             trim_result: bool = True
     ) -> np.ndarray:
         """
@@ -111,9 +110,9 @@ class BaseImage:
     def to_voxel_coordinates(
             self,
             x: np.ndarray,
-            origin: Union[None, np.ndarray] = None,
-            orientation: Union[None, np.ndarray] = None,
-            spacing: Union[None, np.ndarray] = None,
+            origin: None | np.ndarray = None,
+            orientation: None | np.ndarray = None,
+            spacing: None | np.ndarray = None,
             trim_result: bool = True
     ) -> np.ndarray:
         """
@@ -159,9 +158,9 @@ class BaseImage:
 
     def get_affine_matrix(
             self,
-            origin: Union[None, np.ndarray] = None,
-            orientation: Union[None, np.ndarray] = None,
-            spacing: Union[None, np.ndarray] = None,
+            origin: None | np.ndarray = None,
+            orientation: None | np.ndarray = None,
+            spacing: None | np.ndarray = None,
             inverse: bool = False
     ) -> np.ndarray:
         """
@@ -212,7 +211,7 @@ class BaseImage:
     def _get_orientation_matrix(
             self,
             size: int = 4,
-            orientation: Union[None, np.ndarray] = None
+            orientation: None | np.ndarray = None
     ) -> np.ndarray:
         """
         This mirrors ImageClass._get_orientation_matrix
@@ -236,7 +235,7 @@ class BaseImage:
     def _get_spacing_matrix(
             self,
             size: int = 4,
-            spacing: Union[None, np.ndarray] = None,
+            spacing: None | np.ndarray = None,
             inverse: bool = False
     ) -> np.ndarray:
         """
@@ -269,7 +268,7 @@ class BaseImage:
 
     def _get_origin_matrix(
             self,
-            origin: Union[None, np.ndarray] = None,
+            origin: None | np.ndarray = None,
             inverse: bool = False
     ) -> np.ndarray:
         """

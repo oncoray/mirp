@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
 
-from typing import Tuple, Optional
-
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import TransformedImage
@@ -39,7 +37,7 @@ def get_intensity_volume_histogram(
         image: GenericImage,
         mask: BaseMask,
         settings: FeatureExtractionSettingsClass
-) -> Tuple[Optional[pd.DataFrame], int]:
+) -> tuple[None | pd.DataFrame, int]:
     """
     Determines the intensity-volume histogram (IVH) for the given mask.
     """
@@ -221,9 +219,10 @@ def get_intensity_volume_histogram(
 
 
 def compute_intensity_volume_histogram_features(
-        df_ivh: Optional[pd.DataFrame],
+        df_ivh: None | pd.DataFrame,
         n_bins: int,
-        settings: FeatureExtractionSettingsClass):
+        settings: FeatureExtractionSettingsClass
+):
     """
     Definitions of intensity-volume histogram features
     :param df_ivh: intensity volume histogram as created using the get_intensity_volume_histogram function

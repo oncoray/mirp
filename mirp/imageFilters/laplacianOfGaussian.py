@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 
-from typing import List, Union
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import LaplacianOfGaussianTransformedImage
 from mirp.imageFilters.utilities import FilterSet2D, FilterSet3D
@@ -19,15 +18,15 @@ class LaplacianOfGaussianFilter(GenericFilter):
             name=name
         )
 
-        self.sigma: Union[float, List[float]] = settings.img_transform.log_sigma
+        self.sigma: float | list[float] = settings.img_transform.log_sigma
         self.sigma_cutoff = settings.img_transform.log_sigma_truncate
         self.pooling_method = settings.img_transform.log_pooling_method
         self.mode = settings.img_transform.log_boundary_condition
 
         # Riesz transformation settings.
-        self.riesz_order: Union[None, List[int], List[List[int]]] = None
+        self.riesz_order: None | list[int] | list[list[int]] = None
         self.riesz_steered: bool = False
-        self.riesz_sigma: Union[None, float, List[float]] = None
+        self.riesz_sigma: None | float | list[float] = None
         if settings.img_transform.has_riesz_filter(x=name):
             self.riesz_order = settings.img_transform.riesz_order
 

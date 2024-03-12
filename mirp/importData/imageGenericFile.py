@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from typing import Union, List, Dict, Set, Optional, Any
+from typing import Any
 
 from mirp.images.baseImage import BaseImage
 from mirp.images.genericImage import GenericImage
@@ -29,10 +29,10 @@ class ImageFile(BaseImage):
             image_modality: None | str = None,
             image_file_type: None | str = None,
             image_data: None | np.ndarray = None,
-            image_origin: None | tuple[float, ...] = None,
+            image_origin: None | tuple[float, float, float] = None,
             image_orientation: None | np.ndarray = None,
-            image_spacing: None | tuple[float, ...] = None,
-            image_dimensions: None | tuple[int, ...] = None,
+            image_spacing: None | tuple[float, float, float] = None,
+            image_dimensions: None | tuple[int, int, int] = None,
             **kwargs
     ):
 
@@ -88,7 +88,7 @@ class ImageFile(BaseImage):
     def copy(self):
         return copy.deepcopy(self)
 
-    def get_identifiers(self, as_hash=False) -> Union[Dict, bytes]:
+    def get_identifiers(self, as_hash=False) -> dict | bytes:
         """
         General identifiers for images. Note that image_origin is not included, as this should be different for every
         slice in a volume.
@@ -114,7 +114,8 @@ class ImageFile(BaseImage):
     def associate_with_mask(
             self,
             mask_list,
-            association_strategy: Union[None, Set[str]] = None):
+            association_strategy: None | set[str] = None
+    ):
         import math
 
         if mask_list is None or len(mask_list) == 0 or association_strategy is None:
@@ -207,7 +208,7 @@ class ImageFile(BaseImage):
 
         return str(np.ravel(self.image_orientation))
 
-    def set_modality(self, modality: Optional[str]):
+    def set_modality(self, modality: None | str):
         from mirp.importData.utilities import supported_image_modalities
         if modality is None:
             return
@@ -431,7 +432,7 @@ class ImageFile(BaseImage):
     def _check_modality(self, raise_error: bool) -> bool:
         return True
 
-    def _get_sample_name_from_file(self) -> Union[None, str]:
+    def _get_sample_name_from_file(self) -> None | str:
         allowed_file_extensions = supported_file_types(self.file_type)
 
         # Do not obtain sample name from the file name if a file name has already been set.
@@ -502,7 +503,7 @@ class ImageFile(BaseImage):
         else:
             return None
 
-    def _get_numeric_sequence_from_file(self) -> Union[None, List[str]]:
+    def _get_numeric_sequence_from_file(self) -> None | list[str]:
         allowed_file_extensions = supported_file_types(self.file_type)
         file_name = bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
 
@@ -762,7 +763,7 @@ class ImageFile(BaseImage):
             image_dimensions=self.image_dimension
         )
 
-    def export_metadata(self, **kwargs) -> Optional[Dict[str, Any]]:
+    def export_metadata(self, **kwargs) -> None | dict[str, Any]:
         metadata = []
         if self.sample_name is not None:
             metadata += [("sample_name", self.sample_name)]
@@ -782,7 +783,7 @@ class MaskFile(ImageFile):
 
     def __init__(
             self,
-            roi_name: Union[None, str, List[str], Dict[str, str]] = None,
+            roi_name: None | str | list[str] | dict[str, str] = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -845,7 +846,7 @@ class MaskFile(ImageFile):
             f"implementation for subclasses."
         )
 
-    def set_modality(self, modality: Optional[str]):
+    def set_modality(self, modality: None | str):
         from mirp.importData.utilities import supported_mask_modalities
         if modality is None:
             return
@@ -921,8 +922,9 @@ class MaskFile(ImageFile):
             if not np.any(self.image_data):
                 if raise_error:
                     warnings.warn(
-                        f"No regions of interest were formed ({self.file_path}. The mask object only contains background "
-                        f"values (False). No voxels were found with True values to identify segmentation masks.",
+                        f"No regions of interest were formed ({self.file_path}. "
+                        f"The mask object only contains background values (False). "
+                        f"No voxels were found with True values to identify segmentation masks.",
                         UserWarning
                     )
             return True
@@ -957,7 +959,7 @@ class MaskFile(ImageFile):
 
         return True
 
-    def to_object(self, **kwargs) -> Optional[List[BaseMask]]:
+    def to_object(self, **kwargs) -> None | list[BaseMask]:
 
         self.load_data()
         self.complete()
@@ -1035,8 +1037,8 @@ class MaskFile(ImageFile):
 
             if len(filtered_labels) == 0:
                 warnings.warn(
-                    f"No regions of interest were formed ({self.file_path}. The available labels {labels} likely did not "
-                    f"match any of the expected labels ({self.roi_name}).",
+                    f"No regions of interest were formed ({self.file_path}. "
+                    f"The available labels {labels} likely did not match any of the expected labels ({self.roi_name}).",
                     UserWarning
                 )
 
@@ -1074,7 +1076,7 @@ class MaskFile(ImageFile):
     def export_metadata(self):
         return
 
-    def export_roi_labels(self) -> Dict[str, Any]:
+    def export_roi_labels(self) -> dict[str, Any]:
 
         if self.image_data is None:
             self.load_data()

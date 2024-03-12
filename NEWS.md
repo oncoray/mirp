@@ -1,3 +1,15 @@
+# Version 2.1.1
+
+## Fixes
+
+- Fixed missing merge changes from version 2.1.0 to the main branch.
+- Fixed reading of `mask_name` from data xml files.
+- `image_name` and `mask_name` configuration parameters are now parsed as single strings if only one value is 
+  specified to match argument-based configuration.
+- Fixed and updated several exception messages.
+- Filter kernel names, specified using `filter_kernels` in xml files, are now correctly parsed as strings instead of 
+  floats.
+
 # Version 2.1.0
 
 ## Major changes

@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 
-from typing import Union, List
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import SeparableWaveletTransformedImage
 from mirp.settings.settingsGeneric import SettingsClass
@@ -19,13 +18,13 @@ class SeparableWaveletFilter(GenericFilter):
         )
 
         # Set wavelet family
-        self.wavelet_family: Union[str, List[str]] = settings.img_transform.separable_wavelet_families
+        self.wavelet_family: str | list[str] = settings.img_transform.separable_wavelet_families
 
         # Wavelet decomposition level
-        self.decomposition_level: Union[int, List[int]] = settings.img_transform.separable_wavelet_decomposition_level
+        self.decomposition_level: int | list[int] = settings.img_transform.separable_wavelet_decomposition_level
 
         # Set the filter set for separable wavelets.
-        self.filter_configuration: Union[str, List[str]] = settings.img_transform.separable_wavelet_filter_set
+        self.filter_configuration: str | list[str] = settings.img_transform.separable_wavelet_filter_set
 
         # Set rotational invariance
         self.rotational_invariance = settings.img_transform.separable_wavelet_rotation_invariance
@@ -89,7 +88,7 @@ class SeparableWaveletFilter(GenericFilter):
         response_voxel_grid = None
 
         # Get filter list.
-        filter_set_list: List[SeparableFilterSet] = self.get_filter_set().permute_filters(
+        filter_set_list: list[SeparableFilterSet] = self.get_filter_set().permute_filters(
             rotational_invariance=self.rotational_invariance,
             require_pre_filter=True
         )

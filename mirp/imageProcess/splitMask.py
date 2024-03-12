@@ -1,14 +1,12 @@
-from typing import Optional, Union, List
-
 import numpy as np
 
 from mirp.masks.baseMask import BaseMask
 
 
 def split_masks(
-        masks: Optional[Union[BaseMask, List[BaseMask]]],
-        boundary_sizes: Optional[List[float]] = None,
-        max_erosion: Optional[float] = 0.8,
+        masks: None | BaseMask | list[BaseMask],
+        boundary_sizes: None | list[float] = None,
+        max_erosion: None | float = 0.8,
         by_slice: bool = False
 ):
     if boundary_sizes is None or len(boundary_sizes) == 0 or \
@@ -22,7 +20,7 @@ def split_masks(
     if not isinstance(masks, list):
         masks = [masks]
 
-    masks: List[BaseMask] = masks
+    masks: list[BaseMask] = masks
     new_masks = []
 
     # Iterate over masks.

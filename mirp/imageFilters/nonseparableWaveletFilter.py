@@ -3,7 +3,6 @@ import copy
 import numpy as np
 import scipy.fft as fft
 
-from typing import List, Union
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import NonSeparableWaveletTransformedImage
 from mirp.settings.settingsGeneric import SettingsClass
@@ -20,16 +19,15 @@ class NonseparableWaveletFilter(GenericFilter):
         )
 
         # Set wavelet family
-        self.wavelet_family: Union[str, List[str]] = settings.img_transform.nonseparable_wavelet_families
+        self.wavelet_family: str | list[str] = settings.img_transform.nonseparable_wavelet_families
 
         # Wavelet decomposition level
-        self.decomposition_level: Union[int, List[int]] = \
-            settings.img_transform.nonseparable_wavelet_decomposition_level
+        self.decomposition_level: int | list[int] = settings.img_transform.nonseparable_wavelet_decomposition_level
 
         # Riesz transformation settings.
-        self.riesz_order: Union[None, List[int], List[List[int]]] = None
+        self.riesz_order: None | list[int] | list[list[int]] = None
         self.riesz_steered: bool = False
-        self.riesz_sigma: Union[None, float, List[float]] = None
+        self.riesz_sigma: None | float | list[float] = None
         if settings.img_transform.has_riesz_filter(x=name):
             self.riesz_order = settings.img_transform.riesz_order
 

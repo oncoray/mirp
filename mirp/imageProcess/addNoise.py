@@ -1,15 +1,13 @@
-from typing import Optional
-
 from mirp.images.genericImage import GenericImage
 
 
 def add_noise(
         image: GenericImage,
-        noise_level: Optional[float] = None,
+        noise_level: None | float = None,
         noise_estimation_method: str = "chang",
-        repetitions: Optional[int] = None,
-        repetition_id: Optional[int] = None
-):
+        repetitions: None | int = None,
+        repetition_id: None | int = None
+) -> GenericImage | list[GenericImage]:
     if (repetitions is None and repetition_id is None) or repetitions == 0:
         return image
 
@@ -21,6 +19,7 @@ def add_noise(
 
     if repetition_id is not None:
         image.add_noise(noise_level=noise_level, noise_iteration_id=repetition_id)
+        return image
 
     else:
         new_images = []

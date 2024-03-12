@@ -7,7 +7,6 @@ import pandas as pd
 
 from copy import deepcopy
 from scipy.special import factorial
-from typing import Union, List
 
 
 def pool_voxel_grids(x1, x2, pooling_method):
@@ -32,13 +31,15 @@ def pool_voxel_grids(x1, x2, pooling_method):
 
 
 class SeparableFilterSet:
-    def __init__(self,
-                 filter_x,
-                 filter_y,
-                 filter_z=None,
-                 pre_filter_x=None,
-                 pre_filter_y=None,
-                 pre_filter_z=None):
+    def __init__(
+            self,
+            filter_x,
+            filter_y,
+            filter_z=None,
+            pre_filter_x=None,
+            pre_filter_y=None,
+            pre_filter_z=None
+    ):
         self.x = filter_x
         self.y = filter_y
         self.z = filter_z
@@ -185,28 +186,36 @@ class SeparableFilterSet:
 
             if require_pre_filter:
                 if self.z is None:
-                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y),
-                                                           pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
-                                                           pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True))]
+                    filter_set_list += [SeparableFilterSet(
+                        filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                        filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                        pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
+                        pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True)
+                    )]
 
                 else:
-                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y),
-                                                           filter_z=filter_obj._translate_filter(permuted_filter_set.z),
-                                                           pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
-                                                           pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True),
-                                                           pre_filter_z=filter_obj._translate_filter(permuted_filter_set.pr_z, True))]
+                    filter_set_list += [SeparableFilterSet(
+                        filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                        filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                        filter_z=filter_obj._translate_filter(permuted_filter_set.z),
+                        pre_filter_x=filter_obj._translate_filter(permuted_filter_set.pr_x, True),
+                        pre_filter_y=filter_obj._translate_filter(permuted_filter_set.pr_y, True),
+                        pre_filter_z=filter_obj._translate_filter(permuted_filter_set.pr_z, True)
+                    )]
 
             else:
                 if self.z is None:
-                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y))]
+                    filter_set_list += [SeparableFilterSet(
+                        filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                        filter_y=filter_obj._translate_filter(permuted_filter_set.y)
+                    )]
 
                 else:
-                    filter_set_list += [SeparableFilterSet(filter_x=filter_obj._translate_filter(permuted_filter_set.x),
-                                                           filter_y=filter_obj._translate_filter(permuted_filter_set.y),
-                                                           filter_z=filter_obj._translate_filter(permuted_filter_set.z))]
+                    filter_set_list += [SeparableFilterSet(
+                        filter_x=filter_obj._translate_filter(permuted_filter_set.x),
+                        filter_y=filter_obj._translate_filter(permuted_filter_set.y),
+                        filter_z=filter_obj._translate_filter(permuted_filter_set.z)
+                    )]
 
         return filter_set_list
 
@@ -312,13 +321,15 @@ class SeparableFilterSet:
 
 
 class FilterSet:
-    def __init__(self,
-                 filter_set: np.ndarray,
-                 transformed=False,
-                 pad_image=True,
-                 riesz_order: Union[None, List[int]] = None,
-                 riesz_steered: bool = False,
-                 riesz_sigma: Union[None, float] = None):
+    def __init__(
+            self,
+            filter_set: np.ndarray,
+            transformed=False,
+            pad_image=True,
+            riesz_order: None | list[int] = None,
+            riesz_steered: bool = False,
+            riesz_sigma: None | float = None
+    ):
 
         self.filter_set = filter_set
         self.transformed = transformed
@@ -354,10 +365,12 @@ class FilterSet:
 
         return distance_grid
 
-    def _pad_image(self,
-                   voxel_grid,
-                   mode,
-                   axis=None):
+    def _pad_image(
+            self,
+            voxel_grid: np.ndarray,
+            mode: str,
+            axis: None | int = None
+    ):
 
         # Modes in scipy and numpy are defined differently.
         if mode == "reflect":
@@ -403,16 +416,16 @@ class FilterSet:
                 original_offset.append(0)
 
         # Set padding
-        voxel_grid = np.pad(voxel_grid,
-                            pad_width=pad_width,
-                            mode=mode)
+        voxel_grid = np.pad(voxel_grid, pad_width=pad_width, mode=mode)
 
         return voxel_grid, original_shape, original_offset
 
     def _transform_filter(self, filter_shape, transform_method="interpolate"):
 
         if transform_method not in ["zero_pad", "interpolate"]:
-            raise ValueError(f"The transform_method argument expects \"zero_pad\" or \"interpolate\". Found: {transform_method}")
+            raise ValueError(
+                f"The transform_method argument expects \"zero_pad\" or \"interpolate\". Found: {transform_method}"
+            )
 
         if self.transformed and not np.equal(self.filter_set.shape, filter_shape).all() and transform_method == \
                 "zero_pad":
@@ -465,7 +478,7 @@ class FilterSet:
         distance_grid = np.power(self._get_distance_grid(), order_sum)
 
         # Set up gradient grid.
-        gradient_grid = np.ones(self.filter_set.shape, dtype=np.complex)
+        gradient_grid = np.ones(self.filter_set.shape, dtype=np.cdouble)
 
         # Iterate over transformation orders.
         for ii, riesz_transform_order in enumerate(self.riesz_order):

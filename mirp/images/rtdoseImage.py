@@ -1,23 +1,16 @@
-from typing import Any
 import numpy as np
+from typing import Any
 from mirp.images.genericImage import GenericImage
 
 
-class CTImage(GenericImage):
+class RTDoseImage(GenericImage):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     @staticmethod
     def get_default_lowest_intensity():
-        return -1000.0
-
-    def update_image_data(self):
-        if self.image_data is None:
-            return
-
-        # Ensure that CT values are Hounsfield units.
-        self.image_data = np.round(self.image_data)
+        return 0.0
 
     def normalise_intensities(
             self,
@@ -27,7 +20,7 @@ class CTImage(GenericImage):
             mask: None | np.ndarray = None
     ):
         """
-        Normalise intensities. NOTE: this changes the class of the object from CTImage to GenericImage as
+        Normalise intensities. NOTE: this changes the class of the object from RTDoseImage to GenericImage as
         normalisation breaks the one-to-one relationship between intensities and Hounsfield units.
         """
         image = super().normalise_intensities(

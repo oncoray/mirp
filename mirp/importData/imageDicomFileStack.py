@@ -1,7 +1,7 @@
 import warnings
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Optional, Any
+from typing import Any
 
 from mirp.importData.imageDicomFile import ImageDicomFile
 from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
@@ -12,13 +12,16 @@ class ImageDicomFileStack(ImageFileStack):
 
     def __init__(
             self,
-            image_file_objects: List[ImageDicomFile],
+            image_file_objects: list[ImageDicomFile],
             **kwargs
     ):
         super().__init__(image_file_objects, **kwargs)
 
         self.series_instance_uid: None | str = None
         self.frame_of_reference_uid: None | str = None
+
+        # Placeholder for sop_instance_uid of objects contained in the stack.
+        self.sop_instance_uid: None | list[str] = None
 
         # Add type hint.
         self.image_file_objects: list[ImageDicomFile] = self.image_file_objects
@@ -188,6 +191,8 @@ class ImageDicomFileStack(ImageFileStack):
         if self.image_dimension is None:
             self.image_dimension = tuple([len(position_table), n_y, n_x])
 
+        if self.sop_instance_uid is None:
+            self.sop_instance_uid = [image.sop_instance_uid for image in self.image_file_objects]
         if self.frame_of_reference_uid is None:
             self.frame_of_reference_uid = self.image_file_objects[0].frame_of_reference_uid
         if self.series_instance_uid is None:
@@ -224,7 +229,7 @@ class ImageDicomFileStack(ImageFileStack):
             "position_x": image_position_x
         }).sort_values(by=["position_z", "position_y", "position_x"], ignore_index=True)
 
-    def export_metadata(self) -> Optional[Dict[str, Any]]:
+    def export_metadata(self) -> None | dict[str, Any]:
         metadata = super().export_metadata()
         additional_metadata = self.image_file_objects[0].export_metadata(only_self=True)
         metadata.update(additional_metadata)

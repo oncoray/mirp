@@ -1,6 +1,6 @@
 import numpy as np
 
-from typing import Union, List, Tuple, Any
+from typing import Any
 from dataclasses import dataclass
 from mirp.settings.utilities import setting_def
 
@@ -86,13 +86,13 @@ class ImagePostProcessingClass:
             self,
             bias_field_correction: bool = False,
             bias_field_correction_n_fitting_levels: int = 1,
-            bias_field_correction_n_max_iterations: Union[int, List[int], None] = None,
+            bias_field_correction_n_max_iterations: int | list[int] | None = None,
             bias_field_convergence_threshold: float = 0.001,
             intensity_normalisation: str = "none",
-            intensity_normalisation_range: Union[List[float], None] = None,
-            intensity_normalisation_saturation: Union[List[float], None] = None,
+            intensity_normalisation_range: list[float] | None = None,
+            intensity_normalisation_saturation: list[float] | None = None,
             tissue_mask_type: str = "relative_range",
-            tissue_mask_range: Union[List[float], None] = None,
+            tissue_mask_range: list[float] | None = None,
             **kwargs
     ):
 
@@ -113,7 +113,7 @@ class ImagePostProcessingClass:
             bias_field_correction_n_fitting_levels = None
 
         # Set n_fitting_levels.
-        self.n_fitting_levels: Union[None, int] = bias_field_correction_n_fitting_levels
+        self.n_fitting_levels: None | int = bias_field_correction_n_fitting_levels
 
         # Set default value for bias_field_correction_n_max_iterations. This is the number of iterations per fitting
         # level.
@@ -155,7 +155,7 @@ class ImagePostProcessingClass:
             bias_field_correction_n_max_iterations = None
 
         # Set n_max_iterations attribute.
-        self.n_max_iterations: Union[List[int], None] = bias_field_correction_n_max_iterations
+        self.n_max_iterations: list[int] | None = bias_field_correction_n_max_iterations
 
         # Check that the convergence threshold is a non-negative number.
         if bias_field_correction:
@@ -175,7 +175,7 @@ class ImagePostProcessingClass:
             bias_field_convergence_threshold = None
 
         # Set convergence_threshold attribute.
-        self.convergence_threshold: Union[None, float] = bias_field_convergence_threshold
+        self.convergence_threshold: None | float = bias_field_convergence_threshold
 
         # Check that intensity_normalisation has the correct values.
         if intensity_normalisation not in ["none", "range", "relative_range", "quantile_range", "standardisation"]:
@@ -255,7 +255,7 @@ class ImagePostProcessingClass:
             intensity_normalisation_range = None
 
         # Set normalisation range.
-        self.intensity_normalisation_range: Union[None, List[float]] = intensity_normalisation_range
+        self.intensity_normalisation_range: None | list[float] = intensity_normalisation_range
 
         # Check intensity normalisation saturation range.
         if intensity_normalisation_saturation is None:
@@ -273,13 +273,14 @@ class ImagePostProcessingClass:
             raise TypeError("The tissue_mask_range parameter can only contain floating point or np.nan values.")
 
         # intensity_normalisation_saturation parameter
-        self.intensity_normalisation_saturation: Union[None, List[float]] = intensity_normalisation_saturation
+        self.intensity_normalisation_saturation: None | list[float] = intensity_normalisation_saturation
 
         # Check tissue_mask_type
         if tissue_mask_type not in ["none", "range", "relative_range"]:
             raise ValueError(
                 f"The tissue_mask_type parameter is expected to have one of the following values: "
-                f"'none', 'range', or 'relative_range'. Found: {tissue_mask_type}.")
+                f"'none', 'range', or 'relative_range'. Found: {tissue_mask_type}."
+            )
 
         # Set tissue_mask_type
         self.tissue_mask_type: str = tissue_mask_type
@@ -313,7 +314,7 @@ class ImagePostProcessingClass:
                         "The tissue_mask_range parameter should consist of two values between 0.0 and 1.0.")
 
         # Set tissue_mask_range.
-        self.tissue_mask_range: Tuple[float, ...] = tuple(tissue_mask_range)
+        self.tissue_mask_range: tuple[float, ...] = tuple(tissue_mask_range)
 
 
 def get_post_processing_settings() -> list[dict[str, Any]]:

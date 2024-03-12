@@ -1,14 +1,13 @@
-from typing import Optional, Tuple
-
 import numpy as np
+from typing import Any
 
 from mirp.images.genericImage import GenericImage
 
 
 def create_tissue_mask(
         image: GenericImage,
-        mask_type: Optional[str] = None,
-        mask_intensity_range: Optional[Tuple[float, ...]] = None
+        mask_type: None | str = None,
+        mask_intensity_range: None | tuple[Any, Any] = None
 ) -> np.ndarray:
 
     if mask_type is None or mask_type == "none":

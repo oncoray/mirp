@@ -2,9 +2,6 @@ import copy
 import warnings
 
 import numpy as np
-
-from typing import Union, List, Optional
-
 import pydicom
 
 from mirp.importData.maskContour import ContourClass
@@ -102,9 +99,9 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
     def to_object(
             self,
-            image: Union[None, ImageFile],
+            image: None | ImageFile,
             **kwargs
-    ) -> Optional[List[BaseMask]]:
+    ) -> list[BaseMask] | None:
 
         if image is None:
             raise TypeError(
@@ -335,6 +332,12 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     orientation_correct = False
                 if not np.isclose(np.round(slice_position), slice_position):
                     position_correct = False
+
+                if not orientation_correct:
+                    break
+
+            if not orientation_correct:
+                break
 
         # If the orientation is not correct, the position should be revised as well.
         if not orientation_correct:
@@ -595,7 +598,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         return roi_mask
 
     @staticmethod
-    def _collect_contours(roi_contour_sequence: pydicom.Dataset) -> Union[None, List[ContourClass]]:
+    def _collect_contours(roi_contour_sequence: pydicom.Dataset) -> None | list[ContourClass]:
         contour_objects = []
 
         for contour_sequence in roi_contour_sequence[(0x3006, 0x0040)]:
@@ -659,12 +662,12 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         return contour_objects
 
     @staticmethod
-    def _merge_contours(contour_objects: List[ContourClass]):
+    def _merge_contours(contour_objects: list[ContourClass]):
         """This function collects contours from the same slice."""
         # Find slice ids for each contour object.
         slice_ids = [contour.which_slice() for contour in contour_objects]
 
-        unique_slice_ids: List[int] = list(np.unique(np.concatenate(slice_ids)))
+        unique_slice_ids: list[int] = list(np.unique(np.concatenate(slice_ids)))
 
         merged_contour_list = []
 

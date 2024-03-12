@@ -1,7 +1,6 @@
 import numpy as np
 import copy
 
-from typing import Union, List
 from mirp.images.genericImage import GenericImage
 from mirp.images.transformedImage import GaussianTransformedImage
 from mirp.imageFilters.genericFilter import GenericFilter
@@ -22,9 +21,9 @@ class GaussianFilter(GenericFilter):
         self.mode = settings.img_transform.gaussian_boundary_condition
 
         # Riesz transformation settings.
-        self.riesz_order: Union[None, List[int], List[List[int]]] = None
+        self.riesz_order: None | list[int] | list[list[int]] = None
         self.riesz_steered: bool = False
-        self.riesz_sigma: Union[None, float, List[float]] = None
+        self.riesz_sigma: None | float | list[float] = None
         if settings.img_transform.has_riesz_filter(x=name):
             self.riesz_order = settings.img_transform.riesz_order
 

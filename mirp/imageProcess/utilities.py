@@ -1,4 +1,4 @@
-from typing import Optional, Union, List, Tuple, Any
+from typing import Any
 
 import numpy as np
 
@@ -9,8 +9,8 @@ from mirp.masks.baseMask import BaseMask
 
 def standard_image_process_checks(
         image: GenericImage,
-        masks: Optional[Union[BaseMask, MaskImage, List[BaseMask]]]
-) -> Tuple[GenericImage, Optional[Union[List[BaseMask], List[MaskImage]]], Optional[bool]]:
+        masks: None | BaseMask | MaskImage | list[BaseMask]
+) -> tuple[GenericImage, None | list[BaseMask] | list[MaskImage], None | bool]:
     if masks is None:
         return image, None, None
     if isinstance(masks, list) and len(masks) == 0:
@@ -36,9 +36,9 @@ def standard_image_process_checks(
 
 def set_intensity_range(
         image: GenericImage,
-        mask: Optional[MaskImage] = None,
-        intensity_range: Optional[Tuple[Any]] = None
-) -> Tuple[float]:
+        mask: None | MaskImage = None,
+        intensity_range: tuple[Any, Any] | None = None
+) -> tuple[float, float]:
     if intensity_range is not None and not np.any(np.isnan(intensity_range)):
         return intensity_range
 
@@ -62,9 +62,9 @@ def set_intensity_range(
 
 
 def extend_intensity_range(
-        intensity_range: tuple[Any, ...],
+        intensity_range: tuple[Any, Any],
         extend_fraction=0.1
-) -> Optional[tuple[Any, ...]]:
+) -> None | tuple[Any, Any]:
     if intensity_range is None or np.any(np.isnan(intensity_range)):
         return intensity_range
 

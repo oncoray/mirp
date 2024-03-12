@@ -1,5 +1,5 @@
 import warnings
-from typing import Union, List, Any
+from typing import Any
 from xml.etree.ElementTree import Element
 
 import numpy as np
@@ -176,9 +176,11 @@ def str2type(strx, data_type, default=None):
         return strx
 
 
-def read_node(tree: Element,
-              node: Union[str, List[str]],
-              deprecated_node: Union[None, str, List[str]] = None):
+def read_node(
+        tree: Element,
+        node: str | list[str],
+        deprecated_node: None | str | list[str] = None
+):
     """
     :param tree: Tree element
     :param node: Name or list of names for each tree element.

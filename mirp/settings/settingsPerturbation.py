@@ -1,4 +1,4 @@
-from typing import Union, List, Any
+from typing import Any
 from dataclasses import dataclass
 from mirp.settings.utilities import setting_def
 
@@ -77,14 +77,14 @@ class ImagePerturbationSettingsClass:
             crop_around_roi: bool = False,
             crop_distance: float = 150.0,
             perturbation_noise_repetitions: int = 0,
-            perturbation_noise_level: Union[None, float] = None,
-            perturbation_rotation_angles: Union[None, List[float], float] = 0.0,
-            perturbation_translation_fraction: Union[None, List[float], float] = 0.0,
+            perturbation_noise_level: None | float = None,
+            perturbation_rotation_angles: None | float | list[float] = 0.0,
+            perturbation_translation_fraction: None | float | list[float] = 0.0,
             perturbation_roi_adapt_type: str = "distance",
-            perturbation_roi_adapt_size: Union[None, List[float], float] = 0.0,
+            perturbation_roi_adapt_size: None | float | list[float] = 0.0,
             perturbation_roi_adapt_max_erosion: float = 0.8,
             perturbation_randomise_roi_repetitions: int = 0,
-            roi_split_boundary_size: Union[None, List[float], float] = 0.0,
+            roi_split_boundary_size: None | float | list[float] = 0.0,
             roi_split_max_erosion: float = 0.6,
             **kwargs
     ):
@@ -114,7 +114,7 @@ class ImagePerturbationSettingsClass:
                 raise ValueError(f"The noise level cannot be negative. Found: {perturbation_noise_level}")
 
         # Set noise level.
-        self.noise_level: Union[None, float] = perturbation_noise_level
+        self.noise_level: None | float = perturbation_noise_level
 
         # Convert perturbation_rotation_angles to list, if necessary.
         if not isinstance(perturbation_rotation_angles, list):
@@ -125,7 +125,7 @@ class ImagePerturbationSettingsClass:
             raise TypeError(f"Not all values for perturbation_rotation_angles are floating point values.")
 
         # Set rotation_angles.
-        self.rotation_angles: List[float] = perturbation_rotation_angles
+        self.rotation_angles: list[float] = perturbation_rotation_angles
 
         # Convert perturbation_translation_fraction to list, if necessary.
         if not isinstance(perturbation_translation_fraction, list):
@@ -137,11 +137,12 @@ class ImagePerturbationSettingsClass:
 
         # Check that the translation fractions lie between 0.0 and 1.0.
         if not all(0.0 <= ii < 1.0 for ii in perturbation_translation_fraction):
-            raise ValueError("Not all values for perturbation_translation_fraction lie between 0.0 and 1.0, "
-                             "not including 1.0.")
+            raise ValueError(
+                "Not all values for perturbation_translation_fraction lie between 0.0 and 1.0, not including 1.0."
+            )
 
         # Set translation_fraction.
-        self.translation_fraction: List[float] = perturbation_translation_fraction
+        self.translation_fraction: list[float] = perturbation_translation_fraction
 
         # Check roi adaptation type.
         if perturbation_roi_adapt_type not in ["distance", "fraction"]:
@@ -164,7 +165,7 @@ class ImagePerturbationSettingsClass:
                              "one or more values were less.")
 
         # Set roi_adapt_size
-        self.roi_adapt_size: List[float] = perturbation_roi_adapt_size
+        self.roi_adapt_size: list[float] = perturbation_roi_adapt_size
 
         # Check that perturbation_roi_adapt_max_erosion is between 0.0 and 1.0.
         if not 0.0 <= perturbation_roi_adapt_max_erosion <= 1.0:
@@ -206,12 +207,12 @@ class ImagePerturbationSettingsClass:
             raise ValueError("Not all values for roi_split_boundary_size are positive.")
 
         # Set roi_boundary_size.
-        self.roi_boundary_size: List[float] = roi_split_boundary_size
+        self.roi_boundary_size: list[float] = roi_split_boundary_size
 
         # Initially local variables
-        self.translate_x: Union[None, float] = None
-        self.translate_y: Union[None, float] = None
-        self.translate_z: Union[None, float] = None
+        self.translate_x: None | float = None
+        self.translate_y: None | float = None
+        self.translate_z: None | float = None
 
 
 def get_perturbation_settings() -> list[dict[str, Any]]:

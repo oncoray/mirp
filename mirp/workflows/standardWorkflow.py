@@ -3,7 +3,7 @@ import logging
 import sys
 import warnings
 
-from typing import Optional, Union, Tuple, List, Generator
+from typing import Generator
 
 import pandas as pd
 import numpy as np
@@ -22,15 +22,15 @@ class StandardWorkflow(BaseWorkflow):
     def __init__(
             self,
             settings: SettingsClass,
-            settings_name: Optional[str] = None,
+            settings_name: None | str = None,
             write_features: bool = False,
             export_features: bool = False,
             write_images: bool = False,
             export_images: bool = False,
-            noise_iteration_id: Optional[int] = None,
-            rotation: Optional[float] = None,
-            translation: Optional[Tuple[float, ...]] = None,
-            new_image_spacing: Optional[Tuple[float, ...]] = None,
+            noise_iteration_id: None | int = None,
+            rotation: None | float = None,
+            translation: None | tuple[float, ...] = None,
+            new_image_spacing: None | tuple[float, ...] = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -67,7 +67,7 @@ class StandardWorkflow(BaseWorkflow):
 
         return " ".join(message_str)
 
-    def standard_image_processing(self) -> Tuple[GenericImage, List[BaseMask]]:
+    def standard_image_processing(self) -> tuple[GenericImage, list[BaseMask]]:
         from mirp.imageProcess.cropping import crop
         from mirp.imageProcess.tissueMask import create_tissue_mask
         from mirp.imageProcess.alterMask import alter_mask
@@ -97,7 +97,7 @@ class StandardWorkflow(BaseWorkflow):
             )
 
         # Add type hints and remove masks that are empty.
-        masks: List[BaseMask] = [mask for mask in masks if not mask.is_empty() and not mask.roi.is_empty_mask()]
+        masks: list[BaseMask] = [mask for mask in masks if not mask.is_empty() and not mask.roi.is_empty_mask()]
         if len(masks) == 0:
             warnings.warn("No segmentation masks were read.")
             return
@@ -131,7 +131,8 @@ class StandardWorkflow(BaseWorkflow):
                 normalisation_method=self.settings.post_process.intensity_normalisation,
                 intensity_range=self.settings.post_process.intensity_normalisation_range,
                 saturation_range=self.settings.post_process.intensity_normalisation_saturation,
-                mask=tissue_mask)
+                mask=tissue_mask
+            )
 
         # Estimate noise level.
         estimated_noise_level = self.settings.perturbation.noise_level
@@ -299,7 +300,7 @@ class StandardWorkflow(BaseWorkflow):
 
         # Placeholders
         feature_set_details = None
-        feature_list: List[pd.DataFrame] = []
+        feature_list: list[pd.DataFrame] = []
         image_list = []
         mask_list = []
 
@@ -308,8 +309,8 @@ class StandardWorkflow(BaseWorkflow):
                 continue
 
             # Type hinting
-            image: Union[GenericImage, TransformedImage] = image
-            masks: List[Optional[BaseMask]] = masks
+            image: GenericImage | TransformedImage = image
+            masks: list[None | BaseMask] = masks
 
             if self.write_features or self.export_features:
                 image_feature_list = []
@@ -347,8 +348,8 @@ class StandardWorkflow(BaseWorkflow):
                         if mask is None:
                             continue
                         mask_list += [mask.export(write_all=write_all_masks, export_format=image_export_format)]
-                        # The standard_image_processing workflow only generates one set of masks - that which may change is
-                        # image. It is not necessary to export masks more than once.
+                        # The standard_image_processing workflow only generates one set of masks - that which may
+                        # change is image. It is not necessary to export masks more than once.
                         masks_exported = True
 
         feature_set = None
@@ -557,8 +558,8 @@ class StandardWorkflow(BaseWorkflow):
             self,
             image: GenericImage,
             mask: BaseMask,
-            settings: Optional[Union[SettingsClass, FeatureExtractionSettingsClass]] = None
-    ) -> Tuple[GenericImage, BaseMask]:
+            settings: None | SettingsClass | FeatureExtractionSettingsClass = None
+    ) -> tuple[GenericImage, BaseMask]:
         from mirp.imageProcess.discretiseImage import discretise_image
 
         if settings is None:
@@ -657,7 +658,7 @@ class StandardWorkflow(BaseWorkflow):
             self,
             output_slices: bool = False,
             crop_size: None | list[float] | list[int] = None
-    ) -> Generator[Tuple[GenericImage, BaseMask], None, None]:
+    ) -> Generator[tuple[GenericImage, BaseMask], None, None]:
         from mirp.imageProcess.cropping import crop
 
         # Avoid updating by reference.
@@ -708,7 +709,7 @@ class StandardWorkflow(BaseWorkflow):
                     continue
 
                 # Type hinting
-                image: Union[GenericImage] = image
+                image: GenericImage = image
                 mask: BaseMask = mask
 
                 # Pre-crop the image

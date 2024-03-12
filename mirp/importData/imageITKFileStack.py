@@ -3,8 +3,8 @@ import warnings
 import itk
 import numpy as np
 import pandas as pd
-from typing import List
 
+from mirp.importData.imageGenericFile import MaskFile
 from mirp.importData.imageITKFile import ImageITKFile
 from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
 
@@ -13,7 +13,7 @@ class ImageITKFileStack(ImageFileStack):
 
     def __init__(
             self,
-            image_file_objects: List[ImageITKFile],
+            image_file_objects: list[ImageITKFile],
             **kwargs
     ):
         super().__init__(image_file_objects, **kwargs)
@@ -156,7 +156,7 @@ class MaskITKFileStack(ImageITKFileStack, MaskFileStack):
 
         super().complete(remove_metadata=False, force=force)
 
-        image_object = copy.deepcopy(self.image_file_objects[0])
+        image_object: MaskFile = copy.deepcopy(self.image_file_objects[0])
         image_object.complete(remove_metadata=False)
 
         self.roi_name = image_object.roi_name

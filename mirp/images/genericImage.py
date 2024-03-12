@@ -1073,7 +1073,7 @@ class GenericImage(BaseImage):
 
     def get_supervoxels(
             self,
-            intensity_range: tuple[float]
+            intensity_range: tuple[float, float]
     ):
         """Extracts supervoxels from an image"""
 

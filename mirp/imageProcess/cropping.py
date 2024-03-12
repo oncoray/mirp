@@ -1,5 +1,3 @@
-from typing import Union, List, Tuple, Optional
-
 import numpy as np
 
 from mirp.imageProcess.utilities import standard_image_process_checks
@@ -10,13 +8,13 @@ from mirp.masks.baseMask import BaseMask
 
 def crop(
         image: GenericImage,
-        masks: Union[BaseMask, MaskImage, List[BaseMask]],
+        masks: BaseMask | MaskImage | list[BaseMask],
         boundary: float = 0.0,
         xy_only: bool = False,
         z_only: bool = False,
         in_place: bool = False,
         by_slice: bool = False
-) -> Tuple[GenericImage, Optional[Union[BaseMask, MaskImage, List[BaseMask]]]]:
+) -> tuple[GenericImage, None | BaseMask | MaskImage | list[BaseMask]]:
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
 
@@ -24,9 +22,9 @@ def crop(
     if return_list is None:
         return image, None
 
-    bounds_z: Optional[List[int]] = None
-    bounds_y: Optional[List[int]] = None
-    bounds_x: Optional[List[int]] = None
+    bounds_z: None | list[int] = None
+    bounds_y: None | list[int] = None
+    bounds_x: None | list[int] = None
 
     for mask in masks:
         current_bounds_z, current_bounds_y, current_bounds_x = mask.get_bounding_box()
@@ -93,11 +91,11 @@ def crop(
 
 def crop_image_to_size(
         image: GenericImage,
-        masks: Union[BaseMask, MaskImage, List[BaseMask]],
-        crop_size: List[float],
-        crop_center: Optional[List[float]] = None,
+        masks: BaseMask | MaskImage | list[BaseMask],
+        crop_size: list[float],
+        crop_center: None | list[float] = None,
         in_place: bool = False
-) -> Tuple[GenericImage, Union[None, BaseMask, MaskImage, List[BaseMask]]]:
+) -> tuple[GenericImage, None | BaseMask | MaskImage | list[BaseMask]]:
 
     image, masks, return_list = standard_image_process_checks(image=image, masks=masks)
     if return_list is None:
