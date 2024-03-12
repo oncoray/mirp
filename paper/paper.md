@@ -97,7 +97,7 @@ used alternatives are listed in Table 1.
 | IBSI-2 compliant     | yes                                       | no claim                                             | yes                                    | yes                                   | no claim                                             |
 | Interface            | high-level API                            | high-level API, Docker                               | GUI, high-level API                    | GUI, low-level API                    | low-level API                                        |
 | Website              | [GitHub](https://github.com/oncoray/mirp) | [GitHub](https://github.com/AIM-Harvard/pyradiomics) | [GitHub](https://github.com/cerr/CERR) | [website](https://www.lifexsoft.org/) | [GitHub](https://github.com/mvallieres/radiomics)    | 
-| Publication          |                                           | [@Van_Griethuysen2017-qp]                            | [@Apte2018-sf]                         | [@Nioche2018-jr]                      | [@Vallieres2015-ui, @Vallieres2017-ye, @Zhou2017-zk] | 
+| Publication          |                                           | [@Van_Griethuysen2017-qp]                            | [@Apte2018-sf]                         | [@Nioche2018-jr]                      | [@Vallieres2015-ui; @Vallieres2017-ye; @Zhou2017-zk] | 
 
 Table 1: Comparison of `mirp` with other popular alternatives. Note that compliance with the first and second 
 set of reference standards of the Image Biomarker Standardisation Initiative (IBSI-1 and IBSI-2, respectively) is 
