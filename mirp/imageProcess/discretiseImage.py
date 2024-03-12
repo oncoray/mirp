@@ -1,5 +1,5 @@
 import warnings
-from typing import Optional, Tuple, Any
+from typing import Any
 
 import numpy as np
 
@@ -9,11 +9,11 @@ from mirp.masks.baseMask import BaseMask
 
 def discretise_image(
         image: GenericImage,
-        mask: Optional[BaseMask],
-        discretisation_method: Optional[str] = "none",
-        intensity_range: Optional[Tuple[Any, Any]] = None,
-        bin_width: Optional[int] = None,
-        bin_number: Optional[int] = None,
+        mask: None | BaseMask,
+        discretisation_method: None | str = "none",
+        intensity_range: None | tuple[Any, Any] = None,
+        bin_width: None | int = None,
+        bin_number: None | int = None,
         in_place: bool = False
 ):
     if image.is_empty():

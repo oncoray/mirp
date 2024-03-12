@@ -1,6 +1,5 @@
 import copy
 import warnings
-from typing import Union, List
 from xml.etree.ElementTree import Element
 from xml.etree import ElementTree as ElemTree
 
@@ -130,9 +129,9 @@ def create_settings_object(
 
 def import_configuration_settings(
         compute_features: bool,
-        path: Union[None, str] = None,
+        path: None | str = None,
         **kwargs
-) -> List[SettingsClass]:
+) -> list[SettingsClass]:
     import os.path
 
     # Make a copy of the kwargs argument to avoid updating by reference.

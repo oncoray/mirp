@@ -1,8 +1,6 @@
 import os.path
 import numpy as np
 
-from typing import Union, List, Tuple
-
 from mirp.importData.imageGenericFile import ImageFile, MaskFile
 
 
@@ -10,19 +8,20 @@ class ImageNumpyFile(ImageFile):
 
     def __init__(
             self,
-            file_path: Union[None, str] = None,
-            dir_path: Union[None, str] = None,
-            sample_name: Union[None, str, List[str]] = None,
-            file_name: Union[None, str] = None,
-            image_name: Union[None, str] = None,
-            image_modality: Union[None, str] = None,
-            image_file_type: Union[None, str] = None,
-            image_data: Union[None, np.ndarray] = None,
-            image_origin: Union[None, Tuple[float, ...]] = None,
-            image_orientation: Union[None, np.ndarray] = None,
-            image_spacing: Union[None, Tuple[float, ...]] = None,
-            image_dimensions: Union[None, Tuple[int, ...]] = None,
-            **kwargs):
+            file_path: None | str = None,
+            dir_path: None | str = None,
+            sample_name: None | str | list[str] = None,
+            file_name: None | str = None,
+            image_name: None | str = None,
+            image_modality: None | str = None,
+            image_file_type: None | str = None,
+            image_data: None | np.ndarray = None,
+            image_origin: None | tuple[float, float, float] = None,
+            image_orientation: None | np.ndarray = None,
+            image_spacing: None | tuple[float, float, float] = None,
+            image_dimensions: None | tuple[int, int, int] = None,
+            **kwargs
+    ):
 
         super().__init__(
             file_path=file_path,

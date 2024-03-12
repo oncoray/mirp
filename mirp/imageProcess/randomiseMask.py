@@ -1,5 +1,3 @@
-from typing import Union, List
-
 from mirp.imageProcess.utilities import standard_image_process_checks
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
@@ -9,7 +7,7 @@ from mirp.masks.baseMask import BaseMask
 
 def randomise_mask(
         image: GenericImage,
-        masks: Union[BaseMask, MaskImage, List[BaseMask]],
+        masks: BaseMask | MaskImage | list[BaseMask],
         boundary: float = 25.0,
         repetitions: int = 1,
         by_slice: bool = False

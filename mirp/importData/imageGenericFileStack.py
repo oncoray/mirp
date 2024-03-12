@@ -1,7 +1,6 @@
 import copy
 import itertools
 import warnings
-from typing import Union, List
 
 import numpy as np
 import pandas as pd
@@ -18,13 +17,14 @@ class ImageFileStack(ImageFile):
 
     def __init__(
             self,
-            image_file_objects: Union[List[ImageFile], List[ImageDicomFile], List[ImageITKFile], List[ImageNumpyFile]],
-            dir_path: Union[None, str] = None,
-            sample_name: Union[None, str] = None,
-            image_name: Union[None, str, List[str]] = None,
-            image_modality: Union[None, str] = None,
-            image_file_type: Union[None, str] = None,
-            **kwargs):
+            image_file_objects: list[ImageFile] | list[ImageDicomFile] | list[ImageITKFile] | list[ImageNumpyFile],
+            dir_path: None | str = None,
+            sample_name: None | str = None,
+            image_name: None | str | list[str] = None,
+            image_modality: None | str = None,
+            image_file_type: None | str = None,
+            **kwargs
+    ):
 
         if dir_path is None:
             dir_path = image_file_objects[0].dir_path
@@ -62,7 +62,7 @@ class ImageFileStack(ImageFile):
         )
 
         self.image_file_objects = image_file_objects
-        self.slice_positions: Union[None, List[float]] = None
+        self.slice_positions: None | list[float] = None
 
     def create(self):
         # Import locally to avoid potential circular references.
@@ -210,8 +210,9 @@ class MaskFileStack(ImageFileStack, MaskFile):
 
     def __init__(
             self,
-            image_file_objects: Union[List[MaskFile], List[MaskDicomFile], List[MaskITKFile], List[MaskNumpyFile]],
-            **kwargs):
+            image_file_objects: list[MaskFile] | list[MaskDicomFile] | list[MaskITKFile] | list[MaskNumpyFile],
+            **kwargs
+    ):
 
         super().__init__(image_file_objects=image_file_objects, **kwargs)
 

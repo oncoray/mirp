@@ -1,7 +1,5 @@
 import copy
 
-from typing import List
-
 from mirp.importData.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
 from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
 
@@ -10,7 +8,7 @@ class ImageNumpyFileStack(ImageFileStack):
 
     def __init__(
             self,
-            image_file_objects: List[ImageNumpyFile],
+            image_file_objects: list[ImageNumpyFile],
             **kwargs
     ):
         super().__init__(
@@ -65,8 +63,9 @@ class MaskNumpyFileStack(ImageNumpyFileStack, MaskFileStack):
 
     def __init__(
             self,
-            image_file_objects: List[MaskNumpyFile],
-            **kwargs):
+            image_file_objects: list[MaskNumpyFile],
+            **kwargs
+    ):
 
         super().__init__(
             image_file_objects=image_file_objects,

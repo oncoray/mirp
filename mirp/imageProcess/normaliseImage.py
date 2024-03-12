@@ -1,5 +1,4 @@
-from typing import Optional, Tuple, Any
-
+from typing import Any
 import numpy as np
 
 from mirp.images.genericImage import GenericImage
@@ -7,10 +6,10 @@ from mirp.images.genericImage import GenericImage
 
 def normalise_image(
         image: GenericImage,
-        normalisation_method: Optional[str] = None,
-        intensity_range: Optional[Tuple[Any, Any]] = None,
-        saturation_range: Optional[Tuple[Any, Any]] = None,
-        mask: Optional[np.ndarray] = None,
+        normalisation_method: None | str = None,
+        intensity_range: None | tuple[Any, Any] = None,
+        saturation_range: None | tuple[Any, Any] = None,
+        mask: None | np.ndarray = None,
         in_place: bool = True
 ):
     if intensity_range is None:

@@ -1,9 +1,7 @@
 import copy
-
 import numpy as np
 
 from mirp.importData.imageGenericFile import ImageFile
-from typing import Union, List
 
 
 class ContourClass:
@@ -52,7 +50,7 @@ class ContourClass:
 
         return self
 
-    def which_slice(self) -> List[int]:
+    def which_slice(self) -> list[int]:
 
         if not self.representation == "voxel":
             raise ValueError("Contours should be represented in voxel space, not world space. Contact the devs.")
@@ -68,10 +66,10 @@ class ContourClass:
     def merge(
             self,
             other_contours=None,
-            slice_id: Union[None, int] = None):
+            slice_id: None | int = None):
 
         # This function helps flatten nested contours.
-        def _contour_extractor(contour_object_list, slice_id: Union[None, int]):
+        def _contour_extractor(contour_object_list, slice_id: None | int):
             new_contour_list = []
             for contour_object in contour_object_list:
                 for contour in contour_object.contour:
@@ -286,7 +284,8 @@ def poly2grid(verts, lines, spacing, origin, shape):
 
 
 def ray_triangle_intersect(ray_orig, ray_dir, vert_1, vert_2, vert_3):
-    # Implementation of the Moeller-Trumbore intersection algorithm to determine intersection point between ray and triangle
+    # Implementation of the Moeller-Trumbore intersection algorithm to determine intersection point
+    # between ray and triangle
     # This point satisfies ray_orig + t * ray_dir = (1 - u -v) * vert_1 + u * vert_2 + v * vert_3
     # See DOI: 10.1145/1198555.1198746
     # Back facing triangles are allowed

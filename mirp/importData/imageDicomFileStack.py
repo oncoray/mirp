@@ -1,7 +1,7 @@
 import warnings
 import numpy as np
 import pandas as pd
-from typing import List, Dict, Optional, Any
+from typing import Any
 
 from mirp.importData.imageDicomFile import ImageDicomFile
 from mirp.importData.imageGenericFileStack import ImageFileStack, MaskFileStack
@@ -12,7 +12,7 @@ class ImageDicomFileStack(ImageFileStack):
 
     def __init__(
             self,
-            image_file_objects: List[ImageDicomFile],
+            image_file_objects: list[ImageDicomFile],
             **kwargs
     ):
         super().__init__(image_file_objects, **kwargs)
@@ -229,7 +229,7 @@ class ImageDicomFileStack(ImageFileStack):
             "position_x": image_position_x
         }).sort_values(by=["position_z", "position_y", "position_x"], ignore_index=True)
 
-    def export_metadata(self) -> Optional[Dict[str, Any]]:
+    def export_metadata(self) -> None | dict[str, Any]:
         metadata = super().export_metadata()
         additional_metadata = self.image_file_objects[0].export_metadata(only_self=True)
         metadata.update(additional_metadata)

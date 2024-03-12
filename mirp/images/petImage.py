@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Optional, Tuple, Any
+from typing import Any
 from mirp.images.genericImage import GenericImage
 
 
@@ -25,10 +25,10 @@ class PETImage(GenericImage):
 
     def normalise_intensities(
             self,
-            normalisation_method: Optional[str] = "none",
-            intensity_range: Optional[Tuple[Any, Any]] = None,
-            saturation_range: Optional[Tuple[Any, Any]] = None,
-            mask: Optional[np.ndarray] = None
+            normalisation_method: None | str = "none",
+            intensity_range: None | tuple[Any, Any] = None,
+            saturation_range: None | tuple[Any, Any] = None,
+            mask: None | np.ndarray = None
     ):
         """
         Normalise intensities. NOTE: this changes the class of the object from PETImage to GenericImage as

@@ -1,7 +1,7 @@
 import numpy as np
 import datetime
 
-from typing import Union, Tuple, List, Optional, Dict, Any
+from typing import Any
 
 from mirp.importData.imageSUV import SUVscalingObj
 from mirp.importData.imageDicomFile import ImageDicomFile
@@ -11,19 +11,20 @@ from mirp.importData.utilities import parse_image_correction, convert_dicom_time
 class ImageDicomFilePT(ImageDicomFile):
     def __init__(
             self,
-            file_path: Union[None, str] = None,
-            dir_path: Union[None, str] = None,
-            sample_name: Union[None, str, List[str]] = None,
-            file_name: Union[None, str] = None,
-            image_name: Union[None, str] = None,
-            image_modality: Union[None, str] = None,
-            image_file_type: Union[None, str] = None,
-            image_data: Union[None, np.ndarray] = None,
-            image_origin: Union[None, Tuple[float]] = None,
-            image_orientation: Union[None, np.ndarray] = None,
-            image_spacing: Union[None, Tuple[float]] = None,
-            image_dimensions: Union[None, Tuple[int]] = None,
-            **kwargs):
+            file_path: None | str = None,
+            dir_path: None | str = None,
+            sample_name: None | str | list[str] = None,
+            file_name: None | str = None,
+            image_name: None | str = None,
+            image_modality: None | str = None,
+            image_file_type: None | str = None,
+            image_data: None | np.ndarray = None,
+            image_origin: None | tuple[float, float, float] = None,
+            image_orientation: None | np.ndarray = None,
+            image_spacing: None | tuple[float, float, float] = None,
+            image_dimensions: None | tuple[int, int, int] = None,
+            **kwargs
+    ):
 
         super().__init__(
             file_path=file_path,
@@ -62,7 +63,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Set image data.
         self.image_data = image_data
 
-    def export_metadata(self, self_only=False, **kwargs) -> Optional[Dict[str, Any]]:
+    def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
             metadata = super().export_metadata()
         else:

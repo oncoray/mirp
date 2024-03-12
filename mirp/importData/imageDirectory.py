@@ -2,7 +2,6 @@ import os
 import os.path
 import copy
 
-from typing import Union, List, Dict
 from itertools import chain
 from mirp.importData.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
     isolate_sample_name
@@ -15,34 +14,35 @@ class ImageDirectory:
     def __init__(
             self,
             directory,
-            sample_name: Union[None, str, List[str]] = None,
-            image_name: Union[None, str] = None,
-            image_sub_folder: Union[None, str] = None,
-            image_modality: Union[None, str] = None,
-            image_file_type: Union[None, str] = None,
+            sample_name: None | str | list[str] = None,
+            image_name: None | str = None,
+            image_sub_folder: None | str = None,
+            image_modality: None | str = None,
+            image_file_type: None | str = None,
             stack_images: str = "auto",
-            **kwargs):
+            **kwargs
+    ):
 
         if sample_name is not None and not isinstance(sample_name, list):
             sample_name = [sample_name]
 
         self.image_directory = os.path.normpath(directory)
-        self.sample_name: Union[None, List[str]] = sample_name
+        self.sample_name: None | list[str] = sample_name
         self.image_name = image_name
         self.sub_folder = os.path.normpath(image_sub_folder) if image_sub_folder is not None else None
 
         if isinstance(image_modality, str):
             image_modality = image_modality.lower()
-        self.modality: Union[None, str] = image_modality
+        self.modality: None | str = image_modality
 
         if isinstance(image_file_type, str):
             image_file_type = image_file_type.lower()
-        self.file_type: Union[None, str] = image_file_type
+        self.file_type: None | str = image_file_type
 
         self.stack_images = stack_images
 
         # image_files are set using create_images.
-        self.image_files: Union[None, List[str], List[ImageFile]] = None
+        self.image_files: None | list[str] | list[ImageFile] = None
 
         # set object type, object class and object stack class.
         self.object_type = "image"
@@ -75,7 +75,9 @@ class ImageDirectory:
         path_info = list(os.walk(self.image_directory))
 
         if len(path_info) == 0:
-            raise ValueError(f"The {self.image_directory} directory is empty, and no {self.object_type}s could be found.")
+            raise ValueError(
+                f"The {self.image_directory} directory is empty, and no {self.object_type}s could be found."
+            )
 
         # Find entries that have associated files.
         path_info = [
@@ -100,7 +102,7 @@ class ImageDirectory:
                     f"substructure {self.sub_folder}.")
 
         # Add in sample name placeholder to path-information.
-        path_info: List = [list(path_info_element) + [None] for path_info_element in path_info]
+        path_info = [list(path_info_element) + [None] for path_info_element in path_info]
 
         # Find entries that include files of the right file-type. First, we keep only those files that are of the
         # correct file type. Then we filter out entries where no files remain. Note that if file_type is not externally
@@ -356,7 +358,7 @@ class ImageDirectory:
 
         return path_info
 
-    def _create_images(self) -> List[ImageFile]:
+    def _create_images(self) -> list[ImageFile]:
         """
         Create image objects from files in the directory.
 
@@ -385,7 +387,9 @@ class ImageDirectory:
 
                 if self.image_name is not None:
                     # Skip files that do not contain the image_name pattern.
-                    if not match_file_name(current_item, pattern=self.image_name, file_extension=allowed_file_extensions):
+                    if not match_file_name(
+                            current_item, pattern=self.image_name, file_extension=allowed_file_extensions
+                    ):
                         continue
 
                 image_file_list.append(current_item)
@@ -452,7 +456,7 @@ class ImageDirectory:
     def _autostack(self):
 
         # Find stackable objects.
-        stackable_image_file_list: List[ImageFile] = [
+        stackable_image_file_list: list[ImageFile] = [
             image_file_object for image_file_object in self.image_files
             if image_file_object.is_stackable(stack_images=self.stack_images)
         ]
@@ -497,8 +501,9 @@ class MaskDirectory(ImageDirectory):
 
     def __init__(
             self,
-            roi_name: Union[None, str, List[str], Dict[str, str]] = None,
-            **kwargs):
+            roi_name: None | str | list[str] | dict[str, str] = None,
+            **kwargs
+    ):
         super().__init__(**kwargs)
 
         # set object type, object class and object stack class.

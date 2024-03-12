@@ -1,15 +1,13 @@
-from typing import Union, List, Optional
-
 from mirp.images.maskImage import MaskImage
 from mirp.importData.utilities import flatten_list
 from mirp.masks.baseMask import BaseMask
 
 
 def alter_mask(
-        masks: Union[BaseMask, MaskImage, List[BaseMask]],
-        alteration_size: Optional[List[float]] = None,
-        alteration_method: Optional[str] = None,
-        max_erosion: Optional[float] = 0.8,
+        masks: BaseMask | MaskImage | list[BaseMask],
+        alteration_size: None | list[float] = None,
+        alteration_method: None | str = None,
+        max_erosion: None | float = 0.8,
         by_slice: bool = False
 ):
     """ Adapt roi size by growing or shrinking the roi """

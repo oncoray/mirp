@@ -1,6 +1,6 @@
 import copy
 import pandas as pd
-from typing import Optional, List, Dict, Any, Union
+from typing import Any
 
 from mirp.images.genericImage import GenericImage
 
@@ -16,19 +16,19 @@ class TransformedImage(GenericImage):
 class GaborTransformedImage(TransformedImage):
     def __init__(
             self,
-            sigma_parameter: Optional[float] = None,
-            gamma_parameter: Optional[float] = None,
-            lambda_parameter: Optional[float] = None,
-            theta_parameter: Optional[float] = None,
-            pool_theta: Optional[bool] = None,
-            response_type: Optional[str] = None,
-            rotation_invariance: Optional[bool] = None,
-            pooling_method: Optional[str] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            sigma_parameter: None | float = None,
+            gamma_parameter: None | float = None,
+            lambda_parameter: None | float = None,
+            theta_parameter: None | float = None,
+            pool_theta: None | bool = None,
+            response_type: None | str = None,
+            rotation_invariance: None | bool = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -52,7 +52,7 @@ class GaborTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         descriptors += [
@@ -72,7 +72,7 @@ class GaborTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -100,7 +100,7 @@ class GaborTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = [
@@ -129,13 +129,13 @@ class GaborTransformedImage(TransformedImage):
 class GaussianTransformedImage(TransformedImage):
     def __init__(
             self,
-            sigma_parameter: Optional[float] = None,
-            sigma_cutoff_parameter: Optional[float] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            sigma_parameter: None | float = None,
+            sigma_cutoff_parameter: None | float = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -153,7 +153,7 @@ class GaussianTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         descriptors += [
@@ -163,7 +163,7 @@ class GaussianTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -183,7 +183,7 @@ class GaussianTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = [
@@ -202,14 +202,14 @@ class GaussianTransformedImage(TransformedImage):
 class LaplacianOfGaussianTransformedImage(TransformedImage):
     def __init__(
             self,
-            sigma_parameter: Optional[float] = None,
-            sigma_cutoff_parameter: Optional[float] = None,
-            pooling_method: Optional[str] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            sigma_parameter: None | float = None,
+            sigma_cutoff_parameter: None | float = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -228,7 +228,7 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         descriptors += [
@@ -238,7 +238,7 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -261,7 +261,7 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = [
@@ -280,16 +280,16 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
 class LawsTransformedImage(TransformedImage):
     def __init__(
             self,
-            laws_kernel: Optional[Union[str, List[str]]] = None,
-            delta_parameter: Optional[int] = None,
-            energy_map: Optional[bool] = None,
-            rotation_invariance: Optional[bool] = None,
-            pooling_method: Optional[str] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            laws_kernel: None | str | list[str] = None,
+            delta_parameter: None | int = None,
+            energy_map: None | bool = None,
+            rotation_invariance: None | bool = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -310,7 +310,7 @@ class LawsTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         descriptors += ["laws", self.laws_kernel]
@@ -321,7 +321,7 @@ class LawsTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -348,7 +348,7 @@ class LawsTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = ["laws", self.laws_kernel]
@@ -368,12 +368,12 @@ class LawsTransformedImage(TransformedImage):
 class MeanTransformedImage(TransformedImage):
     def __init__(
             self,
-            filter_size: Optional[int] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            filter_size: None | int = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -390,13 +390,13 @@ class MeanTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
         descriptors += ["mean", "d", str(self.filter_size)]
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -415,7 +415,7 @@ class MeanTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = ["mean", "d", str(self.filter_size)]
@@ -431,14 +431,14 @@ class MeanTransformedImage(TransformedImage):
 class NonSeparableWaveletTransformedImage(TransformedImage):
     def __init__(
             self,
-            wavelet_family: Optional[str] = None,
-            decomposition_level: Optional[int] = None,
-            response_type: Optional[str] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            wavelet_family: None | str = None,
+            decomposition_level: None | int = None,
+            response_type: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -457,7 +457,7 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         descriptors += [
@@ -467,7 +467,7 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -488,7 +488,7 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = [
@@ -507,17 +507,17 @@ class NonSeparableWaveletTransformedImage(TransformedImage):
 class SeparableWaveletTransformedImage(TransformedImage):
     def __init__(
             self,
-            wavelet_family: Optional[str] = None,
-            decomposition_level: Optional[int] = None,
-            filter_kernel_set: Optional[str] = None,
-            stationary_wavelet: Optional[bool] = None,
-            rotation_invariance: Optional[bool] = None,
-            pooling_method: Optional[str] = None,
-            boundary_condition: Optional[str] = None,
-            riesz_order: Optional[Union[int, List[int]]] = None,
-            riesz_steering: Optional[bool] = None,
-            riesz_sigma_parameter: Optional[float] = None,
-            template: Optional[GenericImage] = None,
+            wavelet_family: None | str = None,
+            decomposition_level: None | int = None,
+            filter_kernel_set: None | str = None,
+            stationary_wavelet: None | bool = None,
+            rotation_invariance: None | bool = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -539,7 +539,7 @@ class SeparableWaveletTransformedImage(TransformedImage):
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def get_file_name_descriptor(self) -> List[str]:
+    def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
         descriptors += [
@@ -554,7 +554,7 @@ class SeparableWaveletTransformedImage(TransformedImage):
 
         return descriptors
 
-    def get_export_attributes(self) -> Dict[str, Any]:
+    def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
         attributes = [
@@ -580,7 +580,7 @@ class SeparableWaveletTransformedImage(TransformedImage):
 
         return parent_attributes
 
-    def parse_feature_names(self, x: Optional[pd.DataFrame]) -> pd.DataFrame:
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
         feature_name_prefix = [
