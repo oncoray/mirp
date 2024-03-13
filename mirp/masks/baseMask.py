@@ -1,11 +1,17 @@
 import numpy as np
 import pandas as pd
 import copy
-from typing import Any, Self
+import sys
+from typing import Any
 
 from mirp.images.genericImage import GenericImage
 from mirp.images.maskImage import MaskImage
 from mirp.settings.settingsGeneric import SettingsClass
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class BaseMask:

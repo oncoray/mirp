@@ -1,13 +1,17 @@
 import copy
 import hashlib
-
+import sys
 import numpy as np
-from typing import Any, Self
-
 import pandas as pd
 
+from typing import Any
 from mirp.images.baseImage import BaseImage
 from mirp.settings.settingsGeneric import SettingsClass
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class GenericImage(BaseImage):
@@ -270,7 +274,7 @@ class GenericImage(BaseImage):
             new_spacing = list(new_spacing)
 
         # Set translation. Check that translation is specified for every direction.
-        translation = list(translation)
+        translation: list[float, float, float] = list(translation)
         if len(translation) == 1:
             translation *= 3
         for ii in range(len(translation)):
@@ -280,7 +284,7 @@ class GenericImage(BaseImage):
         if by_slice:
             translation[0] = 0.0
 
-        translation: tuple[float, ...] = tuple(translation)
+        translation: tuple[float, float, float] = tuple(translation)
 
         return self._interpolate(
             by_slice=by_slice,
