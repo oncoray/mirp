@@ -1,3 +1,9 @@
+# Version 2.1.2
+
+## Minor changes
+
+- Added support for Python version 3.10 using `typing-extensions`.
+
 # Version 2.1.1
 
 ## Fixes
