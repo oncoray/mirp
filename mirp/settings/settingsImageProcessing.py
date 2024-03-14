@@ -292,6 +292,10 @@ class ImagePostProcessingClass:
                 raise TypeError("The intensity_scaling parameter is expected to be a single floating point.")
             if intensity_scaling == 0.0:
                 raise ValueError("The intensity_scaling parameter cannot have a value of 0.0.")
+        else:
+            intensity_scaling = 1.0
+
+        self.intensity_scaling: float = intensity_scaling
 
         # Check tissue_mask_type
         if tissue_mask_type not in ["none", "range", "relative_range"]:

@@ -134,6 +134,10 @@ class StandardWorkflow(BaseWorkflow):
                 mask=tissue_mask
             )
 
+        image = image.scale_intensities(
+            scale=self.settings.post_process.intensity_scaling
+        )
+
         # Estimate noise level.
         estimated_noise_level = self.settings.perturbation.noise_level
         if self.settings.perturbation.add_noise and estimated_noise_level is None:
