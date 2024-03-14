@@ -69,6 +69,11 @@ class ImagePostProcessingClass:
         than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
         not be saturated.
 
+    intensity_scaling: float, optional
+        Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after
+        normalisation (if any). For example, `intensity_scaling = 1000.0`, combined with `intensity_normalisation =
+        "range"` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].
+
     tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
         Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
@@ -91,6 +96,7 @@ class ImagePostProcessingClass:
             intensity_normalisation: str = "none",
             intensity_normalisation_range: list[float] | None = None,
             intensity_normalisation_saturation: list[float] | None = None,
+            intensity_scaling: float | None = None,
             tissue_mask_type: str = "relative_range",
             tissue_mask_range: list[float] | None = None,
             **kwargs
@@ -262,18 +268,30 @@ class ImagePostProcessingClass:
             intensity_normalisation_saturation = [np.nan, np.nan]
 
         if not isinstance(intensity_normalisation_saturation, list):
-            raise TypeError("The tissue_mask_range parameter is expected to be a list of two floating point values.")
+            raise TypeError(
+                "The intensity_normalisation_saturation parameter is expected to be a "
+                "list of two floating point values."
+            )
 
         if not len(intensity_normalisation_saturation) == 2:
             raise ValueError(
-                f"The tissue_mask_range parameter should consist of two values. Found: "
+                f"The intensity_normalisation_saturation parameter should consist of two values. Found: "
                 f"{len(intensity_normalisation_saturation)} values.")
 
         if not all(isinstance(ii, float) for ii in intensity_normalisation_saturation):
-            raise TypeError("The tissue_mask_range parameter can only contain floating point or np.nan values.")
+            raise TypeError(
+                "The intensity_normalisation_saturation parameter can only contain floating point or np.nan values."
+            )
 
         # intensity_normalisation_saturation parameter
         self.intensity_normalisation_saturation: None | list[float] = intensity_normalisation_saturation
+
+        # Check intensity_scaling
+        if intensity_scaling is not None:
+            if not isinstance(intensity_scaling, float):
+                raise TypeError("The intensity_scaling parameter is expected to be a single floating point.")
+            if intensity_scaling == 0.0:
+                raise ValueError("The intensity_scaling parameter cannot have a value of 0.0.")
 
         # Check tissue_mask_type
         if tissue_mask_type not in ["none", "range", "relative_range"]:
@@ -336,6 +354,7 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
         setting_def("intensity_normalisation", "str", test="relative_range"),
         setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
         setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),
+        setting_def("intensity_scaling", "float", test=3.0),
         setting_def("tissue_mask_type", "str", test="range"),
         setting_def("tissue_mask_range", "float", to_list=True, test=[0.00, 10.00])
     ]

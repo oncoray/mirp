@@ -69,6 +69,10 @@
              You may define two values for lower and upper boundary respectively. Default: [np.nan, np.nan] (no
              saturation). -->
             <intensity_normalisation_saturation></intensity_normalisation_saturation>
+            <!-- Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after
+            normalisation (if any). For example, intensity_scaling = 1000.0, combined with intensity_normalisation =
+            "range" results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0]. -->
+            <intensity_scaling></intensity_scaling>
         </post_processing>
         <vol_adapt>
             <!-- Whether the image may be cut to only maintain the interesting parts. Default: False. Setting this to
