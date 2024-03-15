@@ -1,4 +1,12 @@
-# Version 2.1.2
+# Version 2.2.0
+
+## Major changes
+
+- Added support for intensity scaling using the `intensity_scaling` parameter. Intensity scaling multiplies 
+  intensities by a scalar value. Intensity scaling occurs after intensity normalisation (if any) and prior to adding 
+  noise (if any). For example, intensity scaling can be used after intensity normalisation to scale intensities to a 
+  different range. `intensity_normalisation = "range"` with `intensity_scaling = 1000.0` maps image intensities to 
+  [1000.0, 0.0] instead of [1.0, 0.0].
 
 ## Minor changes
 
