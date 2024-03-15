@@ -30,10 +30,14 @@ class SquareTransformFilter(GenericFilter):
             return response_map
 
         image_data = image.get_voxel_grid()
-        alpha = 1.0 / np.sqrt(np.max(np.abs(image_data)))
+        alpha = np.sqrt(np.max(np.abs(image_data)))
+
+        # Prevent issues with alpha values that are not strictly positive.
+        if not np.isfinite(alpha) or alpha == 0.0:
+            alpha = 1.0
 
         response_map.set_voxel_grid(
-            voxel_grid=np.power(alpha * image_data, 2.0)
+            voxel_grid=np.power(image_data / alpha, 2.0)
         )
 
         return response_map

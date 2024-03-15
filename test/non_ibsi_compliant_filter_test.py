@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from mirp import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,3 +24,4 @@ def test_square_transformation_filter():
     assert len(feature_data) == 1
     assert feature_data["stat_min"].values[0] == -1000.0
     assert feature_data["square_stat_min"].values[0] == 0.0
+    assert np.max(data[0][1][0].get_voxel_grid()) == np.max(data[0][1][1].get_voxel_grid())
