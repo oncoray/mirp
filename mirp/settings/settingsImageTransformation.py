@@ -105,6 +105,8 @@ class ImageTransformationSettingsClass:
         * Separable wavelets: "separable_wavelet"
         * Non-separable wavelets: "nonseparable_wavelet", "riesz_nonseparable_wavelet",
           and "riesz_steered_nonseparable_wavelet"
+        * Function transformations: "pyradiomics_square", "pyradiomics_square_root",
+          and "pyradiomics_logarithm", "pyradiomics_exponential"
 
         Filters with names that preceded by "riesz" undergo a Riesz transformation. If the filter name is preceded by
         "riesz_steered", a steerable riesz filter is used.
@@ -120,6 +122,11 @@ class ImageTransformationSettingsClass:
             Riesz transformation and steerable riesz transformations are experimental. The implementation of these
             filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature
             derived from response maps of Riesz transformations is unlikely to be reproducible.
+
+        .. warning::
+            Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference
+            standard. These transformations follow the definition in pyradiomics, and have been implemented for
+            validation purposes.
 
     boundary_condition: {"reflect", "constant", "nearest", "mirror", "wrap"}, optional, default: "mirror"
         Sets the boundary condition, which determines how filters behave at the edge of an image. MIRP uses
