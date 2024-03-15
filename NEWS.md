@@ -8,6 +8,13 @@
   different range. `intensity_normalisation = "range"` with `intensity_scaling = 1000.0` maps image intensities to 
   [1000.0, 0.0] instead of [1.0, 0.0].
 
+- Added support for intensity transformation filters: square root (`"pyradiomics_square_root"`), square 
+  (`"pyradiomics_square"`), logarithm (`"pyradiomics_logarithm"`) and exponential (`"pyradiomics_exponential"`). 
+  These implementations are based on the definitions in the `pyradiomics` 
+  [documentation](https://pyradiomics.readthedocs.io/en/latest/radiomics.html#module-radiomics.imageoperations). 
+  Since these filters do not currently have an IBSI reference standard, these are mostly intended for reproducing 
+  and validating radiomics models based on features extracted from pyradiomics.
+
 ## Minor changes
 
 - Added support for Python version 3.10 using `typing-extensions`.
