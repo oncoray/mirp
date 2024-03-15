@@ -289,6 +289,11 @@ class StandardWorkflow(BaseWorkflow):
                 from mirp.imageFilters.squareRootTransformFilter import SquareRootTransformFilter
                 filter_obj = SquareRootTransformFilter(settings=self.settings, name=current_filter)
 
+            elif self.settings.img_transform.has_logarithm_transform_filter(x=current_filter):
+                # Logarithm transform filter
+                from mirp.imageFilters.logarithmTransformFilter import LogarithmTransformFilter
+                filter_obj = LogarithmTransformFilter(settings=self.settings, name=current_filter)
+
             else:
                 raise ValueError(
                     f"{current_filter} is not implemented as a spatial filter. Please use one of ",

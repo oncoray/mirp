@@ -769,7 +769,7 @@ class ImageTransformationSettingsClass:
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
             "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
-            "pyradiomics_square", "pyradiomics_square_root"
+            "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm"
         ]
 
     def check_boundary_condition(self, x, var_name):
@@ -1122,6 +1122,14 @@ class ImageTransformationSettingsClass:
             x = [x]
 
         return x is not None and any(filter_kernel == "pyradiomics_square_root" for filter_kernel in x)
+
+    def has_logarithm_transform_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel == "pyradiomics_logarithm" for filter_kernel in x)
 
 
 def get_image_transformation_settings() -> list[dict[str, Any]]:
