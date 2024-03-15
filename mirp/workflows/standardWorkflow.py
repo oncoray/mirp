@@ -279,6 +279,11 @@ class StandardWorkflow(BaseWorkflow):
                 from mirp.imageFilters.meanFilter import MeanFilter
                 filter_obj = MeanFilter(settings=self.settings, name=current_filter)
 
+            elif self.settings.img_transform.has_square_transform_filter(x=current_filter):
+                # Square transform filter
+                from mirp.imageFilters.squareTransformFilter import SquareTransformFilter
+                filter_obj = SquareTransformFilter(settings=self.settings, name=current_filter)
+
             else:
                 raise ValueError(
                     f"{current_filter} is not implemented as a spatial filter. Please use one of ",
