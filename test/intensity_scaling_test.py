@@ -1,13 +1,13 @@
 import os
-
+from mirp import extract_features_and_images
+from mirp.images.genericImage import GenericImage
 from mirp.images.mrImage import MRImage
 from mirp.masks.baseMask import BaseMask
-from mirp.extractFeaturesAndImages import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def test_basic_mr_t1_feature_extraction():
+def test_intensity_scaling():
 
     data = extract_features_and_images(
         write_features=False,
@@ -18,6 +18,8 @@ def test_basic_mr_t1_feature_extraction():
         image=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T1", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T1", "mask"),
         roi_name="GTV_Mass",
+        tissue_mask_type="none",
+        intensity_normalisation="range",
         base_feature_families="statistics"
     )
 
@@ -26,14 +28,11 @@ def test_basic_mr_t1_feature_extraction():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 550.0 < feature_data["stat_max"].values[0] < 650.0
-    assert 50.0 < feature_data["stat_min"].values[0] < 150.0
+    assert 0.3 < feature_data["stat_max"].values[0] <= 0.35
+    assert 0.0 <= feature_data["stat_min"].values[0] < 0.10
 
     assert isinstance(image, MRImage)
     assert isinstance(mask, BaseMask)
-
-
-def test_bias_field_correction_t1():
 
     data = extract_features_and_images(
         write_features=False,
@@ -44,7 +43,9 @@ def test_bias_field_correction_t1():
         image=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T1", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T1", "mask"),
         roi_name="GTV_Mass",
-        bias_field_correction=True,
+        tissue_mask_type="none",
+        intensity_normalisation="range",
+        intensity_scaling=1000.0,
         base_feature_families="statistics"
     )
 
@@ -53,14 +54,11 @@ def test_bias_field_correction_t1():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 550.0 < feature_data["stat_max"].values[0] < 650.0
-    assert 50.0 < feature_data["stat_min"].values[0] < 150.0
+    assert 300.0 < feature_data["stat_max"].values[0] <= 350.0
+    assert 0.0 <= feature_data["stat_min"].values[0] < 100.0
 
     assert isinstance(image, MRImage)
     assert isinstance(mask, BaseMask)
-
-
-def test_basic_mr_t2_feature_extraction():
 
     data = extract_features_and_images(
         write_features=False,
@@ -68,9 +66,11 @@ def test_basic_mr_t2_feature_extraction():
         write_images=False,
         export_images=True,
         image_export_format="native",
-        image=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T2", "image"),
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T2", "mask"),
-        roi_name="GTV_Mass",
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        tissue_mask_type="none",
+        intensity_normalisation="range",
         base_feature_families="statistics"
     )
 
@@ -79,14 +79,11 @@ def test_basic_mr_t2_feature_extraction():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 800.0 < feature_data["stat_max"].values[0] < 900.0
-    assert 0.0 < feature_data["stat_min"].values[0] < 100.0
+    assert 0.4 < feature_data["stat_max"].values[0] <= 0.45
+    assert 0.0 <= feature_data["stat_min"].values[0] < 0.05
 
-    assert isinstance(image, MRImage)
+    assert isinstance(image, GenericImage)
     assert isinstance(mask, BaseMask)
-
-
-def test_bias_field_correction_t2():
 
     data = extract_features_and_images(
         write_features=False,
@@ -94,10 +91,12 @@ def test_bias_field_correction_t2():
         write_images=False,
         export_images=True,
         image_export_format="native",
-        image=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T2", "image"),
-        mask=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T2", "mask"),
-        roi_name="GTV_Mass",
-        bias_field_correction=True,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        tissue_mask_type="none",
+        intensity_normalisation="range",
+        intensity_scaling=1000.0,
         base_feature_families="statistics"
     )
 
@@ -106,8 +105,9 @@ def test_bias_field_correction_t2():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert 800.0 < feature_data["stat_max"].values[0] < 900.0
-    assert 0.0 < feature_data["stat_min"].values[0] < 100.0
+    assert 400.0 < feature_data["stat_max"].values[0] <= 450.0
+    assert 0.0 <= feature_data["stat_min"].values[0] < 50.0
 
-    assert isinstance(image, MRImage)
+    assert isinstance(image, GenericImage)
     assert isinstance(mask, BaseMask)
+
