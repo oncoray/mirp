@@ -47,3 +47,20 @@ class CTImage(GenericImage):
         new_image.update_from_template(template=image)
 
         return new_image
+
+    def scale_intensities(self, scale: float):
+
+        image = super().scale_intensities(scale=scale)
+
+        if image.image_data is None:
+            return self
+
+        if scale == 1.0:
+            return self
+
+        # Scaling intensities changes the object class from CTImage to GenericImage as this breaks the one-to-one
+        # relationship between intensities and Hounsfield units.
+        new_image = GenericImage(image_data=image.image_data)
+        new_image.update_from_template(template=image)
+
+        return new_image

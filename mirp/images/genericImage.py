@@ -917,6 +917,25 @@ class GenericImage(BaseImage):
 
         return self
 
+    def scale_intensities(self, scale: float) -> Self:
+
+        # Skip for missing images
+        if self.is_empty():
+            return self
+
+        if scale == 1.0:
+            return self
+        elif scale == 0.0:
+            raise ValueError("scale cannot be 0.0, as this would result in an image with 0.0 values only.")
+
+        # Get image data.
+        image_data = self.get_voxel_grid()
+        image_data *= scale
+
+        self.set_voxel_grid(image_data)
+
+        return self
+
     def decimate(self, by_slice: bool):
         """
         Decimates image by removing every second element
