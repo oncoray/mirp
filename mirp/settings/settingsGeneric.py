@@ -91,6 +91,7 @@ class SettingsClass:
         # Remove by_slice and no_approximation from the keyword arguments to avoid double passing.
         kwargs.pop("by_slice", None)
         kwargs.pop("no_approximation", None)
+        kwargs.pop("ibsi_compliant", None)
 
         # Image interpolation settings.
         if img_interpolate_settings is None:
@@ -125,6 +126,7 @@ class SettingsClass:
             feature_extr_settings = FeatureExtractionSettingsClass(
                 by_slice=general_settings.by_slice,
                 no_approximation=general_settings.no_approximation,
+                ibsi_compliant=general_settings.ibsi_compliant,
                 **kwargs
             )
         self.feature_extr = feature_extr_settings
@@ -133,6 +135,7 @@ class SettingsClass:
         if img_transform_settings is None:
             img_transform_settings = ImageTransformationSettingsClass(
                 by_slice=general_settings.by_slice,
+                ibsi_compliant=general_settings.ibsi_compliant,
                 **kwargs
             )
         self.img_transform = img_transform_settings

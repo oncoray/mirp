@@ -599,7 +599,6 @@ class FeatureExtractionSettingsClass:
 
 def get_feature_extraction_settings() -> list[dict[str, Any]]:
     return [
-        setting_def("ibsi_compliant", "bool", test=True),
         setting_def(
             "base_feature_families", "str", to_list=True, xml_key=["feature_families", "families"],
             class_key="families", test=["all"]

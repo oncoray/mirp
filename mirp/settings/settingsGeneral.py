@@ -15,6 +15,9 @@ class GeneralSettingsClass:
     by_slice: bool, optional, default: False
         Defines whether image processing and computations should be performed in 2D (True) or 3D (False).
 
+    ibsi_compliant: bool, optional, default: True
+        Limits use of methods and computation of features to those that exist in the IBSI reference standard.
+
     mask_merge: bool, optional, default: False
         Defines whether multiple mask objects should be combined into a single mask.
 
@@ -43,19 +46,24 @@ class GeneralSettingsClass:
     def __init__(
             self,
             by_slice: bool = False,
+            ibsi_compliant: bool = True,
             mask_merge: bool = False,
             mask_split: bool = False,
             mask_select_largest_region: bool = False,
             mask_select_largest_slice: bool = False,
             config_str: str = "",
             no_approximation: bool = False,
-            **kwargs):
+            **kwargs
+    ):
 
         if not isinstance(by_slice, bool):
             raise ValueError("The by_slice parameter should be a boolean.")
 
         # Set by_slice and select_slice parameters.
         self.by_slice: bool = by_slice
+
+        # Set IBSI-compliance flag.
+        self.ibsi_compliant: bool = ibsi_compliant
 
         self.mask_merge = mask_merge
         self.mask_split = mask_split
@@ -77,6 +85,7 @@ class GeneralSettingsClass:
 def get_general_settings() -> list[dict[str, Any]]:
     return [
         setting_def("by_slice", "bool", test=True),
+        setting_def("ibsi_compliant", "bool", test=True),
         setting_def("mask_merge", "bool", test=True),
         setting_def("mask_split", "bool", test=True),
         setting_def("mask_select_largest_region", "bool", test=True),

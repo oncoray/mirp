@@ -29,6 +29,9 @@ class ImageTransformationSettingsClass:
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
         largest slice ("largest"). See :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
 
+    ibsi_compliant: bool, optional, default: True
+        Limits use of filters to those that exist in the IBSI reference standard.
+
     response_map_feature_families: str or list of str, optional, default: "statistics"
         Determines the feature families for which features are computed from response maps (filtered images). Radiomics
         features are implemented as defined in the IBSI reference manual. The following feature families can be
@@ -337,6 +340,7 @@ class ImageTransformationSettingsClass:
     def __init__(
             self,
             by_slice: bool,
+            ibsi_compliant: bool = True,
             response_map_feature_settings: FeatureExtractionSettingsClass | None = None,
             response_map_feature_families: None | str | list[str] = "statistical",
             response_map_discretisation_method: None | str | list[str] = "fixed_bin_number",
@@ -385,6 +389,9 @@ class ImageTransformationSettingsClass:
     ):
         # Set by slice
         self.by_slice: bool = by_slice
+
+        # Set IBSI-compliance flag.
+        self.ibsi_compliant: bool = ibsi_compliant
 
         # Check filter kernels
         if not isinstance(filter_kernels, list):
@@ -444,6 +451,7 @@ class ImageTransformationSettingsClass:
             response_map_feature_settings = FeatureExtractionSettingsClass(
                 by_slice=by_slice,
                 no_approximation=False,
+                ibsi_compliant=ibsi_compliant,
                 **kwargs
             )
 
