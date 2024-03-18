@@ -3,7 +3,7 @@ import copy
 import ray
 
 from mirp._data_import.generic_file import ImageFile
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 from mirp._workflows.standardWorkflow import StandardWorkflow
 
 
@@ -257,7 +257,7 @@ def _base_deep_learning_preprocessing(
         **kwargs
 ):
     from mirp._data_import.import_image_and_mask import import_image_and_mask
-    from mirp.settings.importConfigurationSettings import import_configuration_settings
+    from mirp.settings.import_config_parameters import import_configuration_settings
 
     # Infer write_images, export_images based on write_dir.
     if write_images is None:

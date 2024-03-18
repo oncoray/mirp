@@ -7,7 +7,7 @@ import pandas as pd
 from mirp._data_import.directory import ImageDirectory, MaskDirectory
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_file_types, supported_image_modalities, flatten_list
-from mirp.settings.importDataSettings import import_data_settings
+from mirp.settings.import_data_parameters import import_data_settings
 
 
 def import_image(

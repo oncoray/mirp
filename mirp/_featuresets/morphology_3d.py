@@ -2,7 +2,7 @@ import hashlib
 import numpy as np
 import pandas as pd
 
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 

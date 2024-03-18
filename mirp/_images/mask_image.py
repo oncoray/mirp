@@ -7,7 +7,7 @@ import pandas as pd
 from typing import Any
 
 from mirp._images.generic_image import GenericImage
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 
 
 class MaskImage(GenericImage):

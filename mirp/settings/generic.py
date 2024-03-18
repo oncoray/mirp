@@ -1,12 +1,12 @@
 import copy
 
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp.settings.settingsGeneral import GeneralSettingsClass
-from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
-from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
-from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
-from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
-from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
+from mirp.settings.general_parameters import GeneralSettingsClass
+from mirp.settings.image_processing_parameters import ImagePostProcessingClass
+from mirp.settings.transformation_parameters import ImageTransformationSettingsClass
+from mirp.settings.interpolation_parameters import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.resegmentation_parameters import ResegmentationSettingsClass
+from mirp.settings.perturbation_parameters import ImagePerturbationSettingsClass
 
 
 class SettingsClass:

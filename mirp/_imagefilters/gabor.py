@@ -5,7 +5,7 @@ from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import GaborTransformedImage
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids, FilterSet2D
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 
 
 class GaborFilter(GenericFilter):

@@ -1,4 +1,4 @@
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 from mirp._images.generic_image import GenericImage
 
 

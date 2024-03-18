@@ -6,7 +6,7 @@ from typing import Any
 
 from mirp._images.generic_image import GenericImage
 from mirp._images.mask_image import MaskImage
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 
 if sys.version_info >= (3, 11):
     from typing import Self

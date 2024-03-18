@@ -5,7 +5,7 @@ import scipy.fft as fft
 
 from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import NonSeparableWaveletTransformedImage
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 from mirp._imagefilters.generic import GenericFilter
 
 

@@ -6,7 +6,7 @@ import pandas as pd
 
 from typing import Any
 from mirp._images.base_image import BaseImage
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 
 if sys.version_info >= (3, 11):
     from typing import Self

@@ -6,7 +6,7 @@ import pandas as pd
 from mirp._featuresets.utilities import is_list_all_none, get_neighbour_directions, coord2Index, get_intensity_value
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 
 
 def get_ngldm_features(

@@ -3,14 +3,14 @@ import warnings
 from xml.etree.ElementTree import Element
 from xml.etree import ElementTree as ElemTree
 
-from mirp.settings.settingsGeneric import SettingsClass
-from mirp.settings.settingsImageTransformation import get_image_transformation_settings
-from mirp.settings.settingsFeatureExtraction import get_feature_extraction_settings
-from mirp.settings.settingsMaskResegmentation import get_mask_resegmentation_settings
-from mirp.settings.settingsPerturbation import get_perturbation_settings
-from mirp.settings.settingsImageProcessing import get_post_processing_settings
-from mirp.settings.settingsInterpolation import get_image_interpolation_settings, get_mask_interpolation_settings
-from mirp.settings.settingsGeneral import get_general_settings
+from mirp.settings.generic import SettingsClass
+from mirp.settings.transformation_parameters import get_image_transformation_settings
+from mirp.settings.feature_parameters import get_feature_extraction_settings
+from mirp.settings.resegmentation_parameters import get_mask_resegmentation_settings
+from mirp.settings.perturbation_parameters import get_perturbation_settings
+from mirp.settings.image_processing_parameters import get_post_processing_settings
+from mirp.settings.interpolation_parameters import get_image_interpolation_settings, get_mask_interpolation_settings
+from mirp.settings.general_parameters import get_general_settings
 from mirp.settings.utilities import update_settings_from_branch
 
 

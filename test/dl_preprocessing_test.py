@@ -1,6 +1,6 @@
 import os.path
 
-from mirp.settings.settingsGeneric import SettingsClass
+from mirp.settings.generic import SettingsClass
 from mirp.deepLearningPreprocessing import deep_learning_preprocessing
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

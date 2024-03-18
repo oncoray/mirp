@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp.settings.utilities import setting_def
 
 
