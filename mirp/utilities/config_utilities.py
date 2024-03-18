@@ -44,7 +44,7 @@ def get_settings_xml(target_dir: str):
 
 def get_data_xml(target_dir: str):
     """
-    Creates a local copy of the data ``xml`` file. This file can be used to configure import of _images and _masks.
+    Creates a local copy of the data ``xml`` file. This file can be used to configure import of images and masks.
 
     Parameters
     ----------

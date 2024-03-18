@@ -85,22 +85,22 @@ def import_image_and_mask(
         Name of the regions of interest that should be assessed.
 
     association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
-        The preferred strategy for associating _images and _masks. File association is preferably done using frame of
+        The preferred strategy for associating images and masks. File association is preferably done using frame of
         reference UIDs (DICOM), or sample name (NIfTI, numpy). Other options are relatively frail, except for
-        `list_order` which may be applicable when a list with _images and a list with _masks is provided and both lists
+        `list_order` which may be applicable when a list with images and a list with masks is provided and both lists
         are of equal length.
 
     stack_images: {"auto", "yes", "no"}, optional, default: "str"
         If image files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
         size, they might belong to the same 3D image stack. "auto" will stack 2D numpy arrays, but not other file types.
-        "yes" will stack all files that contain 2D _images, that have the same dimensions, orientation and spacing,
+        "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and spacing,
         except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
         can be determined from metadata.
 
     stack_masks: {"auto", "yes", "no"}, optional, default: "str"
         If mask files in the same directory cannot be assigned to different samples, and are 2D (slices) of the same
         size, they might belong to the same 3D mask stack. "auto" will stack 2D numpy arrays, but not other file
-        types. "yes" will stack all files that contain 2D _images, that have the same dimensions, orientation and
+        types. "yes" will stack all files that contain 2D images, that have the same dimensions, orientation and
         spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
         because their stacking can be determined from metadata.
 
@@ -112,7 +112,7 @@ def import_image_and_mask(
     if mask is None:
         mask = image
 
-    # Generate list of _images.
+    # Generate list of images.
     image_list = import_image(
         image,
         sample_name=sample_name,
@@ -123,7 +123,7 @@ def import_image_and_mask(
         stack_images=stack_images
     )
 
-    # Generate list of _images.
+    # Generate list of images.
     mask_list = import_mask(
         mask,
         sample_name=sample_name,
@@ -136,9 +136,9 @@ def import_image_and_mask(
     )
 
     if len(image_list) == 0:
-        raise ValueError(f"No _images were found. Possible reasons are lack of _images with the preferred modality.")
+        raise ValueError(f"No images were found. Possible reasons are lack of images with the preferred modality.")
     if len(mask_list) == 0:
-        raise ValueError(f"No _masks were found. Possible reasons are lack of _masks with the preferred modality.")
+        raise ValueError(f"No masks were found. Possible reasons are lack of masks with the preferred modality.")
 
     # Determine association strategy, if this is unset.
     possible_association_strategy = set_association_strategy(
@@ -158,14 +158,14 @@ def import_image_and_mask(
     unavailable_strategy = association_strategy - possible_association_strategy
     if len(unavailable_strategy) > 0:
         raise ValueError(
-            f"One or more strategies for associating _images and _masks are not available for the provided image and "
+            f"One or more strategies for associating images and masks are not available for the provided image and "
             f"mask set: {', '.join(list(unavailable_strategy))}. Only the following strategies are available: "
             f"{'. '.join(list(possible_association_strategy))}"
         )
 
     if len(possible_association_strategy) == 0:
         raise ValueError(
-            f"No strategies for associating _images and _masks are available, indicating that there is no clear way to "
+            f"No strategies for associating images and masks are available, indicating that there is no clear way to "
             f"establish an association."
         )
 
@@ -193,8 +193,8 @@ def import_image_and_mask(
                 for ii, image in enumerate(image_list):
                     image.associated_masks = [mask_list[ii]]
 
-    # Ensure that we are working with deep copies from this point - we don't want to propagate changes to _masks,
-    # _images by reference.
+    # Ensure that we are working with deep copies from this point - we don't want to propagate changes to masks,
+    # images by reference.
     image_list = [image.copy() for image in image_list]
 
     # Set sample names. First we check if all sample names are missing.
@@ -217,7 +217,7 @@ def import_image_and_mask(
                     for mask in image.associated_masks:
                         mask.set_sample_name(sample_name=image.file_name)
 
-    # Then set any sample names for _images that still miss them.
+    # Then set any sample names for images that still miss them.
     if any(image.sample_name is None for image in image_list):
         for ii, image in enumerate(image_list):
             if image.sample_name is None:
@@ -240,7 +240,7 @@ def set_association_strategy(
         "single_image"
     }
 
-    # Check that _images and _masks are available
+    # Check that images and masks are available
     if len(mask_list) == 0 or len(image_list) == 0:
         return set([])
 

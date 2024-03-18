@@ -26,7 +26,7 @@ class BaseMask:
         # Set region of interest.
         self.roi = MaskImage(**kwargs)
 
-        # Define other types of _masks.
+        # Define other types of masks.
         self.roi_intensity: None | MaskImage = None
         self.roi_morphology: None | MaskImage = None
 
@@ -170,12 +170,12 @@ class BaseMask:
             )
 
     def merge(self, masks: list[Self]) -> Self:
-        """Merge _masks"""
+        """Merge masks"""
 
         roi_mask = np.zeros(self.roi.image_dimension, dtype=bool)
         roi_name = []
         for mask in masks:
-            # Skip empty _masks.
+            # Skip empty masks.
             if mask.roi.is_empty():
                 continue
 
@@ -188,7 +188,7 @@ class BaseMask:
         if self.roi_intensity is not None:
             roi_mask = np.zeros(self.roi_intensity.image_dimension, dtype=bool)
             for mask in masks:
-                # Skip empty _masks.
+                # Skip empty masks.
                 if mask.roi_intensity.is_empty():
                     continue
 
@@ -199,7 +199,7 @@ class BaseMask:
         if self.roi_morphology is not None:
             roi_mask = np.zeros(self.roi_morphology.image_dimension, dtype=bool)
             for mask in masks:
-                # Skip empty _masks.
+                # Skip empty masks.
                 if mask.roi_morphology.is_empty():
                     continue
 
@@ -210,7 +210,7 @@ class BaseMask:
         return self
 
     def split_mask(self) -> list[Self]:
-        """Split mask into multiple _masks."""
+        """Split mask into multiple masks."""
         import skimage.measure
 
         if self.is_empty():
@@ -293,7 +293,7 @@ class BaseMask:
             self.roi_morphology.set_voxel_grid(voxel_grid=np.logical_and(self.roi_morphology.get_voxel_grid(), roi_mask))
 
     def generate_masks(self):
-        """"Generate roi intensity and morphology _masks"""
+        """"Generate roi intensity and morphology masks"""
 
         if self.roi is None:
             self.roi_intensity = None
@@ -325,7 +325,7 @@ class BaseMask:
             xy_only=False,
             z_only=False):
 
-        # Crop _masks.
+        # Crop masks.
         if self.roi is not None:
             self.roi.crop(
                 ind_ext_z=ind_ext_z,
@@ -353,7 +353,7 @@ class BaseMask:
     def crop_to_size(self, center, crop_size):
         """"Crops roi to a pre-defined size"""
 
-        # Crop _masks to size
+        # Crop masks to size
         if self.roi is not None:
             self.roi.crop_to_size(center=center, crop_size=crop_size)
         if self.roi_intensity is not None:
@@ -377,7 +377,7 @@ class BaseMask:
         if image.is_empty() or self.is_empty():
             return
 
-        # Ensure that _masks are generated.
+        # Ensure that masks are generated.
         self.generate_masks()
 
         if resegmentation_method is None or "none" in resegmentation_method:
@@ -492,7 +492,7 @@ class BaseMask:
         if self.roi is not None:
             self.roi.decode_voxel_grid()
 
-        # Decode intensity and morphological _masks
+        # Decode intensity and morphological masks
         if self.roi_intensity is not None:
             self.roi_intensity.decode_voxel_grid()
         if self.roi_morphology is not None:
@@ -511,7 +511,7 @@ class BaseMask:
         if image.is_empty() or self.is_empty():
             return None
 
-        # Check if the _masks exist and assign if not.
+        # Check if the masks exist and assign if not.
         self.generate_masks()
 
         # Create table from test object
@@ -609,7 +609,7 @@ class BaseMask:
             settings=settings
         )
 
-        # Make copies of intensity and morphological _masks (if required)
+        # Make copies of intensity and morphological masks (if required)
         mask_copy.generate_masks()
 
         # Get image and roi voxel grids
@@ -694,9 +694,9 @@ class BaseMask:
             file_format: str = "nifti"
     ):
         """
-        Write _masks to file
+        Write masks to file
         :param dir_path: Path to directory where the image should be written.
-        :param write_all: If true, creates NIfTI files from both intensity and morphology (original) _masks.
+        :param write_all: If true, creates NIfTI files from both intensity and morphology (original) masks.
         :param file_format: File format for image file. Can be nifti or numpy.
         :return: Nothing.
         """

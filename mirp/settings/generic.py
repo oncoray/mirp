@@ -22,35 +22,35 @@ class SettingsClass:
     ----------
     general_settings: GeneralSettingsClass, optional
         Configuration object for parameters related to the general process. See
-        :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
+        :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.
 
     post_process_settings: ImagePostProcessingClass, optional
         Configuration object for parameters related to image (post-)processing. See
-        :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`.
+        :class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`.
 
     perturbation_settings: ImagePerturbationSettingsClass, optional
         Configuration object for parameters related to image perturbation / augmentation. See
-        :class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`.
+        :class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`.
 
     img_interpolate_settings: ImageInterpolationSettingsClass, optional
         Configuration object for parameters related to image resampling. See
-        :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`.
+        :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`.
 
     roi_interpolate_settings: MaskInterpolationSettingsClass, optional
         Configuration object for parameters related to mask resampling. See
-        :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`.
+        :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`.
 
     roi_resegment_settings: ResegmentationSettingsClass, optional
         Configuration object for parameters related to mask resegmentation. See
-        :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`.
+        :class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`.
 
     feature_extr_settings: FeatureExtractionSettingsClass, optional
         Configuration object for parameters related to feature computation. See
-        :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`.
+        :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`.
 
     img_transform_settings: ImageTransformationSettingsClass, optional
         Configuration object for parameters related to image transformation. See
-        :class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`.
+        :class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`.
 
     **kwargs: dict, optional
         Keyword arguments for initialising configuration objects stored in this container object.
@@ -58,15 +58,15 @@ class SettingsClass:
     See Also
     --------
 
-    * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
-    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
-    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
-    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`
-      and :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)
-    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)
-    * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)
+    * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
+    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
+    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
+    * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`
+      and :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)
+    * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
+    * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)
     * feature computation / extraction (
-      :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)
+      :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)
 
     """
     def __init__(

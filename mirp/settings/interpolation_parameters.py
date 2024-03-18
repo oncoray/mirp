@@ -12,13 +12,13 @@ class ImageInterpolationSettingsClass:
     antialiasing may be recommended.
 
     For parameters related to mask interpolation / resampling, see
-    :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`.
+    :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`.
 
     Parameters
     ----------
     by_slice: str or bool, optional, default: False
         Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest"). See :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.
+        largest slice ("largest"). See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.
 
     new_spacing: float or list of float or list of list of float, optional:
         Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
@@ -27,7 +27,7 @@ class ImageInterpolationSettingsClass:
 
         Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
         same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
-        are defined by the headers of the image files. These are typically millimeters for radiological _images.
+        are defined by the headers of the image files. These are typically millimeters for radiological images.
 
     spline_order: int, optional, default: 3
         Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates
@@ -160,7 +160,7 @@ class MaskInterpolationSettingsClass:
     """
     Parameters related to mask interpolation / resampling. MIRP registers the mask to an interpolated image based,
     and fewer parameters can be set compared to image interpolation / resampling (
-    :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`).
+    :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`).
 
     Parameters
     ----------

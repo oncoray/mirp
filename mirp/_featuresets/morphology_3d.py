@@ -40,7 +40,7 @@ def get_volumetric_morphological_features(
     if image.is_empty() or mask.roi_intensity is None or mask.roi_morphology is None:
         return df_feat
 
-    # Number of voxels within _masks
+    # Number of voxels within masks
     n_v_morph = np.sum(mask.roi_morphology.get_voxel_grid())
     n_v_int = np.sum(mask.roi_intensity.get_voxel_grid())
 
@@ -152,7 +152,7 @@ def get_volumetric_morphological_features(
     # Generate position table and get position matrix
     df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True, morphology_mask=True)
 
-    # Define tables based on morphological and intensity _masks
+    # Define tables based on morphological and intensity masks
     df_int = df_img[df_img.roi_int_mask].reset_index()
     df_morph = df_img[df_img.roi_morph_mask].reset_index()
     del df_img
@@ -260,7 +260,7 @@ def get_volumetric_morphological_features(
 
     if n_v_int > 0:
         # Centre of mass shift
-        # Calculate centres of mass for the morphological and intensity _masks
+        # Calculate centres of mass for the morphological and intensity masks
         com_morph = np.array([np.mean(df_morph.z), np.mean(df_morph.y), np.mean(df_morph.x)])
         com_int = np.array([np.sum(df_int.g * df_int.z), np.sum(df_int.g * df_int.y),
                             np.sum(df_int.g * df_int.x)]) / np.sum(df_int.g)

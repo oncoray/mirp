@@ -134,7 +134,7 @@ class ImageDicomFileStack(ImageFileStack):
             warnings.warn(
                 f"Inconsistent distance between slice origins of subsequent slices: {np.unique(image_slice_spacing)}. "
                 "Slices cannot be aligned correctly. This is likely due to missing slices. "
-                "MIRP will attempt to interpolate the missing slices and their ROI _masks for volumetric analysis.",
+                "MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis.",
                 UserWarning)
 
         # Determine image slice spacing.

@@ -486,7 +486,7 @@ class MaskImage(GenericImage):
         grid_origin = image.to_voxel_coordinates(x=np.array(cropped_image.image_origin))
         grid_origin = grid_origin.astype(int)
 
-        # Initialise list of randomised _masks.
+        # Initialise list of randomised masks.
         randomised_masks = []
 
         # Start randomiser.

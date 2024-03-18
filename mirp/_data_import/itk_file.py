@@ -42,7 +42,7 @@ class ImageITKFile(ImageFile):
     def is_stackable(self, stack_images: str) -> bool:
         """
         Is the image potentially stackable?
-        :param stack_images: One of auto, yes or no. By default (auto), _images are not stackable. Images might be
+        :param stack_images: One of auto, yes or no. By default (auto), images are not stackable. Images might be
         stackable if an image object represents a single slice.
         :return: boolean value
         """

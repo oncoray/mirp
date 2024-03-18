@@ -23,7 +23,7 @@ def split_masks(
     masks: list[BaseMask] = masks
     new_masks = []
 
-    # Iterate over _masks.
+    # Iterate over masks.
     for mask in masks:
         # Store original.
         new_masks += [mask]

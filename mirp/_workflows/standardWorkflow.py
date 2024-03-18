@@ -83,11 +83,11 @@ class StandardWorkflow(BaseWorkflow):
         # Notify
         logging.info(self._message_start())
 
-        # Read image and _masks.
+        # Read image and masks.
         image, masks = read_image_and_masks(self.image_file, to_numpy=False)
 
         if masks is None or len(masks) == 0:
-            warnings.warn("No segmentation _masks were read.")
+            warnings.warn("No segmentation masks were read.")
             return
 
         if any(not isinstance(mask, BaseMask) for mask in masks):
@@ -96,10 +96,10 @@ class StandardWorkflow(BaseWorkflow):
                 f"One or more mask objects are not of the expected BaseMask class. Found: {', '.join(object_types)}"
             )
 
-        # Add type hints and remove _masks that are empty.
+        # Add type hints and remove masks that are empty.
         masks: list[BaseMask] = [mask for mask in masks if not mask.is_empty() and not mask.roi.is_empty_mask()]
         if len(masks) == 0:
-            warnings.warn("No segmentation _masks were read.")
+            warnings.warn("No segmentation masks were read.")
             return
 
         # Set 2D or 3D processing.
@@ -158,7 +158,7 @@ class StandardWorkflow(BaseWorkflow):
             anti_aliasing_smoothing_beta=self.settings.img_interpolate.smoothing_beta
         )
 
-        # Register _masks to the interpolated _images. Before registrations, _masks may be oblique, and may not have a
+        # Register masks to the interpolated images. Before registrations, masks may be oblique, and may not have a
         # one-to-one correspondence with the image space.
         [mask.register(
                 image=image,
@@ -167,11 +167,11 @@ class StandardWorkflow(BaseWorkflow):
                 anti_aliasing_smoothing_beta=self.settings.img_interpolate.smoothing_beta
             ) for mask in masks]
 
-        # Merge _masks.
+        # Merge masks.
         if self.settings.general.mask_merge:
             masks = [masks[0].merge(masks)]
 
-        # Split _masks.
+        # Split masks.
         if self.settings.general.mask_split:
             masks = flatten_list([mask.split_mask() for mask in masks])
 
@@ -215,7 +215,7 @@ class StandardWorkflow(BaseWorkflow):
             by_slice=self.settings.general.by_slice
         )
 
-        # Resegmentise _masks.
+        # Resegmentise masks.
         [mask.resegmentise_mask(
             image=image,
             resegmentation_method=self.settings.roi_resegment.resegmentation_method,
@@ -225,7 +225,7 @@ class StandardWorkflow(BaseWorkflow):
 
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="reseg")
 
-        # Yield base image and _masks
+        # Yield base image and masks
         yield image, masks
 
         # Create response maps
@@ -318,7 +318,7 @@ class StandardWorkflow(BaseWorkflow):
         from mirp.utilities.utilities import random_string
         import os
 
-        # Indicators to prevent the same _masks from being written or exported multiple times.
+        # Indicators to prevent the same masks from being written or exported multiple times.
         masks_written = False
         masks_exported = False
 
@@ -361,7 +361,7 @@ class StandardWorkflow(BaseWorkflow):
                             continue
                         mask.write(dir_path=self.write_dir, file_format=write_file_format, write_all=write_all_masks)
 
-                    # The standard_image_processing workflow only generates one set of _masks - that which may change is
+                    # The standard_image_processing workflow only generates one set of masks - that which may change is
                     # image.
                     masks_written = True
 
@@ -372,8 +372,8 @@ class StandardWorkflow(BaseWorkflow):
                         if mask is None:
                             continue
                         mask_list += [mask.export(write_all=write_all_masks, export_format=image_export_format)]
-                        # The standard_image_processing workflow only generates one set of _masks - that which may
-                        # change is image. It is not necessary to export _masks more than once.
+                        # The standard_image_processing workflow only generates one set of masks - that which may
+                        # change is image. It is not necessary to export masks more than once.
                         masks_exported = True
 
         feature_set = None

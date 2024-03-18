@@ -62,7 +62,7 @@ class ImageDicomFile(ImageFile):
 
     def get_identifiers(self, as_hash=False) -> dict[str, Any] | bytes:
         """
-        General identifiers for _images. Compared to other
+        General identifiers for images. Compared to other
         :return: a dictionary with identifiers.
         """
 
@@ -366,7 +366,7 @@ class ImageDicomFile(ImageFile):
 
     def load_data_generic(self) -> np.ndarray:
         """
-        This is the generic method for loading pixel data from DICOM _images that is shared across many modalities.
+        This is the generic method for loading pixel data from DICOM images that is shared across many modalities.
         :return:
         """
         if self.image_data is not None:

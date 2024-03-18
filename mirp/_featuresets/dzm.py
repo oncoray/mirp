@@ -20,7 +20,7 @@ def get_dzm_features(
     feat_list = []
 
     if image.is_empty() or mask.roi_intensity is None or mask.roi_morphology is None:
-        # In case the input image or ROI _masks are missing.
+        # In case the input image or ROI masks are missing.
         n_slices = 1
     else:
         # Default case with input image and ROI available

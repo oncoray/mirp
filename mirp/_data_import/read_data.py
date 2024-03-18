@@ -26,7 +26,7 @@ def read_image_and_masks(
     if image.associated_masks is not None:
         mask_list = image.associated_masks
 
-    # Read _masks from file.
+    # Read masks from file.
     if mask_list is not None:
         mask_list = [mask.to_object(image=image) for mask in mask_list]
         mask_list = flatten_list(mask_list)

@@ -6,7 +6,7 @@ from mirp.settings.utilities import setting_def
 @dataclass
 class ImagePerturbationSettingsClass:
     """
-    Parameters related to image and mask perturbation / augmentation. By default _images and _masks are not perturbed or
+    Parameters related to image and mask perturbation / augmentation. By default images and masks are not perturbed or
     augmented.
 
     Parameters
@@ -31,7 +31,7 @@ class ImagePerturbationSettingsClass:
 
     perturbation_rotation_angles: float or list of float, optional, default: 0.0
         Angles (in degrees) over which the image and mask are rotated. This rotation is only in the x-y (axial)
-        plane. Multiple angles can be provided to create _images with different rotations.
+        plane. Multiple angles can be provided to create images with different rotations.
 
     perturbation_translation_fraction: float or list of float, optional, default: 0.0
         Sub-voxel translation distance fractions of the interpolation grid. This forces the interpolation grid to
@@ -53,7 +53,7 @@ class ImagePerturbationSettingsClass:
         volume of the mask.
 
     perturbation_roi_adapt_max_erosion: float, optional, default: 0.8
-        Limits shrinkage of the mask by distance-based adaptations to avoid forming empty _masks. Defined as fraction of
+        Limits shrinkage of the mask by distance-based adaptations to avoid forming empty masks. Defined as fraction of
         the original volume, e.g. a value of 0.8 prevents shrinking the mask below 80% of its original volume. Only
         used when ``perturbation_roi_adapt_type=="distance"``.
 
@@ -61,7 +61,7 @@ class ImagePerturbationSettingsClass:
         Number of repetitions where the mask is randomised using supervoxel-based randomisation.
 
     roi_split_boundary_size: float or list of float, optional, default: 0.0
-        Width of the rim used for splitting the mask into bulk and rim _masks, in physical dimensions. Multiple values
+        Width of the rim used for splitting the mask into bulk and rim masks, in physical dimensions. Multiple values
         can be provided to generate rims of different widths.
 
     roi_split_max_erosion: float, optional, default: 0.6

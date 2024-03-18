@@ -65,7 +65,7 @@ def crop(
         image = image.copy()
         masks = [mask.copy() for mask in masks]
 
-    # Crop _images and _masks.
+    # Crop images and masks.
     image.crop(
         ind_ext_z=bounds_z,
         ind_ext_y=bounds_y,

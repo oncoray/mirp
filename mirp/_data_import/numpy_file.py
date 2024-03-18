@@ -42,7 +42,7 @@ class ImageNumpyFile(ImageFile):
     def is_stackable(self, stack_images: str):
         """
         Is the image potentially stackable?
-        :param stack_images: One of auto, yes or no. By default (auto), _images are stackable if an image object
+        :param stack_images: One of auto, yes or no. By default (auto), images are stackable if an image object
         represents a single slice.
         :return: boolean value.
         """

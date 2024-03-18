@@ -28,7 +28,7 @@ class MRImage(GenericImage):
         if n_max_iterations is None:
             n_max_iterations = [100 for ii in range(n_fitting_levels)]
 
-        # Create ITK input _masks
+        # Create ITK input masks
         input_image = itk.GetImageFromArray(self.get_voxel_grid())
         input_image.SetSpacing(self.image_spacing[::-1])
         input_mask = itk.GetImageFromArray(mask.astype(np.uint8))

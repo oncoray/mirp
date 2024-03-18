@@ -277,7 +277,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if reference_sop_instance_uid is not None:
             referenced_sop_uids = []
 
-            # Extract the SOP instance UIDs from _images that are referenced to from the contour sequence.
+            # Extract the SOP instance UIDs from images that are referenced to from the contour sequence.
             for contour_sequence in roi_contour_sequence[(0x3006, 0x0040)]:
                 if has_pydicom_meta_tag(dcm_seq=contour_sequence, tag=(0x3006, 0x0016)):
                     for contour_image_sequence in contour_sequence[(0x3006, 0x0016)]:
@@ -289,7 +289,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                             )
                         ]
 
-            # Extract the SOP instance UIDs from _images that are referenced to from the referenced frame of reference
+            # Extract the SOP instance UIDs from images that are referenced to from the referenced frame of reference
             # sequence.
             if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x3006, 0x0010)):
                 if has_pydicom_meta_tag(dcm_seq=self.image_metadata[(0x3006, 0x0010)][0], tag=(0x3006, 0x0012)):

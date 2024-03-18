@@ -29,7 +29,7 @@ class LawsFilter(GenericFilter):
         # Whether Laws texture energy should be calculated
         self.calculate_energy = settings.img_transform.laws_calculate_energy
 
-        # Whether response maps or texture energy _images should be made rotationally invariant
+        # Whether response maps or texture energy images should be made rotationally invariant
         self.rotation_invariance = settings.img_transform.laws_rotation_invariance
 
         # Which pooling method is used.

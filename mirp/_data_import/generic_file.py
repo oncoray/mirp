@@ -90,7 +90,7 @@ class ImageFile(BaseImage):
 
     def get_identifiers(self, as_hash=False) -> dict | bytes:
         """
-        General identifiers for _images. Note that image_origin is not included, as this should be different for every
+        General identifiers for images. Note that image_origin is not included, as this should be different for every
         slice in a volume.
         :param as_hash: boolean flag. When true returns a SHA256 hash of the identifier data.
         :return: a dictionary with identifiers.
@@ -132,7 +132,7 @@ class ImageFile(BaseImage):
                 self.associated_masks = matching_mask_list
                 return
 
-        # Match on path distance. Then _masks are filtered based on distance to the image, with _masks with minimum
+        # Match on path distance. Then masks are filtered based on distance to the image, with masks with minimum
         # distance to the image being kept.
         if "file_distance" in association_strategy and self.dir_path is not None:
             file_distance = [

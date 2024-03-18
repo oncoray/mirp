@@ -7,7 +7,7 @@ from mirp.settings.utilities import setting_def
 @dataclass
 class GeneralSettingsClass:
     """
-    Set of overall process parameters. The most important parameter here is ``by_slice`` which affects how _images are
+    Set of overall process parameters. The most important parameter here is ``by_slice`` which affects how images are
     processed and features are computed.
 
     Parameters

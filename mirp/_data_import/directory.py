@@ -445,7 +445,7 @@ class ImageDirectory:
             if not image_file_object.is_stackable(stack_images=self.stack_images)
         ]
 
-        # If none of the _images are potentially stackable we don't make any alterations.
+        # If none of the images are potentially stackable we don't make any alterations.
         if len(image_file_list) == len(self.image_files):
             return
 

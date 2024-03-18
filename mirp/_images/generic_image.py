@@ -316,7 +316,7 @@ class GenericImage(BaseImage):
         from mirp._image_processing.anti_aliasing import gaussian_preprocess_filter
         from scipy.ndimage import map_coordinates
 
-        # Skip for missing _images.
+        # Skip for missing images.
         if self.is_empty() is None:
             return
 
@@ -575,7 +575,7 @@ class GenericImage(BaseImage):
         # Add noise iteration number
         self.noise_iteration_id = noise_iteration_id
 
-        # Skip for missing _images
+        # Skip for missing images
         if self.image_data is None:
             return
 
@@ -744,7 +744,7 @@ class GenericImage(BaseImage):
         :param fill_value: fill value for out-of-range intensities. If None, the upper and lower ranges are used
         :return:
         """
-        # Skip for missing _images
+        # Skip for missing images
         if self.image_data is None or intensity_range is None:
             return
 
@@ -789,7 +789,7 @@ class GenericImage(BaseImage):
         :return:
         """
 
-        # Skip for missing _images
+        # Skip for missing images
         if self.is_empty():
             return self
 
@@ -919,7 +919,7 @@ class GenericImage(BaseImage):
 
     def scale_intensities(self, scale: float) -> Self:
 
-        # Skip for missing _images
+        # Skip for missing images
         if self.is_empty():
             return self
 
@@ -943,7 +943,7 @@ class GenericImage(BaseImage):
         :return:
         """
 
-        # Skip for missing _images
+        # Skip for missing images
         if self.is_empty():
             return
 
@@ -979,7 +979,7 @@ class GenericImage(BaseImage):
             z_only=False):
         """Crop image to the provided map extent."""
 
-        # Skip for missing _images
+        # Skip for missing images
         if self.is_empty():
             return
 
@@ -1025,9 +1025,9 @@ class GenericImage(BaseImage):
         self.set_voxel_grid(voxel_grid=image_data)
 
     def crop_to_size(self, center, crop_size):
-        """Crop _images to the exact size"""
+        """Crop images to the exact size"""
 
-        # Skip for missing _images
+        # Skip for missing images
         if self.is_empty():
             return
 
@@ -1060,7 +1060,7 @@ class GenericImage(BaseImage):
         max_index_original = new_grid_index + crop_size
         min_index_original = new_grid_index
 
-        # Update coordinates based on boundaries in the original _images
+        # Update coordinates based on boundaries in the original images
         max_index_original = np.minimum(max_index_original, np.array(self.image_dimension))
         min_index_original = np.maximum(min_index_original, np.array([0, 0, 0]))
 

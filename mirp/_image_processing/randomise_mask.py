@@ -47,7 +47,7 @@ def randomise_mask(
                 new_mask.roi = randomised_mask
                 new_masks += [new_mask]
         else:
-            raise TypeError("The _masks attribute is expected to be MaskImage and BaseMask")
+            raise TypeError("The masks attribute is expected to be MaskImage and BaseMask")
 
     new_masks = flatten_list(new_masks)
     if len(new_masks) == 0:

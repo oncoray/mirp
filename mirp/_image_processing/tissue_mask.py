@@ -62,7 +62,7 @@ def create_tissue_mask(
         raise ValueError(f"The tissue_mask_type configuration parameter is expected to be one of none, range, "
                          f"or relative_range. Encountered: {mask_type}")
 
-    # Check that _masks are not completely empty.
+    # Check that masks are not completely empty.
     if np.all(np.logical_not(mask)):
         mask = np.ones(image.image_dimension, dtype=bool)
 
