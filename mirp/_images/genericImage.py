@@ -313,7 +313,7 @@ class GenericImage(BaseImage):
             anti_aliasing_smoothing_beta: float
     ):
         """Performs interpolation of the image volume"""
-        from mirp._image_processing.antiAliasing import gaussian_preprocess_filter
+        from mirp._image_processing.anti_aliasing import gaussian_preprocess_filter
         from scipy.ndimage import map_coordinates
 
         # Skip for missing _images.
@@ -493,7 +493,7 @@ class GenericImage(BaseImage):
         """Register this image with another image."""
 
         from scipy.ndimage import map_coordinates
-        from mirp._image_processing.antiAliasing import gaussian_preprocess_filter
+        from mirp._image_processing.anti_aliasing import gaussian_preprocess_filter
 
         # This is just for type hinting. Use typing.Self once this is supported by the codestack.
         image: GenericImage = image

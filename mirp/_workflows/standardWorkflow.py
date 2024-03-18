@@ -69,10 +69,10 @@ class StandardWorkflow(BaseWorkflow):
 
     def standard_image_processing(self) -> tuple[GenericImage, list[BaseMask]]:
         from mirp._image_processing.cropping import crop
-        from mirp._image_processing.tissueMask import create_tissue_mask
-        from mirp._image_processing.alterMask import alter_mask
-        from mirp._image_processing.randomiseMask import randomise_mask
-        from mirp._image_processing.splitMask import split_masks
+        from mirp._image_processing.tissue_mask import create_tissue_mask
+        from mirp._image_processing.alter_mask import alter_mask
+        from mirp._image_processing.randomise_mask import randomise_mask
+        from mirp._image_processing.split_mask import split_masks
         from mirp._data_import.utilities import flatten_list
 
         # Configure logger
@@ -584,7 +584,7 @@ class StandardWorkflow(BaseWorkflow):
             mask: BaseMask,
             settings: None | SettingsClass | FeatureExtractionSettingsClass = None
     ) -> tuple[GenericImage, BaseMask]:
-        from mirp._image_processing.discretiseImage import discretise_image
+        from mirp._image_processing.discretise_image import discretise_image
 
         if settings is None:
             settings = self.settings
