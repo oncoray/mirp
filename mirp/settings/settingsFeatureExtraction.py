@@ -66,9 +66,9 @@ class FeatureExtractionSettingsClass:
         * "fixed_bin_size": The intensity range is divided into bins with a fixed width, defined using the
           ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower
           bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in
-          :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. CT images have a default
-          lower bound of the initial bin at -1000.0 and PET images have a default lower bound at 0.0. Other images,
-          including MRI, normalised CT and PET images and filtered images, do not have a default value.
+          :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. CT _images have a default
+          lower bound of the initial bin at -1000.0 and PET _images have a default lower bound at 0.0. Other _images,
+          including MRI, normalised CT and PET _images and filtered _images, do not have a default value.
         * "fixed_bin_size_pyradiomics": The intensity range is divided into bins with a fixed width. This follows the
           non-IBSI compliant implementation in the pyradiomics package.
         * "none": The intensity range is not discretised into bins. This method can only be used if the image

@@ -107,7 +107,7 @@
             <roi_adapt_max_erosion></roi_adapt_max_erosion>
             <!-- Supervoxel-based contour randomisation repetitions for image perturbation. Default: 0 -->
             <roi_random_rep></roi_random_rep>
-            <!-- Width of the rim used for splitting the mask into bulk and rim masks, in physical dimensions. Multiple values
+            <!-- Width of the rim used for splitting the mask into bulk and rim _masks, in physical dimensions. Multiple values
             can be provided to generate rims of different widths. -->
             <roi_boundary_size></roi_boundary_size>
             <!-- Determines the minimum volume of the bulk mask when splitting the original mask into bulk and rim sections.
@@ -228,9 +228,9 @@
             <!-- Delta for chebyshev distance between centetr voxel and neighbourhood boundary used to calculate
             texture energy: integer, default: 7-->
             <laws_delta></laws_delta>
-            <!-- Create rotationally invariant laws kernel response maps or energy images; True (default) or False -->
+            <!-- Create rotationally invariant laws kernel response maps or energy _images; True (default) or False -->
             <laws_rotation_invariance></laws_rotation_invariance>
-            <!-- Pooling method used for rotationally invariant Laws response maps and energy images; max (default)
+            <!-- Pooling method used for rotationally invariant Laws response maps and energy _images; max (default)
             or mean. -->
             <laws_pooling_method></laws_pooling_method>
             <!-- Boundary condition for Laws kernels. Supersedes generic boundary condition tag. -->

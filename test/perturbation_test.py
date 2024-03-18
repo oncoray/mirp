@@ -270,7 +270,7 @@ def test_pertubation_fraction_change_multiple():
         perturbation_roi_adapt_type="fraction",
         perturbation_roi_adapt_size=[-0.2, 0.0, 0.2]
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment (3D)
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -301,7 +301,7 @@ def test_perturbation_distance_grow():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=2.0
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -331,7 +331,7 @@ def test_perturbation_distance_shrink():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=-2.0
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -361,7 +361,7 @@ def test_pertubation_distance_change_multiple():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=[-2.0, 0.0, 2.0]
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -391,7 +391,7 @@ def test_perturbation_roi_randomisation():
         crop_around_roi=False,
         perturbation_randomise_roi_repetitions=2
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -425,7 +425,7 @@ def test_perturbation_roi_randomisation_rotation():
         perturbation_randomise_roi_repetitions=1,
         perturbation_rotation_angles=45.0
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)

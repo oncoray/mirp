@@ -5,11 +5,11 @@ import itk
 import numpy as np
 import pytest
 
-from mirp.importData.importImage import import_image
-from mirp.importData.imageITKFile import ImageITKFile
-from mirp.importData.imageDicomFileStack import ImageDicomFileStack
-from mirp.importData.imageNumpyFile import ImageNumpyFile
-from mirp.importData.imageNumpyFileStack import ImageNumpyFileStack
+from mirp._data_import.importImage import import_image
+from mirp._data_import.imageITKFile import ImageITKFile
+from mirp._data_import.imageDicomFileStack import ImageDicomFileStack
+from mirp._data_import.imageNumpyFile import ImageNumpyFile
+from mirp._data_import.imageNumpyFileStack import ImageNumpyFileStack
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -134,7 +134,7 @@ def test_sample_name_parser():
     specific pattern.
     :return:
     """
-    from mirp.importData.utilities import isolate_sample_name
+    from mirp._data_import.utilities import isolate_sample_name
 
     # No sample name placeholder symbol.
     sample_name = isolate_sample_name(
@@ -339,7 +339,7 @@ def test_single_image_import():
 
 
 def test_multiple_image_import():
-    # Read Nifti images directly.
+    # Read Nifti _images directly.
     image_list = import_image([
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_002", "CT", "nifti", "image", "image.nii.gz"),
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_003", "CT", "nifti", "image", "image.nii.gz")
@@ -373,7 +373,7 @@ def test_multiple_image_import():
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
-    # Read Nifti images for specific samples.
+    # Read Nifti _images for specific samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -394,7 +394,7 @@ def test_multiple_image_import():
     assert image_list[1].sample_name == "STS_003"
     assert all(image_object.modality == "ct" for image_object in image_list)
 
-    # Read numpy images for specific samples.
+    # Read numpy _images for specific samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -414,7 +414,7 @@ def test_multiple_image_import():
     assert image_list[0].sample_name == "STS_002"
     assert image_list[1].sample_name == "STS_003"
 
-    # Read Nifti images for all samples.
+    # Read Nifti _images for all samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image"))
@@ -432,7 +432,7 @@ def test_multiple_image_import():
     assert image_list[2].sample_name == "STS_003"
     assert all(image_object.modality == "ct" for image_object in image_list)
 
-    # Read numpy images for all samples.
+    # Read numpy _images for all samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "numpy", "image"))
@@ -495,7 +495,7 @@ def test_single_image_import_flat():
 
 def test_multiple_image_import_flat():
 
-    # Read Nifti images for specific samples.
+    # Read Nifti _images for specific samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         sample_name=["STS_002", "STS_003"],
@@ -516,7 +516,7 @@ def test_multiple_image_import_flat():
     assert set(image_object.sample_name for image_object in image_list) == {"STS_002", "STS_003"}
     assert all(image_object.modality == "ct" for image_object in image_list)
 
-    # Read numpy images for specific samples.
+    # Read numpy _images for specific samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         sample_name=["STS_002", "STS_003"],
@@ -536,7 +536,7 @@ def test_multiple_image_import_flat():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
     assert set(image_object.sample_name for image_object in image_list) == {"STS_002", "STS_003"}
 
-    # Read Nifti images for all samples.
+    # Read Nifti _images for all samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         image_name="#_CT_image")
@@ -554,7 +554,7 @@ def test_multiple_image_import_flat():
     assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
     assert all(image_object.modality == "ct" for image_object in image_list)
 
-    # Read numpy images for all samples.
+    # Read numpy _images for all samples.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         image_name="CT_#_image"
@@ -572,7 +572,7 @@ def test_multiple_image_import_flat():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
     assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
 
-    # Read Nifti images for all samples without specifying the sample name in the image name.
+    # Read Nifti _images for all samples without specifying the sample name in the image name.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         image_name="*CT_image")
@@ -589,7 +589,7 @@ def test_multiple_image_import_flat():
     assert set(image_object.sample_name for image_object in image_list) == {"STS_001", "STS_002", "STS_003"}
     assert all(image_object.modality == "ct" for image_object in image_list)
 
-    # Read numpy images for all samples without specifying the sample name in the image name.
+    # Read numpy _images for all samples without specifying the sample name in the image name.
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         image_name="CT_*_image"

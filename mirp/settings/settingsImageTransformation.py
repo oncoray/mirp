@@ -12,7 +12,7 @@ from mirp.settings.utilities import setting_def
 class ImageTransformationSettingsClass:
     """
     Parameters related to image transformation using filters. Many parameters are conditional on the selected image
-    filter (``filter_kernels``). By default, only statistical features are computed from filtered images.
+    filter (``filter_kernels``). By default, only statistical features are computed from filtered _images.
 
     .. note::
         Many feature extraction parameters are copied from
@@ -33,7 +33,7 @@ class ImageTransformationSettingsClass:
         Limits use of filters to those that exist in the IBSI reference standard.
 
     response_map_feature_families: str or list of str, optional, default: "statistics"
-        Determines the feature families for which features are computed from response maps (filtered images). Radiomics
+        Determines the feature families for which features are computed from response maps (filtered _images). Radiomics
         features are implemented as defined in the IBSI reference manual. The following feature families can be
         computed from response maps:
 
@@ -72,8 +72,8 @@ class ImageTransformationSettingsClass:
         * "fixed_bin_size": The intensity range is divided into bins with a fixed width, defined using the
           ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower
           bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in
-          :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. Other images,
-          including MRI, normalised CT and PET images and filtered images, do not have a default value, and bins are
+          :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`. Other _images,
+          including MRI, normalised CT and PET _images and filtered _images, do not have a default value, and bins are
           created from using the minimum intensity as lower bound.
         * "fixed_bin_size_pyradiomics": The intensity range is divided into bins with a fixed width. This follows the
           non-IBSI compliant implementation in the pyradiomics package.
@@ -84,7 +84,7 @@ class ImageTransformationSettingsClass:
 
         .. note::
             Use of the "fixed_bin_size", "fixed_bin_size_pyradiomics", and "none" discretisation methods is discouraged
-            for transformed images. Due to transformation, a direct link to any meaningful quantity represented by the
+            for transformed _images. Due to transformation, a direct link to any meaningful quantity represented by the
             intensity of the original image (e.g. Hounsfield Units for CT, Standardised Uptake Value for PET) is lost.
 
     response_map_discretisation_n_bins: int or list of int, optional, default: 16
@@ -96,7 +96,7 @@ class ImageTransformationSettingsClass:
         values can be specified in a list to yield features according to each bin width.
 
     filter_kernels: str or list of str, optional, default: None
-        Names of the filters applied to the original image to create response maps (filtered images). Filter
+        Names of the filters applied to the original image to create response maps (filtered _images). Filter
         implementation follows the IBSI reference manual. The following filters are supported:
 
         * Mean filters: "mean"

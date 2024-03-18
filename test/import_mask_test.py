@@ -3,11 +3,11 @@ import os.path
 import pytest
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
-from mirp.importData.importMask import import_mask
-from mirp.importData.imageITKFile import MaskITKFile
-from mirp.importData.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
-from mirp.importData.imageNumpyFile import MaskNumpyFile
-from mirp.importData.imageNumpyFileStack import MaskNumpyFileStack
+from mirp._data_import.importMask import import_mask
+from mirp._data_import.imageITKFile import MaskITKFile
+from mirp._data_import.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
+from mirp._data_import.imageNumpyFile import MaskNumpyFile
+from mirp._data_import.imageNumpyFileStack import MaskNumpyFileStack
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -110,7 +110,7 @@ def test_single_mask_import():
 
 
 def test_multiple_mask_import():
-    # Read Nifti masks directly.
+    # Read Nifti _masks directly.
     mask_list = import_mask([
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_002", "CT", "nifti", "mask", "mask.nii.gz"),
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_003", "CT", "nifti", "mask", "mask.nii.gz")
@@ -148,7 +148,7 @@ def test_multiple_mask_import():
     assert all(isinstance(mask_object, MaskNumpyFileStack) for mask_object in mask_list)
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
 
-    # Read Nifti masks for specific samples.
+    # Read Nifti _masks for specific samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -170,7 +170,7 @@ def test_multiple_mask_import():
     assert mask_list[0].sample_name == "STS_002"
     assert mask_list[1].sample_name == "STS_003"
 
-    # Read numpy masks for specific samples.
+    # Read numpy _masks for specific samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -192,7 +192,7 @@ def test_multiple_mask_import():
     assert mask_list[0].sample_name == "STS_002"
     assert mask_list[1].sample_name == "STS_003"
 
-    # Read Nifti masks for all samples.
+    # Read Nifti _masks for all samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         mask_sub_folder=os.path.join("CT", "nifti", "mask"))
@@ -211,7 +211,7 @@ def test_multiple_mask_import():
     assert mask_list[1].sample_name == "STS_002"
     assert mask_list[2].sample_name == "STS_003"
 
-    # Read numpy masks for all samples.
+    # Read numpy _masks for all samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         mask_sub_folder=os.path.join("CT", "numpy", "mask"))
@@ -237,7 +237,7 @@ def test_single_mask_import_flat():
     assert mask_list[0].modality == "generic_mask"
     assert mask_list[0].sample_name == "STS_001"
 
-    # Read a DICOM RTSTRUCT masks.
+    # Read a DICOM RTSTRUCT _masks.
     mask_list = import_mask(
         os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
         sample_name="STS_001",
@@ -276,7 +276,7 @@ def test_single_mask_import_flat():
 
 def test_multiple_mask_import_flat():
 
-    # Read Nifti masks for specific samples.
+    # Read Nifti _masks for specific samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         sample_name=["STS_002", "STS_003"],
@@ -298,7 +298,7 @@ def test_multiple_mask_import_flat():
     assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_002", "STS_003"}
     assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
 
-    # Read numpy masks for specific samples.
+    # Read numpy _masks for specific samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         sample_name=["STS_002", "STS_003"],
@@ -320,7 +320,7 @@ def test_multiple_mask_import_flat():
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
     assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_002", "STS_003"}
 
-    # Read Nifti masks for all samples.
+    # Read Nifti _masks for all samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         mask_name="#_CT_image")
@@ -339,7 +339,7 @@ def test_multiple_mask_import_flat():
     assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
     assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
 
-    # Read numpy masks for all samples.
+    # Read numpy _masks for all samples.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         mask_name="CT_#_mask"
@@ -359,7 +359,7 @@ def test_multiple_mask_import_flat():
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
     assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
 
-    # Read Nifti masks for all samples without specifying the sample name in the image name.
+    # Read Nifti _masks for all samples without specifying the sample name in the image name.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         mask_name="*CT_mask")
@@ -377,7 +377,7 @@ def test_multiple_mask_import_flat():
     assert set(mask_object.sample_name for mask_object in mask_list) == {"STS_001", "STS_002", "STS_003"}
     assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
 
-    # Read numpy masks for all samples without specifying the sample name in the image name.
+    # Read numpy _masks for all samples without specifying the sample name in the image name.
     mask_list = import_mask(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         mask_name="CT_*_mask"

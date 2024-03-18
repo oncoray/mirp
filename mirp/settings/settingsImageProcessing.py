@@ -75,7 +75,7 @@ class ImagePostProcessingClass:
         "range"` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].
 
     tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
-        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
+        Type of algorithm used to produce an approximate tissue mask of the tissue. Such _masks can be used to select
         pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
 
     tissue_mask_range: list of float, optional

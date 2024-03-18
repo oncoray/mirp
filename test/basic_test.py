@@ -21,8 +21,8 @@ def test_orientation():
     """
     Test internal representation of image objects using the orientation phantom.
     """
-    from mirp.importData.readData import read_image
-    from mirp.importData.importImage import import_image
+    from mirp._data_import.readData import read_image
+    from mirp._data_import.importImage import import_image
 
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image", "orientation.nii.gz")
@@ -170,15 +170,15 @@ def test_edge_cases_basic_pipeline():
     """
     Test feature extraction using the basic pipeline. The following cases are tested using an uninformative phantom
     that has the value 1 everywhere:
-    -   using a normal mask that completely covers the image. This is to test how MIRP responds to uninformative images.
-    -   using a mask that only contains a single voxel. This is to test how MIRP responds to masks with a single voxel.
+    -   using a normal mask that completely covers the image. This is to test how MIRP responds to uninformative _images.
+    -   using a mask that only contains a single voxel. This is to test how MIRP responds to _masks with a single voxel.
     -   using a mask that has disconnected voxels.
     -   using an empty mask.
     -   using a mask that becomes empty after resegmentation.
 
     Both 3D and 2D (slice) phantoms are used.
 
-    So in short, this pipeline tests the worst possible images and masks to figure out what happens.
+    So in short, this pipeline tests the worst possible _images and _masks to figure out what happens.
     """
 
     images = ["uninformative", "uninformative_slice"]

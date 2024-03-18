@@ -27,7 +27,7 @@ class ImageInterpolationSettingsClass:
 
         Multiple spacings may be defined by creating a nested list, e.g. [[1.0], [1.5], [2.0]] to resample the
         same image multiple times to different (here: isotropic) voxel spacings, namely 1.0, 1.5 and 2.0. Units
-        are defined by the headers of the image files. These are typically millimeters for radiological images.
+        are defined by the headers of the image files. These are typically millimeters for radiological _images.
 
     spline_order: int, optional, default: 3
         Sets the spline order used for spline interpolation. mirp uses `scipy.ndimage.map_coordinates

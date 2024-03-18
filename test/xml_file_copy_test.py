@@ -1,5 +1,5 @@
 import os
-from mirp.utilities.config_utilities import get_settings_xml, get_data_xml
+from mirp._utilities.config_utilities import get_settings_xml, get_data_xml
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 

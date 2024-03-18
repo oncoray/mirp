@@ -1,8 +1,8 @@
 import os
 import numpy as np
 
-from mirp.images.rtdoseImage import RTDoseImage
-from mirp.masks.baseMask import BaseMask
+from mirp._images.rtdoseImage import RTDoseImage
+from mirp._masks.baseMask import BaseMask
 from mirp.extractFeaturesAndImages import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

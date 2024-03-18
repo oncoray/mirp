@@ -2,9 +2,9 @@ from typing import Generator, Iterable, Any
 import copy
 import ray
 
-from mirp.importData.imageGenericFile import ImageFile
+from mirp._data_import.imageGenericFile import ImageFile
 from mirp.settings.settingsGeneric import SettingsClass
-from mirp.workflows.standardWorkflow import StandardWorkflow
+from mirp._workflows.standardWorkflow import StandardWorkflow
 
 
 def deep_learning_preprocessing(
@@ -19,7 +19,7 @@ def deep_learning_preprocessing(
         **kwargs
 ) -> None | list[Any]:
     """
-    Pre-processes images for deep learning.
+    Pre-processes _images for deep learning.
 
     Parameters
     ----------
@@ -27,7 +27,7 @@ def deep_learning_preprocessing(
         Determines whether separate slices should be extracted.
 
     crop_size: list of float or list of int, optional, default: None
-        Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
+        Size to which the _images and _masks should be cropped. Images and _masks are cropped around the center of the
         mask(s).
 
         .. note::
@@ -35,23 +35,23 @@ def deep_learning_preprocessing(
             *x* dimension.
 
     image_export_format: {"dict", "native", "numpy"}, default: "numpy"
-        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
-        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
-        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+        Return format for processed _images and _masks. ``"dict"`` returns dictionaries of _images and _masks as numpy
+        arrays and associated characteristics. ``"native"`` returns _images and _masks in their internal format.
+        ``"numpy"`` returns _images and _masks in numpy format. This argument is only used if ``export_images=True``.
 
     write_file_format: {"nifti", "numpy"}, default: "numpy"
-        File format for processed images and masks. ``"nifti"`` writes images and masks in the NIfTI file format,
-        and ``"numpy"`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.
+        File format for processed _images and _masks. ``"nifti"`` writes _images and _masks in the NIfTI file format,
+        and ``"numpy"`` writes _images and _masks as numpy files. This argument is only used if ``write_images=True``.
 
     export_images: bool, optional
-        Determines whether processed images and masks should be returned by the function.
+        Determines whether processed _images and _masks should be returned by the function.
 
     write_images: bool, optional
-        Determines whether processed images and masks should be written to the directory indicated by the
+        Determines whether processed _images and _masks should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
     write_dir: str, optional
-        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        Path to directory where processed _images and _masks should be written. If not set, processed _images and _masks
         are returned by this function. Required if ``write_images=True``.
 
     num_cpus: int, optional, default: None
@@ -60,21 +60,21 @@ def deep_learning_preprocessing(
         instead. By default, image and mask processing are processed sequentially.
 
     **kwargs:
-        Keyword arguments passed for importing images and masks (
-        :func:`~mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
+        Keyword arguments passed for importing _images and _masks (
+        :func:`~mirp._data_import.importImageAndMask.import_image_and_mask`) and configuring settings (notably
         :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
         :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others.
 
     Returns
     -------
     None | list[Any]
-        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
+        List of _images and _masks in the format indicated by ``image_export_format``, if ``export_images=True``.
 
     See Also
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp._data_import.importImageAndMask.import_image_and_mask`)
     * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
     * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
@@ -139,7 +139,7 @@ def _ray_extractor(
         write_file_format: str = "numpy"
 ):
     # Limit internal threading by third-party libraries.
-    from mirp.utilities.parallel import limit_inner_threads
+    from mirp._utilities.parallel import limit_inner_threads
     limit_inner_threads()
 
     return workflow.deep_learning_conversion(
@@ -161,7 +161,7 @@ def deep_learning_preprocessing_generator(
         **kwargs
 ) -> Generator[Any, None, None]:
     """
-    Generator for pre-processing images for deep learning.
+    Generator for pre-processing _images for deep learning.
 
     Parameters
     ----------
@@ -169,7 +169,7 @@ def deep_learning_preprocessing_generator(
         Determines whether separate slices should be extracted.
 
     crop_size: list of float or list of int, optional, default: None
-        Size to which the images and masks should be cropped. Images and masks are cropped around the center of the
+        Size to which the _images and _masks should be cropped. Images and _masks are cropped around the center of the
         mask(s).
 
         .. note::
@@ -177,41 +177,41 @@ def deep_learning_preprocessing_generator(
             *x* dimension.
 
     image_export_format: {"dict", "native", "numpy"}, default: "numpy"
-        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
-        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
-        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+        Return format for processed _images and _masks. ``"dict"`` returns dictionaries of _images and _masks as numpy
+        arrays and associated characteristics. ``"native"`` returns _images and _masks in their internal format.
+        ``"numpy"`` returns _images and _masks in numpy format. This argument is only used if ``export_images=True``.
 
     write_file_format: {"nifti", "numpy"}, default: "numpy"
-        File format for processed images and masks. ``"nifti"`` writes images and masks in the NIfTI file format,
-        and ``"numpy"`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.
+        File format for processed _images and _masks. ``"nifti"`` writes _images and _masks in the NIfTI file format,
+        and ``"numpy"`` writes _images and _masks as numpy files. This argument is only used if ``write_images=True``.
 
     export_images: bool, optional
-        Determines whether processed images and masks should be returned by the function.
+        Determines whether processed _images and _masks should be returned by the function.
 
     write_images: bool, optional
-        Determines whether processed images and masks should be written to the directory indicated by the
+        Determines whether processed _images and _masks should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
     write_dir: str, optional
-        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        Path to directory where processed _images and _masks should be written. If not set, processed _images and _masks
         are returned by this function. Required if ``write_images=True``.
 
     **kwargs:
-        Keyword arguments passed for importing images and masks (
-        :func:`~mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings (notably
+        Keyword arguments passed for importing _images and _masks (
+        :func:`~mirp._data_import.importImageAndMask.import_image_and_mask`) and configuring settings (notably
         :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`,
         :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others.
 
     Yields
     -------
     None | list[Any]
-        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.
+        List of _images and _masks in the format indicated by ``image_export_format``, if ``export_images=True``.
 
     See Also
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp._data_import.importImageAndMask.import_image_and_mask`)
     * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
     * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and
@@ -256,7 +256,7 @@ def _base_deep_learning_preprocessing(
         write_dir: None | str = None,
         **kwargs
 ):
-    from mirp.importData.importImageAndMask import import_image_and_mask
+    from mirp._data_import.importImageAndMask import import_image_and_mask
     from mirp.settings.importConfigurationSettings import import_configuration_settings
 
     # Infer write_images, export_images based on write_dir.
@@ -269,7 +269,7 @@ def _base_deep_learning_preprocessing(
         write_dir = None
 
     if write_images and write_dir is None:
-        raise ValueError("write_dir argument should be provided for writing images and masks to.")
+        raise ValueError("write_dir argument should be provided for writing _images and _masks to.")
 
     if not write_images and not export_images:
         raise ValueError(f"write_images and export_images arguments cannot both be False.")

@@ -71,7 +71,7 @@ def test_example_retrieve_mask_labels():
     )
     assert mask_labels.roi_label.values[0] == 1
 
-    # Multiple masks.
+    # Multiple _masks.
     mask_labels = extract_mask_labels(
         mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
         mask_sub_folder=os.path.join("CT", "numpy", "mask")

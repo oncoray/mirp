@@ -13,7 +13,7 @@ def test_extract_image_parameters_default():
     assert all(x in image_parameters.columns for x in ["modality", "spacing_z", "spacing_y", "spacing_x"])
     assert len(image_parameters) == 1
 
-    # Read multiple images.
+    # Read multiple _images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image")
@@ -29,7 +29,7 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 1
 
-    # Read multiple CT images.
+    # Read multiple CT _images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "dicom", "image")
@@ -42,7 +42,7 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 1
 
-    # Read multiple PET images.
+    # Read multiple PET _images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("PET", "dicom", "image")
@@ -55,14 +55,14 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 1
 
-    # Read multiple T1-weighted MR images.
+    # Read multiple T1-weighted MR _images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("MR_T1", "dicom", "image")
     )
     assert len(image_parameters) == 3
 
-    # Read multiple DICOM images.
+    # Read multiple DICOM _images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_file_type="dicom"

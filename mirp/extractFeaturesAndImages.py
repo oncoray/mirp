@@ -3,9 +3,9 @@ import copy
 
 import ray
 
-from mirp.importData.imageGenericFile import ImageFile
+from mirp._data_import.imageGenericFile import ImageFile
 from mirp.settings.settingsGeneric import SettingsClass
-from mirp.workflows.standardWorkflow import StandardWorkflow
+from mirp._workflows.standardWorkflow import StandardWorkflow
 
 
 def extract_features(
@@ -15,17 +15,17 @@ def extract_features(
         **kwargs
 ) -> None | list[Any]:
     """
-    Compute features from regions of interest in images. This function is a wrapper around
+    Compute features from regions of interest in _images. This function is a wrapper around
     :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.
 
     Parameters
     ----------
     write_features: bool, optional
-        Determines whether features computed from images should be written to the directory indicated by the
+        Determines whether features computed from _images should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
     export_features: bool, optional
-        Determines whether features computed from images should be returned by the function.
+        Determines whether features computed from _images should be returned by the function.
 
     write_dir: str, optional
         Path to directory where feature tables should be written. If not set, feature tables are returned by this
@@ -60,17 +60,17 @@ def extract_features_generator(
         **kwargs
 ):
     """
-    Compute features from regions of interest in images. This generator is a wrapper around
+    Compute features from regions of interest in _images. This generator is a wrapper around
     :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
 
     Parameters
     ----------
     write_features: bool, default: False
-        Determines whether features computed from images should be written to the directory indicated by the
+        Determines whether features computed from _images should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
     export_features: bool, default: True
-        Determines whether features computed from images should be returned by the function.
+        Determines whether features computed from _images should be returned by the function.
 
     **kwargs:
         Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
@@ -101,20 +101,20 @@ def extract_images(
         **kwargs
 ):
     """
-    Process images and masks. This function is a wrapper around
+    Process _images and _masks. This function is a wrapper around
     :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.
 
     Parameters
     ----------
     write_images: bool, optional
-        Determines whether processed images and masks should be written to the directory indicated by the
+        Determines whether processed _images and _masks should be written to the directory indicated by the
         ``write_dir`` keyword argument.
 
     export_images: bool, optional
-        Determines whether processed images and masks should be returned by the function.
+        Determines whether processed _images and _masks should be returned by the function.
 
     write_dir: str, optional
-        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        Path to directory where processed _images and _masks should be written. If not set, processed _images and _masks
         are returned by this function. Required if ``write_images=True``.
 
     **kwargs:
@@ -146,17 +146,17 @@ def extract_images_generator(
         **kwargs
 ):
     """
-    Process images and masks. This generator is a wrapper around
+    Process _images and _masks. This generator is a wrapper around
     :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
 
     Parameters
     ----------
     write_images: bool, default: True
-       Determines whether processed images and masks should be written to the directory indicated by the
+       Determines whether processed _images and _masks should be written to the directory indicated by the
        ``write_dir`` keyword argument.
 
     export_images: bool, default: False
-       Determines whether processed images and masks should be returned by the function.
+       Determines whether processed _images and _masks should be returned by the function.
 
     **kwargs:
        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
@@ -186,23 +186,23 @@ def extract_features_and_images(
         **kwargs
 ):
     """
-    Processes images and computes features from regions of interest.
+    Processes _images and computes features from regions of interest.
 
     Parameters
     ----------
     image_export_format: {"dict", "native", "numpy"}, default: "numpy"
-        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
-        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
-        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+        Return format for processed _images and _masks. ``"dict"`` returns dictionaries of _images and _masks as numpy
+        arrays and associated characteristics. ``"native"`` returns _images and _masks in their internal format.
+        ``"numpy"`` returns _images and _masks in numpy format. This argument is only used if ``export_images=True``.
 
     num_cpus: int, optional, default: None
         Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be
         parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used
-        instead. By default, images are processed sequentially.
+        instead. By default, _images are processed sequentially.
 
     **kwargs:
-        Keyword arguments passed for importing images and masks (
-        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:
+        Keyword arguments passed for importing _images and _masks (
+        :func:`mirp._data_import.importImageAndMask.import_image_and_mask`) and configuring settings:
 
         * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
         * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
@@ -218,13 +218,13 @@ def extract_features_and_images(
     Returns
     -------
     None | list[Any]
-        List of features, images and masks, depending on ``export_features`` and ``export_images``.
+        List of features, _images and _masks, depending on ``export_features`` and ``export_images``.
 
     See Also
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp._data_import.importImageAndMask.import_image_and_mask`)
     * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
@@ -266,18 +266,18 @@ def extract_features_and_images_generator(
         **kwargs
 ):
     """
-    Processes images and computes features from regions of interest as a generator.
+    Processes _images and computes features from regions of interest as a generator.
 
     Parameters
     ----------
     image_export_format: {"dict", "native", "numpy"}, default: "numpy"
-        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
-        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
-        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+        Return format for processed _images and _masks. ``"dict"`` returns dictionaries of _images and _masks as numpy
+        arrays and associated characteristics. ``"native"`` returns _images and _masks in their internal format.
+        ``"numpy"`` returns _images and _masks in numpy format. This argument is only used if ``export_images=True``.
 
     **kwargs:
-        Keyword arguments passed for importing images and masks (
-        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:
+        Keyword arguments passed for importing _images and _masks (
+        :func:`mirp._data_import.importImageAndMask.import_image_and_mask`) and configuring settings:
 
         * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
         * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
@@ -293,13 +293,13 @@ def extract_features_and_images_generator(
     Yields
     ------
     None | list[Any]
-        List of features, images and masks, depending on ``export_features`` and ``export_images``.
+        List of features, _images and _masks, depending on ``export_features`` and ``export_images``.
 
     See Also
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp._data_import.importImageAndMask.import_image_and_mask`)
     * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)
@@ -320,7 +320,7 @@ def extract_features_and_images_generator(
 @ray.remote
 def _ray_extractor(workflow: StandardWorkflow, image_export_format="dict"):
     # Limit internal threading by third-party libraries.
-    from mirp.utilities.parallel import limit_inner_threads
+    from mirp._utilities.parallel import limit_inner_threads
     limit_inner_threads()
 
     return workflow.standard_extraction(image_export_format=image_export_format)
@@ -350,7 +350,7 @@ def _base_extract_features_and_images(
         write_dir: None | str = None,
         **kwargs
 ):
-    from mirp.importData.importImageAndMask import import_image_and_mask
+    from mirp._data_import.importImageAndMask import import_image_and_mask
     from mirp.settings.importConfigurationSettings import import_configuration_settings
 
     # Infer write_images, export_images, write_features, export_features based on write_dir.
@@ -367,7 +367,7 @@ def _base_extract_features_and_images(
         write_dir = None
 
     if write_images and write_dir is None:
-        raise ValueError("write_dir argument is required for writing images and masks, but not provided.")
+        raise ValueError("write_dir argument is required for writing _images and _masks, but not provided.")
     if write_features and write_dir is None:
         raise ValueError("write_dir argument is required for writing feature tables, but not provided.")
 
