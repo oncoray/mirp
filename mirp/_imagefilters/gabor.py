@@ -3,7 +3,7 @@ import copy
 
 from mirp._images.genericImage import GenericImage
 from mirp._images.transformedImage import GaborTransformedImage
-from mirp._imagefilters.genericFilter import GenericFilter
+from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids, FilterSet2D
 from mirp.settings.settingsGeneric import SettingsClass
 

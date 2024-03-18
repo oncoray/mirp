@@ -5,7 +5,7 @@ from mirp._images.genericImage import GenericImage
 from mirp._images.transformedImage import LaplacianOfGaussianTransformedImage
 from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
 from mirp.settings.settingsGeneric import SettingsClass
-from mirp._imagefilters.genericFilter import GenericFilter
+from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids
 
 

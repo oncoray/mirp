@@ -246,12 +246,12 @@ class StandardWorkflow(BaseWorkflow):
 
             if self.settings.img_transform.has_separable_wavelet_filter(x=current_filter):
                 # Separable wavelet filters
-                from mirp._imagefilters.separableWaveletFilter import SeparableWaveletFilter
+                from mirp._imagefilters.separable_wavelet import SeparableWaveletFilter
                 filter_obj = SeparableWaveletFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_nonseparable_wavelet_filter(x=current_filter):
                 # Non-separable wavelet filters
-                from mirp._imagefilters.nonseparableWaveletFilter import NonseparableWaveletFilter
+                from mirp._imagefilters.nonseparable_wavelet import NonseparableWaveletFilter
                 filter_obj = NonseparableWaveletFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_gaussian_filter(x=current_filter):
@@ -261,42 +261,42 @@ class StandardWorkflow(BaseWorkflow):
 
             elif self.settings.img_transform.has_laplacian_of_gaussian_filter(x=current_filter):
                 # Laplacian of Gaussian filters
-                from mirp._imagefilters.laplacianOfGaussian import LaplacianOfGaussianFilter
+                from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianFilter
                 filter_obj = LaplacianOfGaussianFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_laws_filter(x=current_filter):
                 # Laws' kernels
-                from mirp._imagefilters.lawsFilter import LawsFilter
+                from mirp._imagefilters.laws import LawsFilter
                 filter_obj = LawsFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_gabor_filter(x=current_filter):
                 # Gabor kernels
-                from mirp._imagefilters.gaborFilter import GaborFilter
+                from mirp._imagefilters.gabor import GaborFilter
                 filter_obj = GaborFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_mean_filter(x=current_filter):
                 # Mean / uniform filter
-                from mirp._imagefilters.meanFilter import MeanFilter
+                from mirp._imagefilters.mean import MeanFilter
                 filter_obj = MeanFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_square_transform_filter(x=current_filter):
                 # Square transform filter
-                from mirp._imagefilters.squareTransformFilter import SquareTransformFilter
+                from mirp._imagefilters.square_transform import SquareTransformFilter
                 filter_obj = SquareTransformFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_square_root_transform_filter(x=current_filter):
                 # Square root transform filter
-                from mirp._imagefilters.squareRootTransformFilter import SquareRootTransformFilter
+                from mirp._imagefilters.square_root_transform import SquareRootTransformFilter
                 filter_obj = SquareRootTransformFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_logarithm_transform_filter(x=current_filter):
                 # Logarithm transform filter
-                from mirp._imagefilters.logarithmTransformFilter import LogarithmTransformFilter
+                from mirp._imagefilters.log_transform import LogarithmTransformFilter
                 filter_obj = LogarithmTransformFilter(settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_exponential_transform_filter(x=current_filter):
                 # Exponential transform filter
-                from mirp._imagefilters.exponentialTransformFilter import ExponentialTransformFilter
+                from mirp._imagefilters.exponential_transform import ExponentialTransformFilter
                 filter_obj = ExponentialTransformFilter(settings=self.settings, name=current_filter)
 
             else:

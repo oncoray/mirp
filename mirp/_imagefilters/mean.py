@@ -3,7 +3,7 @@ import numpy as np
 
 from mirp._images.genericImage import GenericImage
 from mirp._images.transformedImage import MeanTransformedImage
-from mirp._imagefilters.genericFilter import GenericFilter
+from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import SeparableFilterSet
 from mirp.settings.settingsGeneric import SettingsClass
 
