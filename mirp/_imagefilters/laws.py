@@ -1,8 +1,8 @@
 import numpy as np
 import copy
 
-from mirp._images.genericImage import GenericImage
-from mirp._images.transformedImage import LawsTransformedImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.transformed_image import LawsTransformedImage
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import SeparableFilterSet, pool_voxel_grids
 from mirp.settings.settingsGeneric import SettingsClass

@@ -1,5 +1,5 @@
 from mirp.settings.settingsGeneric import SettingsClass
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 
 
 class GenericFilter:
