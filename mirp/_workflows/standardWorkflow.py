@@ -415,17 +415,17 @@ class StandardWorkflow(BaseWorkflow):
             return image_list, mask_list
 
     def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
-        from mirp._featuresets.localIntensity import get_local_intensity_features
+        from mirp._featuresets.local_intensity import get_local_intensity_features
         from mirp._featuresets.statistics import get_intensity_statistics_features
-        from mirp._featuresets.intensityVolumeHistogram import get_intensity_volume_histogram_features
-        from mirp._featuresets.volumeMorphology import get_volumetric_morphological_features
-        from mirp._featuresets.intensityHistogram import get_intensity_histogram_features
-        from mirp._featuresets.cooccurrenceMatrix import get_cm_features
-        from mirp._featuresets.runLengthMatrix import get_rlm_features
-        from mirp._featuresets.sizeZoneMatrix import get_szm_features
-        from mirp._featuresets.distanceZoneMatrix import get_dzm_features
-        from mirp._featuresets.neighbourhoodGreyToneDifferenceMatrix import get_ngtdm_features
-        from mirp._featuresets.neighbouringGreyLevelDifferenceMatrix import get_ngldm_features
+        from mirp._featuresets.intensity_volume_histogram import get_intensity_volume_histogram_features
+        from mirp._featuresets.morphology_3d import get_volumetric_morphological_features
+        from mirp._featuresets.intensity_histogram import get_intensity_histogram_features
+        from mirp._featuresets.cm import get_cm_features
+        from mirp._featuresets.rlm import get_rlm_features
+        from mirp._featuresets.szm import get_szm_features
+        from mirp._featuresets.dzm import get_dzm_features
+        from mirp._featuresets.ngtdm import get_ngtdm_features
+        from mirp._featuresets.ngldm import get_ngldm_features
 
         if isinstance(image, TransformedImage):
             feature_settings = self.settings.img_transform.feature_settings
