@@ -768,7 +768,13 @@ class ImageTransformationSettingsClass:
         else:
             riesz_filter_order = None
 
-        if self.has_steered_riesz_filter():
+        if self.has_steered_riesz_filter() and self.ibsi_compliant:
+            raise ValueError(
+                "The steered riesz filters are not part of the IBSI reference standard. If you are sure that you want "
+                "to use this method, use ibsi_compliant = False."
+            )
+
+        elif self.has_riesz_filter():
             riesz_filter_tensor_sigma = self.check_sigma(riesz_filter_tensor_sigma, "riesz_filter_tensor_sigma")
 
         else:
@@ -776,6 +782,27 @@ class ImageTransformationSettingsClass:
 
         self.riesz_order: None | list[list[int]] = riesz_filter_order
         self.riesz_filter_tensor_sigma: None | list[float] = riesz_filter_tensor_sigma
+
+        if ibsi_compliant and self.has_square_transform_filter():
+            raise ValueError(
+                "The square transformation filter is not part of the IBSI reference standard. If you are sure that "
+                "you want to use this method, use ibsi_compliant = False."
+            )
+        if ibsi_compliant and self.has_square_root_transform_filter():
+            raise ValueError(
+                "The square root transformation filter is not part of the IBSI reference standard. If you are sure "
+                "that you want to use this method, use ibsi_compliant = False."
+            )
+        if ibsi_compliant and self.has_logarithm_transform_filter():
+            raise ValueError(
+                "The logarithmic transformation filter is not part of the IBSI reference standard. If you are sure "
+                "that you want to use this method, use ibsi_compliant = False."
+            )
+        if ibsi_compliant and self.has_exponential_transform_filter():
+            raise ValueError(
+                "The exponential transformation filter is not part of the IBSI reference standard. If you are sure "
+                "that you want to use this method, use ibsi_compliant = False."
+            )
 
     @staticmethod
     def get_available_image_filters():
