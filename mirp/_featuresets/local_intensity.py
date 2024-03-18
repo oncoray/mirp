@@ -74,13 +74,15 @@ def compute_local_mean_intensity_filter(image: GenericImage, mask: BaseMask):
     df_base.loc[df_base.set_weight == True, "weight"] = 1.0 / np.sum(df_base.set_weight)
 
     # Update coordinates to start at 0
-    df_base.loc[:, ["x", "y", "z"]] -= df_base.loc[0, ["x", "y", "z"]]
+    df_base["x"] += base_ext[2]
+    df_base["y"] += base_ext[1]
+    df_base["z"] += base_ext[0]
 
     # Generate convolution filter
     conv_filter = np.zeros(shape=(
-        np.max(df_base.z).astype(int) + 1,
-        np.max(df_base.y).astype(int) + 1,
-        np.max(df_base.x).astype(int) + 1)
+        int(np.max(df_base.z)) + 1,
+        int(np.max(df_base.y)) + 1,
+        int(np.max(df_base.x)) + 1)
     )
     conv_filter[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.weight
 
