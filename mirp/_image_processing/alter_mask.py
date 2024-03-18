@@ -1,6 +1,6 @@
 from mirp._images.mask_image import MaskImage
 from mirp._data_import.utilities import flatten_list
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def alter_mask(

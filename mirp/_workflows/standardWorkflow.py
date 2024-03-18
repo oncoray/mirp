@@ -14,7 +14,7 @@ from mirp._workflows.baseWorkflow import BaseWorkflow
 from mirp._data_import.read_data import read_image_and_masks
 from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import TransformedImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 from mirp._image_processing.cropping import crop, crop_image_to_size
 
 
@@ -315,7 +315,7 @@ class StandardWorkflow(BaseWorkflow):
             write_file_format: str = "nifti",
             write_all_masks: bool = False
     ):
-        from mirp._utilities.utilities import random_string
+        from mirp.utilities.utilities import random_string
         import os
 
         # Indicators to prevent the same _masks from being written or exported multiple times.

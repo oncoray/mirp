@@ -13,7 +13,7 @@ from typing import Any
 
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 from mirp._data_import.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance
 
 

@@ -4,7 +4,7 @@ import numpy as np
 
 from mirp._images.generic_image import GenericImage
 from mirp._images.mask_image import MaskImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def standard_image_process_checks(

@@ -4,7 +4,7 @@ import pandas as pd
 
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp._images.generic_image import GenericImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def get_volumetric_morphological_features(

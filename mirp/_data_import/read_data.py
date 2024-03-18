@@ -3,7 +3,7 @@ import numpy as np
 from mirp._data_import.generic_file import ImageFile
 from mirp._data_import.utilities import flatten_list
 from mirp._images.generic_image import GenericImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def read_image(

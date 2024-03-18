@@ -4,7 +4,7 @@ from typing import Any
 import numpy as np
 
 from mirp._images.generic_image import GenericImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def discretise_image(

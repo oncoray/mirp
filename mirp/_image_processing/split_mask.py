@@ -1,6 +1,6 @@
 import numpy as np
 
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def split_masks(

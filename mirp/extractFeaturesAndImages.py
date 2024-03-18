@@ -320,7 +320,7 @@ def extract_features_and_images_generator(
 @ray.remote
 def _ray_extractor(workflow: StandardWorkflow, image_export_format="dict"):
     # Limit internal threading by third-party libraries.
-    from mirp._utilities.parallel import limit_inner_threads
+    from mirp.utilities.parallel import limit_inner_threads
     limit_inner_threads()
 
     return workflow.standard_extraction(image_export_format=image_export_format)

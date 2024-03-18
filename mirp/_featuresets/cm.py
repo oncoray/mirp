@@ -5,7 +5,7 @@ import copy
 from mirp._featuresets.utilities import get_neighbour_directions, is_list_all_none, coord2Index, get_intensity_value
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp._images.generic_image import GenericImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def get_cm_features(

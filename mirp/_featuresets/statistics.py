@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from mirp._images.generic_image import GenericImage
-from mirp._masks.baseMask import BaseMask
+from mirp._masks.base_mask import BaseMask
 
 
 def get_intensity_statistics_features(image: GenericImage, mask: BaseMask):
