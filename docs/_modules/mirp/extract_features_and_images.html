@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.extractFeaturesAndImages &mdash; mirp 2.0.1 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>mirp.extract_features_and_images &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=f5cff4aa"></script>
+        <script src="../../_static/documentation_options.js?v=b21de401"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -64,7 +66,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">mirp.extractFeaturesAndImages</li>
+      <li class="breadcrumb-item active">mirp.extract_features_and_images</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -73,19 +75,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for mirp.extractFeaturesAndImages</h1><div class="highlight"><pre>
+  <h1>Source code for mirp.extract_features_and_images</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Any</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
 <span class="kn">import</span> <span class="nn">ray</span>
 
-<span class="kn">from</span> <span class="nn">mirp.importData.imageGenericFile</span> <span class="kn">import</span> <span class="n">ImageFile</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsGeneric</span> <span class="kn">import</span> <span class="n">SettingsClass</span>
-<span class="kn">from</span> <span class="nn">mirp.workflows.standardWorkflow</span> <span class="kn">import</span> <span class="n">StandardWorkflow</span>
+<span class="kn">from</span> <span class="nn">mirp._data_import.generic_file</span> <span class="kn">import</span> <span class="n">ImageFile</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.generic</span> <span class="kn">import</span> <span class="n">SettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp._workflows.standardWorkflow</span> <span class="kn">import</span> <span class="n">StandardWorkflow</span>
 
 
 <div class="viewcode-block" id="extract_features">
-<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extractFeaturesAndImages.extract_features">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extract_features_and_images.extract_features">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_features</span><span class="p">(</span>
         <span class="n">write_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">export_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -134,7 +136,7 @@
 
 
 <div class="viewcode-block" id="extract_features_generator">
-<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extractFeaturesAndImages.extract_features_generator">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extract_features_and_images.extract_features_generator">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_features_generator</span><span class="p">(</span>
         <span class="n">write_features</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">export_features</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -177,7 +179,7 @@
 
 
 <div class="viewcode-block" id="extract_images">
-<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extractFeaturesAndImages.extract_images">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extract_features_and_images.extract_images">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_images</span><span class="p">(</span>
         <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -226,7 +228,7 @@
 
 
 <div class="viewcode-block" id="extract_images_generator">
-<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extractFeaturesAndImages.extract_images_generator">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extract_features_and_images.extract_images_generator">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_images_generator</span><span class="p">(</span>
         <span class="n">write_images</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">export_images</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -269,7 +271,7 @@
 
 
 <div class="viewcode-block" id="extract_features_and_images">
-<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extractFeaturesAndImages.extract_features_and_images">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extract_features_and_images.extract_features_and_images">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_features_and_images</span><span class="p">(</span>
         <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dict&quot;</span><span class="p">,</span>
         <span class="n">num_cpus</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -292,18 +294,18 @@
 
 <span class="sd">    **kwargs:</span>
 <span class="sd">        Keyword arguments passed for importing images and masks (</span>
-<span class="sd">        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:</span>
+<span class="sd">        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
 
-<span class="sd">        * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)</span>
-<span class="sd">        * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)</span>
-<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)</span>
+<span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
 <span class="sd">        * image interpolation / resampling (</span>
-<span class="sd">          :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and</span>
-<span class="sd">          :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)</span>
-<span class="sd">        * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)</span>
-<span class="sd">        * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
 <span class="sd">        * feature computation / extraction (</span>
-<span class="sd">          :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)</span>
+<span class="sd">          :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -314,16 +316,15 @@
 <span class="sd">    --------</span>
 <span class="sd">    Keyword arguments can be provided to configure the following:</span>
 
-<span class="sd">    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)</span>
-<span class="sd">    * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)</span>
-<span class="sd">    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)</span>
-<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)</span>
-<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and</span>
-<span class="sd">      :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)</span>
-<span class="sd">    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)</span>
-<span class="sd">    * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)</span>
-<span class="sd">    * feature computation / extraction (</span>
-<span class="sd">      :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)</span>
+<span class="sd">    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)</span>
+<span class="sd">    * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">      :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">    * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">    * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
+<span class="sd">    * feature computation / extraction (:class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -353,7 +354,7 @@
 
 
 <div class="viewcode-block" id="extract_features_and_images_generator">
-<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extractFeaturesAndImages.extract_features_and_images_generator">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractFeaturesAndImages.html#mirp.extract_features_and_images.extract_features_and_images_generator">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_features_and_images_generator</span><span class="p">(</span>
         <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dict&quot;</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
@@ -370,18 +371,18 @@
 
 <span class="sd">    **kwargs:</span>
 <span class="sd">        Keyword arguments passed for importing images and masks (</span>
-<span class="sd">        :func:`mirp.importData.importImageAndMask.import_image_and_mask`) and configuring settings:</span>
+<span class="sd">        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
 
-<span class="sd">        * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)</span>
-<span class="sd">        * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)</span>
-<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)</span>
+<span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
 <span class="sd">        * image interpolation / resampling (</span>
-<span class="sd">          :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and</span>
-<span class="sd">          :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)</span>
-<span class="sd">        * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)</span>
-<span class="sd">        * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
 <span class="sd">        * feature computation / extraction (</span>
-<span class="sd">          :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)</span>
+<span class="sd">          :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    Yields</span>
 <span class="sd">    ------</span>
@@ -392,16 +393,15 @@
 <span class="sd">    --------</span>
 <span class="sd">    Keyword arguments can be provided to configure the following:</span>
 
-<span class="sd">    * image and mask import (:func:`~mirp.importData.importImageAndMask.import_image_and_mask`)</span>
-<span class="sd">    * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)</span>
-<span class="sd">    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)</span>
-<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)</span>
-<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass` and</span>
-<span class="sd">      :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)</span>
-<span class="sd">    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)</span>
-<span class="sd">    * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)</span>
-<span class="sd">    * feature computation / extraction (</span>
-<span class="sd">      :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)</span>
+<span class="sd">    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)</span>
+<span class="sd">    * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`</span>
+<span class="sd">      and :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">    * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">    * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
+<span class="sd">    * feature computation / extraction (:class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -444,8 +444,8 @@
         <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">mirp.importData.importImageAndMask</span> <span class="kn">import</span> <span class="n">import_image_and_mask</span>
-    <span class="kn">from</span> <span class="nn">mirp.settings.importConfigurationSettings</span> <span class="kn">import</span> <span class="n">import_configuration_settings</span>
+    <span class="kn">from</span> <span class="nn">mirp.data_import.import_image_and_mask</span> <span class="kn">import</span> <span class="n">import_image_and_mask</span>
+    <span class="kn">from</span> <span class="nn">mirp.settings.import_config_parameters</span> <span class="kn">import</span> <span class="n">import_configuration_settings</span>
 
     <span class="c1"># Infer write_images, export_images, write_features, export_features based on write_dir.</span>
     <span class="k">if</span> <span class="n">write_images</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

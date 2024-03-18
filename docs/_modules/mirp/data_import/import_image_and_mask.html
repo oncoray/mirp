@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.importData.importImageAndMask &mdash; mirp 2.1.0 documentation</title>
-      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <title>mirp.data_import.import_image_and_mask &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=20623aea"></script>
+        <script src="../../../_static/documentation_options.js?v=b21de401"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -64,7 +66,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">mirp.importData.importImageAndMask</li>
+      <li class="breadcrumb-item active">mirp.data_import.import_image_and_mask</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -73,17 +75,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for mirp.importData.importImageAndMask</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">mirp.importData.importImage</span> <span class="kn">import</span> <span class="n">import_image</span>
-<span class="kn">from</span> <span class="nn">mirp.importData.importMask</span> <span class="kn">import</span> <span class="n">import_mask</span>
-<span class="kn">from</span> <span class="nn">mirp.importData.imageGenericFile</span> <span class="kn">import</span> <span class="n">ImageFile</span><span class="p">,</span> <span class="n">MaskFile</span>
-<span class="kn">from</span> <span class="nn">mirp.importData.imageDicomFile</span> <span class="kn">import</span> <span class="n">ImageDicomFile</span><span class="p">,</span> <span class="n">MaskDicomFile</span>
-<span class="kn">from</span> <span class="nn">mirp.importData.imageDicomFileStack</span> <span class="kn">import</span> <span class="n">ImageDicomFileStack</span>
+  <h1>Source code for mirp.data_import.import_image_and_mask</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">mirp.data_import.import_image</span> <span class="kn">import</span> <span class="n">import_image</span>
+<span class="kn">from</span> <span class="nn">mirp.data_import.import_mask</span> <span class="kn">import</span> <span class="n">import_mask</span>
+<span class="kn">from</span> <span class="nn">mirp._data_import.generic_file</span> <span class="kn">import</span> <span class="n">ImageFile</span><span class="p">,</span> <span class="n">MaskFile</span>
+<span class="kn">from</span> <span class="nn">mirp._data_import.dicom_file</span> <span class="kn">import</span> <span class="n">ImageDicomFile</span><span class="p">,</span> <span class="n">MaskDicomFile</span>
+<span class="kn">from</span> <span class="nn">mirp._data_import.dicom_file_stack</span> <span class="kn">import</span> <span class="n">ImageDicomFileStack</span>
 <span class="kn">from</span> <span class="nn">mirp.utilities.utilities</span> <span class="kn">import</span> <span class="n">random_string</span>
 
 
 <div class="viewcode-block" id="import_image_and_mask">
-<a class="viewcode-back" href="../../../mirp.importData.html#mirp.importData.importImageAndMask.import_image_and_mask">[docs]</a>
+<a class="viewcode-back" href="../../../mirp.importData.html#mirp.data_import.import_image_and_mask.import_image_and_mask">[docs]</a>
 <span class="k">def</span> <span class="nf">import_image_and_mask</span><span class="p">(</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -214,7 +216,9 @@
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No images were present.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No images were found. Possible reasons are lack of images with the preferred modality.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No masks were found. Possible reasons are lack of masks with the preferred modality.&quot;</span><span class="p">)</span>
 
     <span class="c1"># Determine association strategy, if this is unset.</span>
     <span class="n">possible_association_strategy</span> <span class="o">=</span> <span class="n">set_association_strategy</span><span class="p">(</span>

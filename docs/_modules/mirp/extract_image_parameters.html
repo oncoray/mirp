@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.extractImageParameters &mdash; mirp 2.1.0 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <title>mirp.extract_image_parameters &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
         <script src="../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../_static/documentation_options.js?v=20623aea"></script>
+        <script src="../../_static/documentation_options.js?v=b21de401"></script>
         <script src="../../_static/doctools.js?v=888ff710"></script>
         <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -64,7 +66,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">mirp.extractImageParameters</li>
+      <li class="breadcrumb-item active">mirp.extract_image_parameters</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -73,15 +75,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for mirp.extractImageParameters</h1><div class="highlight"><pre>
+  <h1>Source code for mirp.extract_image_parameters</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="kn">from</span> <span class="nn">mirp.importData.imageGenericFile</span> <span class="kn">import</span> <span class="n">ImageFile</span>
+<span class="kn">from</span> <span class="nn">mirp._data_import.generic_file</span> <span class="kn">import</span> <span class="n">ImageFile</span>
 
 
 <div class="viewcode-block" id="extract_image_parameters">
-<a class="viewcode-back" href="../../mirp.extractImageParameters.html#mirp.extractImageParameters.extract_image_parameters">[docs]</a>
+<a class="viewcode-back" href="../../mirp.extractImageParameters.html#mirp.extract_image_parameters.extract_image_parameters">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_image_parameters</span><span class="p">(</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="n">sample_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -146,7 +148,7 @@
 <span class="sd">        The functions returns a table with metadata (`write_file == False`) or nothing (`write_file == True`)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="kn">from</span> <span class="nn">mirp.importData.importImage</span> <span class="kn">import</span> <span class="n">import_image</span>
+    <span class="kn">from</span> <span class="nn">mirp.data_import.import_image</span> <span class="kn">import</span> <span class="n">import_image</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">write_file</span><span class="p">:</span>
         <span class="n">write_dir</span> <span class="o">=</span> <span class="kc">None</span>

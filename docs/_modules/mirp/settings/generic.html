@@ -1,18 +1,20 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.settingsGeneric &mdash; mirp 2.1.0 documentation</title>
-      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <title>mirp.settings.generic &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
   <!--[if lt IE 9]>
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=20623aea"></script>
+        <script src="../../../_static/documentation_options.js?v=b21de401"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
@@ -64,7 +66,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
-      <li class="breadcrumb-item active">mirp.settings.settingsGeneric</li>
+      <li class="breadcrumb-item active">mirp.settings.generic</li>
       <li class="wy-breadcrumbs-aside">
       </li>
   </ul>
@@ -73,20 +75,20 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <h1>Source code for mirp.settings.settingsGeneric</h1><div class="highlight"><pre>
+  <h1>Source code for mirp.settings.generic</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">copy</span>
 
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsFeatureExtraction</span> <span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsGeneral</span> <span class="kn">import</span> <span class="n">GeneralSettingsClass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsImageProcessing</span> <span class="kn">import</span> <span class="n">ImagePostProcessingClass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsImageTransformation</span> <span class="kn">import</span> <span class="n">ImageTransformationSettingsClass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsInterpolation</span> <span class="kn">import</span> <span class="n">ImageInterpolationSettingsClass</span><span class="p">,</span> <span class="n">MaskInterpolationSettingsClass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsMaskResegmentation</span> <span class="kn">import</span> <span class="n">ResegmentationSettingsClass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.settingsPerturbation</span> <span class="kn">import</span> <span class="n">ImagePerturbationSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.feature_parameters</span> <span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.general_parameters</span> <span class="kn">import</span> <span class="n">GeneralSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.image_processing_parameters</span> <span class="kn">import</span> <span class="n">ImagePostProcessingClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.transformation_parameters</span> <span class="kn">import</span> <span class="n">ImageTransformationSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.interpolation_parameters</span> <span class="kn">import</span> <span class="n">ImageInterpolationSettingsClass</span><span class="p">,</span> <span class="n">MaskInterpolationSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.resegmentation_parameters</span> <span class="kn">import</span> <span class="n">ResegmentationSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.perturbation_parameters</span> <span class="kn">import</span> <span class="n">ImagePerturbationSettingsClass</span>
 
 
 <div class="viewcode-block" id="SettingsClass">
-<a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.settingsGeneric.SettingsClass">[docs]</a>
+<a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.generic.SettingsClass">[docs]</a>
 <span class="k">class</span> <span class="nc">SettingsClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Container for objects used to configure the image processing and feature processing workflow. This object can be</span>
@@ -100,35 +102,35 @@
 <span class="sd">    ----------</span>
 <span class="sd">    general_settings: GeneralSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to the general process. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.</span>
 
 <span class="sd">    post_process_settings: ImagePostProcessingClass, optional</span>
 <span class="sd">        Configuration object for parameters related to image (post-)processing. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`.</span>
+<span class="sd">        :class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`.</span>
 
 <span class="sd">    perturbation_settings: ImagePerturbationSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to image perturbation / augmentation. See</span>
-<span class="sd">        :class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`.</span>
 
 <span class="sd">    img_interpolate_settings: ImageInterpolationSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to image resampling. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`.</span>
 
 <span class="sd">    roi_interpolate_settings: MaskInterpolationSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to mask resampling. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`.</span>
 
 <span class="sd">    roi_resegment_settings: ResegmentationSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to mask resegmentation. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`.</span>
 
 <span class="sd">    feature_extr_settings: FeatureExtractionSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to feature computation. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`.</span>
 
 <span class="sd">    img_transform_settings: ImageTransformationSettingsClass, optional</span>
 <span class="sd">        Configuration object for parameters related to image transformation. See</span>
-<span class="sd">        :class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`.</span>
+<span class="sd">        :class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`.</span>
 
 <span class="sd">    **kwargs: dict, optional</span>
 <span class="sd">        Keyword arguments for initialising configuration objects stored in this container object.</span>
@@ -136,15 +138,15 @@
 <span class="sd">    See Also</span>
 <span class="sd">    --------</span>
 
-<span class="sd">    * general settings (:class:`~mirp.settings.settingsGeneral.GeneralSettingsClass`)</span>
-<span class="sd">    * image post-processing (:class:`~mirp.settings.settingsImageProcessing.ImagePostProcessingClass`)</span>
-<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.settingPerturbation.ImagePerturbationSettingsClass`)</span>
-<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.settingsInterpolation.ImageInterpolationSettingsClass`</span>
-<span class="sd">      and :class:`~mirp.settings.settingsInterpolation.MaskInterpolationSettingsClass`)</span>
-<span class="sd">    * mask resegmentation (:class:`~mirp.settings.settingsMaskResegmentation.ResegmentationSettingsClass`)</span>
-<span class="sd">    * image transformation (:class:`~mirp.settings.settingsImageTransformation.ImageTransformationSettingsClass`)</span>
+<span class="sd">    * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`</span>
+<span class="sd">      and :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">    * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">    * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
 <span class="sd">    * feature computation / extraction (</span>
-<span class="sd">      :class:`~mirp.settings.settingsFeatureExtraction.FeatureExtractionSettingsClass`)</span>
+<span class="sd">      :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -169,6 +171,7 @@
         <span class="c1"># Remove by_slice and no_approximation from the keyword arguments to avoid double passing.</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;by_slice&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;no_approximation&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;ibsi_compliant&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="c1"># Image interpolation settings.</span>
         <span class="k">if</span> <span class="n">img_interpolate_settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -203,6 +206,7 @@
             <span class="n">feature_extr_settings</span> <span class="o">=</span> <span class="n">FeatureExtractionSettingsClass</span><span class="p">(</span>
                 <span class="n">by_slice</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">by_slice</span><span class="p">,</span>
                 <span class="n">no_approximation</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">no_approximation</span><span class="p">,</span>
+                <span class="n">ibsi_compliant</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">ibsi_compliant</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">kwargs</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">feature_extr</span> <span class="o">=</span> <span class="n">feature_extr_settings</span>
@@ -211,6 +215,7 @@
         <span class="k">if</span> <span class="n">img_transform_settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">img_transform_settings</span> <span class="o">=</span> <span class="n">ImageTransformationSettingsClass</span><span class="p">(</span>
                 <span class="n">by_slice</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">by_slice</span><span class="p">,</span>
+                <span class="n">ibsi_compliant</span><span class="o">=</span><span class="n">general_settings</span><span class="o">.</span><span class="n">ibsi_compliant</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">kwargs</span>
             <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">img_transform</span> <span class="o">=</span> <span class="n">img_transform_settings</span>

@@ -2,7 +2,7 @@ Extract mask labels
 ===================
 
 Mask files can contain labels for multiple regions of interest. You can use the
-:func:`~mirp.extractMaskLabels.extract_mask_labels` function to obtain these labels.
+:func:`~mirp.extract_mask_labels.extract_mask_labels` function to obtain these labels.
 
 Example
 -------
@@ -20,7 +20,7 @@ Region of interest labels can be extract from mask files as follows:
 API documentation
 -----------------
 
-.. automodule:: mirp.extractMaskLabels
+.. automodule:: mirp.extract_mask_labels
    :members:
    :undoc-members:
    :show-inheritance:
