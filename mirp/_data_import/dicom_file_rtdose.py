@@ -5,7 +5,7 @@ import numpy as np
 
 from typing import Any
 from pydicom import dcmread
-from mirp._data_import.imageDicomFile import ImageDicomFile
+from mirp._data_import.dicom_file import ImageDicomFile
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
 

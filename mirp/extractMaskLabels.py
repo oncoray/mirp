@@ -3,7 +3,7 @@ from typing import Any
 import os
 import pandas as pd
 
-from mirp._data_import.imageGenericFile import MaskFile
+from mirp._data_import.generic_file import MaskFile
 
 
 def extract_mask_labels(
@@ -70,7 +70,7 @@ def extract_mask_labels(
         or None `(write_file == True)`.
 
     """
-    from mirp._data_import.importMask import import_mask
+    from mirp._data_import.import_mask import import_mask
 
     if not write_file:
         write_dir = None

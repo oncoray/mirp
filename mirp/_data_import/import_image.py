@@ -4,8 +4,8 @@ from functools import singledispatch
 import numpy as np
 import pandas as pd
 
-from mirp._data_import.imageDirectory import ImageDirectory, MaskDirectory
-from mirp._data_import.imageGenericFile import ImageFile, MaskFile
+from mirp._data_import.directory import ImageDirectory, MaskDirectory
+from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_file_types, supported_image_modalities, flatten_list
 from mirp.settings.importDataSettings import import_data_settings
 
@@ -184,7 +184,7 @@ def _(
         **kwargs
 ):
 
-    from mirp._data_import.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
+    from mirp._data_import.numpy_file import ImageNumpyFile, MaskNumpyFile
 
     if is_mask:
         image_object = MaskNumpyFile(**kwargs)

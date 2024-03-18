@@ -11,7 +11,7 @@ import numpy as np
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 from mirp._workflows.baseWorkflow import BaseWorkflow
-from mirp._data_import.readData import read_image_and_masks
+from mirp._data_import.read_data import read_image_and_masks
 from mirp._images.genericImage import GenericImage
 from mirp._images.transformedImage import TransformedImage
 from mirp._masks.baseMask import BaseMask

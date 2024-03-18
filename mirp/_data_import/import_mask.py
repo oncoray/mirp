@@ -1,5 +1,5 @@
-from mirp._data_import.imageGenericFile import MaskFile
-from mirp._data_import.importImage import _import_image
+from mirp._data_import.generic_file import MaskFile
+from mirp._data_import.import_image import _import_image
 from mirp._data_import.utilities import supported_mask_modalities, supported_file_types, flatten_list
 
 

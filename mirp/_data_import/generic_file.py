@@ -225,9 +225,9 @@ class ImageFile(BaseImage):
 
     def create(self):
         # Import locally to avoid potential circular references.
-        from mirp._data_import.imageDicomFile import ImageDicomFile
-        from mirp._data_import.imageITKFile import ImageITKFile
-        from mirp._data_import.imageNumpyFile import ImageNumpyFile
+        from mirp._data_import.dicom_file import ImageDicomFile
+        from mirp._data_import.itk_file import ImageITKFile
+        from mirp._data_import.numpy_file import ImageNumpyFile
 
         file_extensions = supported_file_types(file_type=self.file_type)
 
@@ -863,9 +863,9 @@ class MaskFile(ImageFile):
 
     def create(self):
         # Import locally to avoid potential circular references.
-        from mirp._data_import.imageDicomFile import MaskDicomFile
-        from mirp._data_import.imageITKFile import MaskITKFile
-        from mirp._data_import.imageNumpyFile import MaskNumpyFile
+        from mirp._data_import.dicom_file import MaskDicomFile
+        from mirp._data_import.itk_file import MaskITKFile
+        from mirp._data_import.numpy_file import MaskNumpyFile
 
         file_extensions = supported_file_types(file_type=self.file_type)
 

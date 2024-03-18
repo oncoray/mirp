@@ -5,10 +5,10 @@ import warnings
 import numpy as np
 import pandas as pd
 
-from mirp._data_import.imageGenericFile import ImageFile, MaskFile
-from mirp._data_import.imageDicomFile import ImageDicomFile, MaskDicomFile
-from mirp._data_import.imageITKFile import ImageITKFile, MaskITKFile
-from mirp._data_import.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
+from mirp._data_import.generic_file import ImageFile, MaskFile
+from mirp._data_import.dicom_file import ImageDicomFile, MaskDicomFile
+from mirp._data_import.itk_file import ImageITKFile, MaskITKFile
+from mirp._data_import.numpy_file import ImageNumpyFile, MaskNumpyFile
 
 
 class ImageFileStack(ImageFile):
@@ -66,9 +66,9 @@ class ImageFileStack(ImageFile):
 
     def create(self):
         # Import locally to avoid potential circular references.
-        from mirp._data_import.imageDicomFileStack import ImageDicomFileStack
-        from mirp._data_import.imageITKFileStack import ImageITKFileStack
-        from mirp._data_import.imageNumpyFileStack import ImageNumpyFileStack
+        from mirp._data_import.dicom_file_stack import ImageDicomFileStack
+        from mirp._data_import.itk_file_stack import ImageITKFileStack
+        from mirp._data_import.numpy_file_stack import ImageNumpyFileStack
 
         if all(isinstance(image_file_object, ImageDicomFile) for image_file_object in self.image_file_objects):
             file_stack_class = ImageDicomFileStack
@@ -224,9 +224,9 @@ class MaskFileStack(ImageFileStack, MaskFile):
 
     def create(self):
         # Import locally to avoid potential circular references.
-        from mirp._data_import.imageDicomFileStack import MaskDicomFileStack
-        from mirp._data_import.imageITKFileStack import MaskITKFileStack
-        from mirp._data_import.imageNumpyFileStack import MaskNumpyFileStack
+        from mirp._data_import.dicom_file_stack import MaskDicomFileStack
+        from mirp._data_import.itk_file_stack import MaskITKFileStack
+        from mirp._data_import.numpy_file_stack import MaskNumpyFileStack
 
         if all(isinstance(image_file_object, MaskDicomFile) for image_file_object in self.image_file_objects):
             file_stack_class = MaskDicomFileStack

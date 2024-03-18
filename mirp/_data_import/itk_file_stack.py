@@ -4,9 +4,9 @@ import itk
 import numpy as np
 import pandas as pd
 
-from mirp._data_import.imageGenericFile import MaskFile
-from mirp._data_import.imageITKFile import ImageITKFile
-from mirp._data_import.imageGenericFileStack import ImageFileStack, MaskFileStack
+from mirp._data_import.generic_file import MaskFile
+from mirp._data_import.itk_file import ImageITKFile
+from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 
 
 class ImageITKFileStack(ImageFileStack):

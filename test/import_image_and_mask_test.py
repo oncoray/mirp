@@ -3,12 +3,12 @@ import os.path
 import pytest
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
-from mirp._data_import.importImageAndMask import import_image_and_mask
-from mirp._data_import.imageITKFile import ImageITKFile, MaskITKFile
-from mirp._data_import.imageDicomFileStack import ImageDicomFileStack
-from mirp._data_import.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
-from mirp._data_import.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
-from mirp._data_import.imageNumpyFileStack import ImageNumpyFileStack, MaskNumpyFileStack
+from mirp._data_import.import_image_and_mask import import_image_and_mask
+from mirp._data_import.itk_file import ImageITKFile, MaskITKFile
+from mirp._data_import.dicom_file_stack import ImageDicomFileStack
+from mirp._data_import.dicom_file_rtstruct import MaskDicomFileRTSTRUCT
+from mirp._data_import.numpy_file import ImageNumpyFile, MaskNumpyFile
+from mirp._data_import.numpy_file_stack import ImageNumpyFileStack, MaskNumpyFileStack
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

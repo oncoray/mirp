@@ -3,7 +3,7 @@ import copy
 
 import ray
 
-from mirp._data_import.imageGenericFile import ImageFile
+from mirp._data_import.generic_file import ImageFile
 from mirp.settings.settingsGeneric import SettingsClass
 from mirp._workflows.standardWorkflow import StandardWorkflow
 
@@ -350,7 +350,7 @@ def _base_extract_features_and_images(
         write_dir: None | str = None,
         **kwargs
 ):
-    from mirp._data_import.importImageAndMask import import_image_and_mask
+    from mirp._data_import.import_image_and_mask import import_image_and_mask
     from mirp.settings.importConfigurationSettings import import_configuration_settings
 
     # Infer write_images, export_images, write_features, export_features based on write_dir.

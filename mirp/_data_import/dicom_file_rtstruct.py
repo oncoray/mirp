@@ -4,9 +4,9 @@ import warnings
 import numpy as np
 import pydicom
 
-from mirp._data_import.maskContour import ContourClass
-from mirp._data_import.importImage import ImageFile
-from mirp._data_import.imageDicomFile import MaskDicomFile
+from mirp._data_import.mask_contour import ContourClass
+from mirp._data_import.import_image import ImageFile
+from mirp._data_import.dicom_file import MaskDicomFile
 from mirp._masks.baseMask import BaseMask
 from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
 
@@ -249,8 +249,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             mask (`True`) or an image should be generated based on contour data (`False`).
         """
 
-        from mirp._data_import.imageDicomFile import ImageDicomFile
-        from mirp._data_import.imageDicomFileStack import ImageDicomFileStack
+        from mirp._data_import.dicom_file import ImageDicomFile
+        from mirp._data_import.dicom_file_stack import ImageDicomFileStack
 
         # In absence of an image, attempt to generate a reference segmentation mask using the ROI contour data
         # directly.

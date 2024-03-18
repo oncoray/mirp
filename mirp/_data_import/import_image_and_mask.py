@@ -1,8 +1,8 @@
-from mirp._data_import.importImage import import_image
-from mirp._data_import.importMask import import_mask
-from mirp._data_import.imageGenericFile import ImageFile, MaskFile
-from mirp._data_import.imageDicomFile import ImageDicomFile, MaskDicomFile
-from mirp._data_import.imageDicomFileStack import ImageDicomFileStack
+from mirp._data_import.import_image import import_image
+from mirp._data_import.import_mask import import_mask
+from mirp._data_import.generic_file import ImageFile, MaskFile
+from mirp._data_import.dicom_file import ImageDicomFile, MaskDicomFile
+from mirp._data_import.dicom_file_stack import ImageDicomFileStack
 from mirp._utilities.utilities import random_string
 
 

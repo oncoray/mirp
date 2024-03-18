@@ -3,8 +3,8 @@ import datetime
 
 from typing import Any
 
-from mirp._data_import.imageSUV import SUVscalingObj
-from mirp._data_import.imageDicomFile import ImageDicomFile
+from mirp._data_import.suv import SUVscalingObj
+from mirp._data_import.dicom_file import ImageDicomFile
 from mirp._data_import.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
 
 

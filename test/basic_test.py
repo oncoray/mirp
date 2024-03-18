@@ -21,8 +21,8 @@ def test_orientation():
     """
     Test internal representation of image objects using the orientation phantom.
     """
-    from mirp._data_import.readData import read_image
-    from mirp._data_import.importImage import import_image
+    from mirp._data_import.read_data import read_image
+    from mirp._data_import.import_image import import_image
 
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image", "orientation.nii.gz")

@@ -5,11 +5,11 @@ import itk
 import numpy as np
 import pytest
 
-from mirp._data_import.importImage import import_image
-from mirp._data_import.imageITKFile import ImageITKFile
-from mirp._data_import.imageDicomFileStack import ImageDicomFileStack
-from mirp._data_import.imageNumpyFile import ImageNumpyFile
-from mirp._data_import.imageNumpyFileStack import ImageNumpyFileStack
+from mirp._data_import.import_image import import_image
+from mirp._data_import.itk_file import ImageITKFile
+from mirp._data_import.dicom_file_stack import ImageDicomFileStack
+from mirp._data_import.numpy_file import ImageNumpyFile
+from mirp._data_import.numpy_file_stack import ImageNumpyFileStack
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

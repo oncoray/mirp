@@ -1,7 +1,7 @@
 import os.path
 import numpy as np
 
-from mirp._data_import.imageGenericFile import ImageFile, MaskFile
+from mirp._data_import.generic_file import ImageFile, MaskFile
 
 
 class ImageNumpyFile(ImageFile):

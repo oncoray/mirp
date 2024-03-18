@@ -1,7 +1,7 @@
 import copy
 
-from mirp._data_import.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
-from mirp._data_import.imageGenericFileStack import ImageFileStack, MaskFileStack
+from mirp._data_import.numpy_file import ImageNumpyFile, MaskNumpyFile
+from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 
 
 class ImageNumpyFileStack(ImageFileStack):

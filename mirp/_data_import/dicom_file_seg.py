@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from pydicom import dcmread
 
-from mirp._data_import.imageDicomFile import MaskDicomFile
+from mirp._data_import.dicom_file import MaskDicomFile
 from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
 from mirp._masks.baseMask import BaseMask
 

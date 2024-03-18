@@ -1,8 +1,8 @@
 import os.path
 import numpy as np
 
-from mirp._data_import.importImageAndMask import import_image_and_mask
-from mirp._data_import.readData import read_image_and_masks
+from mirp._data_import.import_image_and_mask import import_image_and_mask
+from mirp._data_import.read_data import read_image_and_masks
 from mirp._images.genericImage import GenericImage
 from mirp._masks.baseMask import BaseMask
 from mirp._images.ctImage import CTImage

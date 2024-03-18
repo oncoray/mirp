@@ -7,7 +7,7 @@ from typing import Any
 from pydicom import dcmread
 from warnings import warn
 
-from mirp._data_import.imageGenericFile import ImageFile, MaskFile
+from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
     supported_mask_modalities, get_pydicom_meta_tag
 
@@ -158,10 +158,10 @@ class ImageDicomFile(ImageFile):
         """
 
         # Import locally to prevent circular references.
-        from mirp._data_import.imageDicomFileCT import ImageDicomFileCT
-        from mirp._data_import.imageDicomFileMR import ImageDicomFileMR
-        from mirp._data_import.imageDicomFilePT import ImageDicomFilePT
-        from mirp._data_import.ImageDicomFileRTDOSE import ImageDicomFileRTDose
+        from mirp._data_import.dicom_file_ct import ImageDicomFileCT
+        from mirp._data_import.dicom_file_mr import ImageDicomFileMR
+        from mirp._data_import.dicom_file_pet import ImageDicomFilePT
+        from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
 
         # Load metadata so that the modality tag can be read.
         self.load_metadata()
@@ -426,8 +426,8 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         """
 
         # Import locally to prevent circular references.
-        from mirp._data_import.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
-        from mirp._data_import.imageDicomFileSEG import MaskDicomFileSEG
+        from mirp._data_import.dicom_file_rtstruct import MaskDicomFileRTSTRUCT
+        from mirp._data_import.dicom_file_seg import MaskDicomFileSEG
 
         # Load metadata so that the modality tag can be read.
         self.load_metadata()

@@ -1,7 +1,7 @@
 import copy
 import numpy as np
 
-from mirp._data_import.imageGenericFile import ImageFile
+from mirp._data_import.generic_file import ImageFile
 
 
 class ContourClass:

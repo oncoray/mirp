@@ -3,8 +3,8 @@ import numpy as np
 import pandas as pd
 from typing import Any
 
-from mirp._data_import.imageDicomFile import ImageDicomFile
-from mirp._data_import.imageGenericFileStack import ImageFileStack, MaskFileStack
+from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
 

@@ -5,8 +5,8 @@ import copy
 from itertools import chain
 from mirp._data_import.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
     isolate_sample_name
-from mirp._data_import.imageGenericFile import ImageFile, MaskFile
-from mirp._data_import.imageGenericFileStack import ImageFileStack, MaskFileStack
+from mirp._data_import.generic_file import ImageFile, MaskFile
+from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 
 
 class ImageDirectory:
