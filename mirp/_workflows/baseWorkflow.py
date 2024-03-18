@@ -1,4 +1,4 @@
-from mirp._data_import.imageGenericFile import ImageFile
+from mirp._data_import.generic_file import ImageFile
 
 
 class BaseWorkflow:

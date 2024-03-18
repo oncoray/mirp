@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-from mirp._data_import.imageGenericFile import ImageFile
+from mirp._data_import.generic_file import ImageFile
 
 
 def extract_image_parameters(
@@ -68,7 +68,7 @@ def extract_image_parameters(
         The functions returns a table with metadata (`write_file == False`) or nothing (`write_file == True`)
     """
 
-    from mirp._data_import.importImage import import_image
+    from mirp._data_import.import_image import import_image
 
     if not write_file:
         write_dir = None
