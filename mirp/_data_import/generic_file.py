@@ -1037,8 +1037,9 @@ class MaskFile(ImageFile):
 
             if len(filtered_labels) == 0:
                 warnings.warn(
-                    f"No regions of interest were formed ({self.file_path}. "
-                    f"The available labels {labels} likely did not match any of the expected labels ({self.roi_name}).",
+                    f"No regions of interest were formed ({self.file_path}). "
+                    f"The available labels ({', '.join([str(x) for x in labels])}) likely did not match "
+                    f"any of the expected labels ({self.roi_name}).",
                     UserWarning
                 )
 

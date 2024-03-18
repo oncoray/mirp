@@ -62,7 +62,7 @@ def compute_intensity_histogram_features(df_img, g_range):
 
     # Append empty grey levels to histogram
     levels = np.arange(start=0, stop=n_g) + 1
-    miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
+    miss_level = levels[np.logical_not(np.isin(levels, df_his.g))]
     n_miss = len(miss_level)
     if n_miss > 0:
         df_his = pd.concat([df_his, pd.DataFrame({"g": miss_level, "n": np.zeros(n_miss)})],

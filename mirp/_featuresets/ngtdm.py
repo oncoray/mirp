@@ -277,7 +277,7 @@ class GreyToneDifferenceMatrix:
 
         # Append empty grey levels to table
         levels = np.arange(start=0, stop=n_g) + 1.0
-        miss_level = levels[np.logical_not(np.in1d(levels, df_pi.i))]
+        miss_level = levels[np.logical_not(np.isin(levels, df_pi.i))]
         n_miss = len(miss_level)
         if n_miss > 0:
             df_pi = pd.concat([

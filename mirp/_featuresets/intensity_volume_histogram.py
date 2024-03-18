@@ -104,7 +104,7 @@ def get_intensity_volume_histogram(
 
         # Append empty grey levels to histogram
         levels = np.arange(start=g_range_loc[0], stop=g_range_loc[1] + 1)
-        miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
+        miss_level = levels[np.logical_not(np.isin(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
             df_his = pd.concat(
@@ -149,7 +149,7 @@ def get_intensity_volume_histogram(
 
         # Append empty grey levels to histogram
         levels = np.arange(start=1, stop=n_bins+1)
-        miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
+        miss_level = levels[np.logical_not(np.isin(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
             df_his = pd.concat(
@@ -191,7 +191,7 @@ def get_intensity_volume_histogram(
 
         # Append empty grey levels to histogram
         levels = np.arange(start=1, stop=n_bins + 1)
-        miss_level = levels[np.logical_not(np.in1d(levels, df_his.g))]
+        miss_level = levels[np.logical_not(np.isin(levels, df_his.g))]
         n_miss = len(miss_level)
         if n_miss > 0:
             df_his = pd.concat(

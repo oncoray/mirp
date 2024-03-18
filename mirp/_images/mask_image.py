@@ -510,7 +510,7 @@ class MaskImage(GenericImage):
                 grid_origin[0]: grid_origin[0] + cropped_mask.image_dimension[0],
                 grid_origin[1]: grid_origin[1] + cropped_mask.image_dimension[1],
                 grid_origin[2]: grid_origin[2] + cropped_mask.image_dimension[2]
-            ] = np.reshape(np.in1d(np.ravel(image_segments), included_segments), cropped_mask.image_dimension)
+            ] = np.reshape(np.isin(np.ravel(image_segments), included_segments), cropped_mask.image_dimension)
 
             # Apply binary closing to close gaps.
             new_mask_data = binary_closing(input=new_mask_data)
