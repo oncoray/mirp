@@ -243,7 +243,9 @@ class MaskImage(GenericImage):
             df_base["in_range"] = df_base.dist <= distance
 
         # Update voxel coordinates to start at [0,0,0].
-        df_base.loc[:, ["x", "y", "z"]] -= df_base.loc[0, ["x", "y", "z"]]
+        df_base["x"] += base_ext
+        df_base["y"] += base_ext
+        df_base["z"] += base_ext
 
         # Generate geometric filter structure.
         geom_struct = np.zeros(
