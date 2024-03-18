@@ -68,7 +68,7 @@ def extract_image_parameters(
         The functions returns a table with metadata (`write_file == False`) or nothing (`write_file == True`)
     """
 
-    from mirp._data_import.import_image import import_image
+    from mirp.data_import.import_image import import_image
 
     if not write_file:
         write_dir = None

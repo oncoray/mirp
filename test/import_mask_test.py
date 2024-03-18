@@ -3,7 +3,7 @@ import os.path
 import pytest
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
-from mirp._data_import.import_mask import import_mask
+from mirp.data_import.import_mask import import_mask
 from mirp._data_import.itk_file import MaskITKFile
 from mirp._data_import.dicom_file_rtstruct import MaskDicomFileRTSTRUCT
 from mirp._data_import.numpy_file import MaskNumpyFile

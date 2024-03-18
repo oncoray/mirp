@@ -3,7 +3,7 @@ import os.path
 import pytest
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
-from mirp._data_import.import_image_and_mask import import_image_and_mask
+from mirp.data_import.import_image_and_mask import import_image_and_mask
 from mirp._data_import.itk_file import ImageITKFile, MaskITKFile
 from mirp._data_import.dicom_file_stack import ImageDicomFileStack
 from mirp._data_import.dicom_file_rtstruct import MaskDicomFileRTSTRUCT
@@ -605,7 +605,7 @@ def test_failure_multiple_image_and_mask_import():
             image_sub_folder=os.path.join("CT", "dicom", "image"),
             mask_sub_folder=os.path.join("CT", "dicom", "mask")
         )
-    assert "No _images were found" in str(exception_info.value)
+    assert "No images were found" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching mask modality.
@@ -616,7 +616,7 @@ def test_failure_multiple_image_and_mask_import():
             image_sub_folder=os.path.join("CT", "dicom", "image"),
             mask_sub_folder=os.path.join("CT", "dicom", "mask")
         )
-    assert "No _masks were found" in str(exception_info.value)
+    assert "No masks were found" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.

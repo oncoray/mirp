@@ -22,7 +22,8 @@
 ## Minor changes
 
 - Added support for Python version 3.10 using `typing-extensions`.
-- Several changes were made to ensure proper functioning of MIRP with future versions of pandas.
+- Several changes were made to ensure proper functioning of MIRP with future versions of `pandas`.
+- Some changes were made prevent deprecation warnings in future version of `numpy`.
 
 # Version 2.1.1
 

@@ -5,7 +5,7 @@ import numpy as np
 import pydicom
 
 from mirp._data_import.mask_contour import ContourClass
-from mirp._data_import.import_image import ImageFile
+from mirp.data_import.import_image import ImageFile
 from mirp._data_import.dicom_file import MaskDicomFile
 from mirp._masks.base_mask import BaseMask
 from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag

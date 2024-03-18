@@ -5,7 +5,7 @@ import itk
 import numpy as np
 import pytest
 
-from mirp._data_import.import_image import import_image
+from mirp.data_import.import_image import import_image
 from mirp._data_import.itk_file import ImageITKFile
 from mirp._data_import.dicom_file_stack import ImageDicomFileStack
 from mirp._data_import.numpy_file import ImageNumpyFile

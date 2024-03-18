@@ -70,7 +70,7 @@ def extract_mask_labels(
         or None `(write_file == True)`.
 
     """
-    from mirp._data_import.import_mask import import_mask
+    from mirp.data_import.import_mask import import_mask
 
     if not write_file:
         write_dir = None

@@ -256,7 +256,7 @@ def _base_deep_learning_preprocessing(
         write_dir: None | str = None,
         **kwargs
 ):
-    from mirp._data_import.import_image_and_mask import import_image_and_mask
+    from mirp.data_import.import_image_and_mask import import_image_and_mask
     from mirp.settings.import_config_parameters import import_configuration_settings
 
     # Infer write_images, export_images based on write_dir.
