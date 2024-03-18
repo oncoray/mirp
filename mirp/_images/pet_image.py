@@ -1,23 +1,27 @@
-from typing import Any
 import numpy as np
-from mirp._images.genericImage import GenericImage
+from typing import Any
+from mirp._images.generic_image import GenericImage
 
 
-class CTImage(GenericImage):
+class PETImage(GenericImage):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
     @staticmethod
+    def get_colour_map():
+        return "gist_yarg"
+
+    @staticmethod
     def get_default_lowest_intensity():
-        return -1000.0
+        return 0.0
 
     def update_image_data(self):
         if self.image_data is None:
             return
 
-        # Ensure that CT values are Hounsfield units.
-        self.image_data = np.round(self.image_data)
+        # Ensure that PET values are not negative.
+        self.image_data[self.image_data < 0.0] = 0.0
 
     def normalise_intensities(
             self,
@@ -27,8 +31,8 @@ class CTImage(GenericImage):
             mask: None | np.ndarray = None
     ):
         """
-        Normalise intensities. NOTE: this changes the class of the object from CTImage to GenericImage as
-        normalisation breaks the one-to-one relationship between intensities and Hounsfield units.
+        Normalise intensities. NOTE: this changes the class of the object from PETImage to GenericImage as
+        normalisation breaks the one-to-one relationship between intensities and SUV values or PET counts.
         """
         image = super().normalise_intensities(
             normalisation_method=normalisation_method,
@@ -58,8 +62,8 @@ class CTImage(GenericImage):
         if scale == 1.0:
             return self
 
-        # Scaling intensities changes the object class from CTImage to GenericImage as this breaks the one-to-one
-        # relationship between intensities and Hounsfield units.
+        # Scaling intensities changes the object class from PETImage to GenericImage as this breaks the one-to-one
+        # relationship between intensities and SUV values or PET counts.
         new_image = GenericImage(image_data=image.image_data)
         new_image.update_from_template(template=image)
 

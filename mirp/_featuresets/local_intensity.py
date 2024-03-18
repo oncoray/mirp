@@ -3,7 +3,7 @@ import pandas as pd
 import scipy.ndimage as ndi
 
 from mirp._featuresets.utilities import rep
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 from mirp._masks.baseMask import BaseMask
 
 
@@ -37,7 +37,7 @@ def get_local_intensity_features(image: GenericImage, mask: BaseMask) -> pd.Data
 
 def compute_local_mean_intensity_filter(image: GenericImage, mask: BaseMask):
     """Use a filter to calculate the local mean intensity"""
-    from mirp._images.petImage import PETImage
+    from mirp._images.pet_image import PETImage
 
     # Determine distance
     distance = (3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 10.0

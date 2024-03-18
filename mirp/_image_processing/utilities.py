@@ -2,8 +2,8 @@ from typing import Any
 
 import numpy as np
 
-from mirp._images.genericImage import GenericImage
-from mirp._images.maskImage import MaskImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.mask_image import MaskImage
 from mirp._masks.baseMask import BaseMask
 
 

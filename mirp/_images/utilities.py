@@ -2,8 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 
-from mirp._images.genericImage import GenericImage
-from mirp._images.maskImage import MaskImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.mask_image import MaskImage
 from mirp._masks.baseMask import BaseMask
 
 

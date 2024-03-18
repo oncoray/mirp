@@ -4,8 +4,8 @@ import copy
 import sys
 from typing import Any
 
-from mirp._images.genericImage import GenericImage
-from mirp._images.maskImage import MaskImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.mask_image import MaskImage
 from mirp.settings.settingsGeneric import SettingsClass
 
 if sys.version_info >= (3, 11):

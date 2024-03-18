@@ -1,6 +1,6 @@
 import os
 
-from mirp._images.petImage import PETImage
+from mirp._images.pet_image import PETImage
 from mirp._masks.baseMask import BaseMask
 from mirp.extractFeaturesAndImages import extract_features_and_images
 

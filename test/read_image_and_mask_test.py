@@ -3,11 +3,11 @@ import numpy as np
 
 from mirp._data_import.import_image_and_mask import import_image_and_mask
 from mirp._data_import.read_data import read_image_and_masks
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 from mirp._masks.baseMask import BaseMask
-from mirp._images.ctImage import CTImage
-from mirp._images.petImage import PETImage
-from mirp._images.mrImage import MRImage
+from mirp._images.ct_image import CTImage
+from mirp._images.pet_image import PETImage
+from mirp._images.mr_image import MRImage
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

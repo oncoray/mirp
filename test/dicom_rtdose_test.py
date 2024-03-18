@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from mirp._images.rtdoseImage import RTDoseImage
+from mirp._images.rtdose_image import RTDoseImage
 from mirp._masks.baseMask import BaseMask
 from mirp.extractFeaturesAndImages import extract_features_and_images
 

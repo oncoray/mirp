@@ -1,8 +1,8 @@
 import numpy as np
 import copy
 
-from mirp._images.genericImage import GenericImage
-from mirp._images.transformedImage import GaborTransformedImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.transformed_image import GaborTransformedImage
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids, FilterSet2D
 from mirp.settings.settingsGeneric import SettingsClass

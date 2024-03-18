@@ -1,4 +1,4 @@
-from mirp._images.maskImage import MaskImage
+from mirp._images.mask_image import MaskImage
 from mirp._data_import.utilities import flatten_list
 from mirp._masks.baseMask import BaseMask
 

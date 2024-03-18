@@ -2,7 +2,7 @@ import numpy as np
 
 from mirp._data_import.generic_file import ImageFile
 from mirp._data_import.utilities import flatten_list
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 from mirp._masks.baseMask import BaseMask
 
 

@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Any
 
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 
 
 def create_tissue_mask(

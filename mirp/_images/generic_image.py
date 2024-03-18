@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 
 from typing import Any
-from mirp._images.baseImage import BaseImage
+from mirp._images.base_image import BaseImage
 from mirp.settings.settingsGeneric import SettingsClass
 
 if sys.version_info >= (3, 11):
@@ -97,10 +97,10 @@ class GenericImage(BaseImage):
         self.discretisation_bin_width = template.discretisation_bin_width
 
     def promote(self):
-        from mirp._images.ctImage import CTImage
-        from mirp._images.petImage import PETImage
-        from mirp._images.mrImage import MRImage
-        from mirp._images.rtdoseImage import RTDoseImage
+        from mirp._images.ct_image import CTImage
+        from mirp._images.pet_image import PETImage
+        from mirp._images.mr_image import MRImage
+        from mirp._images.rtdose_image import RTDoseImage
 
         if self.modality == "ct":
             image = CTImage(image_data=self.image_data)

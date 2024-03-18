@@ -1,6 +1,6 @@
 from mirp._image_processing.utilities import standard_image_process_checks
-from mirp._images.genericImage import GenericImage
-from mirp._images.maskImage import MaskImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.mask_image import MaskImage
 from mirp._data_import.utilities import flatten_list
 from mirp._masks.baseMask import BaseMask
 

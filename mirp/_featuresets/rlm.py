@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from mirp._featuresets.utilities import get_neighbour_directions, is_list_all_none, coord2Index
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 from mirp._masks.baseMask import BaseMask
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
 

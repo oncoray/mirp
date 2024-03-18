@@ -1,7 +1,7 @@
 import os
 from mirp import extract_features_and_images
-from mirp._images.genericImage import GenericImage
-from mirp._images.mrImage import MRImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.mr_image import MRImage
 from mirp._masks.baseMask import BaseMask
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

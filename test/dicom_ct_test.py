@@ -1,6 +1,6 @@
 import os
 
-from mirp._images.ctImage import CTImage
+from mirp._images.ct_image import CTImage
 from mirp._masks.baseMask import BaseMask
 from mirp.extractFeaturesAndImages import extract_features_and_images
 

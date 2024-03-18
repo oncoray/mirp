@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 
 from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp._images.genericImage import GenericImage
-from mirp._images.transformedImage import TransformedImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.transformed_image import TransformedImage
 from mirp._masks.baseMask import BaseMask
 
 
@@ -42,8 +42,8 @@ def get_intensity_volume_histogram(
     Determines the intensity-volume histogram (IVH) for the given mask.
     """
     import copy
-    from mirp._images.ctImage import CTImage
-    from mirp._images.petImage import PETImage
+    from mirp._images.ct_image import CTImage
+    from mirp._images.pet_image import PETImage
 
     # Convert image volume to table
     df_img = mask.as_pandas_dataframe(image=image, intensity_mask=True)

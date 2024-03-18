@@ -1,4 +1,4 @@
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 
 
 def add_noise(

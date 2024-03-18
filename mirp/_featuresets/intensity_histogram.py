@@ -3,7 +3,7 @@ import copy
 import numpy as np
 import pandas as pd
 
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 from mirp._masks.baseMask import BaseMask
 
 

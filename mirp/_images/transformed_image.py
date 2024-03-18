@@ -2,7 +2,7 @@ import copy
 import pandas as pd
 from typing import Any
 
-from mirp._images.genericImage import GenericImage
+from mirp._images.generic_image import GenericImage
 
 
 class TransformedImage(GenericImage):

@@ -1,8 +1,8 @@
 import copy
 import numpy as np
 
-from mirp._images.genericImage import GenericImage
-from mirp._images.transformedImage import LogarithmTransformedImage
+from mirp._images.generic_image import GenericImage
+from mirp._images.transformed_image import LogarithmTransformedImage
 from mirp._imagefilters.generic import GenericFilter
 from mirp.settings.settingsGeneric import SettingsClass
 
