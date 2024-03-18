@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from mirp.extractMaskLabels import extract_mask_labels
+from mirp.extract_mask_labels import extract_mask_labels
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

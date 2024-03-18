@@ -2,8 +2,8 @@ import os
 
 import numpy as np
 
-from mirp.extractFeaturesAndImages import extract_features_and_images
-from mirp.deepLearningPreprocessing import deep_learning_preprocessing
+from mirp.extract_features_and_images import extract_features_and_images
+from mirp.deep_learning_preprocessing import deep_learning_preprocessing
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

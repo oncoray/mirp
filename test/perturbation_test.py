@@ -466,7 +466,7 @@ def test_perturbation_roi_randomisation_rotation():
 
 
 def run_experiment(perturbation_settings, by_slice=False):
-    from mirp.extractFeaturesAndImages import extract_features_and_images
+    from mirp.extract_features_and_images import extract_features_and_images
     modality = "CT"
 
     # Get settings.

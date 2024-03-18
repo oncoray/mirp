@@ -1,5 +1,5 @@
 import os
-from mirp.extractImageParameters import extract_image_parameters
+from mirp.extract_image_parameters import extract_image_parameters
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

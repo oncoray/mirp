@@ -4,7 +4,7 @@ import itk
 import numpy as np
 import os
 
-from mirp.extractFeaturesAndImages import extract_images
+from mirp.extract_features_and_images import extract_images
 from mirp.settings.generic import SettingsClass
 from mirp.settings.transformation_parameters import ImageTransformationSettingsClass
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass

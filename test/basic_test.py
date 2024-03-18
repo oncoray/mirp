@@ -52,7 +52,7 @@ def test_orientation():
 
 
 def run_experiment(image, roi, **kwargs):
-    from mirp.extractFeaturesAndImages import extract_features
+    from mirp.extract_features_and_images import extract_features
 
     by_slice = False
 
@@ -127,7 +127,7 @@ def run_experiment(image, roi, **kwargs):
 def test_xml_configurations():
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree
-    from mirp.extractFeaturesAndImages import extract_features
+    from mirp.extract_features_and_images import extract_features
 
     # Remove temporary data xml file if it exists.
     if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):

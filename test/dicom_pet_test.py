@@ -2,7 +2,7 @@ import os
 
 from mirp._images.pet_image import PETImage
 from mirp._masks.base_mask import BaseMask
-from mirp.extractFeaturesAndImages import extract_features_and_images
+from mirp.extract_features_and_images import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
