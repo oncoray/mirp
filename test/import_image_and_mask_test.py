@@ -730,7 +730,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
         image_list = import_image_and_mask(
             image=target_file
         )
-    assert "No _images were found" in str(exception_info.value)
+    assert "No images were found" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching mask modality.
@@ -743,7 +743,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
         image_list = import_image_and_mask(
             image=target_file
         )
-    assert "No _masks were found" in str(exception_info.value)
+    assert "No masks were found" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.
