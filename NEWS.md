@@ -1,9 +1,5 @@
 # Version 2.2.0
 
-## Breaking changes
-
-- Modules were renamed according to the PEP8 standard.
-
 ## Major changes
 
 - Added support for intensity scaling using the `intensity_scaling` parameter. Intensity scaling multiplies 
@@ -18,6 +14,9 @@
   [documentation](https://pyradiomics.readthedocs.io/en/latest/radiomics.html#module-radiomics.imageoperations). 
   Since these filters do not currently have an IBSI reference standard, these are mostly intended for reproducing 
   and validating radiomics models based on features extracted from pyradiomics.
+
+- Modules were renamed according to the PEP8 standard. This does not affect the documented public interface, but may 
+  affect external extensions. Public and private parts of the API are now indicated. 
 
 ## Minor changes
 
