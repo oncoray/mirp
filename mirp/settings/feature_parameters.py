@@ -300,12 +300,12 @@ class FeatureExtractionSettingsClass:
                         "The base_discretisation_bin_width parameter is expected to contain floating "
                         "point values greater than 0.0. Found one or more values that were 0.0 or less.")
 
-            # Check ibsi_compliance
-            if self.ibsi_compliant and "fixed_bin_size_pyradiomics" in base_discretisation_method:
-                raise ValueError(
-                    "The fixed_bin_size_pyradiomics method is not IBSI-compliant. If you are sure that you want to "
-                    "use this method, use ibsi_compliant = False."
-                )
+                # Check ibsi_compliance
+                if self.ibsi_compliant and "fixed_bin_size_pyradiomics" in base_discretisation_method:
+                    raise ValueError(
+                        "The fixed_bin_size_pyradiomics method is not IBSI-compliant. If you are sure that you want to "
+                        "use this method, use ibsi_compliant = False."
+                    )
 
             else:
                 base_discretisation_bin_width = None
