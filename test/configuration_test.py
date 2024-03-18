@@ -19,9 +19,9 @@ def _type_converter(type_str: str):
 def test_general_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsGeneral import get_general_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.general_parameters import get_general_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 
@@ -87,9 +87,9 @@ def test_general_settings_configuration():
 def test_post_processing_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsImageProcessing import get_post_processing_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.image_processing_parameters import get_post_processing_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 
@@ -164,9 +164,9 @@ def test_post_processing_settings_configuration():
 def test_interpolation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsInterpolation import get_image_interpolation_settings, get_mask_interpolation_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.interpolation_parameters import get_image_interpolation_settings, get_mask_interpolation_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 
@@ -277,9 +277,9 @@ def test_interpolation_settings_configuration():
 def test_perturbation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsPerturbation import get_perturbation_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.perturbation_parameters import get_perturbation_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 
@@ -354,9 +354,9 @@ def test_perturbation_settings_configuration():
 def test_mask_resegmentation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsMaskResegmentation import get_mask_resegmentation_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.resegmentation_parameters import get_mask_resegmentation_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 
@@ -431,9 +431,9 @@ def test_mask_resegmentation_settings_configuration():
 def test_feature_extraction_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsFeatureExtraction import get_feature_extraction_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.feature_parameters import get_feature_extraction_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 
@@ -511,9 +511,9 @@ def test_feature_extraction_settings_configuration():
 def test_image_transformation_settings_configuration():
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
-    from mirp.settings.settingsImageTransformation import get_image_transformation_settings
-    from mirp.settings.importConfigurationSettings import create_settings_object
-    from mirp.settings.settingsGeneric import SettingsClass
+    from mirp.settings.transformation_parameters import get_image_transformation_settings
+    from mirp.settings.import_config_parameters import create_settings_object
+    from mirp.settings.generic import SettingsClass
 
     temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
 

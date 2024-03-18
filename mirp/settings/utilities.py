@@ -38,7 +38,7 @@ def update_settings_from_branch(
         branch: None | Element,
         settings: list[dict[str, Any]]
 ):
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     if branch is None:
         return

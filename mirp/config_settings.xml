@@ -5,6 +5,9 @@
             <config_str></config_str>
             <!--  Defines whether image processing and computations should be performed in 2D (True) or 3D (False). Default: False -->
             <by_slice></by_slice>
+            <!-- Limits use of methods and computation of features to those that exist in the IBSI reference standard.
+            Default: True-->
+            <ibsi_compliant></ibsi_compliant>
             <!-- Defines whether multiple mask objects should be combined into a single mask. Default: False -->
             <mask_merge></mask_merge>
             <!-- Defines whether a mask that contains multiple regions should be split into separate mask objects. Default: False -->
@@ -69,6 +72,10 @@
              You may define two values for lower and upper boundary respectively. Default: [np.nan, np.nan] (no
              saturation). -->
             <intensity_normalisation_saturation></intensity_normalisation_saturation>
+            <!-- Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after
+            normalisation (if any). For example, intensity_scaling = 1000.0, combined with intensity_normalisation =
+            "range" results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0]. -->
+            <intensity_scaling></intensity_scaling>
         </post_processing>
         <vol_adapt>
             <!-- Whether the image may be cut to only maintain the interesting parts. Default: False. Setting this to
@@ -117,9 +124,6 @@
             <sigma></sigma>
         </roi_resegment>
         <feature_extr>
-            <!-- Limits computation of features to those features that have a reference value in the IBSI reference
-            standard. -->
-            <ibsi_compliant></ibsi_compliant>
             <!-- Set of feature families to be computed from the image. Default is all. -->
             <feature_families></feature_families>
             <!-- Discretisation algorithm. Can be none, fixed_bin_number and/or fixed_bin_size. Combinations are

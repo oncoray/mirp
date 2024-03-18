@@ -1,3 +1,29 @@
+# Version 2.2.0
+
+## Major changes
+
+- Added support for intensity scaling using the `intensity_scaling` parameter. Intensity scaling multiplies 
+  intensities by a scalar value. Intensity scaling occurs after intensity normalisation (if any) and prior to adding 
+  noise (if any). For example, intensity scaling can be used after intensity normalisation to scale intensities to a 
+  different range. `intensity_normalisation = "range"` with `intensity_scaling = 1000.0` maps image intensities to 
+  [1000.0, 0.0] instead of [1.0, 0.0].
+
+- Added support for intensity transformation filters: square root (`"pyradiomics_square_root"`), square 
+  (`"pyradiomics_square"`), logarithm (`"pyradiomics_logarithm"`) and exponential (`"pyradiomics_exponential"`). 
+  These implementations are based on the definitions in the `pyradiomics` 
+  [documentation](https://pyradiomics.readthedocs.io/en/latest/radiomics.html#module-radiomics.imageoperations). 
+  Since these filters do not currently have an IBSI reference standard, these are mostly intended for reproducing 
+  and validating radiomics models based on features extracted from pyradiomics.
+
+- Modules were renamed according to the PEP8 standard. This does not affect the documented public interface, but may 
+  affect external extensions. Public and private parts of the API are now indicated. 
+
+## Minor changes
+
+- Added support for Python version 3.10 using `typing-extensions`.
+- Several changes were made to ensure proper functioning of MIRP with future versions of `pandas`.
+- Some changes were made prevent deprecation warnings in future version of `numpy`.
+
 # Version 2.1.1
 
 ## Fixes

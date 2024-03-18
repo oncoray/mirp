@@ -3,14 +3,14 @@ import os
 import numpy as np
 import pandas as pd
 
-from mirp.settings.settingsGeneric import SettingsClass
-from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
-from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
-from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
-from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
-from mirp.settings.settingsGeneral import GeneralSettingsClass
+from mirp.settings.generic import SettingsClass
+from mirp.settings.transformation_parameters import ImageTransformationSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
+from mirp.settings.resegmentation_parameters import ResegmentationSettingsClass
+from mirp.settings.perturbation_parameters import ImagePerturbationSettingsClass
+from mirp.settings.image_processing_parameters import ImagePostProcessingClass
+from mirp.settings.interpolation_parameters import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.general_parameters import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -270,7 +270,7 @@ def test_pertubation_fraction_change_multiple():
         perturbation_roi_adapt_type="fraction",
         perturbation_roi_adapt_size=[-0.2, 0.0, 0.2]
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment (3D)
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -301,7 +301,7 @@ def test_perturbation_distance_grow():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=2.0
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -331,7 +331,7 @@ def test_perturbation_distance_shrink():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=-2.0
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -361,7 +361,7 @@ def test_pertubation_distance_change_multiple():
         perturbation_roi_adapt_type="distance",
         perturbation_roi_adapt_size=[-2.0, 0.0, 2.0]
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -391,7 +391,7 @@ def test_perturbation_roi_randomisation():
         crop_around_roi=False,
         perturbation_randomise_roi_repetitions=2
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -425,7 +425,7 @@ def test_perturbation_roi_randomisation_rotation():
         perturbation_randomise_roi_repetitions=1,
         perturbation_rotation_angles=45.0
     )
-    from mirp.importData.utilities import flatten_list
+    from mirp._data_import.utilities import flatten_list
 
     # Run experiment.
     data = run_experiment(perturbation_settings=perturbation_settings)
@@ -466,7 +466,7 @@ def test_perturbation_roi_randomisation_rotation():
 
 
 def run_experiment(perturbation_settings, by_slice=False):
-    from mirp.extractFeaturesAndImages import extract_features_and_images
+    from mirp.extract_features_and_images import extract_features_and_images
     modality = "CT"
 
     # Get settings.

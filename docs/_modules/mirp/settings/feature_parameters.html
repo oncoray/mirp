@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mirp.settings.feature_parameters &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=b21de401"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.importData.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.settings.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.deepLearningPreprocessing.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractFeaturesAndImages.html">Process image and compute quantitative image features</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mirp.settings.feature_parameters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mirp.settings.feature_parameters</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.utilities</span> <span class="kn">import</span> <span class="n">setting_def</span>
+
+
+<div class="viewcode-block" id="FeatureExtractionSettingsClass">
+<a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.feature_parameters.FeatureExtractionSettingsClass">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">FeatureExtractionSettingsClass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters related to feature computation. Many are conditional on the type of features that will be computed (</span>
+<span class="sd">    ``base_feature_families``).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    by_slice: str or bool, optional, default: False</span>
+<span class="sd">        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the</span>
+<span class="sd">        largest slice (&quot;largest&quot;). See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.</span>
+
+<span class="sd">    no_approximation: bool, optional, default: False</span>
+<span class="sd">        Disables approximation of features, such as Geary&#39;s c-measure. Can be True or False (default). See</span>
+<span class="sd">        :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.</span>
+
+<span class="sd">    ibsi_compliant: bool, optional, default: True</span>
+<span class="sd">        Limits computation of features to those features that have a reference value in the IBSI reference standard.</span>
+
+<span class="sd">    base_feature_families: str or list of str, optional, default: &quot;none&quot;</span>
+<span class="sd">        Determines the feature families for which features are computed. Radiomics features are implemented as</span>
+<span class="sd">        defined in the IBSI reference manual. The following feature families are currently present, and can be added</span>
+<span class="sd">        using the following tags:</span>
+
+<span class="sd">        * Morphological features: &quot;mrp&quot;, &quot;morph&quot;, &quot;morphology&quot;, and &quot;morphological&quot;.</span>
+<span class="sd">        * Local intensity features: &quot;li&quot;, &quot;loc.int&quot;, &quot;loc_int&quot;, &quot;local_int&quot;, and &quot;local_intensity&quot;.</span>
+<span class="sd">        * Intensity-based statistical features: &quot;st&quot;, &quot;stat&quot;, &quot;stats&quot;, &quot;statistics&quot;, and &quot;statistical&quot;.</span>
+<span class="sd">        * Intensity histogram features: &quot;ih&quot;, &quot;int_hist&quot;, &quot;int_histogram&quot;, and &quot;intensity_histogram&quot;.</span>
+<span class="sd">        * Intensity-volume histogram features: &quot;ivh&quot;, &quot;int_vol_hist&quot;, and &quot;intensity_volume_histogram&quot;.</span>
+<span class="sd">        * Grey level co-occurrence matrix (GLCM) features: &quot;cm&quot;, &quot;glcm&quot;, &quot;grey_level_cooccurrence_matrix&quot;,</span>
+<span class="sd">          and &quot;cooccurrence_matrix&quot;.</span>
+<span class="sd">        * Grey level run length matrix (GLRLM) features: &quot;rlm&quot;, &quot;glrlm&quot;, &quot;grey_level_run_length_matrix&quot;, and</span>
+<span class="sd">          &quot;run_length_matrix&quot;.</span>
+<span class="sd">        * Grey level size zone matrix (GLSZM) features: &quot;szm&quot;, &quot;glszm&quot;, &quot;grey_level_size_zone_matrix&quot;, and</span>
+<span class="sd">          &quot;size_zone_matrix&quot;.</span>
+<span class="sd">        * Grey level distance zone matrix (GLDZM) features: &quot;dzm&quot;, &quot;gldzm&quot;, &quot;grey_level_distance_zone_matrix&quot;, and</span>
+<span class="sd">          &quot;distance_zone_matrix&quot;.</span>
+<span class="sd">        * Neighbourhood grey tone difference matrix (NGTDM) features: &quot;tdm&quot;, &quot;ngtdm&quot;,</span>
+<span class="sd">          &quot;neighbourhood_grey_tone_difference_matrix&quot;, and &quot;grey_tone_difference_matrix&quot;.</span>
+<span class="sd">        * Neighbouring grey level dependence matrix (NGLDM) features: &quot;ldm&quot;, &quot;ngldm&quot;,</span>
+<span class="sd">          &quot;neighbouring_grey_level_dependence_matrix&quot;, and &quot;grey_level_dependence_matrix&quot;.</span>
+
+<span class="sd">        In addition, the following tags can be used:</span>
+
+<span class="sd">        * &quot;none&quot;: no features are computed.</span>
+<span class="sd">        * &quot;all&quot;: all features are computed.</span>
+
+<span class="sd">        A list of strings may be provided to select multiple feature families.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Even though ``&quot;none&quot;`` is the internal default, the :func:`~mirp.extractFeaturesAndImages.extract_features`</span>
+<span class="sd">            function overrides this, and sets the default to ``&quot;all&quot;``.</span>
+
+<span class="sd">    base_discretisation_method: {&quot;fixed_bin_number&quot;, &quot;fixed_bin_size&quot;, &quot;fixed_bin_size_pyradiomics&quot;, &quot;none&quot;}</span>
+<span class="sd">        Method used for discretising intensities. Used to compute intensity histogram as well as texture features.</span>
+<span class="sd">        The setting is ignored if none of these feature families are being computed. The following options are</span>
+<span class="sd">        available:</span>
+
+<span class="sd">        * &quot;fixed_bin_number&quot;: The intensity range within the mask is divided into a fixed number of bins,</span>
+<span class="sd">          defined by the ``base_discretisation_bin_width`` parameter.</span>
+<span class="sd">        * &quot;fixed_bin_size&quot;: The intensity range is divided into bins with a fixed width, defined using the</span>
+<span class="sd">          ``base_discretisation_bin_width`` parameter. The lower bound of the range is determined from the lower</span>
+<span class="sd">          bound of the mask resegmentation range, see the ``resegmentation_intensity_range`` in</span>
+<span class="sd">          :class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`. CT images have a default</span>
+<span class="sd">          lower bound of the initial bin at -1000.0 and PET images have a default lower bound at 0.0. Other images,</span>
+<span class="sd">          including MRI, normalised CT and PET images and filtered images, do not have a default value.</span>
+<span class="sd">        * &quot;fixed_bin_size_pyradiomics&quot;: The intensity range is divided into bins with a fixed width. This follows the</span>
+<span class="sd">          non-IBSI compliant implementation in the pyradiomics package.</span>
+<span class="sd">        * &quot;none&quot;: The intensity range is not discretised into bins. This method can only be used if the image</span>
+<span class="sd">          intensities are integer and strictly positive.</span>
+
+<span class="sd">         There is no default method. Multiple methods can be specified as a list to yield features according to each</span>
+<span class="sd">         method.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            The &quot;fixed_bin_size_pyradiomics&quot; is not IBSI compliant, and should only be used when</span>
+<span class="sd">            reproducing results from studies that used pyradiomics.</span>
+
+<span class="sd">    base_discretisation_n_bins: int or list of int</span>
+<span class="sd">        Number of bins used for the &quot;fixed_bin_number&quot; discretisation method. No default value. Multiple values can</span>
+<span class="sd">        be specified in a list to yield features according to each number of bins.</span>
+
+<span class="sd">    base_discretisation_bin_width: float or list of float</span>
+<span class="sd">        Width of each bin in the &quot;fixed_bin_size&quot; discretisation method. No default value. Multiple values can be</span>
+<span class="sd">        specified in a list to yield features according to each bin width.</span>
+
+<span class="sd">    ivh_discretisation_method: {&quot;fixed_bin_number&quot;, &quot;fixed_bin_size&quot;, &quot;none&quot;}, optional, default: &quot;none&quot;</span>
+<span class="sd">        Method used for discretising intensities for computing intensity-volume histograms. The discretisation</span>
+<span class="sd">        methods follow those in ``base_discretisation_method``. The &quot;none&quot; method changes to &quot;fixed_bin_number&quot; if</span>
+<span class="sd">        the underlying data are not suitable.</span>
+
+<span class="sd">    ivh_discretisation_n_bins: int, optional, default: 1000</span>
+<span class="sd">        Number of bins used for the &quot;fixed_bin_number&quot; discretisation method.</span>
+
+<span class="sd">    ivh_discretisation_bin_width: float, optional</span>
+<span class="sd">        Width of each bin in the &quot;fixed_bin_size&quot; discretisation method. No default value.</span>
+
+<span class="sd">    glcm_distance: float or list of float, optional, default: 1.0</span>
+<span class="sd">        Distance (in voxels) for GLCM for determining the neighbourhood. Chebyshev, or checkerboard, distance is</span>
+<span class="sd">        used. A value of 1.0 will therefore consider all (diagonally) adjacent voxels as its neighbourhood. A list of</span>
+<span class="sd">        values can be provided to compute GLCM features at different scales.</span>
+
+<span class="sd">    glcm_spatial_method: {&quot;2d_average&quot;, &quot;2d_slice_merge&quot;, &quot;2.5d_direction_merge&quot;, &quot;2.5d_volume_merge&quot;, &quot;3d_average&quot;, &quot;3d_volume_merge&quot;}, optional</span>
+<span class="sd">        Determines how co-occurrence matrices are formed and aggregated. One of the following:</span>
+
+<span class="sd">        * &quot;2d_average&quot;: features are computed from all matrices then averaged [IBSI:BTW3].</span>
+<span class="sd">        * &quot;2d_slice_merge&quot;: matrices in the same slice are merged, features computed and then averaged [IBSI:SUJT].</span>
+<span class="sd">        * &quot;2.5d_direction_merge&quot;: matrices for the same direction are merged, features computed and then averaged</span>
+<span class="sd">          [IBSI:JJUI].</span>
+<span class="sd">        * &quot;2.5d_volume_merge&quot;: all matrices are merged and a single feature is calculated [IBSI:ZW7Z].</span>
+<span class="sd">        * &quot;3d_average&quot;: features are computed from all matrices then averaged [IBSI:ITBB].</span>
+<span class="sd">        * &quot;3d_volume_merge&quot;: all matrices are merged and a single feature is computed from the merged matrix</span>
+<span class="sd">          [IBSI:IAZD].</span>
+
+<span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d_slice_merge&quot;</span>
+<span class="sd">        (``by_slice = False``) or &quot;3d_volume_merge&quot; (``by_slice = True``).</span>
+
+<span class="sd">    glrlm_spatial_method: {&quot;2d_average&quot;, &quot;2d_slice_merge&quot;, &quot;2.5d_direction_merge&quot;, &quot;2.5d_volume_merge&quot;, &quot;3d_average&quot;, &quot;3d_volume_merge&quot;}, optional</span>
+<span class="sd">        Determines how run length matrices are formed and aggregated. One of the following:</span>
+
+<span class="sd">        * &quot;2d_average&quot;: features are calculated from all matrices then averaged [IBSI:BTW3].</span>
+<span class="sd">        * &quot;2d_slice_merge&quot;: matrices in the same slice are merged, features computed and then averaged [IBSI:SUJT].</span>
+<span class="sd">        * &quot;2.5d_direction_merge&quot;: matrices for the same direction are merged, features computed and then averaged</span>
+<span class="sd">          [IBSI:JJUI].</span>
+<span class="sd">        * &quot;2.5d_volume_merge&quot;: all matrices are merged and a single feature is computed [IBSI:ZW7Z].</span>
+<span class="sd">        * &quot;3d_average&quot;: features are computed from all matrices then averaged [IBSI:ITBB].</span>
+<span class="sd">        * &quot;3d_volume_merge&quot;: all matrices are merged and a single feature is computed from the merged matrix</span>
+<span class="sd">          [IBSI:IAZD].</span>
+
+<span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default:</span>
+<span class="sd">        &quot;2d_slice_merge&quot; (``by_slice = False``) or &quot;3d_volume_merge&quot; (``by_slice = True``).</span>
+
+<span class="sd">    glszm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
+<span class="sd">        Determines how the size zone matrices are formed and aggregated. One of the following:</span>
+
+<span class="sd">        * &quot;2d&quot;: features are computed from individual matrices and subsequently averaged [IBSI:8QNN].</span>
+<span class="sd">        * &quot;2.5d&quot;: all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].</span>
+<span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
+
+<span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
+<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+
+<span class="sd">    gldzm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
+<span class="sd">        Determines how the distance zone matrices are formed and aggregated. One of the following:</span>
+
+<span class="sd">        * &quot;2d&quot;: features are computed from individual matrices and subsequently averaged [IBSI:8QNN].</span>
+<span class="sd">        * &quot;2.5d&quot;: all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].</span>
+<span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
+
+<span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
+<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+
+<span class="sd">    ngtdm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
+<span class="sd">        Determines how the neighbourhood grey tone difference matrices are formed and aggregated. One of the</span>
+<span class="sd">        following:</span>
+
+<span class="sd">        * &quot;2d&quot;: features are computed from individual matrices and subsequently averaged [IBSI:8QNN].</span>
+<span class="sd">        * &quot;2.5d&quot;: all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].</span>
+<span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
+
+<span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
+<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+
+<span class="sd">    ngldm_distance: float or list of float, optional, default: 1.0</span>
+<span class="sd">        Distance (in voxels) for NGLDM for determining the neighbourhood. Chebyshev, or checkerboard, distance is</span>
+<span class="sd">        used. A value of 1.0 will therefore consider all (diagonally) adjacent voxels as its neighbourhood. A list of</span>
+<span class="sd">        values can be provided to compute NGLDM features at different scales.</span>
+
+<span class="sd">    ngldm_difference_level: float or list of float, optional, default: 0.0</span>
+<span class="sd">        Difference level (alpha) for NGLDM. Determines which bins are grouped together in the matrix.</span>
+
+<span class="sd">    ngldm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
+<span class="sd">        Determines how the neighbourhood grey level dependence matrices are formed and aggregated. One of the</span>
+<span class="sd">        following:</span>
+
+<span class="sd">        * &quot;2d&quot;: features are computed from individual matrices and subsequently averaged [IBSI:8QNN].</span>
+<span class="sd">        * &quot;2.5d&quot;: all 2D matrices are merged and features are computed from this single matrix [IBSI:62GR].</span>
+<span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
+
+<span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
+<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+
+<span class="sd">    **kwargs: dict, optional</span>
+<span class="sd">        Unused keyword arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">no_approximation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">ibsi_compliant</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="n">base_feature_families</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="n">base_discretisation_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">base_discretisation_n_bins</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">base_discretisation_bin_width</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ivh_discretisation_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="n">ivh_discretisation_n_bins</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
+            <span class="n">ivh_discretisation_bin_width</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">glcm_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">glcm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">glrlm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">glszm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">gldzm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ngtdm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">ngldm_distance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="n">ngldm_difference_level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">ngldm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="c1"># Set by slice.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">by_slice</span>
+
+        <span class="c1"># Set approximation flag.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_approximation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">no_approximation</span>
+
+        <span class="c1"># Set IBSI-compliance flag.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ibsi_compliant</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">ibsi_compliant</span>
+
+        <span class="k">if</span> <span class="n">base_feature_families</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">base_feature_families</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+
+        <span class="c1"># Check families.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_feature_families</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">base_feature_families</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_feature_families</span><span class="p">]</span>
+
+        <span class="c1"># Check which entries are valid.</span>
+        <span class="n">valid_families</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">ii</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_available_families</span><span class="p">()</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">base_feature_families</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_families</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;One or more families in the base_feature_families parameter were not recognised: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">base_feature_families</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">is_valid</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="nb">enumerate</span><span class="p">(</span><span class="n">valid_families</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="n">is_valid</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set families.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_feature_families</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_any_feature_family</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">families</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_discretised_family</span><span class="p">():</span>
+            <span class="c1"># Check if discretisation_method is None.</span>
+            <span class="k">if</span> <span class="n">base_discretisation_method</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The base_discretisation_method parameter has no default and must be set.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_discretisation_method</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">base_discretisation_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_discretisation_method</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">discretisation_method</span> <span class="ow">in</span> <span class="p">[</span>
+                <span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span> <span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span> <span class="s2">&quot;fixed_bin_size_pyradiomics&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span>
+            <span class="p">]</span> <span class="k">for</span> <span class="n">discretisation_method</span> <span class="ow">in</span> <span class="n">base_discretisation_method</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Available values for the base_discretisation_method parameter are &quot;</span>
+                    <span class="s2">&quot;&#39;fixed_bin_number&#39;, &#39;fixed_bin_size&#39;, &#39;fixed_bin_size_pyradiomics&#39; and &#39;none&#39;. &quot;</span>
+                    <span class="s2">&quot;One or more values were not recognised.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Check discretisation_n_bins</span>
+            <span class="k">if</span> <span class="s2">&quot;fixed_bin_number&quot;</span> <span class="ow">in</span> <span class="n">base_discretisation_method</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">base_discretisation_n_bins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The base_discretisation_n_bins parameter has no default and must be set&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_discretisation_n_bins</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">base_discretisation_n_bins</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_discretisation_n_bins</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">n_bins</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">n_bins</span> <span class="ow">in</span> <span class="n">base_discretisation_n_bins</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The base_discretisation_n_bins parameter is expected to contain integers with &quot;</span>
+                        <span class="s2">&quot;value 2 or larger. Found one or more values that were not integers.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">n_bins</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">n_bins</span> <span class="ow">in</span> <span class="n">base_discretisation_n_bins</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The base_discretisation_n_bins parameter is expected to contain integers with &quot;</span>
+                        <span class="s2">&quot;value 2 or larger. Found one or more values that were less than 2.&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">base_discretisation_n_bins</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1"># Check discretisation_bin_width</span>
+            <span class="k">if</span> <span class="s2">&quot;fixed_bin_size&quot;</span> <span class="ow">in</span> <span class="n">base_discretisation_method</span> <span class="ow">or</span> <span class="s2">&quot;fixed_bin_size_pyradiomics&quot;</span> <span class="ow">in</span> <span class="n">base_discretisation_method</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">base_discretisation_bin_width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The base_discretisation_bin_width parameter has no default value and must be set.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base_discretisation_bin_width</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">base_discretisation_bin_width</span> <span class="o">=</span> <span class="p">[</span><span class="n">base_discretisation_bin_width</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">bin_size</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">bin_size</span> <span class="ow">in</span> <span class="n">base_discretisation_bin_width</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The base_discretisation_bin_width parameter is expected to contain floating &quot;</span>
+                        <span class="s2">&quot;point values greater than 0.0. Found one or more values that were not floating &quot;</span>
+                        <span class="s2">&quot;points.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">bin_size</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">bin_size</span> <span class="ow">in</span> <span class="n">base_discretisation_bin_width</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The base_discretisation_bin_width parameter is expected to contain floating &quot;</span>
+                        <span class="s2">&quot;point values greater than 0.0. Found one or more values that were 0.0 or less.&quot;</span><span class="p">)</span>
+
+                <span class="c1"># Check ibsi_compliance</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ibsi_compliant</span> <span class="ow">and</span> <span class="s2">&quot;fixed_bin_size_pyradiomics&quot;</span> <span class="ow">in</span> <span class="n">base_discretisation_method</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The fixed_bin_size_pyradiomics method is not IBSI-compliant. If you are sure that you want to &quot;</span>
+                        <span class="s2">&quot;use this method, use ibsi_compliant = False.&quot;</span>
+                    <span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">base_discretisation_bin_width</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_discretisation_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">base_discretisation_n_bins</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">base_discretisation_bin_width</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set discretisation method-related parameters.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discretisation_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_discretisation_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discretisation_n_bins</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_discretisation_n_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discretisation_bin_width</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_discretisation_bin_width</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ivh_family</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">ivh_discretisation_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span> <span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;Available values for the ivh_discretisation_method parameter are &#39;fixed_bin_size&#39;, &quot;</span>
+                    <span class="s2">&quot;&#39;fixed_bin_number&#39;, and &#39;none&#39;. One or more values were not recognised.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check discretisation_n_bins</span>
+            <span class="k">if</span> <span class="s2">&quot;fixed_bin_number&quot;</span> <span class="ow">in</span> <span class="n">ivh_discretisation_method</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ivh_discretisation_n_bins</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The ivh_discretisation_n_bins parameter is expected to be an integer with &quot;</span>
+                        <span class="s2">&quot;value 2 or greater. Found: a value that was not an integer.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ivh_discretisation_n_bins</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The ivh_discretisation_n_bins parameter is expected to be an integer with &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;value 2 or greater. Found: </span><span class="si">{</span><span class="n">ivh_discretisation_n_bins</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ivh_discretisation_n_bins</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="c1"># Check discretisation_bin_width</span>
+            <span class="k">if</span> <span class="s2">&quot;fixed_bin_size&quot;</span> <span class="ow">in</span> <span class="n">ivh_discretisation_method</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ivh_discretisation_bin_width</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                        <span class="s2">&quot;The ivh_discretisation_bin_width parameter is expected to be a floating &quot;</span>
+                        <span class="s2">&quot;point value greater than 0.0. Found a value that was not a floating point.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">ivh_discretisation_bin_width</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The ivh_discretisation_bin_width parameter is expected to  be a floating &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;point value greater than 0.0. Found: </span><span class="si">{</span><span class="n">ivh_discretisation_bin_width</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ivh_discretisation_bin_width</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ivh_discretisation_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ivh_discretisation_n_bins</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ivh_discretisation_bin_width</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set parameters</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ivh_discretisation_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">ivh_discretisation_method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ivh_discretisation_n_bins</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">ivh_discretisation_n_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ivh_discretisation_bin_width</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">ivh_discretisation_bin_width</span>
+
+        <span class="c1"># Set GLCM attributes.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glcm_family</span><span class="p">():</span>
+            <span class="c1"># Check distance parameter.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">glcm_distance</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">glcm_distance</span> <span class="o">=</span> <span class="p">[</span><span class="n">glcm_distance</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">glcm_distance</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The glcm_distance parameter is expected to contain floating point values of 1.0 &quot;</span>
+                    <span class="s2">&quot;or greater. Found one or more values that were not floating points.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">distance</span> <span class="o">&gt;=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">glcm_distance</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The glcm_distance parameter is expected to contain floating point values of 1.0 &quot;</span>
+                    <span class="s2">&quot;or greater. Found one or more values that were less than 1.0.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check spatial method.</span>
+            <span class="n">glcm_spatial_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_valid_directional_spatial_method</span><span class="p">(</span>
+                <span class="n">glcm_spatial_method</span><span class="p">,</span>
+                <span class="s2">&quot;glcm_spatial_method&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">glcm_distance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">glcm_spatial_method</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">glcm_distance</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">glcm_distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">glcm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">glcm_spatial_method</span>
+
+        <span class="c1"># Set GLRLM attributes.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glrlm_family</span><span class="p">():</span>
+            <span class="c1"># Check spatial method.</span>
+            <span class="n">glrlm_spatial_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_valid_directional_spatial_method</span><span class="p">(</span>
+                <span class="n">glrlm_spatial_method</span><span class="p">,</span> <span class="s2">&quot;glrlm_spatial_method&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">glrlm_spatial_method</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">glrlm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">glrlm_spatial_method</span>
+
+        <span class="c1"># Set GLSZM attributes.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glszm_family</span><span class="p">():</span>
+            <span class="c1"># Check spatial method.</span>
+            <span class="n">glszm_spatial_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_valid_omnidirectional_spatial_method</span><span class="p">(</span>
+                <span class="n">glszm_spatial_method</span><span class="p">,</span> <span class="s2">&quot;glszm_spatial_method&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">glszm_spatial_method</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">glszm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">glszm_spatial_method</span>
+
+        <span class="c1"># Set GLDZM attributes.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gldzm_family</span><span class="p">():</span>
+            <span class="c1"># Check spatial method.</span>
+            <span class="n">gldzm_spatial_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_valid_omnidirectional_spatial_method</span><span class="p">(</span>
+                <span class="n">gldzm_spatial_method</span><span class="p">,</span> <span class="s2">&quot;gldzm_spatial_method&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">gldzm_spatial_method</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gldzm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">gldzm_spatial_method</span>
+
+        <span class="c1"># Set NGTDM attributes.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ngtdm_family</span><span class="p">():</span>
+            <span class="c1"># Check spatial method</span>
+            <span class="n">ngtdm_spatial_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_valid_omnidirectional_spatial_method</span><span class="p">(</span>
+                <span class="n">ngtdm_spatial_method</span><span class="p">,</span> <span class="s2">&quot;ngtdm_spatial_method&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ngtdm_spatial_method</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngtdm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngtdm_spatial_method</span>
+
+        <span class="c1"># Set NGLDM attributes</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ngldm_family</span><span class="p">():</span>
+
+            <span class="c1"># Check distance.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ngldm_distance</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">ngldm_distance</span> <span class="o">=</span> <span class="p">[</span><span class="n">ngldm_distance</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">ngldm_distance</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The ngldm_distance parameter is expected to contain floating point values of 1.0 &quot;</span>
+                    <span class="s2">&quot;or greater. Found one or more values that were not floating points.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">distance</span> <span class="o">&gt;=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">ngldm_distance</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The ngldm_distance parameter is expected to contain floating point values of 1.0 &quot;</span>
+                    <span class="s2">&quot;or greater. Found one or more values that were less than 1.0.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check spatial method</span>
+            <span class="n">ngldm_spatial_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_valid_omnidirectional_spatial_method</span><span class="p">(</span>
+                <span class="n">ngldm_spatial_method</span><span class="p">,</span> <span class="s2">&quot;ngldm_spatial_method&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check difference level.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ngldm_difference_level</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">ngldm_difference_level</span> <span class="o">=</span> <span class="p">[</span><span class="n">ngldm_difference_level</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">difference</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">difference</span> <span class="ow">in</span> <span class="n">ngldm_difference_level</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The ngldm_difference_level parameter is expected to contain floating point values of 0.0 &quot;</span>
+                    <span class="s2">&quot;or greater. Found one or more values that were not floating points.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">difference</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">difference</span> <span class="ow">in</span> <span class="n">ngldm_difference_level</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The ngldm_difference_level parameter is expected to contain floating point values &quot;</span>
+                    <span class="s2">&quot;of 0.0 or greater. Found one or more values that were less than 0.0.&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ngldm_spatial_method</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ngldm_distance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">ngldm_difference_level</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngldm_dist</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngldm_distance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngldm_diff_lvl</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngldm_difference_level</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ngldm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngldm_spatial_method</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_available_families</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s2">&quot;mrp&quot;</span><span class="p">,</span> <span class="s2">&quot;morph&quot;</span><span class="p">,</span> <span class="s2">&quot;morphology&quot;</span><span class="p">,</span> <span class="s2">&quot;morphological&quot;</span><span class="p">,</span> <span class="s2">&quot;li&quot;</span><span class="p">,</span> <span class="s2">&quot;loc.int&quot;</span><span class="p">,</span> <span class="s2">&quot;loc_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_intensity&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;st&quot;</span><span class="p">,</span> <span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="s2">&quot;statistics&quot;</span><span class="p">,</span> <span class="s2">&quot;statistical&quot;</span><span class="p">,</span> <span class="s2">&quot;ih&quot;</span><span class="p">,</span> <span class="s2">&quot;int_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;int_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_histogram&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;ivh&quot;</span><span class="p">,</span> <span class="s2">&quot;int_vol_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_volume_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;cm&quot;</span><span class="p">,</span> <span class="s2">&quot;glcm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_cooccurrence_matrix&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;cooccurrence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;rlm&quot;</span><span class="p">,</span> <span class="s2">&quot;glrlm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_run_length_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;run_length_matrix&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;szm&quot;</span><span class="p">,</span> <span class="s2">&quot;glszm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;dzm&quot;</span><span class="p">,</span> <span class="s2">&quot;gldzm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;grey_level_distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;tdm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngtdm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;neighbourhood_grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;ldm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;neighbouring_grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">has_any_feature_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_discretised_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ih_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glcm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glrlm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glszm_family</span><span class="p">()</span> \
+               <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gldzm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ngtdm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ngldm_family</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">has_morphology_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mrp&quot;</span><span class="p">,</span> <span class="s2">&quot;morph&quot;</span><span class="p">,</span> <span class="s2">&quot;morphology&quot;</span><span class="p">,</span> <span class="s2">&quot;morphological&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_local_intensity_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;li&quot;</span><span class="p">,</span> <span class="s2">&quot;loc.int&quot;</span><span class="p">,</span> <span class="s2">&quot;loc_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_intensity&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_stats_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;st&quot;</span><span class="p">,</span> <span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="s2">&quot;statistics&quot;</span><span class="p">,</span> <span class="s2">&quot;statistical&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_ih_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ih&quot;</span><span class="p">,</span> <span class="s2">&quot;int_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;int_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_ivh_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ivh&quot;</span><span class="p">,</span> <span class="s2">&quot;int_vol_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_volume_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_glcm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cm&quot;</span><span class="p">,</span> <span class="s2">&quot;glcm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_cooccurrence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;cooccurrence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_glrlm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;rlm&quot;</span><span class="p">,</span> <span class="s2">&quot;glrlm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_run_length_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;run_length_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_glszm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;szm&quot;</span><span class="p">,</span> <span class="s2">&quot;glszm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_gldzm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dzm&quot;</span><span class="p">,</span> <span class="s2">&quot;gldzm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_ngtdm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;tdm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngtdm&quot;</span><span class="p">,</span> <span class="s2">&quot;neighbourhood_grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_ngldm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ldm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm&quot;</span><span class="p">,</span> <span class="s2">&quot;neighbouring_grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">check_valid_directional_spatial_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+
+        <span class="c1"># Set defaults</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;2d_slice_merge&quot;</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;3d_volume_merge&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check that x is a list.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="n">all_spatial_method</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;2d_average&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_slice_merge&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d_direction_merge&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d_volume_merge&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">all_spatial_method</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;3d_average&quot;</span><span class="p">,</span> <span class="s2">&quot;3d_volume_merge&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check that x contains strings.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">spatial_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">spatial_method</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter expects one or more of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_spatial_method</span><span class="p">)</span><span class="si">}</span><span class="s2">. Found: one or more values that were not strings.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check spatial method.</span>
+        <span class="n">valid_spatial_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">spatial_method</span> <span class="ow">in</span> <span class="n">all_spatial_method</span> <span class="k">for</span> <span class="n">spatial_method</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_spatial_method</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter expects one or more of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_spatial_method</span><span class="p">)</span><span class="si">}</span><span class="s2">. Found: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">spatial_method</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">spatial_method</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">spatial_method</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">all_spatial_method</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">check_valid_omnidirectional_spatial_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+
+        <span class="c1"># Set defaults</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">]</span>
+
+        <span class="k">elif</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;3d&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check that x is a list.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="n">all_spatial_method</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+            <span class="n">all_spatial_method</span> <span class="o">+=</span> <span class="p">[</span><span class="s2">&quot;3d&quot;</span><span class="p">]</span>
+
+        <span class="c1"># Check that x contains strings.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">spatial_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">spatial_method</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter expects one or more of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_spatial_method</span><span class="p">)</span><span class="si">}</span><span class="s2">. Found: one or more values that were not strings.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Check spatial method.</span>
+        <span class="n">valid_spatial_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">spatial_method</span> <span class="ow">in</span> <span class="n">all_spatial_method</span> <span class="k">for</span> <span class="n">spatial_method</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">valid_spatial_method</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s2"> parameter expects one or more of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">all_spatial_method</span><span class="p">)</span><span class="si">}</span><span class="s2">. Found: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">spatial_method</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">spatial_method</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">x</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">spatial_method</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">all_spatial_method</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">get_feature_extraction_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;families&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;families&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;all&quot;</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;discr_method&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;discretisation_method&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span> <span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;discr_n_bins&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;discretisation_n_bins&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">33</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;base_discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;discr_bin_width&quot;</span><span class="p">],</span> <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;discretisation_bin_width&quot;</span><span class="p">,</span>
+            <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">10.0</span><span class="p">,</span> <span class="mf">34.0</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ivh_discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ivh_discretisation_method&quot;</span><span class="p">,</span> <span class="s2">&quot;ivh_discr_method&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;ivh_discretisation_method&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ivh_discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ivh_discretisation_n_bins&quot;</span><span class="p">,</span> <span class="s2">&quot;ivh_discr_n_bins&quot;</span><span class="p">],</span>
+            <span class="n">test</span><span class="o">=</span><span class="mi">20</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ivh_discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ivh_discretisation_bin_width&quot;</span><span class="p">,</span> <span class="s2">&quot;ivh_discr_bin_width&quot;</span><span class="p">],</span>
+            <span class="n">test</span><span class="o">=</span><span class="mf">30.0</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glcm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;glcm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;glcm_dist&quot;</span><span class="p">],</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glcm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d_average&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_slice_merge&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glrlm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d_average&quot;</span><span class="p">,</span> <span class="s2">&quot;2d_slice_merge&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;glszm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;gldzm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;ngtdm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ngldm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ngldm_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm_dist&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;ngldm_dist&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;ngldm_difference_level&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;ngldm_difference_level&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm_diff_lvl&quot;</span><span class="p">],</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;ngldm_diff_lvl&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.9</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;ngldm_spatial_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;2d&quot;</span><span class="p">,</span> <span class="s2">&quot;2.5d&quot;</span><span class="p">])</span>
+    <span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

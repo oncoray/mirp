@@ -1,14 +1,14 @@
 import os
 
-from mirp.extractFeaturesAndImages import extract_features
-from mirp.settings.settingsGeneric import SettingsClass
-from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
-from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
-from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
-from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
-from mirp.settings.settingsGeneral import GeneralSettingsClass
+from mirp.extract_features_and_images import extract_features
+from mirp.settings.generic import SettingsClass
+from mirp.settings.transformation_parameters import ImageTransformationSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
+from mirp.settings.resegmentation_parameters import ResegmentationSettingsClass
+from mirp.settings.perturbation_parameters import ImagePerturbationSettingsClass
+from mirp.settings.image_processing_parameters import ImagePostProcessingClass
+from mirp.settings.interpolation_parameters import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.general_parameters import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))

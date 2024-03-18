@@ -1,7 +1,7 @@
 import numpy as np
 import os
 
-from mirp.extractFeaturesAndImages import extract_features_and_images
+from mirp.extract_features_and_images import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 

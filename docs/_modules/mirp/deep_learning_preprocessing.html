@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mirp.deep_learning_preprocessing &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../_static/documentation_options.js?v=b21de401"></script>
+        <script src="../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../mirp.importData.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mirp.settings.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mirp.deepLearningPreprocessing.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mirp.extractFeaturesAndImages.html">Process image and compute quantitative image features</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mirp.deep_learning_preprocessing</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mirp.deep_learning_preprocessing</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Generator</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Any</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">ray</span>
+
+<span class="kn">from</span> <span class="nn">mirp._data_import.generic_file</span> <span class="kn">import</span> <span class="n">ImageFile</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.generic</span> <span class="kn">import</span> <span class="n">SettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp._workflows.standardWorkflow</span> <span class="kn">import</span> <span class="n">StandardWorkflow</span>
+
+
+<div class="viewcode-block" id="deep_learning_preprocessing">
+<a class="viewcode-back" href="../../mirp.deepLearningPreprocessing.html#mirp.deep_learning_preprocessing.deep_learning_preprocessing">[docs]</a>
+<span class="k">def</span> <span class="nf">deep_learning_preprocessing</span><span class="p">(</span>
+        <span class="n">output_slices</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">crop_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span>
+        <span class="n">write_file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_cpus</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pre-processes images for deep learning.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_slices: bool, optional, default: False</span>
+<span class="sd">        Determines whether separate slices should be extracted.</span>
+
+<span class="sd">    crop_size: list of float or list of int, optional, default: None</span>
+<span class="sd">        Size to which the images and masks should be cropped. Images and masks are cropped around the center of the</span>
+<span class="sd">        mask(s).</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            MIRP follows the numpy convention for indexing (*z*, *y*, *x*). The final element always corresponds to the</span>
+<span class="sd">            *x* dimension.</span>
+
+<span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;numpy&quot;</span>
+<span class="sd">        Return format for processed images and masks. ``&quot;dict&quot;`` returns dictionaries of images and masks as numpy</span>
+<span class="sd">        arrays and associated characteristics. ``&quot;native&quot;`` returns images and masks in their internal format.</span>
+<span class="sd">        ``&quot;numpy&quot;`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.</span>
+
+<span class="sd">    write_file_format: {&quot;nifti&quot;, &quot;numpy&quot;}, default: &quot;numpy&quot;</span>
+<span class="sd">        File format for processed images and masks. ``&quot;nifti&quot;`` writes images and masks in the NIfTI file format,</span>
+<span class="sd">        and ``&quot;numpy&quot;`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.</span>
+
+<span class="sd">    export_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be returned by the function.</span>
+
+<span class="sd">    write_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be written to the directory indicated by the</span>
+<span class="sd">        ``write_dir`` keyword argument.</span>
+
+<span class="sd">    write_dir: str, optional</span>
+<span class="sd">        Path to directory where processed images and masks should be written. If not set, processed images and masks</span>
+<span class="sd">        are returned by this function. Required if ``write_images=True``.</span>
+
+<span class="sd">    num_cpus: int, optional, default: None</span>
+<span class="sd">        Number of CPU nodes that should be used for parallel processing. Image and mask processing can be</span>
+<span class="sd">        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used</span>
+<span class="sd">        instead. By default, image and mask processing are processed sequentially.</span>
+
+<span class="sd">    **kwargs:</span>
+<span class="sd">        Keyword arguments passed for importing images and masks (</span>
+<span class="sd">        :func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably</span>
+<span class="sd">        :class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`,</span>
+<span class="sd">        :class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`), among others.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None | list[Any]</span>
+<span class="sd">        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Keyword arguments can be provided to configure the following:</span>
+
+<span class="sd">    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)</span>
+<span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">      :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">    * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Conditionally start a ray cluster.</span>
+    <span class="n">external_ray</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">external_ray</span> <span class="ow">and</span> <span class="n">num_cpus</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">num_cpus</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">ray</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">num_cpus</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ray</span><span class="o">.</span><span class="n">is_initialized</span><span class="p">():</span>
+        <span class="c1"># Parallel processing.</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">_ray_extractor</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span>
+                <span class="n">workflow</span><span class="o">=</span><span class="n">workflow</span><span class="p">,</span>
+                <span class="n">output_slices</span><span class="o">=</span><span class="n">output_slices</span><span class="p">,</span>
+                <span class="n">crop_size</span><span class="o">=</span><span class="n">crop_size</span><span class="p">,</span>
+                <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">,</span>
+                <span class="n">write_file_format</span><span class="o">=</span><span class="n">write_file_format</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">_base_deep_learning_preprocessing</span><span class="p">(</span>
+                <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+                <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+                <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="n">ray</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">external_ray</span><span class="p">:</span>
+            <span class="n">ray</span><span class="o">.</span><span class="n">shutdown</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_base_deep_learning_preprocessing</span><span class="p">(</span>
+            <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+            <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+            <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">workflow</span><span class="o">.</span><span class="n">deep_learning_conversion</span><span class="p">(</span>
+                <span class="n">output_slices</span><span class="o">=</span><span class="n">output_slices</span><span class="p">,</span>
+                <span class="n">crop_size</span><span class="o">=</span><span class="n">crop_size</span><span class="p">,</span>
+                <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">,</span>
+                <span class="n">write_file_format</span><span class="o">=</span><span class="n">write_file_format</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">workflows</span>
+        <span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">results</span></div>
+
+
+
+<span class="nd">@ray</span><span class="o">.</span><span class="n">remote</span>
+<span class="k">def</span> <span class="nf">_ray_extractor</span><span class="p">(</span>
+        <span class="n">workflow</span><span class="p">:</span> <span class="n">StandardWorkflow</span><span class="p">,</span>
+        <span class="n">output_slices</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">crop_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span>
+        <span class="n">write_file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span>
+<span class="p">):</span>
+    <span class="c1"># Limit internal threading by third-party libraries.</span>
+    <span class="kn">from</span> <span class="nn">mirp.utilities.parallel</span> <span class="kn">import</span> <span class="n">limit_inner_threads</span>
+    <span class="n">limit_inner_threads</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">workflow</span><span class="o">.</span><span class="n">deep_learning_conversion</span><span class="p">(</span>
+        <span class="n">output_slices</span><span class="o">=</span><span class="n">output_slices</span><span class="p">,</span>
+        <span class="n">crop_size</span><span class="o">=</span><span class="n">crop_size</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">,</span>
+        <span class="n">write_file_format</span><span class="o">=</span><span class="n">write_file_format</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="deep_learning_preprocessing_generator">
+<a class="viewcode-back" href="../../mirp.deepLearningPreprocessing.html#mirp.deep_learning_preprocessing.deep_learning_preprocessing_generator">[docs]</a>
+<span class="k">def</span> <span class="nf">deep_learning_preprocessing_generator</span><span class="p">(</span>
+        <span class="n">output_slices</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">crop_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span>
+        <span class="n">write_file_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;numpy&quot;</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generator for pre-processing images for deep learning.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    output_slices: bool, optional, default: False</span>
+<span class="sd">        Determines whether separate slices should be extracted.</span>
+
+<span class="sd">    crop_size: list of float or list of int, optional, default: None</span>
+<span class="sd">        Size to which the images and masks should be cropped. Images and masks are cropped around the center of the</span>
+<span class="sd">        mask(s).</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            MIRP follows the numpy convention for indexing (*z*, *y*, *x*). The final element always corresponds to the</span>
+<span class="sd">            *x* dimension.</span>
+
+<span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;numpy&quot;</span>
+<span class="sd">        Return format for processed images and masks. ``&quot;dict&quot;`` returns dictionaries of images and masks as numpy</span>
+<span class="sd">        arrays and associated characteristics. ``&quot;native&quot;`` returns images and masks in their internal format.</span>
+<span class="sd">        ``&quot;numpy&quot;`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.</span>
+
+<span class="sd">    write_file_format: {&quot;nifti&quot;, &quot;numpy&quot;}, default: &quot;numpy&quot;</span>
+<span class="sd">        File format for processed images and masks. ``&quot;nifti&quot;`` writes images and masks in the NIfTI file format,</span>
+<span class="sd">        and ``&quot;numpy&quot;`` writes images and masks as numpy files. This argument is only used if ``write_images=True``.</span>
+
+<span class="sd">    export_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be returned by the function.</span>
+
+<span class="sd">    write_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be written to the directory indicated by the</span>
+<span class="sd">        ``write_dir`` keyword argument.</span>
+
+<span class="sd">    write_dir: str, optional</span>
+<span class="sd">        Path to directory where processed images and masks should be written. If not set, processed images and masks</span>
+<span class="sd">        are returned by this function. Required if ``write_images=True``.</span>
+
+<span class="sd">    **kwargs:</span>
+<span class="sd">        Keyword arguments passed for importing images and masks (</span>
+<span class="sd">        :func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably</span>
+<span class="sd">        :class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`,</span>
+<span class="sd">        :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others.</span>
+
+<span class="sd">    Yields</span>
+<span class="sd">    -------</span>
+<span class="sd">    None | list[Any]</span>
+<span class="sd">        List of images and masks in the format indicated by ``image_export_format``, if ``export_images=True``.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    Keyword arguments can be provided to configure the following:</span>
+
+<span class="sd">    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)</span>
+<span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">    * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">      :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">    * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_base_deep_learning_preprocessing</span><span class="p">(</span>
+        <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">:</span>
+        <span class="k">yield</span> <span class="n">workflow</span><span class="o">.</span><span class="n">deep_learning_conversion</span><span class="p">(</span>
+            <span class="n">output_slices</span><span class="o">=</span><span class="n">output_slices</span><span class="p">,</span>
+            <span class="n">crop_size</span><span class="o">=</span><span class="n">crop_size</span><span class="p">,</span>
+            <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">,</span>
+            <span class="n">write_file_format</span><span class="o">=</span><span class="n">write_file_format</span>
+        <span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_base_deep_learning_preprocessing</span><span class="p">(</span>
+        <span class="n">image</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">sample_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_file_type</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_modality</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_sub_folder</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask_file_type</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask_modality</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">mask_sub_folder</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">roi_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">association_strategy</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">settings</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="n">SettingsClass</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">SettingsClass</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">stack_masks</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">stack_images</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">mirp.data_import.import_image_and_mask</span> <span class="kn">import</span> <span class="n">import_image_and_mask</span>
+    <span class="kn">from</span> <span class="nn">mirp.settings.import_config_parameters</span> <span class="kn">import</span> <span class="n">import_configuration_settings</span>
+
+    <span class="c1"># Infer write_images, export_images based on write_dir.</span>
+    <span class="k">if</span> <span class="n">write_images</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">write_images</span> <span class="o">=</span> <span class="n">write_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">export_images</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">export_images</span> <span class="o">=</span> <span class="n">write_dir</span> <span class="ow">is</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">write_images</span><span class="p">:</span>
+        <span class="n">write_dir</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">write_images</span> <span class="ow">and</span> <span class="n">write_dir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;write_dir argument should be provided for writing images and masks to.&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">write_images</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">export_images</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;write_images and export_images arguments cannot both be False.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Import settings (to provide immediate feedback if something is amiss).</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">import_configuration_settings</span><span class="p">(</span>
+            <span class="n">compute_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">path</span><span class="o">=</span><span class="n">settings</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">SettingsClass</span><span class="p">):</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="p">[</span><span class="n">settings</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">settings</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">SettingsClass</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">):</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">settings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">settings</span> <span class="o">=</span> <span class="n">import_configuration_settings</span><span class="p">(</span>
+            <span class="n">compute_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;The &#39;settings&#39; argument is expected to be a path to a configuration xml file, &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;a SettingsClass object, or a list thereof. Found: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">settings</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">image_list</span> <span class="o">=</span> <span class="n">import_image_and_mask</span><span class="p">(</span>
+        <span class="n">image</span><span class="o">=</span><span class="n">image</span><span class="p">,</span>
+        <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">,</span>
+        <span class="n">sample_name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">,</span>
+        <span class="n">image_name</span><span class="o">=</span><span class="n">image_name</span><span class="p">,</span>
+        <span class="n">image_file_type</span><span class="o">=</span><span class="n">image_file_type</span><span class="p">,</span>
+        <span class="n">image_modality</span><span class="o">=</span><span class="n">image_modality</span><span class="p">,</span>
+        <span class="n">image_sub_folder</span><span class="o">=</span><span class="n">image_sub_folder</span><span class="p">,</span>
+        <span class="n">mask_name</span><span class="o">=</span><span class="n">mask_name</span><span class="p">,</span>
+        <span class="n">mask_file_type</span><span class="o">=</span><span class="n">mask_file_type</span><span class="p">,</span>
+        <span class="n">mask_modality</span><span class="o">=</span><span class="n">mask_modality</span><span class="p">,</span>
+        <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">mask_sub_folder</span><span class="p">,</span>
+        <span class="n">roi_name</span><span class="o">=</span><span class="n">roi_name</span><span class="p">,</span>
+        <span class="n">association_strategy</span><span class="o">=</span><span class="n">association_strategy</span><span class="p">,</span>
+        <span class="n">stack_images</span><span class="o">=</span><span class="n">stack_images</span><span class="p">,</span>
+        <span class="n">stack_masks</span><span class="o">=</span><span class="n">stack_masks</span>
+    <span class="p">)</span>
+
+    <span class="k">yield from</span> <span class="n">_generate_dl_preprocessing_workflows</span><span class="p">(</span>
+        <span class="n">image_list</span><span class="o">=</span><span class="n">image_list</span><span class="p">,</span>
+        <span class="n">settings</span><span class="o">=</span><span class="n">settings</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_dl_preprocessing_workflows</span><span class="p">(</span>
+        <span class="n">image_list</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ImageFile</span><span class="p">],</span>
+        <span class="n">settings</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">SettingsClass</span><span class="p">],</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="p">:</span> <span class="nb">bool</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Generator</span><span class="p">[</span><span class="n">StandardWorkflow</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+
+    <span class="k">for</span> <span class="n">image_file</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">current_settings</span> <span class="ow">in</span> <span class="n">settings</span><span class="p">:</span>
+
+            <span class="c1"># Update settings to remove settings that may cause problems.</span>
+            <span class="n">current_settings</span><span class="o">.</span><span class="n">feature_extr</span><span class="o">.</span><span class="n">families</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+            <span class="n">current_settings</span><span class="o">.</span><span class="n">img_transform</span><span class="o">.</span><span class="n">feature_settings</span><span class="o">.</span><span class="n">families</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+            <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">crop_around_roi</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">current_settings</span><span class="o">.</span><span class="n">roi_resegment</span><span class="o">.</span><span class="n">resegmentation_method</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span>
+
+            <span class="k">if</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">noise_repetitions</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> \
+                    <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">noise_repetitions</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">noise_repetition_ids</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">noise_repetition_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">noise_repetitions</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">rotation_angles</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">rotation_angles</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="n">x</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">rotation_angles</span>
+            <span class="p">):</span>
+                <span class="n">rotation_angles</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">rotation_angles</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">rotation_angles</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">translation_fraction</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">translation_fraction</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="n">x</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">translation_fraction</span>
+            <span class="p">):</span>
+                <span class="n">translations</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">config_translation</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">current_settings</span><span class="o">.</span><span class="n">perturbation</span><span class="o">.</span><span class="n">translation_fraction</span><span class="p">)</span>
+                <span class="n">translations</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">translation_x</span> <span class="ow">in</span> <span class="n">config_translation</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">translation_y</span> <span class="ow">in</span> <span class="n">config_translation</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">general</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">translation_z</span> <span class="ow">in</span> <span class="n">config_translation</span><span class="p">:</span>
+                                <span class="n">translations</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">translation_z</span><span class="p">,</span> <span class="n">translation_y</span><span class="p">,</span> <span class="n">translation_x</span><span class="p">)]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">translations</span> <span class="o">+=</span> <span class="p">[(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">translation_y</span><span class="p">,</span> <span class="n">translation_x</span><span class="p">)]</span>
+
+            <span class="k">if</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">img_interpolate</span><span class="o">.</span><span class="n">new_spacing</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span>
+                    <span class="n">current_settings</span><span class="o">.</span><span class="n">img_interpolate</span><span class="o">.</span><span class="n">new_spacing</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+                <span class="n">x</span> <span class="o">==</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">current_settings</span><span class="o">.</span><span class="n">img_interpolate</span><span class="o">.</span><span class="n">new_spacing</span>
+            <span class="p">):</span>
+                <span class="n">spacings</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">spacings</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">current_settings</span><span class="o">.</span><span class="n">img_interpolate</span><span class="o">.</span><span class="n">new_spacing</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">noise_repetition_id</span> <span class="ow">in</span> <span class="n">noise_repetition_ids</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">rotation_angle</span> <span class="ow">in</span> <span class="n">rotation_angles</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">translation</span> <span class="ow">in</span> <span class="n">translations</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">spacing</span> <span class="ow">in</span> <span class="n">spacings</span><span class="p">:</span>
+                            <span class="k">yield</span> <span class="n">StandardWorkflow</span><span class="p">(</span>
+                                <span class="n">image_file</span><span class="o">=</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">image_file</span><span class="p">),</span>
+                                <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+                                <span class="n">settings</span><span class="o">=</span><span class="n">current_settings</span><span class="p">,</span>
+                                <span class="n">settings_name</span><span class="o">=</span><span class="n">current_settings</span><span class="o">.</span><span class="n">general</span><span class="o">.</span><span class="n">config_str</span><span class="p">,</span>
+                                <span class="n">write_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">export_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+                                <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+                                <span class="n">noise_iteration_id</span><span class="o">=</span><span class="n">noise_repetition_id</span><span class="p">,</span>
+                                <span class="n">rotation</span><span class="o">=</span><span class="n">rotation_angle</span><span class="p">,</span>
+                                <span class="n">translation</span><span class="o">=</span><span class="n">translation</span><span class="p">,</span>
+                                <span class="n">new_image_spacing</span><span class="o">=</span><span class="n">spacing</span>
+                            <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

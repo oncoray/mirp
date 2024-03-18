@@ -3,14 +3,14 @@ import os
 import numpy as np
 import pandas as pd
 
-from mirp.settings.settingsGeneric import SettingsClass
-from mirp.settings.settingsImageTransformation import ImageTransformationSettingsClass
-from mirp.settings.settingsFeatureExtraction import FeatureExtractionSettingsClass
-from mirp.settings.settingsMaskResegmentation import ResegmentationSettingsClass
-from mirp.settings.settingsPerturbation import ImagePerturbationSettingsClass
-from mirp.settings.settingsImageProcessing import ImagePostProcessingClass
-from mirp.settings.settingsInterpolation import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
-from mirp.settings.settingsGeneral import GeneralSettingsClass
+from mirp.settings.generic import SettingsClass
+from mirp.settings.transformation_parameters import ImageTransformationSettingsClass
+from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
+from mirp.settings.resegmentation_parameters import ResegmentationSettingsClass
+from mirp.settings.perturbation_parameters import ImagePerturbationSettingsClass
+from mirp.settings.image_processing_parameters import ImagePostProcessingClass
+from mirp.settings.interpolation_parameters import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
+from mirp.settings.general_parameters import GeneralSettingsClass
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -21,8 +21,8 @@ def test_orientation():
     """
     Test internal representation of image objects using the orientation phantom.
     """
-    from mirp.importData.readData import read_image
-    from mirp.importData.importImage import import_image
+    from mirp._data_import.read_data import read_image
+    from mirp.data_import.import_image import import_image
 
     image_list = import_image(
         image=os.path.join(CURRENT_DIR, "data", "misc_images", "orientation", "image", "orientation.nii.gz")
@@ -52,7 +52,7 @@ def test_orientation():
 
 
 def run_experiment(image, roi, **kwargs):
-    from mirp.extractFeaturesAndImages import extract_features
+    from mirp.extract_features_and_images import extract_features
 
     by_slice = False
 
@@ -127,7 +127,7 @@ def run_experiment(image, roi, **kwargs):
 def test_xml_configurations():
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree
-    from mirp.extractFeaturesAndImages import extract_features
+    from mirp.extract_features_and_images import extract_features
 
     # Remove temporary data xml file if it exists.
     if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):
@@ -170,15 +170,15 @@ def test_edge_cases_basic_pipeline():
     """
     Test feature extraction using the basic pipeline. The following cases are tested using an uninformative phantom
     that has the value 1 everywhere:
-    -   using a normal mask that completely covers the image. This is to test how MIRP responds to uninformative images.
-    -   using a mask that only contains a single voxel. This is to test how MIRP responds to masks with a single voxel.
+    -   using a normal mask that completely covers the image. This is to test how MIRP responds to uninformative _images.
+    -   using a mask that only contains a single voxel. This is to test how MIRP responds to _masks with a single voxel.
     -   using a mask that has disconnected voxels.
     -   using an empty mask.
     -   using a mask that becomes empty after resegmentation.
 
     Both 3D and 2D (slice) phantoms are used.
 
-    So in short, this pipeline tests the worst possible images and masks to figure out what happens.
+    So in short, this pipeline tests the worst possible _images and _masks to figure out what happens.
     """
 
     images = ["uninformative", "uninformative_slice"]

@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=92fd9be5" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=b21de401"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.importData.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.settings.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractImageParameters.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.deepLearningPreprocessing.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractFeaturesAndImages.html">Process image and compute quantitative image features</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mirp.settings.image_processing_parameters</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mirp.settings.image_processing_parameters</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.utilities</span> <span class="kn">import</span> <span class="n">setting_def</span>
+
+
+<div class="viewcode-block" id="ImagePostProcessingClass">
+<a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="nc">ImagePostProcessingClass</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parameters related to image processing. Note that parameters concerning image perturbation / augmentation and</span>
+<span class="sd">    resampling are set separately, see :class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass` and</span>
+<span class="sd">    :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bias_field_correction: bool, optional, default: False</span>
+<span class="sd">        Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field</span>
+<span class="sd">        correction is conducted using the information contained within the mask. Bias-field correction can only be</span>
+<span class="sd">        applied to MR imaging.</span>
+
+<span class="sd">    bias_field_correction_n_fitting_levels: int, optional, default: 1</span>
+<span class="sd">        The number of fitting levels for the N4 bias field correction algorithm.</span>
+
+<span class="sd">    bias_field_correction_n_max_iterations: int or list of int, optional, default: 50</span>
+<span class="sd">        The number of fitting iterations for the N4 bias field algorithm. A single integer, or a list of integers</span>
+<span class="sd">        with a length equal to the number of fitting levels is expected.</span>
+
+<span class="sd">    bias_field_convergence_threshold: float, optional, default: 0.001</span>
+<span class="sd">        Convergence threshold for N4 bias field correction algorithm.</span>
+
+<span class="sd">    intensity_normalisation: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;, &quot;quantile_range&quot;, &quot;standardisation&quot;}, default: &quot;none&quot;</span>
+<span class="sd">        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels</span>
+<span class="sd">        masked by the tissue mask (of present). The following are possible:</span>
+
+<span class="sd">        * &quot;none&quot;: no normalisation</span>
+<span class="sd">        * &quot;range&quot;: normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``</span>
+<span class="sd">          parameter, which is interpreted to represent an intensity range.</span>
+<span class="sd">        * &quot;relative_range&quot;: normalises intensities based on a fixed mapping against the ``intensity_normalisation_range``</span>
+<span class="sd">          parameter, which is interpreted to represent a relative intensity range.</span>
+<span class="sd">        * &quot;quantile_range&quot;: normalises intensities based on a fixed mapping against the</span>
+<span class="sd">          ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.</span>
+<span class="sd">        * &quot;standardisation&quot;: normalises intensities by subtraction of the mean intensity and division by the standard</span>
+<span class="sd">          deviation of intensities.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            intensity normalisation may remove any physical meaning of intensity units.</span>
+
+<span class="sd">    intensity_normalisation_range: list of float, optional</span>
+<span class="sd">        Required for &quot;range&quot;, &quot;relative_range&quot;, and &quot;quantile_range&quot; intensity normalisation methods, and defines the</span>
+<span class="sd">        intensities that are mapped to the [0.0, 1.0] range during normalisation. The default range depends on the</span>
+<span class="sd">        type of normalisation method:</span>
+
+<span class="sd">        * &quot;range&quot;: [np.nan, np.nan]: the minimum and maximum intensity value present in the image are used to set the</span>
+<span class="sd">          mapping range.</span>
+<span class="sd">        * &quot;relative_range&quot;: [0.0. 1.0]: the minimum (0.0) and maximum (1.0) intensity value present in the image are</span>
+<span class="sd">          used to set the mapping range.</span>
+<span class="sd">        * &quot;quantile_range&quot;: [0.025, 0.975] the 2.5th and 97.5th percentiles of the intensities in the image are used</span>
+<span class="sd">          to set the mapping range.</span>
+
+<span class="sd">        The lower end of the range is mapped to 0.0 and the upper end to 1.0. However, if intensities below the lower</span>
+<span class="sd">        end or above the upper end are present in the image, values below 0.0 or above 1.0 may be encountered after</span>
+<span class="sd">        normalisation. Use ``intensity_normalisation_saturation`` to cap intensities after normalisation to a</span>
+<span class="sd">        specific range.</span>
+
+<span class="sd">    intensity_normalisation_saturation: list of float, optional, default: [np.nan, np.nan]</span>
+<span class="sd">        Defines the start and endpoint for the saturation range. Normalised intensities that lie outside this</span>
+<span class="sd">        range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater</span>
+<span class="sd">        than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should</span>
+<span class="sd">        not be saturated.</span>
+
+<span class="sd">    intensity_scaling: float, optional</span>
+<span class="sd">        Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after</span>
+<span class="sd">        normalisation (if any). For example, `intensity_scaling = 1000.0`, combined with `intensity_normalisation =</span>
+<span class="sd">        &quot;range&quot;` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].</span>
+
+<span class="sd">    tissue_mask_type: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;}, optional, default: &quot;relative_range&quot;</span>
+<span class="sd">        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select</span>
+<span class="sd">        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.</span>
+
+<span class="sd">    tissue_mask_range: list of float, optional</span>
+<span class="sd">        Range values for creating an approximate mask of the tissue. Required for &quot;range&quot; and &quot;relative_range&quot;</span>
+<span class="sd">        options. Default: [0.02, 1.00] (``&quot;relative_range&quot;``); [np.nan, np.nan] (``&quot;range&quot;``; effectively all voxels</span>
+<span class="sd">        are considered to represent tissue).</span>
+
+<span class="sd">    **kwargs:</span>
+<span class="sd">        Unused keyword arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">bias_field_correction</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">bias_field_correction_n_fitting_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">bias_field_correction_n_max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">bias_field_convergence_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">intensity_normalisation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="n">intensity_normalisation_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">intensity_normalisation_saturation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">intensity_scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">tissue_mask_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span>
+            <span class="n">tissue_mask_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+
+        <span class="c1"># Set bias_field_correction parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bias_field_correction</span> <span class="o">=</span> <span class="n">bias_field_correction</span>
+
+        <span class="c1"># Check n_fitting_levels.</span>
+        <span class="k">if</span> <span class="n">bias_field_correction</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bias_field_correction_n_fitting_levels</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The bias_field_correction_n_fitting_levels should be integer with value 1 or larger.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">bias_field_correction_n_fitting_levels</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The bias_field_correction_n_fitting_levels should be integer with value 1 or larger. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Found: </span><span class="si">{</span><span class="n">bias_field_correction_n_fitting_levels</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bias_field_correction_n_fitting_levels</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set n_fitting_levels.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_fitting_levels</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">bias_field_correction_n_fitting_levels</span>
+
+        <span class="c1"># Set default value for bias_field_correction_n_max_iterations. This is the number of iterations per fitting</span>
+        <span class="c1"># level.</span>
+        <span class="k">if</span> <span class="n">bias_field_correction_n_max_iterations</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">bias_field_correction</span><span class="p">:</span>
+            <span class="n">bias_field_correction_n_max_iterations</span> <span class="o">=</span> <span class="p">[</span><span class="mi">50</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bias_field_correction_n_fitting_levels</span><span class="p">)]</span>
+
+        <span class="k">if</span> <span class="n">bias_field_correction</span><span class="p">:</span>
+            <span class="c1"># Parse to list, if a single value is provided.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bias_field_correction_n_max_iterations</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">bias_field_correction_n_max_iterations</span> <span class="o">=</span> <span class="p">[</span><span class="n">bias_field_correction_n_max_iterations</span><span class="p">]</span>
+
+            <span class="c1"># Ensure that the list of maximum iteration values equals the number of fitting levels.</span>
+            <span class="k">if</span> <span class="n">bias_field_correction_n_fitting_levels</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">bias_field_correction_n_max_iterations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">bias_field_correction_n_max_iterations</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="n">bias_field_correction_n_max_iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">bias_field_correction_n_fitting_levels</span><span class="p">)</span>
+                <span class="p">]</span>
+
+            <span class="c1"># Check that the list of maximum iteration values is equal to the number of fitting levels.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bias_field_correction_n_max_iterations</span><span class="p">)</span> <span class="o">!=</span> <span class="n">bias_field_correction_n_fitting_levels</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The bias_field_correction_n_max_iterations parameter should be a list with a length equal to the&quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot; number of fitting levels (</span><span class="si">{</span><span class="n">bias_field_correction_n_fitting_levels</span><span class="si">}</span><span class="s2">). Found list with &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bias_field_correction_n_max_iterations</span><span class="p">)</span><span class="si">}</span><span class="s2"> values.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check that all values are integers.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">bias_field_correction_n_max_iterations</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The bias_field_correction_n_max_iterations parameter should be a list of positive &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;integer values. At least one value was not an integer.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check that all values are positive.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">ii</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">bias_field_correction_n_max_iterations</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The bias_field_correction_n_max_iterations parameter should be a list of positive &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;integer values. At least one value was zero or negative.&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bias_field_correction_n_max_iterations</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set n_max_iterations attribute.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_max_iterations</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">bias_field_correction_n_max_iterations</span>
+
+        <span class="c1"># Check that the convergence threshold is a non-negative number.</span>
+        <span class="k">if</span> <span class="n">bias_field_correction</span><span class="p">:</span>
+
+            <span class="c1"># Check that the value is a float.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bias_field_convergence_threshold</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The bias_field_convergence_threshold parameter is expected to be a non-negative &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;floating point value. Found: a value that was not a floating point value.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">bias_field_convergence_threshold</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The bias_field_convergence_threshold parameter is expected to be a non-positive floating point &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;value. Found: a value that was 0.0 or negative (</span><span class="si">{</span><span class="n">bias_field_convergence_threshold</span><span class="si">}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bias_field_convergence_threshold</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set convergence_threshold attribute.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">convergence_threshold</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">bias_field_convergence_threshold</span>
+
+        <span class="c1"># Check that intensity_normalisation has the correct values.</span>
+        <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">,</span> <span class="s2">&quot;standardisation&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation parameter is expected to have one of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;none&#39;, &#39;range&#39;, &#39;relative_range&#39;, &#39;quantile_range&#39;, &#39;standardisation&#39;. Found: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">intensity_normalisation</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set intensity_normalisation parameter.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation</span> <span class="o">=</span> <span class="n">intensity_normalisation</span>
+
+        <span class="c1"># Set default value.</span>
+        <span class="k">if</span> <span class="n">intensity_normalisation_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="o">==</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span>
+                <span class="c1"># Cannot define a proper range.</span>
+                <span class="n">intensity_normalisation_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span>
+
+            <span class="k">elif</span> <span class="n">intensity_normalisation</span> <span class="o">==</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">:</span>
+                <span class="n">intensity_normalisation_range</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+
+            <span class="k">elif</span> <span class="n">intensity_normalisation</span> <span class="o">==</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">:</span>
+                <span class="n">intensity_normalisation_range</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.025</span><span class="p">,</span> <span class="mf">0.975</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="o">==</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span>
+            <span class="c1"># Check that the range has length 2 and contains floating point values.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for range-based normalisation should &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;be a list with exactly two values, which are mapped to 0.0 and 1.0 respectively. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Found: an object that is not a list.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intensity_normalisation_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for range-based normalisation should &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;be a list with exactly two values, which are mapped to 0.0 and 1.0 respectively. &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;Found: list with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">intensity_normalisation_range</span><span class="p">)</span><span class="si">}</span><span class="s2"> values.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">intensity_normalisation_range</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for range-based normalisation should &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;be a list with exactly two floating point values, which are mapped to 0.0 and 1.0 &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;respectively. Found: one or more values that are not floating point values.&quot;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">intensity_normalisation</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">]:</span>
+            <span class="c1"># Check that the range has length 2 and contains floating point values between 0.0 and 1.0.</span>
+            <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="o">==</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">:</span>
+                <span class="n">intensity_normalisation_specifier</span> <span class="o">=</span> <span class="s2">&quot;relative range-based normalisation&quot;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">intensity_normalisation_specifier</span> <span class="o">=</span> <span class="s2">&quot;quantile range-based normalisation&quot;</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for </span><span class="si">{</span><span class="n">intensity_normalisation_specifier</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;should be a list with exactly two values, which are mapped to 0.0 and 1.0 &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;respectively. Found: an object that is not a list.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">intensity_normalisation_range</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for </span><span class="si">{</span><span class="n">intensity_normalisation_specifier</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;should be a list with exactly two values, which are mapped to 0.0 and 1.0 &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;respectively. Found: list with </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">intensity_normalisation_range</span><span class="p">)</span><span class="si">}</span><span class="s2"> values.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">intensity_normalisation_range</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for </span><span class="si">{</span><span class="n">intensity_normalisation_specifier</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;should be a list with exactly two values, which are mapped to 0.0 and 1.0 &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;respectively. Found: one or more values that are not floating point values.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">ii</span> <span class="o">&lt;=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">intensity_normalisation_range</span><span class="p">]):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_range parameter for </span><span class="si">{</span><span class="n">intensity_normalisation_specifier</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;should be a list with exactly two values, which are mapped to 0.0 and 1.0 &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;respectively. Found: one or more values that are outside the [0.0, 1.0] range.&quot;</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># None and standardisation do not use this range.</span>
+            <span class="n">intensity_normalisation_range</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Set normalisation range.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_range</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">intensity_normalisation_range</span>
+
+        <span class="c1"># Check intensity normalisation saturation range.</span>
+        <span class="k">if</span> <span class="n">intensity_normalisation_saturation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">intensity_normalisation_saturation</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_saturation</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;The intensity_normalisation_saturation parameter is expected to be a &quot;</span>
+                <span class="s2">&quot;list of two floating point values.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">intensity_normalisation_saturation</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_saturation parameter should consist of two values. Found: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">intensity_normalisation_saturation</span><span class="p">)</span><span class="si">}</span><span class="s2"> values.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">intensity_normalisation_saturation</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="s2">&quot;The intensity_normalisation_saturation parameter can only contain floating point or np.nan values.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># intensity_normalisation_saturation parameter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_saturation</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">intensity_normalisation_saturation</span>
+
+        <span class="c1"># Check intensity_scaling</span>
+        <span class="k">if</span> <span class="n">intensity_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_scaling</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The intensity_scaling parameter is expected to be a single floating point.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">intensity_scaling</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The intensity_scaling parameter cannot have a value of 0.0.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">intensity_scaling</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">intensity_scaling</span>
+
+        <span class="c1"># Check tissue_mask_type</span>
+        <span class="k">if</span> <span class="n">tissue_mask_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The tissue_mask_type parameter is expected to have one of the following values: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;none&#39;, &#39;range&#39;, or &#39;relative_range&#39;. Found: </span><span class="si">{</span><span class="n">tissue_mask_type</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Set tissue_mask_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">tissue_mask_type</span>
+
+        <span class="c1"># Set the default value for tissue_mask_range.</span>
+        <span class="k">if</span> <span class="n">tissue_mask_range</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tissue_mask_type</span> <span class="o">==</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">:</span>
+                <span class="n">tissue_mask_range</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">1.00</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">tissue_mask_type</span> <span class="o">==</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span>
+                <span class="n">tissue_mask_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">tissue_mask_range</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span>
+
+        <span class="c1"># Perform checks on tissue_mask_range.</span>
+        <span class="k">if</span> <span class="n">tissue_mask_type</span> <span class="o">!=</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tissue_mask_range</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The tissue_mask_range parameter is expected to be a list of two floating point values.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">tissue_mask_range</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The tissue_mask_range parameter should consist of two values. Found: &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">tissue_mask_range</span><span class="p">)</span><span class="si">}</span><span class="s2"> values.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">tissue_mask_range</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The tissue_mask_range parameter can only contain floating point or np.nan values.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">tissue_mask_type</span> <span class="o">==</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([(</span><span class="mf">0.0</span> <span class="o">&lt;=</span> <span class="n">ii</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ii</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">tissue_mask_range</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The tissue_mask_range parameter should consist of two values between 0.0 and 1.0.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Set tissue_mask_range.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tissue_mask_range</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">get_post_processing_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;bias_field_correction&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;bias_field_correction_n_fitting_levels&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;n_fitting_levels&quot;</span><span class="p">,</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;n_fitting_levels&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;bias_field_correction_n_max_iterations&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;n_max_iterations&quot;</span><span class="p">,</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;n_max_iterations&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">1000</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span>
+            <span class="s2">&quot;bias_field_convergence_threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span>
+            <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">0.1</span>
+        <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;relative_range&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_saturation&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_scaling&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;tissue_mask_type&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;range&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;tissue_mask_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">])</span>
+    <span class="p">]</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

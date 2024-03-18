@@ -24,7 +24,7 @@ Parameters of a single image can be extracted from their metadata as follows:
 API documentation
 -----------------
 
-.. automodule:: mirp.extractImageParameters
+.. automodule:: mirp.extract_image_parameters
    :members:
    :undoc-members:
    :show-inheritance:

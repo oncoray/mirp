@@ -6,8 +6,8 @@ processing workflow, with a final cropping step (if any).
 
 The deep learning preprocessing function comes in two versions:
 
-* :func:`~mirp.deepLearningPreprocessing.deep_learning_preprocessing`: conventional function that processes images.
-* :func:`~mirp.deepLearningPreprocessing.deep_learning_preprocessing_generator`: generator that yields processed images.
+* :func:`~mirp.deep_learning_preprocessing.deep_learning_preprocessing`: conventional function that processes images.
+* :func:`~mirp.deep_learning_preprocessing.deep_learning_preprocessing_generator`: generator that yields processed images.
 
 Example
 -------
@@ -26,7 +26,7 @@ MIRP can be used to crop images, e.g. to make them conform to the input of convo
 
 API documentation
 -----------------
-.. automodule:: mirp.deepLearningPreprocessing
+.. automodule:: mirp.deep_learning_preprocessing
    :members:
    :undoc-members:
    :show-inheritance:

@@ -3,12 +3,12 @@ import os.path
 import pytest
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
-from mirp.importData.importImageAndMask import import_image_and_mask
-from mirp.importData.imageITKFile import ImageITKFile, MaskITKFile
-from mirp.importData.imageDicomFileStack import ImageDicomFileStack
-from mirp.importData.imageDicomFileRTSTRUCT import MaskDicomFileRTSTRUCT
-from mirp.importData.imageNumpyFile import ImageNumpyFile, MaskNumpyFile
-from mirp.importData.imageNumpyFileStack import ImageNumpyFileStack, MaskNumpyFileStack
+from mirp.data_import.import_image_and_mask import import_image_and_mask
+from mirp._data_import.itk_file import ImageITKFile, MaskITKFile
+from mirp._data_import.dicom_file_stack import ImageDicomFileStack
+from mirp._data_import.dicom_file_rtstruct import MaskDicomFileRTSTRUCT
+from mirp._data_import.numpy_file import ImageNumpyFile, MaskNumpyFile
+from mirp._data_import.numpy_file_stack import ImageNumpyFileStack, MaskNumpyFileStack
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -217,7 +217,7 @@ def test_single_image_and_mask_import():
 
 
 def test_multiple_image_and_mask_import():
-    # Read Nifti images and masks directly.
+    # Read Nifti _images and _masks directly.
     image_list = import_image_and_mask(
         image=[
             os.path.join(CURRENT_DIR, "data", "sts_images", "STS_002", "CT", "nifti", "image", "image.nii.gz"),
@@ -234,7 +234,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskITKFile) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
 
-    # Read DICOM images and masks.
+    # Read DICOM _images and _masks.
     image_list = import_image_and_mask(
         image=[
             os.path.join(CURRENT_DIR, "data", "sts_images", "STS_002", "CT", "dicom", "image"),
@@ -252,7 +252,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy images and masks directly.
+    # Read numpy _images and _masks directly.
     image_list = import_image_and_mask(
         image=[
             os.path.join(CURRENT_DIR, "data", "sts_images", "STS_002", "CT", "numpy", "image", "STS_002_image.npy"),
@@ -286,7 +286,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskNumpyFileStack) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
 
-    # Read Nifti images and masks for specific samples.
+    # Read Nifti _images and _masks for specific samples.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -300,7 +300,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read DICOM images and masks for specific samples.
+    # Read DICOM _images and _masks for specific samples.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -314,7 +314,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy images and masks for specific samples.
+    # Read numpy _images and _masks for specific samples.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         sample_name=["STS_002", "STS_003"],
@@ -342,7 +342,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read Nifti image and masks for all samples.
+    # Read Nifti image and _masks for all samples.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image"),
@@ -355,7 +355,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read DICOM images and masks for all samples.
+    # Read DICOM _images and _masks for all samples.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "dicom", "image"),
@@ -369,7 +369,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy images and masks for all samples.
+    # Read numpy _images and _masks for all samples.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "numpy", "image"),
@@ -465,7 +465,7 @@ def test_single_image_and_mask_import_flat():
 
 def test_multiple_image_and_mask_import_flat():
 
-    # Read Nifti images and masks for specific samples in a flat directory.
+    # Read Nifti _images and _masks for specific samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         sample_name=["STS_002", "STS_003"],
@@ -480,7 +480,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read DICOM images and masks for a specific samples in a flat directory.
+    # Read DICOM _images and _masks for a specific samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
         sample_name=["STS_002", "STS_003"],
@@ -496,7 +496,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy images and masks for specific samples in a flat directory.
+    # Read numpy _images and _masks for specific samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         sample_name=["STS_002", "STS_003"],
@@ -526,7 +526,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read Nifti images and masks for all samples in a flat directory.
+    # Read Nifti _images and _masks for all samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "nifti"),
         image_name="#_CT_image",
@@ -540,7 +540,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read DICOM images and masks for all samples in a flat directory.
+    # Read DICOM _images and _masks for all samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "dicom"),
         image_modality="ct",
@@ -555,7 +555,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy images and masks for all samples in a flat directory.
+    # Read numpy _images and _masks for all samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy"),
         image_name="CT_#_image",
@@ -569,7 +569,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
-    # Read numpy images and masks for all samples in a flat directory.
+    # Read numpy _images and _masks for all samples in a flat directory.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images_flat", "numpy_slice"),
         image_name="CT_#_*_image",
@@ -585,7 +585,7 @@ def test_multiple_image_and_mask_import_flat():
 
 
 def test_failure_multiple_image_and_mask_import():
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching file type.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -596,7 +596,7 @@ def test_failure_multiple_image_and_mask_import():
         )
     assert "did not contain any supported image files" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching image modality.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -607,7 +607,7 @@ def test_failure_multiple_image_and_mask_import():
         )
     assert "No images were found" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching mask modality.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -618,7 +618,7 @@ def test_failure_multiple_image_and_mask_import():
         )
     assert "No masks were found" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -630,7 +630,7 @@ def test_failure_multiple_image_and_mask_import():
     assert "not contain any supported image files" in str(exception_info.value)
     assert "that contain the name pattern (false_image)" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong mask_name.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -642,7 +642,7 @@ def test_failure_multiple_image_and_mask_import():
     assert "not contain any supported mask files" in str(exception_info.value)
     assert "that contain the name pattern (false_mask)" in str(exception_info.value)
 
-    # Read Nifti image and masks for all samples, but with incorrect instructions.
+    # Read Nifti image and _masks for all samples, but with incorrect instructions.
     # No matching sample name.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -653,7 +653,7 @@ def test_failure_multiple_image_and_mask_import():
         )
     assert "could not be linked to a sample name for checking" in str(exception_info.value)
 
-    # Read Nifti image and masks for all samples, but with incorrect instructions.
+    # Read Nifti image and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -665,7 +665,7 @@ def test_failure_multiple_image_and_mask_import():
     assert "not contain any supported image files" in str(exception_info.value)
     assert "that contain the name pattern (false_image)" in str(exception_info.value)
 
-    # Read Nifti image and masks for all samples, but with incorrect instructions.
+    # Read Nifti image and _masks for all samples, but with incorrect instructions.
     # Wrong mask_name.
     with pytest.raises(ValueError) as exception_info:
         image_list = import_image_and_mask(
@@ -706,7 +706,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
     for element in paths_branch.iter("mask_sub_folder"):
         element.text = str(r"CT/dicom/mask")
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching file type.
     false_file_type_tree = copy.deepcopy(tree)
     for element in false_file_type_tree.getroot().iter("image_file_type"):
@@ -719,7 +719,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
         )
     assert "did not contain any supported image files" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching image modality.
     false_image_modality_tree = copy.deepcopy(tree)
     for element in false_image_modality_tree.getroot().iter("image_modality"):
@@ -732,7 +732,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
         )
     assert "No images were found" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching mask modality.
     false_mask_modality_tree = copy.deepcopy(tree)
     for element in false_mask_modality_tree.getroot().iter("mask_modality"):
@@ -745,7 +745,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
         )
     assert "No masks were found" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.
     false_image_name_tree = copy.deepcopy(tree)
     for element in false_image_name_tree.getroot().iter("image_name"):
@@ -759,7 +759,7 @@ def test_failure_multiple_image_and_mask_import_data_xml():
     assert "not contain any supported image files" in str(exception_info.value)
     assert "that contain the name pattern (false_image)" in str(exception_info.value)
 
-    # DICOM stack and masks for all samples, but with incorrect instructions.
+    # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong mask_name.
     false_mask_name_tree = copy.deepcopy(tree)
     for element in false_mask_name_tree.getroot().iter("mask_name"):

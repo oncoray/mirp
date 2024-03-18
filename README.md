@@ -159,6 +159,9 @@ mask_labels = extract_mask_labels(
 A publication for MIRP is forthcoming. For now, please cite the following work:
 ```Zwanenburg A, Leger S, Agolli L, Pilz K, Troost EG, Richter C, Löck S. Assessing robustness of radiomic features by image perturbation. Scientific reports. 2019 Jan 24;9(1):614.```
 
+# Contributing
+If you have ideas for improving MIRP, please read the short [contribution guide](./CONTRIBUTING.md).
+
 # Developers and contributors
 
 MIRP is developed by:
