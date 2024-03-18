@@ -288,10 +288,10 @@ class SizeZoneMatrix:
         df_sij.columns = ("i", "j", "sij")
 
         # Sum over grey levels
-        df_si = df_sij.groupby(by="i")["sij"].agg(np.sum).reset_index().rename(columns={"sij": "si"})
+        df_si = df_sij.groupby(by="i")["sij"].sum().reset_index().rename(columns={"sij": "si"})
 
         # Sum over zone sizes
-        df_sj = df_sij.groupby(by="j")["sij"].agg(np.sum).reset_index().rename(columns={"sij": "sj"})
+        df_sj = df_sij.groupby(by="j")["sij"].sum().reset_index().rename(columns={"sij": "sj"})
 
         # Constant definitions
         n_s = np.sum(df_sij.sij) * 1.0  # Number of size zones

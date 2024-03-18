@@ -118,7 +118,7 @@ def combine_matrices(ngtdm_list, spatial_method):
         else:
             # Merge neighbourhood grey tone difference matrices
             merge_ngtdm = pd.concat(sel_matrix_list, axis=0)
-            merge_ngtdm = merge_ngtdm.groupby(by=["i"]).agg({"s": np.sum, "n": np.sum}).reset_index()
+            merge_ngtdm = merge_ngtdm.groupby(by=["i"]).agg({"s": "sum", "n": "sum"}).reset_index()
 
             # Update the number of voxels
             merge_n_v = 0.0

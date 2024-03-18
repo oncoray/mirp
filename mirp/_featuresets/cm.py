@@ -385,18 +385,18 @@ class CooccurrenceMatrix:
         # Occurrence data frames
         df_pij = copy.deepcopy(self.matrix)
         df_pij["pij"] = df_pij.n / sum(df_pij.n)
-        df_pi = df_pij.groupby(by="i")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pi"})
-        df_pj = df_pij.groupby(by="j")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pj"})
+        df_pi = df_pij.groupby(by="i")["pij"].sum().reset_index().rename(columns={"pij": "pi"})
+        df_pj = df_pij.groupby(by="j")["pij"].sum().reset_index().rename(columns={"pij": "pj"})
 
         # Diagonal probabilities p(i-j)
         df_pimj = copy.deepcopy(df_pij)
         df_pimj["k"] = np.abs(df_pimj.i - df_pimj.j)
-        df_pimj = df_pimj.groupby(by="k")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pimj"})
+        df_pimj = df_pimj.groupby(by="k")["pij"].sum().reset_index().rename(columns={"pij": "pimj"})
 
         # Cross-diagonal probabilities p(i+j)
         df_pipj = copy.deepcopy(df_pij)
         df_pipj["k"] = df_pipj.i + df_pipj.j
-        df_pipj = df_pipj.groupby(by="k")["pij"].agg(np.sum).reset_index().rename(columns={"pij": "pipj"})
+        df_pipj = df_pipj.groupby(by="k")["pij"].sum().reset_index().rename(columns={"pij": "pipj"})
 
         # Merger of df.p_ij, df.p_i and df.p_j
         df_pij = pd.merge(df_pij, df_pi, on="i")

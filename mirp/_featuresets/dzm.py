@@ -209,7 +209,8 @@ class DistanceZoneMatrix:
         df_dzm["vol_id"] = np.ravel(img_label)
 
         # Select minimum group distance for unique groups
-        df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].agg(np.min).reset_index().rename(columns={"border_distance": "d"})
+        df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].min().reset_index().rename(
+            columns={"border_distance": "d"})
 
         # Count occurrence of grey level and distance
         df_dzm = df_dzm.groupby(by=["g", "d"]).size().reset_index(name="n")
@@ -266,7 +267,9 @@ class DistanceZoneMatrix:
         df_dzm["vol_id"] = np.ravel(img_label)
 
         # Select minimum group distance for unique groups
-        df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].agg(np.min).reset_index().rename(columns={"border_distance": "d"})
+        df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].min().reset_index(
+
+        ).rename(columns={"border_distance": "d"})
 
         # Count occurrence of grey level and distance
         df_dzm = df_dzm.groupby(by=["g", "d"]).size().reset_index(name="n")
@@ -301,10 +304,10 @@ class DistanceZoneMatrix:
         df_dij.columns = ("i", "j", "dij")
 
         # Sum over grey levels
-        df_di = df_dij.groupby(by="i")["dij"].agg(np.sum).reset_index().rename(columns={"dij": "di"})
+        df_di = df_dij.groupby(by="i")["dij"].sum().reset_index().rename(columns={"dij": "di"})
 
         # Sum over zone distances
-        df_dj = df_dij.groupby(by="j")["dij"].agg(np.sum).reset_index().rename(columns={"dij": "dj"})
+        df_dj = df_dij.groupby(by="j")["dij"].sum().reset_index().rename(columns={"dij": "dj"})
 
         # Constant definitions
         n_s = np.sum(df_dij.dij) * 1.0  # Number of size zones

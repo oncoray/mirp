@@ -1,5 +1,9 @@
 # Version 2.2.0
 
+## Breaking changes
+
+- Modules were renamed according to the PEP8 standard.
+
 ## Major changes
 
 - Added support for intensity scaling using the `intensity_scaling` parameter. Intensity scaling multiplies 
@@ -18,6 +22,7 @@
 ## Minor changes
 
 - Added support for Python version 3.10 using `typing-extensions`.
+- Several changes were made to ensure proper functioning of MIRP with future versions of pandas.
 
 # Version 2.1.1
 

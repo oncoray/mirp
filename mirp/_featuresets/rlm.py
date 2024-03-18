@@ -410,10 +410,10 @@ class RunLengthMatrix:
         df_rij.columns = ["i", "j", "rij"]
 
         # Sum over grey levels
-        df_ri = df_rij.groupby(by="i")["rij"].agg(np.sum).reset_index().rename(columns={"rij": "ri"})
+        df_ri = df_rij.groupby(by="i")["rij"].sum().reset_index().rename(columns={"rij": "ri"})
 
         # Sum over run lengths
-        df_rj = df_rij.groupby(by="j")["rij"].agg(np.sum).reset_index().rename(columns={"rij": "rj"})
+        df_rj = df_rij.groupby(by="j")["rij"].sum().reset_index().rename(columns={"rij": "rj"})
 
         # Constant definitions
         n_s = np.sum(df_rij.rij) * 1.0  # Number of runs
