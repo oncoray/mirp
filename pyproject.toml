@@ -32,7 +32,7 @@ dependencies = [
     "scikit-image>=0.20.0",
     "scipy>=1.11",
     "typing-extensions>=4.10; python_version<'3.11'",
-    "ray>=2.10.0; python_version<=`3.11`"
+    "ray>=2.10.0; python_version<='3.11'"
 ]
 
 [project.urls]
