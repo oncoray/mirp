@@ -3,7 +3,7 @@
 
 name: Run automated tests on multiple platforms
 
-on: [pull_request]
+on: [pull_request, workflow_dispatch]
 
 jobs:
   build:
