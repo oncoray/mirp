@@ -1,3 +1,11 @@
+# Version 2.2.1
+
+# Minor changes
+
+- Add fall-back methods for missing installation of the `ray` package for parallel processing. This can happen when 
+  a python version is not supported by the `ray` package. `ray` is now a conditional dependency, until that package 
+  is released for python `3.12`.
+
 # Version 2.2.0
 
 ## Major changes

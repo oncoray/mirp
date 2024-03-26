@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mirp"
-version = "2.2.0"
+version = "2.2.1"
 description = "A package for standardised processing of medical imaging and computation of quantitative features."
 authors = [
     {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
@@ -30,10 +30,10 @@ dependencies = [
     "pandas>=2.0.0",
     "pydicom>=2.4.0",
     "pywavelets>=1.4.0",
-    "ray>=2.7.0",
     "scikit-image>=0.20.0",
     "scipy>=1.11",
-    "typing-extensions>=4.10;  python_version<'3.11'"
+    "typing-extensions>=4.10; python_version<'3.11'",
+    "ray>=2.10.0; python_version<=`3.11`"
 ]
 
 [project.urls]
