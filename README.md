@@ -1,5 +1,10 @@
 <img src="https://raw.githubusercontent.com/oncoray/mirp/master/icon/mirp.svg" align="right" width="120"/>
 
+| python | Linux     | Win       | OSX       |
+|--------|-----------|-----------|-----------|
+| 3.10   | Supported | Supported | Supported |
+| 3.11   | Supported | Supported | Supported |
+
 # Medical Image Radiomics Processor
 
 Medical Image Radiomics Processor (MIRP) is an IBSI-compliant python package for medical image analysis.
