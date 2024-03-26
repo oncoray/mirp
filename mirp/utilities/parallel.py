@@ -52,7 +52,7 @@ def limit_inner_threads(n_threads: int = 1):
     os.environ["NUMEXPR_NUM_THREADS"] = str(n_threads)
 
 
-def ray_remote_disabled():
+def ray_remote_disabled(func):
     def placeholder_function(*args, **kwargs):
         pass
     return placeholder_function
