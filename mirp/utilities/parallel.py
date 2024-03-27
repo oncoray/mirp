@@ -67,7 +67,15 @@ def ray_is_initialized():
 
 def ray_init(num_cpus):
     if RAY_AVAILABLE:
-        ray.init(num_cpus=num_cpus)
+        try:
+            ray.init(num_cpus=num_cpus)
+        except OSError as err:
+            warnings.warn(
+                f"Ray instances could not be started for parallel processing. Switching to sequential processing. "
+                f"{str(err)}",
+                UserWarning
+            )
+            pass
     else:
         warnings.warn(
             "The ray package was not found. Switching to sequential processing.",
