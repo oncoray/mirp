@@ -7,6 +7,22 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_extract_image_crop():
+
+    # Without specifying a mask and without cropping -- this means the entire image is masked..
+    data = deep_learning_preprocessing(
+        output_slices=False,
+        crop_size=None,
+        export_images=True,
+        write_images=False,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image")
+    )
+
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (60, 201, 204)
+    assert mask.shape == (60, 201, 204)
+
     # No cropping.
     data = deep_learning_preprocessing(
         output_slices=False,
@@ -42,6 +58,21 @@ def test_extract_image_crop():
     assert all(image.shape == (1, 201, 204) for image in images)
     assert len(masks) == 60
     assert all(mask.shape == (1, 201, 204) for mask in masks)
+
+    # Crop to size without specifying a mask -- this means that the entire image is masked.
+    data = deep_learning_preprocessing(
+        output_slices=False,
+        crop_size=[20, 50, 50],
+        export_images=True,
+        write_images=False,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image")
+    )
+
+    image = data[0][0][0]
+    mask = data[0][1][0]
+
+    assert image.shape == (20, 50, 50)
+    assert mask.shape == (20, 50, 50)
 
     # Crop to size.
     data = deep_learning_preprocessing(

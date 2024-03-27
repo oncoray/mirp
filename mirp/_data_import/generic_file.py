@@ -1097,3 +1097,35 @@ class MaskFile(ImageFile):
             "file_path": [self.file_name] * n_labels,
             "roi_label": labels
         }
+
+
+class MaskFullImage(MaskFile):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.roi_name = "full_image_mask"
+
+    def to_object(
+            self,
+            image: None | ImageFile,
+            **kwargs
+    ) -> None | list[BaseMask]:
+        if image is None:
+            raise TypeError(
+                f"Creation of a full image mask requires that the corresponding image is set. "
+                f"No image was provided ({self.file_path})."
+            )
+        else:
+            image.complete()
+
+        self._complete_modality()
+
+        return [BaseMask(
+            roi_name=self.roi_name,
+            sample_name=image.sample_name,
+            image_modality=self.modality,
+            image_data=np.ones(image.image_dimension, dtype=bool),
+            image_spacing=image.image_spacing,
+            image_origin=image.image_origin,
+            image_orientation=image.image_orientation,
+            image_dimensions=image.image_dimension
+        )]

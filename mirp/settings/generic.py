@@ -1,4 +1,5 @@
 import copy
+from typing import Unpack
 
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp.settings.general_parameters import GeneralSettingsClass
@@ -52,7 +53,7 @@ class SettingsClass:
         Configuration object for parameters related to image transformation. See
         :class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`.
 
-    **kwargs: dict, optional
+    **kwargs: Any, optional
         Keyword arguments for initialising configuration objects stored in this container object.
 
     See Also
@@ -79,7 +80,11 @@ class SettingsClass:
             roi_resegment_settings: None | ResegmentationSettingsClass = None,
             feature_extr_settings: None | FeatureExtractionSettingsClass = None,
             img_transform_settings: None | ImageTransformationSettingsClass = None,
-            **kwargs
+            **kwargs: Unpack[
+                None | GeneralSettingsClass | ImagePostProcessingClass | ImagePostProcessingClass |
+                ImageInterpolationSettingsClass | MaskInterpolationSettingsClass | ResegmentationSettingsClass |
+                FeatureExtractionSettingsClass | ImageTransformationSettingsClass
+            ]
     ):
         kwargs = copy.deepcopy(kwargs)
 
