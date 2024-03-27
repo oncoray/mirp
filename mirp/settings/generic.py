@@ -1,5 +1,9 @@
 import copy
-from typing import Unpack
+import sys
+if sys.version_info >= (3, 11):
+    from typing import Unpack
+else:
+    from typing_extensions import Unpack
 
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp.settings.general_parameters import GeneralSettingsClass
