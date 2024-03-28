@@ -1,9 +1,9 @@
 from typing import Generator, Iterable, Any
 import copy
-import ray
 
 from mirp._data_import.generic_file import ImageFile
 from mirp.settings.generic import SettingsClass
+from mirp.utilities.parallel import ray_remote, ray_init, ray_is_initialized, ray_get, ray_shutdown
 from mirp._workflows.standardWorkflow import StandardWorkflow
 
 
@@ -84,11 +84,11 @@ def deep_learning_preprocessing(
     """
 
     # Conditionally start a ray cluster.
-    external_ray = ray.is_initialized()
+    external_ray = ray_is_initialized()
     if not external_ray and num_cpus is not None and num_cpus > 1:
-        ray.init(num_cpus=num_cpus)
+        ray_init(num_cpus=num_cpus)
 
-    if ray.is_initialized():
+    if ray_is_initialized():
         # Parallel processing.
         results = [
             _ray_extractor.remote(
@@ -106,9 +106,9 @@ def deep_learning_preprocessing(
             )
         ]
 
-        results = ray.get(results)
+        results = ray_get(results)
         if not external_ray:
-            ray.shutdown()
+            ray_shutdown()
     else:
         workflows = list(_base_deep_learning_preprocessing(
             export_images=export_images,
@@ -130,7 +130,7 @@ def deep_learning_preprocessing(
     return results
 
 
-@ray.remote
+@ray_remote
 def _ray_extractor(
         workflow: StandardWorkflow,
         output_slices: bool = False,

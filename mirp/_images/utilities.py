@@ -11,7 +11,6 @@ class InteractivePlot:
 
     def __init__(
             self,
-            axes: plt.Axes,
             image: GenericImage,
             mask: MaskImage | BaseMask | None = None
     ):
@@ -24,7 +23,15 @@ class InteractivePlot:
         if show_mask:
             show_mask = not mask.is_empty_mask()
 
+        # Generate figure
+        figure, axes = plt.subplots()
         self.axes = axes
+        self.figure = figure
+
+        # Attach connections
+        self.scroll_cid = self.figure.canvas.mpl_connect("scroll_event", self.onscroll)
+        self.close_cid = self.figure.canvas.mpl_connect("close_event", self.disconnect)
+
         self.image_data = image.get_voxel_grid()
 
         self.mask_data = None
@@ -99,3 +106,7 @@ class InteractivePlot:
         if self.mask_layer is not None:
             self.mask_layer.set_data(self.mask_data[self.slice_index, :, :])
             self.mask_layer.axes.figure.canvas.draw()
+
+    def disconnect(self):
+        self.figure.canvas.mpl_disconnect(self.scroll_cid)
+        self.figure.canvas.mpl_disconnect(self.close_cid)

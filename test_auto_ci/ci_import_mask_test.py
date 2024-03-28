@@ -9,8 +9,7 @@ from mirp._data_import.dicom_file_rtstruct import MaskDicomFileRTSTRUCT
 from mirp._data_import.numpy_file import MaskNumpyFile
 from mirp._data_import.numpy_file_stack import MaskNumpyFileStack
 
-
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CURRENT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "test")
 
 
 def test_single_mask_import():

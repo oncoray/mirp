@@ -1,6 +1,14 @@
 import ctypes
 import os
+import warnings
 from ctypes.util import find_library
+
+# Check if the ray package is available
+RAY_AVAILABLE = True
+try:
+    import ray
+except ImportError:
+    RAY_AVAILABLE = False
 
 
 def limit_inner_threads(n_threads: int = 1):
@@ -42,3 +50,51 @@ def limit_inner_threads(n_threads: int = 1):
     os.environ["VECLIB_MAXIMUM_THREADS"] = str(n_threads)
     os.environ["NUMBA_NUM_THREADS"] = str(n_threads)
     os.environ["NUMEXPR_NUM_THREADS"] = str(n_threads)
+
+
+def ray_remote_disabled(func):
+    def placeholder_function(*args, **kwargs):
+        pass
+    return placeholder_function
+
+
+def ray_is_initialized():
+    if RAY_AVAILABLE:
+        return ray.is_initialized()
+    else:
+        return False
+
+
+def ray_init(num_cpus):
+    if RAY_AVAILABLE:
+        try:
+            ray.init(num_cpus=num_cpus)
+        except OSError as err:
+            warnings.warn(
+                f"Ray instances could not be started for parallel processing. Switching to sequential processing. "
+                f"{str(err)}",
+                UserWarning
+            )
+            pass
+    else:
+        warnings.warn(
+            "The ray package was not found. Switching to sequential processing.",
+            UserWarning
+        )
+
+
+def ray_get(x):
+    if RAY_AVAILABLE:
+        return ray.get(x)
+    else:
+        raise ModuleNotFoundError(
+            "The ray package was not found. No results can be obtained."
+        )
+
+
+def ray_shutdown():
+    if RAY_AVAILABLE:
+        ray.shutdown()
+
+
+ray_remote = ray.remote if RAY_AVAILABLE else ray_remote_disabled

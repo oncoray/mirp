@@ -12,7 +12,7 @@ from mirp._data_import.numpy_file import ImageNumpyFile
 from mirp._data_import.numpy_file_stack import ImageNumpyFileStack
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+CURRENT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "test")
 
 
 def _convert_to_numpy(as_slice=False):
@@ -423,7 +423,7 @@ def test_multiple_image_import():
     assert len(image_list) == 3
     assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
     assert {image_list[0].sample_name, image_list[1].sample_name, image_list[2].sample_name} == \
-           {"STS_001", "STS_002", "STS_003"}
+        {"STS_001", "STS_002", "STS_003"}
     assert all(image_object.modality == "ct" for image_object in image_list)
 
     # Read numpy _images for all samples.

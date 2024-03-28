@@ -12,6 +12,7 @@ assignees: ''
   - [ ] `mirp\docs_source\source\conf.py`
   - [ ] `mirp\conda\meta.yaml` (if build for conda)
 - [ ] Check that all unit tests successfully pass.
+  - [ ] Run `python -m pytest test`
 - [ ] Update `NEWS.md`.
 - [ ] Update `README.md` if required.
 - [ ] Check long-form documentation locally.
@@ -34,9 +35,9 @@ assignees: ''
   - [ ] Check package on testPyPI:
 	- [ ] Check landing page for obvious errors.
 	- [ ] Create virtual environment or temporary conda environment
-	- [ ] Install mirp: `pip install mirp --index-url https://test.pypi.org/mirp/ --no-deps
+	- [ ] Install mirp: `pip install mirp --index-url https://test.pypi.org/mirp/ --no-deps`
   - [ ] Upload package to PyPI:
-    - [ ] Run `python -m twine upload dist\*
+    - [ ] Run `python -m twine upload dist\*`
 	- [ ] username: `__token__`
 	- [ ] password: pypi API token
 - [ ] Merge with main branch.

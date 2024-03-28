@@ -5,12 +5,14 @@ Welcome to MIRP
    :maxdepth: 1
    :caption: Contents:
 
-   mirp.importData
-   mirp.settings
-   mirp.extractImageParameters
-   mirp.extractMaskLabels
-   mirp.deepLearningPreprocessing
-   mirp.extractFeaturesAndImages
+   installation
+   quick_start
+   image_mask_import
+   configuration
+   image_metadata
+   mask_labels
+   deep_learning
+   quantitative_image_analysis
 
 Quick-start
 ===========
@@ -28,11 +30,3 @@ MIRP is available from PyPI and can be installed using ``pip``, or other install
 
 
 
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
