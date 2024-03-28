@@ -1,7 +1,28 @@
 import os
 import numpy as np
+import pandas as pd
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+
+def test_quick_start():
+    from mirp import extract_features
+
+    feature_data = extract_features(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        roi_name="GTV_Mass_CT",
+        new_spacing=1.0,
+        resegmentation_intensity_range=[-150.0, 200.0],
+        base_discretisation_method="fixed_bin_size",
+        base_discretisation_bin_width=25.0
+    )
+
+    feature_data = pd.concat(feature_data)
+
+    assert len(feature_data) == 3
 
 
 def test_extract_features_examples():
