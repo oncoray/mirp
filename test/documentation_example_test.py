@@ -6,6 +6,8 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_quick_start():
+
+    # Quick-start example 1 (extract features)
     from mirp import extract_features
 
     feature_data = extract_features(
@@ -18,6 +20,52 @@ def test_quick_start():
         resegmentation_intensity_range=[-150.0, 200.0],
         base_discretisation_method="fixed_bin_size",
         base_discretisation_bin_width=25.0
+    )
+
+    feature_data = pd.concat(feature_data)
+
+    assert len(feature_data) == 3
+
+    # Quick start example 2 (view filtered images)
+    from mirp._images.ct_image import CTImage
+    from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
+    from mirp import extract_images
+
+    images = extract_images(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        roi_name="GTV_Mass_CT",
+        new_spacing=1.0,
+        resegmentation_intensity_range=[-150.0, 200.0],
+        filter_kernels="laplacian_of_gaussian",
+        laplacian_of_gaussian_sigma=2.0,
+        image_export_format="native"
+    )
+
+    patient_1_images, patient_1_mask = images[0]
+    patient_1_ct_image, patient_1_log_image = patient_1_images
+
+    assert len(images) == 3
+    assert isinstance(patient_1_ct_image, CTImage)
+    assert isinstance(patient_1_log_image, LaplacianOfGaussianTransformedImage)
+
+    # Quick start example 3 (features from filtered images).
+    from mirp import extract_features
+
+    feature_data = extract_features(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        roi_name="GTV_Mass_CT",
+        new_spacing=1.0,
+        resegmentation_intensity_range=[-150.0, 200.0],
+        base_discretisation_method="fixed_bin_size",
+        base_discretisation_bin_width=25.0,
+        filter_kernels="laplacian_of_gaussian",
+        laplacian_of_gaussian_sigma=2.0
     )
 
     feature_data = pd.concat(feature_data)
