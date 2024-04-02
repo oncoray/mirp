@@ -94,8 +94,8 @@ def extract_features_generator(
 
 
 def extract_images(
-        write_images: None | bool = True,
-        export_images: None | bool = False,
+        write_images: None | bool = None,
+        export_images: None | bool = None,
         write_dir: None | str = None,
         **kwargs
 ):
