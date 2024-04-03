@@ -44,7 +44,8 @@ class ImagePostProcessingClass:
           deviation of intensities.
 
         .. note::
-            intensity normalisation may remove any physical meaning of intensity units.
+            Intensity normalisation may remove any physical meaning of intensity units. For example, intensity
+            normalisation of CT images yield intensities that no longer represent Hounsfield Units.
 
     intensity_normalisation_range: list of float, optional
         Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the

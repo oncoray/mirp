@@ -7,9 +7,7 @@ from mirp.settings.utilities import setting_def
 class ImageInterpolationSettingsClass:
     """
     Parameters related to image interpolating / resampling. Images in a dataset are typically resampled to uniform
-    voxel spacing to ensure that their spatial representation does not vary between samples. Note that when the
-    voxel spacing in the original image is smaller than that in the resampled image (e.g., 0.5 mm sampled to 1.0 mm),
-    antialiasing may be recommended.
+    voxel spacing to ensure that their spatial representation does not vary between samples.
 
     For parameters related to mask interpolation / resampling, see
     :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`.
@@ -38,9 +36,15 @@ class ImageInterpolationSettingsClass:
     anti_aliasing: bool, optional, default: true
         Determines whether to perform antialiasing, which is done to mitigate aliasing artifacts when downsampling.
 
+        .. note::
+            When voxel spacing in the original image is smaller than that in the resampled image (e.g., 0.5 mm sampled
+            to 1.0 mm), antialiasing is recommended `[Mackin et al.] <http://dx.doi.org/10.1371/journal.pone.0178524>`_.
+
     smoothing_beta: float, optional, default: 0.98
         Determines the smoothness of the Gaussian filter used for anti-aliasing. A value of 1.00 equates to no
         antialiasing, with lower values producing increasingly smooth imaging. Values above 0.90 are recommended.
+        The effect of this parameter is shown in the supplement of `Zwanenburg et al.
+        <http://dx.doi.org/10.1038/s41598-018-36938-4>`_.
 
     **kwargs: dict, optional
         Unused keyword arguments.

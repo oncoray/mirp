@@ -164,7 +164,8 @@ Note that metadata for other file types (e.g. NIfTI) are considerably more limit
 
 References
 ----------
-.. [Zwanenburg2016] Zwanenburg A, Leger S, Vallieres M, Loeck S. Image Biomarker Standardisation Initiative. arXiv
-  [cs.CV] 2016. doi:10.48550/arXiv.1612.070035
+
 .. [Simonyan2015] Simonyan K, Zisserman A. Very Deep Convolutional Networks for Large-Scale Image Recognition. arXiv
   [cs.CV] 2014. doi:10.48550/arXiv.1409.1556
+.. [Zwanenburg2016] Zwanenburg A, Leger S, Vallieres M, Loeck S. Image Biomarker Standardisation Initiative. arXiv
+  [cs.CV] 2016. doi:10.48550/arXiv.1612.070035
