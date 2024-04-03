@@ -72,6 +72,34 @@ def test_quick_start():
 
     assert len(feature_data) == 3
 
+    # Quick-start example 4 (processing images)
+    from mirp import deep_learning_preprocessing_generator
+
+    image_generator = deep_learning_preprocessing_generator(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        roi_name="GTV_Mass_CT",
+        new_spacing=1.0,
+        crop_size=[224, 224],
+        output_slices=True
+    )
+
+    image_slices, mask_slices = next(image_generator)
+    assert len(image_slices) > 1
+    assert len(mask_slices) > 1
+
+    # Quick-start example 5 (extract metadata)
+    from mirp import extract_image_parameters
+
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image")
+    )
+
+    assert len(image_parameters) == 3
+
 
 def test_extract_features_examples():
     from mirp import extract_features
