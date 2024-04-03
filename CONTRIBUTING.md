@@ -6,7 +6,7 @@ Please keep the following in mind when contributing:
 
 - The main branch of `mirp` is protected. You can therefore make a pull request for your contribution to a 
   development branch of the intended future version.
-- If you introduce new functionality, this functionality should be tested as part of the tests in the `test`directory. 
+- If you introduce new functionality, this functionality should be tested as part of the tests in the `test` directory. 
   After implementation, please ensure that all tests complete without errors by running `pytest` from your IDE or 
   console using `python -m pytest test` from the mirp main directory.  
 - Code is styled according to [PEP8](https://peps.python.org/pep-0008/). Using a linter or IDE with automated linter 

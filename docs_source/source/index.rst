@@ -13,6 +13,14 @@ Welcome to MIRP
    mask_labels
    deep_learning
    quantitative_image_analysis
+   contributing
+
+What is radiomics?
+------------------
+
+
+What is MIRP?
+-------------
 
 Medical Image Radiomics Processor (MIRP) is an IBSI-compliant [Zwanenburg2020]_, [Whybra2024]_ python package for
 medical image  analysis. MIRP focuses on radiomics applications and supports computation of features for conventional
