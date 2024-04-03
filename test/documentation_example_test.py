@@ -196,8 +196,8 @@ def test_deeplearning_preprocessing():
     image = processed_data[0][0][0]
     mask = processed_data[0][1][0]
 
-    assert np.any(image > -1000.0)
-    assert np.any(mask)
+    assert np.any(image["image"] > -1000.0)
+    assert np.any(mask["mask"])
 
 
 def test_image_metadata_extraction():

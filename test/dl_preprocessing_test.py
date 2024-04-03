@@ -20,8 +20,8 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert mask["mask"].shape == (60, 201, 204)
 
     # No cropping.
     data = deep_learning_preprocessing(
@@ -37,8 +37,8 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Split into splices (with mask present).
     data = deep_learning_preprocessing(
@@ -55,9 +55,9 @@ def test_extract_image_crop():
     masks = data[0][1]
 
     assert len(images) == 60
-    assert all(image.shape == (1, 201, 204) for image in images)
+    assert all(image["image"].shape == (1, 201, 204) for image in images)
     assert len(masks) == 60
-    assert all(mask.shape == (1, 201, 204) for mask in masks)
+    assert all(mask["mask"].shape == (1, 201, 204) for mask in masks)
 
     # Crop to size without specifying a mask -- this means that the entire image is masked.
     data = deep_learning_preprocessing(
@@ -71,8 +71,8 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (20, 50, 50)
-    assert mask.shape == (20, 50, 50)
+    assert image["image"].shape == (20, 50, 50)
+    assert mask["mask"].shape == (20, 50, 50)
 
     # Crop to size.
     data = deep_learning_preprocessing(
@@ -88,8 +88,8 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (20, 50, 50)
-    assert mask.shape == (20, 50, 50)
+    assert image["image"].shape == (20, 50, 50)
+    assert mask["mask"].shape == (20, 50, 50)
 
     # Crop to size in-plane.
     data = deep_learning_preprocessing(
@@ -105,8 +105,8 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (26, 50, 50)
-    assert mask.shape == (26, 50, 50)
+    assert image["image"].shape == (26, 50, 50)
+    assert mask["mask"].shape == (26, 50, 50)
 
     # Split into splices (with mask present) and crop
     data = deep_learning_preprocessing(
@@ -123,9 +123,9 @@ def test_extract_image_crop():
     masks = data[0][1]
 
     assert len(images) == 26
-    assert all(image.shape == (1, 50, 50) for image in images)
+    assert all(image["image"].shape == (1, 50, 50) for image in images)
     assert len(masks) == 26
-    assert all(mask.shape == (1, 50, 50) for mask in masks)
+    assert all(mask["mask"].shape == (1, 50, 50) for mask in masks)
 
     # Crop to size with extrapolation.
     data = deep_learning_preprocessing(
@@ -141,10 +141,10 @@ def test_extract_image_crop():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (20, 300, 300)
-    assert image[0, 0, 0] == -1000.0
-    assert mask.shape == (20, 300, 300)
-    assert not mask[0, 0, 0]
+    assert image["image"].shape == (20, 300, 300)
+    assert image["image"][0, 0, 0] == -1000.0
+    assert mask["mask"].shape == (20, 300, 300)
+    assert not mask["mask"][0, 0, 0]
 
     # Split into splices (with mask present) and crop
     data = deep_learning_preprocessing(
@@ -161,10 +161,10 @@ def test_extract_image_crop():
     masks = data[0][1]
 
     assert len(images) == 26
-    assert all(image.shape == (1, 300, 300) for image in images)
+    assert all(image["image"].shape == (1, 300, 300) for image in images)
     assert len(masks) == 26
-    assert all(mask.shape == (1, 300, 300) for mask in masks)
-    assert all(not mask[0, 0, 0] for mask in masks)
+    assert all(mask["mask"].shape == (1, 300, 300) for mask in masks)
+    assert all(not mask["mask"][0, 0, 0] for mask in masks)
 
 
 def test_normalisation_standardisation():
@@ -182,10 +182,10 @@ def test_normalisation_standardisation():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) > -1000.0
-    assert np.max(image) < 500.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) > -1000.0
+    assert np.max(image["image"]) < 500.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Intensity z-standardisation with saturation
     settings = SettingsClass(
@@ -200,10 +200,10 @@ def test_normalisation_standardisation():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) >= -4.0
-    assert np.max(image) <= 4.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) >= -4.0
+    assert np.max(image["image"]) <= 4.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Intensity z-standardisation with saturation and a rough tissue mask
     settings = SettingsClass(
@@ -219,10 +219,10 @@ def test_normalisation_standardisation():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) >= -4.0
-    assert np.max(image) <= 4.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) >= -4.0
+    assert np.max(image["image"]) <= 4.0
+    assert mask["mask"].shape == (60, 201, 204)
 
 
 def test_normalisation_range():
@@ -240,10 +240,10 @@ def test_normalisation_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Intensity range-based normalisation without saturation.
     settings = SettingsClass(
@@ -258,10 +258,10 @@ def test_normalisation_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) < 0.0
-    assert np.max(image) > 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) < 0.0
+    assert np.max(image["image"]) > 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Intensity range-based normalisation with saturation
     settings = SettingsClass(
@@ -277,10 +277,10 @@ def test_normalisation_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Intensity range-based normalisation with saturation and a rough tissue mask
     settings = SettingsClass(
@@ -297,10 +297,10 @@ def test_normalisation_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
 
 def test_normalisation_relative_range():
@@ -318,10 +318,10 @@ def test_normalisation_relative_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Relative intensity range-based normalisation with saturation
     settings = SettingsClass(
@@ -336,10 +336,10 @@ def test_normalisation_relative_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) < 0.0
-    assert np.max(image) > 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) < 0.0
+    assert np.max(image["image"]) > 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Relative intensity range-based normalisation with saturation
     settings = SettingsClass(
@@ -355,10 +355,10 @@ def test_normalisation_relative_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Relative intensity range-based normalisation with saturation and a rough tissue mask
     settings = SettingsClass(
@@ -374,10 +374,10 @@ def test_normalisation_relative_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
 
 def test_normalisation_quantile_range():
@@ -395,10 +395,10 @@ def test_normalisation_quantile_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) > 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) > 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Quantile intensity range-based normalisation without saturation
     settings = SettingsClass(
@@ -413,10 +413,10 @@ def test_normalisation_quantile_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) > 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) > 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Quantile intensity range-based normalisation with saturation
     settings = SettingsClass(
@@ -432,10 +432,10 @@ def test_normalisation_quantile_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
     # Quantile intensity range-based normalisation with saturation and a rough tissue mask
     settings = SettingsClass(
@@ -452,10 +452,10 @@ def test_normalisation_quantile_range():
     image = data[0][0][0]
     mask = data[0][1][0]
 
-    assert image.shape == (60, 201, 204)
-    assert np.min(image) == 0.0
-    assert np.max(image) == 1.0
-    assert mask.shape == (60, 201, 204)
+    assert image["image"].shape == (60, 201, 204)
+    assert np.min(image["image"]) == 0.0
+    assert np.max(image["image"]) == 1.0
+    assert mask["mask"].shape == (60, 201, 204)
 
 
 def process_data(settings, output_slices=False, crop_size=None):

@@ -40,10 +40,10 @@ def test_example_deep_learning_preprocessing():
     image = processed_data[0][0][0]
     mask = processed_data[0][1][0]
 
-    assert np.array_equal(image.shape, (50, 224, 224))
-    assert np.array_equal(mask.shape, (50, 224, 224))
-    assert np.any(image > -1000.0)
-    assert np.any(mask)
+    assert np.array_equal(image["image"].shape, (50, 224, 224))
+    assert np.array_equal(mask["mask"].shape, (50, 224, 224))
+    assert np.any(image["image"] > -1000.0)
+    assert np.any(mask["mask"])
 
 
 def test_example_image_metadata():

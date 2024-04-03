@@ -13,6 +13,7 @@ def test_parallel_dl_preprocessing():
         crop_size=[20, 50, 50],
         export_images=True,
         write_images=False,
+        image_export_format="numpy",
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image"),
         mask_sub_folder=os.path.join("CT", "nifti", "mask")
@@ -24,6 +25,7 @@ def test_parallel_dl_preprocessing():
         crop_size=[20, 50, 50],
         export_images=True,
         write_images=False,
+        image_export_format="numpy",
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image"),
         mask_sub_folder=os.path.join("CT", "nifti", "mask")

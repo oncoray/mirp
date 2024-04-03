@@ -1,6 +1,6 @@
 # Version 2.2.1
 
-# Minor changes
+## Minor changes
 
 - If mask-related parameters are not provided for computing features or processing of images for deep learning, a 
   mask is generated that covers the entire image.
@@ -8,6 +8,9 @@
 - Add fall-back methods for missing installation of the `ray` package for parallel processing. This can happen when 
   a python version is not supported by the `ray` package. `ray` is now a conditional dependency, until that package 
   is released for python `3.12`.
+
+- The default export format for `deep_learning_processing` and `deep_learning_processing_generator` is now `dict`, 
+  because the sample name is important for matching against observed outcomes. 
 
 # Version 2.2.0
 

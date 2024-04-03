@@ -10,7 +10,7 @@ from mirp._workflows.standardWorkflow import StandardWorkflow
 def deep_learning_preprocessing(
         output_slices: bool = False,
         crop_size: None | list[float] | list[int] = None,
-        image_export_format: str = "numpy",
+        image_export_format: str = "dict",
         write_file_format: str = "numpy",
         export_images: None | bool = None,
         write_images: None | bool = None,
@@ -34,7 +34,7 @@ def deep_learning_preprocessing(
             MIRP follows the numpy convention for indexing (*z*, *y*, *x*). The final element always corresponds to the
             *x* dimension.
 
-    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+    image_export_format: {"dict", "native", "numpy"}, default: "dict"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
         ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
@@ -153,7 +153,7 @@ def _ray_extractor(
 def deep_learning_preprocessing_generator(
         output_slices: bool = False,
         crop_size: None | list[float] | list[int] = None,
-        image_export_format: str = "numpy",
+        image_export_format: str = "dict",
         write_file_format: str = "numpy",
         export_images: None | bool = None,
         write_images: None | bool = None,
@@ -176,7 +176,7 @@ def deep_learning_preprocessing_generator(
             MIRP follows the numpy convention for indexing (*z*, *y*, *x*). The final element always corresponds to the
             *x* dimension.
 
-    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+    image_export_format: {"dict", "native", "numpy"}, default: "dict"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
         ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
