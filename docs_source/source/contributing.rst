@@ -1,11 +1,11 @@
 Contributing
 ============
 
-MIRP is open-source software, hosted on `GitHub <https://github.com/oncoray/mirp>`_. If you have ideas or code to
-contribute, please first open an `issue <https://github.com/oncoray/mirp/issues>`_. We will then discuss your ideas
-and create an implementation roadmap.
+MIRP is open-source software, hosted on `GitHub <https://github.com/oncoray/mirp>`_. Contributions that enable
+new DICOM modalities are especially welcome! If you have ideas or code to contribute, please first open an
+`issue <https://github.com/oncoray/mirp/issues>`_ and describe your ideas.
 
-Please keep the following in mind when contributing:
+Technical documentation is forthcoming. For now, please keep the following in mind when contributing:
 
 * The main branch of MIRP is protected. You can therefore make a pull request for your contribution to a
   development branch of the intended future version.

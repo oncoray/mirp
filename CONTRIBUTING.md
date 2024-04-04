@@ -1,8 +1,10 @@
-# How to contribute
+# Contributing
 
-If you have ideas or code to contribute, please first open an [issue](https://github.com/oncoray/mirp/issues). We will then discuss your ideas and create an implementation roadmap.
+IRP is open-source software, hosted on [GitHub](https://github.com/oncoray/mirp). Contributions that enable
+new DICOM modalities are especially welcome! If you have ideas or code to contribute, please first open an
+`issue <https://github.com/oncoray/mirp/issues>`_ and describe your ideas.
 
-Please keep the following in mind when contributing:
+Technical documentation is forthcoming. For now, please keep the following in mind when contributing:
 
 - The main branch of `mirp` is protected. You can therefore make a pull request for your contribution to a 
   development branch of the intended future version.
@@ -13,4 +15,4 @@ Please keep the following in mind when contributing:
   is recommended.
 - Function, class and method documentation is done using Numpy-flavoured [docstrings](https://numpydoc.readthedocs.io/en/latest/format.html).
   [Long-form documentation](https://oncoray.github.io/mirp/) is partially created from function, class and method 
-  documentation, embedded in restructured text files in `docs_source`.
+  documentation, embedded in restructured text files in the `docs_source` directory.
