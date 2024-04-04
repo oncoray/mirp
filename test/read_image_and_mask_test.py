@@ -379,13 +379,9 @@ def test_read_generic_image_and_mask_modality_specific():
     assert roi_list[0].roi_name == "region_1"
 
 
-def test_read_dicom_image_and_mask_data_xml():
+def test_read_dicom_image_and_mask_data_xml(tmp_path):
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):
-        os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
 
     # Load xml.
     tree = ElemTree.parse(os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_data.xml"))
@@ -398,10 +394,10 @@ def test_read_dicom_image_and_mask_data_xml():
         mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
 
     # Save as temporary xml file.
-    tree.write(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+    tree.write(tmp_path / "temp_test_config_data.xml")
 
     image_list = import_image_and_mask(
-        image=os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")
+        image=str(tmp_path / "temp_test_config_data.xml")
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
