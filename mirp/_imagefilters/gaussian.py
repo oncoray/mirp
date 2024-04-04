@@ -93,7 +93,7 @@ class GaussianFilter(GenericFilter):
                        sigma: np.array):
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
-        filter_size.astype(np.int)
+        filter_size.astype(int)
 
         if self.by_slice:
             # Set the number of dimensions.
