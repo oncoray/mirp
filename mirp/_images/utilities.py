@@ -7,7 +7,7 @@ from mirp._images.mask_image import MaskImage
 from mirp._masks.base_mask import BaseMask
 
 
-class InteractivePlot:
+class InteractivePlot:  # pragma: no cover
 
     def __init__(
             self,
