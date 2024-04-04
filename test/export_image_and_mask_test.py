@@ -15,7 +15,7 @@ def test_basic_ct_feature_extraction(tmp_path):
 
     extract_features_and_images(
         write_features=True,
-        export_features=True,
+        export_features=False,
         write_images=True,
         export_images=False,
         write_dir=tmp_path,
@@ -25,7 +25,7 @@ def test_basic_ct_feature_extraction(tmp_path):
     )
 
     # Check that files exist.
-    file_names = [file for file in os.listdir(tmp_path) if (tmp_path / file).is_file()]
+    file_names = [file for file in os.listdir(tmp_path) if os.path.isfile(os.path.join(tmp_path, file))]
 
     assert len(file_names) == 3
     assert len([file for file in file_names if file.endswith(".csv")]) == 1

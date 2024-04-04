@@ -394,10 +394,11 @@ def test_read_dicom_image_and_mask_data_xml(tmp_path):
         mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
 
     # Save as temporary xml file.
-    tree.write(tmp_path / "temp_test_config_data.xml")
+    file = os.path.join(tmp_path, "temp_test_config_data.xml")
+    tree.write(file)
 
     image_list = import_image_and_mask(
-        image=str(tmp_path / "temp_test_config_data.xml")
+        image=file
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])

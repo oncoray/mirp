@@ -683,7 +683,7 @@ def test_failure_multiple_image_and_mask_import_data_xml(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_data_xml
 
-    target_file = str(tmp_path / "data.xml")
+    target_file = os.path.join(tmp_path, "data.xml")
 
     # Start with a clean slate.
     if os.path.exists(target_file):

@@ -23,8 +23,7 @@ def test_general_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     settings_definitions = get_general_settings()
@@ -85,8 +84,7 @@ def test_post_processing_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     settings_definitions = get_post_processing_settings()
@@ -156,8 +154,7 @@ def test_interpolation_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     # All default settings.
@@ -263,8 +260,7 @@ def test_perturbation_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     settings_definitions = get_perturbation_settings()
@@ -334,8 +330,7 @@ def test_mask_resegmentation_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     settings_definitions = get_mask_resegmentation_settings()
@@ -405,8 +400,7 @@ def test_feature_extraction_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     settings_definitions = get_feature_extraction_settings()
@@ -479,8 +473,7 @@ def test_image_transformation_settings_configuration(tmp_path):
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = tmp_path / "settings.xml"
-
+    temp_file = os.path.join(tmp_path, "settings.xml")
     get_settings_xml(tmp_path)
 
     settings_definitions = get_image_transformation_settings()

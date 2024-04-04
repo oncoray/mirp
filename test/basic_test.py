@@ -140,12 +140,12 @@ def test_xml_configurations(tmp_path):
         mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
 
     # Save as temporary xml file.
-    tree.write(tmp_path / "temp_test_config_data.xml")
+    tree.write(os.path.join(tmp_path, "temp_test_config_data.xml"))
 
     data = extract_features(
         write_features=False,
         export_features=True,
-        image=str(tmp_path / "temp_test_config_data.xml"),
+        image=os.path.join(tmp_path, "temp_test_config_data.xml"),
         settings=os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_settings.xml")
     )
 

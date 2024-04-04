@@ -5,7 +5,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_copy_settings_xml(tmp_path):
-    target_file = tmp_path / "settings.xml"
+    target_file = os.path.join(tmp_path, "settings.xml")
 
     # Start with a clean slate.
     if os.path.exists(target_file):
@@ -20,7 +20,7 @@ def test_copy_settings_xml(tmp_path):
 
 
 def test_copy_data_xml(tmp_path):
-    target_file = tmp_path / "data.xml"
+    target_file = os.path.join(tmp_path, "data.xml")
 
     # Start with a clean slate.
     if os.path.exists(target_file):
