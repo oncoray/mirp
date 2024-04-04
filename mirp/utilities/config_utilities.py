@@ -2,16 +2,17 @@ import os.path
 import shutil
 import sys
 import warnings
+from pathlib import Path
 
 
-def get_settings_xml(target_dir: str):
+def get_settings_xml(target_dir: str | Path):
     """
     Creates a local copy of the settings ``xml`` file. This file can be used to configure the image processing and
     feature extraction workflow.
 
     Parameters
     ----------
-    target_dir: str
+    target_dir: str or Path
         Path where the settings ``xml`` file should be copied to.
 
     Returns
@@ -42,13 +43,13 @@ def get_settings_xml(target_dir: str):
     print(f"A copy of the settings xml file was created at {destination_file_path}.")
 
 
-def get_data_xml(target_dir: str):
+def get_data_xml(target_dir: str | Path):
     """
     Creates a local copy of the data ``xml`` file. This file can be used to configure import of images and masks.
 
     Parameters
     ----------
-    target_dir: str
+    target_dir: str or Path
         Path where the data ``xml`` file should be copied to.
 
     Returns
