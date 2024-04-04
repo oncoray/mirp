@@ -84,12 +84,8 @@ def _process_experiment(
         configuration_id: str,
         by_slice: bool,
         image_transformation_settings: ImageTransformationSettingsClass,
+        tmp_path: str | os.PathLike,
         base_feature_families: str = "none"):
-
-    # Set testing directory
-    test_dir = os.path.join(CURRENT_DIR, "data", "temp")
-    if not os.path.isdir(test_dir) and WRITE_TEMP_FILES:
-        os.makedirs(test_dir)
 
     # Get default settings.
     general_settings, image_interpolation_settings, feature_computation_parameters, resegmentation_settings, \
@@ -121,10 +117,10 @@ def _process_experiment(
     data = data[0]
 
     if WRITE_TEMP_FILES:
-        file_name = [configuration_id, "perturb", "features.csv"] if PERTURB_IMAGES else [configuration_id, "features.csv"]
+        file_name = "_".join([configuration_id, "perturb", "features.csv"] if PERTURB_IMAGES else [configuration_id, "features.csv"])
 
         data.to_csv(
-            os.path.join(test_dir, "_".join(file_name)),
+            tmp_path / file_name,
             sep=";",
             decimal=".",
             index=False
@@ -133,7 +129,7 @@ def _process_experiment(
     return data
 
 
-def test_ibsi_2_config_none():
+def test_ibsi_2_config_none(tmp_path):
     """
     Compare computed feature values with reference values for configurations 1A and 1B of IBSI 2 phase 2.
     """
@@ -151,6 +147,7 @@ def test_ibsi_2_config_none():
         configuration_id="1.A",
         by_slice=True,
         image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
         base_feature_families="statistics"
     )
 
@@ -186,6 +183,7 @@ def test_ibsi_2_config_none():
         configuration_id="1.B",
         by_slice=False,
         image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
         base_feature_families="statistics"
     )
 
@@ -209,7 +207,7 @@ def test_ibsi_2_config_none():
     assert (within_tolerance(52600, 2800, data["stat_var"]))
 
 
-def test_ibsi_2_config_mean_filter():
+def test_ibsi_2_config_mean_filter(tmp_path):
     """
     Compare computed feature values with reference values for configurations 2A and 2B of IBSI 2 phase 2.
     """
@@ -227,7 +225,8 @@ def test_ibsi_2_config_mean_filter():
     data = _process_experiment(
         configuration_id="2.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path
     )
 
     data.columns = [column_name.replace("mean_d_5_", "") for column_name in data.columns]
@@ -264,7 +263,8 @@ def test_ibsi_2_config_mean_filter():
     data = _process_experiment(
         configuration_id="2.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("mean_d_5_", "") for column_name in data.columns]
@@ -289,7 +289,7 @@ def test_ibsi_2_config_mean_filter():
     assert (within_tolerance(44400, 2300, data["stat_var"]))
 
 
-def test_ibsi_2_config_laplacian_of_gaussian_filter():
+def test_ibsi_2_config_laplacian_of_gaussian_filter(tmp_path):
     """
     Compare computed feature values with reference values for configurations 3A and 3B of IBSI 2 phase 2.
     """
@@ -308,7 +308,8 @@ def test_ibsi_2_config_laplacian_of_gaussian_filter():
     data = _process_experiment(
         configuration_id="3.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("log_s_1.5_", "") for column_name in data.columns]
@@ -346,7 +347,8 @@ def test_ibsi_2_config_laplacian_of_gaussian_filter():
     data = _process_experiment(
         configuration_id="3.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("log_s_1.5_", "") for column_name in data.columns]
@@ -371,7 +373,7 @@ def test_ibsi_2_config_laplacian_of_gaussian_filter():
     assert (within_tolerance(720, 33, data["stat_var"]))
 
 
-def test_ibsi_2_config_laws_filter():
+def test_ibsi_2_config_laws_filter(tmp_path):
     """
     Compare computed feature values with reference values for configurations 4A and 4B of IBSI 2 phase 2.
     """
@@ -393,7 +395,8 @@ def test_ibsi_2_config_laws_filter():
     data = _process_experiment(
         configuration_id="4.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("laws_l5e5_energy_delta_7_invar_", "") for column_name in data.columns]
@@ -434,7 +437,8 @@ def test_ibsi_2_config_laws_filter():
     data = _process_experiment(
         configuration_id="4.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("laws_l5e5e5_energy_delta_7_invar_", "") for column_name in data.columns]
@@ -459,7 +463,7 @@ def test_ibsi_2_config_laws_filter():
     assert (within_tolerance(11100, 300, data["stat_var"]))
 
 
-def test_ibsi_2_config_gabor_filter():
+def test_ibsi_2_config_gabor_filter(tmp_path):
     """
     Compare computed feature values with reference values for configurations 5A and 5B of IBSI 2 phase 2.
     """
@@ -484,7 +488,8 @@ def test_ibsi_2_config_gabor_filter():
     data = _process_experiment(
         configuration_id="5.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("gabor_s_5.0_g_1.5_l_2.0_2D_", "") for column_name in data.columns]
@@ -528,7 +533,8 @@ def test_ibsi_2_config_gabor_filter():
     data = _process_experiment(
         configuration_id="5.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("gabor_s_5.0_g_1.5_l_2.0_3D_invar_", "") for column_name in data.columns]
@@ -553,7 +559,7 @@ def test_ibsi_2_config_gabor_filter():
     assert (within_tolerance(231, 2, data["stat_var"]))
 
 
-def test_ibsi_2_config_daubechies_filter():
+def test_ibsi_2_config_daubechies_filter(tmp_path):
     """
     Compare computed feature values with reference values for configurations 6A, 6B, 7A and 7B of IBSI 2 phase 2.
     """
@@ -575,7 +581,8 @@ def test_ibsi_2_config_daubechies_filter():
     data = _process_experiment(
         configuration_id="6.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_db3_lh_level_1_invar_", "") for column_name in data.columns]
@@ -616,7 +623,8 @@ def test_ibsi_2_config_daubechies_filter():
     data = _process_experiment(
         configuration_id="6.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_db3_llh_level_1_invar_", "") for column_name in data.columns]
@@ -657,7 +665,8 @@ def test_ibsi_2_config_daubechies_filter():
     data = _process_experiment(
         configuration_id="7.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_db3_hh_level_2_invar_", "") for column_name in data.columns]
@@ -698,7 +707,8 @@ def test_ibsi_2_config_daubechies_filter():
     data = _process_experiment(
         configuration_id="7.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_db3_hhh_level_2_invar_", "") for column_name in data.columns]
@@ -723,7 +733,7 @@ def test_ibsi_2_config_daubechies_filter():
     assert (within_tolerance(422, 11, data["stat_var"]))
 
 
-def test_ibsi_2_config_simoncelli_filter():
+def test_ibsi_2_config_simoncelli_filter(tmp_path):
     """
     Compare computed feature values with reference values for configurations 8A, 8B, 9A and 9B of IBSI 2 phase 2.
     """
@@ -742,7 +752,8 @@ def test_ibsi_2_config_simoncelli_filter():
     data = _process_experiment(
         configuration_id="8.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_simoncelli_level_1_", "") for column_name in data.columns]
@@ -780,7 +791,8 @@ def test_ibsi_2_config_simoncelli_filter():
     data = _process_experiment(
         configuration_id="8.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_simoncelli_level_1_", "") for column_name in data.columns]
@@ -817,7 +829,8 @@ def test_ibsi_2_config_simoncelli_filter():
     data = _process_experiment(
         configuration_id="9.A",
         by_slice=True,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_simoncelli_level_2_", "") for column_name in data.columns]
@@ -855,7 +868,8 @@ def test_ibsi_2_config_simoncelli_filter():
     data = _process_experiment(
         configuration_id="9.B",
         by_slice=False,
-        image_transformation_settings=image_transformation_settings
+        image_transformation_settings=image_transformation_settings,
+        tmp_path=tmp_path,
     )
 
     data.columns = [column_name.replace("wavelet_simoncelli_level_2_", "") for column_name in data.columns]

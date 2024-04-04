@@ -476,15 +476,7 @@ def run_experiment(perturbation_settings, by_slice=False):
         perturbation_settings=perturbation_settings
     )
 
-    # Set testing directory
-    if WRITE_TEMP_FILES:
-        write_path = os.path.join(CURRENT_DIR, "data", "temp")
-
-        # Create directory, if necessary.
-        if not os.path.isdir(write_path):
-            os.makedirs(write_path)
-    else:
-        write_path = None
+    # TODO: Is support for writing a tempdir needed? `write_dir` wasn't used...
 
     data = extract_features_and_images(
         write_features=False,
