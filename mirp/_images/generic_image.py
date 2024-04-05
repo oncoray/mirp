@@ -634,14 +634,13 @@ class GenericImage(BaseImage):
             local_variance[local_variance < 0.0] = 0.0
 
             # Select robust range (within IQR)
-            local_variance = local_variance[
-                np.percentile(local_variance, 25) <= local_variance <= np.percentile(local_variance, 75)
-            ]
+            local_variance = local_variance[np.logical_and(
+                local_variance >= np.percentile(local_variance, 25),
+                local_variance <= np.percentile(local_variance, 75)
+            )]
 
             # Calculate Gaussian noise
             estimated_noise = np.sqrt(np.mean(local_variance))
-
-            del local_variance
 
         elif method == "ikeda":
             """ Estimate image noise level using a method by Ikeda, Makino, Imai et al., A method for estimating noise

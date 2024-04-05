@@ -16,6 +16,8 @@
 
 - Fixed an indexing issue when attempting to split masks into bulk and rim sections in a slice-wise fashion.
 
+- Fixed an indexing issue in Rank's method for noise estimation.
+
 # Version 2.2.0
 
 ## Major changes
