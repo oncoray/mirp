@@ -207,61 +207,6 @@ class SizeZoneMatrix:
         # Add matrix to object
         self.matrix = df_szm
 
-    def calculate_matrix_deprecated(self, img_obj, roi_obj):
-
-        # Check if the input image and roi exist
-        if img_obj.is_missing or roi_obj.roi_intensity is None:
-            self.set_empty()
-            return
-
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLSZM.
-        if not np.any(roi_obj.roi_intensity.get_voxel_grid()):
-            self.set_empty()
-            return
-
-        from skimage.measure import label
-
-        # Define neighbour directions
-        if self.spatial_method == "3d":
-            connectivity = 3
-            img_vol = copy.deepcopy(img_obj.get_voxel_grid())
-            roi_vol = copy.deepcopy(roi_obj.roi_intensity.get_voxel_grid())
-        elif self.spatial_method in ["2d", "2.5d"]:
-            connectivity = 2
-            img_vol = img_obj.get_voxel_grid()[self.slice, :, :]
-            roi_vol = roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :]
-        else:
-            raise ValueError("The spatial method for grey level size zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
-
-        # Check dimensionality and update connectivity if necessary.
-        connectivity = min([connectivity, real_ndim(img_vol)])
-
-        # Set voxels outside roi to 0.0
-        img_vol[~roi_vol] = 0.0
-
-        # Count the number of voxels within the roi
-        self.n_v = np.sum(roi_vol)
-
-        # Label all connected voxels with the same label.
-        img_label = label(img_vol, background=0, connectivity=connectivity)
-
-        # Generate data frame
-        df_szm = pd.DataFrame({"g":      np.ravel(img_vol),
-                               "vol_id": np.ravel(img_label),
-                               "in_roi": np.ravel(roi_vol)})
-
-        # Remove all non-roi entries and count occurrence of combinations of volume id and grey level
-        df_szm = df_szm[df_szm.in_roi].groupby(by=["g", "vol_id"]).size().reset_index(name="zone_size")
-
-        # Count the number of co-occurring sizes and grey values
-        df_szm = df_szm.groupby(by=["g", "zone_size"]).size().reset_index(name="n")
-
-        # Rename columns
-        df_szm.columns = ["i", "s", "n"]
-
-        # Add matrix to object
-        self.matrix = df_szm
-
     def compute_features(self):
 
         # Create feature table
