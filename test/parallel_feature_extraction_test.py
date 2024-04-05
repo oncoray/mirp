@@ -69,3 +69,17 @@ def test_parallel_dl_preprocessing():
     for ii in range(len(sequential_images)):
         assert np.array_equal(sequential_images[ii][0], parallel_images[ii][0])
         assert np.array_equal(sequential_images[ii][1], parallel_images[ii][1])
+
+
+def test_limit_threads():
+    from mirp.utilities.parallel import limit_inner_threads
+
+    limit_inner_threads()
+
+    assert os.environ["OMP_NUM_THREADS"] == "1"
+    assert os.environ["OPENBLAS_NUM_THREADS"] == "1"
+    assert os.environ["MKL_NUM_THREADS"] == "1"
+    assert os.environ["BLIS_NUM_THREADS"] == "1"
+    assert os.environ["VECLIB_MAXIMUM_THREADS"] == "1"
+    assert os.environ["NUMBA_NUM_THREADS"] == "1"
+    assert os.environ["NUMEXPR_NUM_THREADS"] == "1"
