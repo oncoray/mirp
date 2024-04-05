@@ -28,4 +28,4 @@ jobs:
         python -m pip install .[test]
     - name: Test with pytest
       run: |
-        python -m pytest test_auto_ci
+        python -m pytest -m ci test
