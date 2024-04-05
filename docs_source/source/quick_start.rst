@@ -1,5 +1,12 @@
-Quick-start
+Tutorial
 ===========
+
+This tutorial describes a
+
+Installing MIRP
+---------------
+
+First you need to install MIRP.
 
 Before you begin, you need to:
     1. Install MIRP (see :ref:`installation`).
