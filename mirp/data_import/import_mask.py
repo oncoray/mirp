@@ -47,7 +47,7 @@ def import_mask(
         Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
         filtering files.
 
-    roi_name: str, optional, default: None
+    roi_name: str or list of str or dict, optional, default: None
         Name of the regions of interest that should be assessed.
 
     stack_masks: {"auto", "yes", "no"}, optional, default: "str"

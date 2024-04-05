@@ -18,7 +18,7 @@ def import_image_and_mask(
         mask_file_type: None | str = None,
         mask_modality: None | str | list[str] = None,
         mask_sub_folder: None | str = None,
-        roi_name: None | str | list[str] | dict[str | str] = None,
+        roi_name: None | str | list[str] | dict[str, str] = None,
         association_strategy: None | str | list[str] = None,
         stack_images: str = "auto",
         stack_masks: str = "auto"
@@ -81,7 +81,7 @@ def import_image_and_mask(
         Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
         filtering files.
 
-    roi_name: str, optional, default: None
+    roi_name: str or list of str or dict, optional, default: None
         Name of the regions of interest that should be assessed.
 
     association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
