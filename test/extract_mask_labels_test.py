@@ -51,3 +51,16 @@ def test_extract_mask_labels_rtstruct():
 
     # TODO: Mask with multiple labels
     ...
+
+
+def test_extract_mask_labels_rtstruct_to_file(tmp_path):
+    import pandas as pd
+
+    extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        write_dir=tmp_path
+    )
+
+    mask_labels = pd.read_csv(os.path.join(tmp_path, "mask_labels.csv"))
+    assert len(mask_labels) == 3
