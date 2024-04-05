@@ -11,3 +11,4 @@ test/data/temp
 docs_source/build/*
 test/data/configuration_files/settings.xml
 /test/data/temp_data/
+.coverage
