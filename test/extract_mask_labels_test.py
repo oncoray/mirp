@@ -1,4 +1,5 @@
 import os
+import pytest
 import numpy as np
 
 from mirp.extract_mask_labels import extract_mask_labels
@@ -7,6 +8,7 @@ from mirp.extract_mask_labels import extract_mask_labels
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_extract_mask_labels_generic():
     # Single mask.
     mask_labels = extract_mask_labels(
@@ -31,6 +33,7 @@ def test_extract_mask_labels_generic():
     assert all(x in [1, 2, 3] for x in mask_labels.roi_label.values)
 
 
+@pytest.mark.ci
 def test_extract_mask_labels_rtstruct():
     # Single mask.
     mask_labels = extract_mask_labels(

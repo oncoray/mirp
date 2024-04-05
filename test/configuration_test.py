@@ -1,5 +1,7 @@
 import os.path
 
+import pytest
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -16,6 +18,7 @@ def _type_converter(type_str: str):
         raise ValueError(f"type could not be linked to an object type: {type_str}")
 
 
+@pytest.mark.ci
 def test_general_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
@@ -77,6 +80,7 @@ def test_general_settings_configuration(tmp_path):
         assert isinstance(test_value, value_type)
 
 
+@pytest.mark.ci
 def test_post_processing_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
@@ -147,6 +151,7 @@ def test_post_processing_settings_configuration(tmp_path):
             assert isinstance(test_value, value_type)
 
 
+@pytest.mark.ci
 def test_interpolation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
@@ -253,6 +258,7 @@ def test_interpolation_settings_configuration(tmp_path):
             assert isinstance(test_value, value_type)
 
 
+@pytest.mark.ci
 def test_perturbation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
@@ -323,6 +329,7 @@ def test_perturbation_settings_configuration(tmp_path):
             assert isinstance(test_value, value_type)
 
 
+@pytest.mark.ci
 def test_mask_resegmentation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
@@ -393,6 +400,7 @@ def test_mask_resegmentation_settings_configuration(tmp_path):
             assert isinstance(test_value, value_type)
 
 
+@pytest.mark.ci
 def test_feature_extraction_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
@@ -466,6 +474,7 @@ def test_feature_extraction_settings_configuration(tmp_path):
             assert isinstance(test_value, value_type)
 
 
+@pytest.mark.ci
 def test_image_transformation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml

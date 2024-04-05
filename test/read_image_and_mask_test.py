@@ -1,4 +1,5 @@
 import os.path
+import pytest
 import numpy as np
 
 from mirp.data_import.import_image_and_mask import import_image_and_mask
@@ -13,6 +14,7 @@ from mirp._images.mr_image import MRImage
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_read_itk_image_and_mask():
     # Simple test.
     image_list = import_image_and_mask(
@@ -74,6 +76,7 @@ def test_read_itk_image_and_mask():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_numpy_image_and_mask():
     # Simple test.
     image_list = import_image_and_mask(
@@ -135,6 +138,7 @@ def test_read_numpy_image_and_mask():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_numpy_image_and_mask_stack():
 
     # Simple test.
@@ -197,6 +201,7 @@ def test_read_numpy_image_and_mask_stack():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_numpy_image_and_mask_online():
     """
     Test reading numpy arrays that are provided directly as input.
@@ -236,6 +241,7 @@ def test_read_numpy_image_and_mask_online():
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
 
+@pytest.mark.ci
 def test_read_dicom_image_and_mask_stack():
     # Simple test.
     image_list = import_image_and_mask(
@@ -300,6 +306,7 @@ def test_read_dicom_image_and_mask_stack():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_dicom_image_and_mask_modality_specific():
     # Read CT image.
     image_list = import_image_and_mask(
@@ -338,6 +345,7 @@ def test_read_dicom_image_and_mask_modality_specific():
     assert roi_list[0].roi_name == "GTV_Mass_MR_T1"
 
 
+@pytest.mark.ci
 def test_read_generic_image_and_mask_modality_specific():
     # Read CT image.
     image_list = import_image_and_mask(
@@ -379,6 +387,7 @@ def test_read_generic_image_and_mask_modality_specific():
     assert roi_list[0].roi_name == "region_1"
 
 
+@pytest.mark.ci
 def test_read_dicom_image_and_mask_data_xml(tmp_path):
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree

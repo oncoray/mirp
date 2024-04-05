@@ -1,8 +1,8 @@
 import warnings
-
 import itk
 import numpy as np
 import os
+import pytest
 
 from mirp.extract_features_and_images import extract_images
 from mirp.settings.generic import SettingsClass
@@ -104,9 +104,10 @@ def _test_filter_configuration(
     reference_response_map = itk.imread(filename=os.path.join(reference_dir, dir_files[0]))
     reference_response_map_voxels = itk.GetArrayFromImage(reference_response_map)
 
-    assert(np.allclose(image["image"], reference_response_map_voxels, atol=0.001))
+    assert np.allclose(image["image"], reference_response_map_voxels, atol=0.001)
 
 
+@pytest.mark.ci
 def test_ibsi_2_mean_filter():
     """
     Configuration 1: Response maps for the mean filter.
@@ -188,6 +189,7 @@ def test_ibsi_2_mean_filter():
     )
 
 
+@pytest.mark.ci
 def test_ibsi_2_log_filter():
     """
     Configuration 2: Response maps for the Laplacian-of-Gaussian filter.
@@ -251,6 +253,7 @@ def test_ibsi_2_log_filter():
     )
 
 
+@pytest.mark.ci
 def test_ibsi_2_laws_filter():
     """
     Configuration 3: Response maps for the Laws filter.
@@ -410,6 +413,7 @@ def test_ibsi_2_laws_filter():
         )
 
 
+@pytest.mark.ci
 def test_ibsi_2_gabor_filter():
     """
     Configuration 4: Response maps for the Gabor filter.
@@ -511,6 +515,7 @@ def test_ibsi_2_gabor_filter():
         )
 
 
+@pytest.mark.ci
 def test_ibsi_2_daubechies_filter():
     """
     Configuration 5: Response maps for the Daubechies 2 separable wavelet filter.
@@ -560,6 +565,7 @@ def test_ibsi_2_daubechies_filter():
         )
 
 
+@pytest.mark.ci
 def test_ibsi_2_coifflet_filter():
     """
     Configuration 6: Response maps for the Coifflet 1 separable wavelet filter.
@@ -609,6 +615,7 @@ def test_ibsi_2_coifflet_filter():
         )
 
 
+@pytest.mark.ci
 def test_ibsi_2_haar_filter():
     """
     Configuration 7: Response maps for the Haar separable wavelet filter.
@@ -661,6 +668,7 @@ def test_ibsi_2_haar_filter():
         )
 
 
+@pytest.mark.ci
 def test_ibsi_2_simoncelli_filter():
     """
     Configuration 8: Response maps for the non-separable Simoncelli wavelet filter.

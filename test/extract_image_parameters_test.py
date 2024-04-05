@@ -1,10 +1,12 @@
 import os
+import pytest
 from mirp.extract_image_parameters import extract_image_parameters
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_extract_image_parameters_default():
     # Read single image.
     image_parameters = extract_image_parameters(
@@ -22,6 +24,7 @@ def test_extract_image_parameters_default():
     assert len(image_parameters) == 3
 
 
+@pytest.mark.ci
 def test_extract_image_parameters_dicom():
     # Read a single CT image.
     image_parameters = extract_image_parameters(

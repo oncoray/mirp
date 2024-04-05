@@ -1,5 +1,5 @@
 import os
-
+import pytest
 import numpy as np
 
 from mirp.extract_features_and_images import extract_features_and_images
@@ -41,6 +41,7 @@ def test_parallel_feature_extraction():
         assert sequential_data[ii].equals(paralell_data[ii])
 
 
+@pytest.mark.ci
 def test_parallel_dl_preprocessing():
     sequential_images = deep_learning_preprocessing(
         output_slices=False,

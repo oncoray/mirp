@@ -1,11 +1,11 @@
 import copy
-
 import pytest
 
 import numpy as np
 from mirp import extract_images
 
 
+@pytest.mark.ci
 def test_mask_processing():
 
     # Default settings.

@@ -128,6 +128,7 @@ def _convert_to_flat_directory():
                         )
 
 
+@pytest.mark.ci
 def test_sample_name_parser():
     """
     This tests the isolate_sample_name function that is used to determine sample names from the name of file after a
@@ -241,6 +242,7 @@ def test_sample_name_parser():
     assert sample_name is None
 
 
+@pytest.mark.ci
 def test_single_image_import():
 
     # Read a Nifti image directly.
@@ -338,6 +340,7 @@ def test_single_image_import():
     assert image_list[0].modality == "ct"
 
 
+@pytest.mark.ci
 def test_multiple_image_import():
     # Read Nifti _images directly.
     image_list = import_image([
@@ -441,6 +444,7 @@ def test_multiple_image_import():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
 
+@pytest.mark.ci
 def test_single_image_import_flat():
     # Read a Nifti image directly.
     image_list = import_image(
@@ -487,6 +491,7 @@ def test_single_image_import_flat():
             sample_name="STS_001")
 
 
+@pytest.mark.ci
 def test_multiple_image_import_flat():
 
     # Read Nifti _images for specific samples.
@@ -600,6 +605,7 @@ def test_multiple_image_import_flat():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
 
+@pytest.mark.ci
 def test_image_import_flat_poor_naming():
     """
     Tests whether we can select files if their naming convention is poor, e.g. sample_1, sample_11, sample_111.

@@ -1,11 +1,13 @@
 import numpy as np
 import os
+import pytest
 
 from mirp.extract_features_and_images import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_basic_ct_feature_extraction(tmp_path):
     image = np.zeros((128, 128), dtype=float)
     image[32:64, 32:64] = 1.0

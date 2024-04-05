@@ -1,10 +1,12 @@
 import os
 import numpy as np
+import pytest
 from mirp import extract_features_and_images
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_square_transformation_filter():
     data = extract_features_and_images(
         write_features=False,
@@ -28,6 +30,7 @@ def test_square_transformation_filter():
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
 
 
+@pytest.mark.ci
 def test_square_root_transformation_filter():
     data = extract_features_and_images(
         write_features=False,
@@ -51,6 +54,7 @@ def test_square_root_transformation_filter():
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
 
 
+@pytest.mark.ci
 def test_logarithm_transformation_filter():
     data = extract_features_and_images(
         write_features=False,
@@ -74,6 +78,7 @@ def test_logarithm_transformation_filter():
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
 
 
+@pytest.mark.ci
 def test_exponential_transformation_filter():
     data = extract_features_and_images(
         write_features=False,
@@ -97,6 +102,7 @@ def test_exponential_transformation_filter():
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
 
 
+@pytest.mark.ci
 def test_gaussian_filter():
     data = extract_features_and_images(
         write_features=False,

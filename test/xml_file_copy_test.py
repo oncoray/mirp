@@ -1,9 +1,11 @@
 import os
+import pytest
 from mirp.utilities.config_utilities import get_settings_xml, get_data_xml
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_copy_settings_xml(tmp_path):
     target_file = os.path.join(tmp_path, "settings.xml")
 
@@ -19,6 +21,7 @@ def test_copy_settings_xml(tmp_path):
     os.remove(target_file)
 
 
+@pytest.mark.ci
 def test_copy_data_xml(tmp_path):
     target_file = os.path.join(tmp_path, "data.xml")
 

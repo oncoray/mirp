@@ -14,6 +14,7 @@ from mirp._data_import.numpy_file_stack import ImageNumpyFileStack, MaskNumpyFil
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_single_image_and_mask_import():
 
     # Read a Nifti image and mask set directly.
@@ -216,6 +217,7 @@ def test_single_image_and_mask_import():
     assert image_list[0].associated_masks[0].modality == "generic_mask"
 
 
+@pytest.mark.ci
 def test_multiple_image_and_mask_import():
     # Read Nifti _images and _masks directly.
     image_list = import_image_and_mask(
@@ -396,6 +398,7 @@ def test_multiple_image_and_mask_import():
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
 
+@pytest.mark.ci
 def test_single_image_and_mask_import_flat():
     # Read a Nifti image and mask from a flat directory.
     image_list = import_image_and_mask(
@@ -463,6 +466,7 @@ def test_single_image_and_mask_import_flat():
             sample_name="STS_001")
 
 
+@pytest.mark.ci
 def test_multiple_image_and_mask_import_flat():
 
     # Read Nifti _images and _masks for specific samples in a flat directory.
@@ -584,6 +588,7 @@ def test_multiple_image_and_mask_import_flat():
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
 
 
+@pytest.mark.ci
 def test_failure_multiple_image_and_mask_import():
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching file type.
@@ -678,6 +683,7 @@ def test_failure_multiple_image_and_mask_import():
     assert "that contain the name pattern (false_mask)" in str(exception_info.value)
 
 
+@pytest.mark.ci
 def test_failure_multiple_image_and_mask_import_data_xml(tmp_path):
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree
