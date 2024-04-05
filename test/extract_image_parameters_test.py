@@ -86,7 +86,6 @@ def test_extract_image_parameters_dicom_to_file(tmp_path):
     extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "dicom", "image"),
-        write_file=True,
         write_dir=tmp_path
     )
 

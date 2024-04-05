@@ -13,7 +13,6 @@ def extract_image_parameters(
         image_modality: None | str | list[str] = None,
         image_sub_folder: None | str = None,
         stack_images: str = "auto",
-        write_file: bool = False,
         write_dir: None | str | Path = None
 ) -> pd.DataFrame | None:
     """
@@ -57,25 +56,17 @@ def extract_image_parameters(
         except for DICOM files. "no" will not stack any files. DICOM files ignore this argument, because their stacking
         can be determined from metadata.
 
-    write_file: bool, optional, default: False
-        Determines whether image acquisition and reconstruction metadata should be written to a table.
-
     write_dir: str or Path, optional, default: None
-        Folder to which the table with image acquisition and reconstruction metadata is written.
+        Directory to which the table with image acquisition and reconstruction metadata is written. Image metadata are
+        written to ``image_metadata.csv`` in this directory.
 
     Returns
     -------
     pd.DataFrame | None
-        The functions returns a table with metadata (`write_file == False`) or nothing (`write_file == True`)
+        The functions returns a table with metadata (``write_dir = None``) or nothing.
     """
 
     from mirp.data_import.import_image import import_image
-
-    if not write_file:
-        write_dir = None
-
-    if write_file and write_dir is None:
-        raise ValueError("write_dir argument should be provided for writing a table with image metadata.")
 
     image_list = import_image(
         image=image,
@@ -90,7 +81,7 @@ def extract_image_parameters(
     metadata = [_extract_image_parameters(ii, image) for ii, image in enumerate(image_list)]
     metadata = pd.DataFrame(metadata)
 
-    if write_file:
+    if write_dir is not None:
         write_dir = os.path.normpath(write_dir)
         if not os.path.exists(write_dir):
             os.makedirs(write_dir)

@@ -1,4 +1,5 @@
 from typing import Any
+from pathlib import Path
 
 import os
 import pandas as pd
@@ -14,8 +15,7 @@ def extract_mask_labels(
         mask_modality: None | str | list[str] = None,
         mask_sub_folder: None | str = None,
         stack_masks: str = "auto",
-        write_file: bool = False,
-        write_dir: None | str = None
+        write_dir: None | str | Path = None
 ) -> pd.DataFrame | None:
     """
     Extract labels of regions of interest present in one or more mask files.
@@ -57,26 +57,17 @@ def extract_mask_labels(
         spacing, except for DICOM files. "no" will not stack any files. DICOM files ignore this argument,
         because their stacking can be determined from metadata.
 
-    write_file: bool, optional, default: False
-        Determines whether the labels should be written to a table.
-
     write_dir: str, optional, default: None
-        Folder to which a table with mask labels should be written.
+        Directory to which a table with mask labels should be written, if any. Masks labels are exported to
+        ``mask_labels.csv``.
 
     Returns
     -------
     pd.DataFrame | None
-        The functions returns a table with labels extracted from mask files (`write_file == False`),
-        or None `(write_file == True)`.
+        The functions returns a table with labels extracted from mask files (``write_dir = None``) or nothing.
 
     """
     from mirp.data_import.import_mask import import_mask
-
-    if not write_file:
-        write_dir = None
-
-    if write_file and write_dir is None:
-        raise ValueError("write_dir argument should be provided for writing a table with mask labels.")
 
     mask_list = import_mask(
         mask=mask,
@@ -91,7 +82,7 @@ def extract_mask_labels(
     labels = [pd.DataFrame(_extract_mask_labels(ii, mask)) for ii, mask in enumerate(mask_list)]
     labels = pd.concat(labels)
 
-    if write_file:
+    if write_dir is not None:
         write_dir = os.path.normpath(write_dir)
         if not os.path.exists(write_dir):
             os.makedirs(write_dir)

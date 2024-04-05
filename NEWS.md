@@ -10,13 +10,19 @@
   is released for python `3.12`.
 
 - The default export format for `deep_learning_processing` and `deep_learning_processing_generator` is now `dict`, 
-  because the sample name is important for matching against observed outcomes. 
+  because the sample name is important for matching against observed outcomes.
+
+- `write_file` arguments of `extract_mask_labels` and `extract_image_parameters` were deprecated as these were 
+  redundant.
 
 ## Fixes
 
 - Fixed an indexing issue when attempting to split masks into bulk and rim sections in a slice-wise fashion.
 
 - Fixed an indexing issue in Rank's method for noise estimation.
+
+- Fixed incorrectly named image parameters file export. Instead of `mask_labels.csv`, image parameters are now 
+  correctly exported to `image_metadata.csv`.
 
 # Version 2.2.0
 
