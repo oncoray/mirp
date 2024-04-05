@@ -12,6 +12,10 @@
 - The default export format for `deep_learning_processing` and `deep_learning_processing_generator` is now `dict`, 
   because the sample name is important for matching against observed outcomes. 
 
+## Fixes
+
+- Fixed an indexing issue when attempting to split masks into bulk and rim sections in a slice-wise fashion.
+
 # Version 2.2.0
 
 ## Major changes
