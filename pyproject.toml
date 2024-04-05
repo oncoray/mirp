@@ -43,6 +43,12 @@ Changelog = "https://github.com/oncoray/mirp/blob/master/NEWS.md"
 test = ["pytest>=7.4.0"]
 docs = ["sphinx>=5.0.0", "sphinx_rtd_theme>=2.0.0"]
 
+[tool.pytest.ini_options]
+addopts = ["--strict-markers"]
+markers = [
+    "ci: marks tests for continuous integration"
+]
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["mirp*"]
