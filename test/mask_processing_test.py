@@ -109,3 +109,31 @@ def test_mask_processing():
     assert len(processed_masks) == 2
     assert np.array_equal(processed_masks[0]["mask"], mask_1)
     assert np.array_equal(processed_masks[1]["mask"], mask_2a)
+
+
+@pytest.mark.ci
+def test_boundary_split():
+    from skimage.draw import disk
+
+    # Create image with circular mask.
+    image = np.ones(shape=(1, 129, 129), dtype=float)
+    mask = np.zeros(shape=(1, 129, 129), dtype=bool)
+    ii, jj = disk(center=(64, 64), radius=32)
+    mask[0, ii, jj] = True
+
+    data = extract_images(
+        image=image,
+        mask=mask,
+        write_images=False,
+        export_images=True,
+        by_slice=True,
+        roi_split_boundary_size=8.0
+    )
+
+    masks = data[0][1]
+
+    assert len(masks) == 3
+    # Assert that the original mask [0] is correctly split into bulk [1] and rim [2].
+    assert np.sum(masks[0]["mask"]) == np.sum(masks[1]["mask"]) + np.sum(masks[2]["mask"])
+    # Assert that for the current settings, the bulk [1] is larger than the rim [2]
+    assert np.sum(masks[1]["mask"]) > np.sum(masks[2]["mask"])
