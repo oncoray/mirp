@@ -584,6 +584,79 @@ def test_ibsi_1_digital_phantom():
     assert within_tolerance(0.0533, 0, data["ngl_dc_energy_d1_a0.0_3d"])
 
 
+def test_ibsi_1_digital_phantom_all_features():
+    """
+    Compare computed feature values with reference values for the digital phantom.
+    """
+
+    # Configure settings used for the digital phantom.
+    general_settings = GeneralSettingsClass(by_slice=False, ibsi_compliant=False)
+
+    image_interpolation_settings = ImageInterpolationSettingsClass(
+        by_slice=general_settings.by_slice,
+        anti_aliasing=False
+    )
+
+    feature_computation_parameters = FeatureExtractionSettingsClass(
+        by_slice=general_settings.by_slice,
+        no_approximation=True,
+        ibsi_compliant=False,
+        base_feature_families="all",
+        base_discretisation_method="none",
+        ivh_discretisation_method="none",
+        glcm_distance=[1.0],
+        glcm_spatial_method=[
+            "2d_average", "2d_slice_merge",
+            "2.5d_direction_merge", "2.5d_volume_merge",
+            "3d_average", "3d_volume_merge"
+        ],
+        glrlm_spatial_method=[
+            "2d_average", "2d_slice_merge",
+            "2.5d_direction_merge", "2.5d_volume_merge",
+            "3d_average", "3d_volume_merge"
+        ],
+        glszm_spatial_method=["2d", "2.5d", "3d"],
+        gldzm_spatial_method=["2d", "2.5d", "3d"],
+        ngtdm_spatial_method=["2d", "2.5d", "3d"],
+        ngldm_distance=[1.0],
+        ngldm_spatial_method=["2d", "2.5d", "3d"],
+        ngldm_difference_level=[0.0]
+    )
+
+    image_transformation_settings = ImageTransformationSettingsClass(
+        by_slice=general_settings.by_slice,
+        response_map_feature_settings=None
+    )
+
+    settings = SettingsClass(
+        general_settings=general_settings,
+        post_process_settings=ImagePostProcessingClass(),
+        img_interpolate_settings=image_interpolation_settings,
+        roi_interpolate_settings=MaskInterpolationSettingsClass(),
+        roi_resegment_settings=ResegmentationSettingsClass(),
+        perturbation_settings=ImagePerturbationSettingsClass(),
+        img_transform_settings=image_transformation_settings,
+        feature_extr_settings=feature_computation_parameters
+    )
+
+    data = extract_features(
+        write_features=False,
+        export_features=True,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "image", "phantom.nii.gz"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "mask", "mask.nii.gz"),
+        settings=settings
+    )
+
+    data = data[0]
+
+    # Check that data for non-ibsi-compliant features are computed.
+    assert "morph_vol_dens_ombb" in data.columns.values
+    assert "morph_area_dens_ombb" in data.columns.values
+    assert "morph_vol_dens_mvee" in data.columns.values
+    assert "morph_area_dens_mvee" in data.columns.values
+    assert "ivh_auc" in data.columns.values
+
+
 def test_ibsi_1_chest_config_a():
     """
     Compare computed feature values with reference values for the chest CT image obtained using image processing
