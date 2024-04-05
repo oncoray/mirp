@@ -15,7 +15,7 @@ from mirp._data_import.numpy_file_stack import ImageNumpyFileStack
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def _convert_to_numpy(as_slice=False):
+def _convert_to_numpy(as_slice=False):  # pragma: no cover
     """
     Helper script for converting NIfTI files to numpy for testing numpy-based imports.
 
@@ -92,7 +92,7 @@ def _convert_to_numpy(as_slice=False):
                 np.save(target_mask_file, arr=source_mask)
 
 
-def _convert_to_flat_directory():
+def _convert_to_flat_directory():  # pragma: no cover
     """
     Helper script for converting soft-tissue sarcoma imaging files to a flat directory.
     :return:

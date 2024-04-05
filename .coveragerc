@@ -1,3 +1,11 @@
 [run]
 concurrency = multiprocessing
 parallel = true
+
+[report]
+exclude_also =
+    raise ValueError
+    raise TypeError
+    raise NotImplementedError
+    raise FileNotFoundError
+    warnings.warn
