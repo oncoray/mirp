@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from pathlib import Path
 
 from mirp._data_import.generic_file import ImageFile
 
@@ -13,7 +14,7 @@ def extract_image_parameters(
         image_sub_folder: None | str = None,
         stack_images: str = "auto",
         write_file: bool = False,
-        write_dir: None | str = None
+        write_dir: None | str | Path = None
 ) -> pd.DataFrame | None:
     """
     Extract parameters related to image acquisition and reconstruction from images. Not all metadata may
@@ -59,7 +60,7 @@ def extract_image_parameters(
     write_file: bool, optional, default: False
         Determines whether image acquisition and reconstruction metadata should be written to a table.
 
-    write_dir: str, optional, default: None
+    write_dir: str or Path, optional, default: None
         Folder to which the table with image acquisition and reconstruction metadata is written.
 
     Returns
@@ -95,7 +96,7 @@ def extract_image_parameters(
             os.makedirs(write_dir)
 
         metadata.to_csv(
-            path_or_buf=os.path.join(write_dir, "mask_labels.csv")
+            path_or_buf=os.path.join(write_dir, "image_metadata.csv")
         )
     else:
         return metadata
