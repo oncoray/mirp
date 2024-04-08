@@ -171,7 +171,7 @@ class GenericImage(BaseImage):
     def update_image_data(self):
         pass
 
-    def show(self, mask=None):
+    def show(self, mask=None, slice_id=None):
         import matplotlib.pyplot as plt
         from mirp._images.utilities import InteractivePlot
 
@@ -191,7 +191,8 @@ class GenericImage(BaseImage):
         # Create an index tracked object
         tracker = InteractivePlot(
             image=self,
-            mask=mask
+            mask=mask,
+            slice_id=slice_id
         )
 
         plt.show()

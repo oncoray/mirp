@@ -12,7 +12,8 @@ class InteractivePlot:  # pragma: no cover
     def __init__(
             self,
             image: GenericImage,
-            mask: MaskImage | BaseMask | None = None
+            mask: MaskImage | BaseMask | None = None,
+            slice_id: int | None = None
     ):
 
         # Determine if a mask should be shown.
@@ -39,7 +40,10 @@ class InteractivePlot:  # pragma: no cover
             self.mask_data = mask.get_voxel_grid()
 
         self.n_slices, _, _ = image.image_dimension
-        self.slice_index = int(np.floor(self.n_slices / 2.0))
+        if slice_id is None or slice_id < 1 or slice_id > self.n_slices:
+            self.slice_index = int(np.floor(self.n_slices / 2.0))
+        else:
+            self.slice_index = slice_id - 1
 
         # Set plotting options
         colour_map = image.get_colour_map()
