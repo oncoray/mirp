@@ -13,3 +13,4 @@ test/data/configuration_files/settings.xml
 /test/data/temp_data/
 .coverage
 /docs_source/source/.ipynb_checkpoints
+/docs_source/source/sts_images
