@@ -43,6 +43,7 @@ class MRImage(GenericImage):
         corrector.SetNumberOfFittingLevels(n_fitting_levels)
         corrector.SetMaximumNumberOfIterations(n_max_iterations)
         corrector.SetConvergenceThreshold(convergence_threshold)
+        corrector.Update()
         output_image = corrector.GetOutput()
 
         # Save bias-corrected image.
