@@ -189,7 +189,7 @@ def extract_features_and_images(
 
     Parameters
     ----------
-    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+    image_export_format: {"dict", "native", "numpy"}, default: "dict"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
         ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
