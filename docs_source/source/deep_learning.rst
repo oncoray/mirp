@@ -1,8 +1,9 @@
 Preprocess images for deep learning
 ===================================
 
-MIRP can be used to preprocess images for deep learning. Images are processed using the standard IBSI-compliant image
-processing workflow, with a final cropping step (if any).
+MIRP can be used to preprocess images for deep learning. Images are processed using the standard image
+processing workflow that is compliant with Image Biomarker Standardisation Initiative (IBSI), with a final cropping
+step (if any).
 
 The deep learning preprocessing function comes in two versions:
 
