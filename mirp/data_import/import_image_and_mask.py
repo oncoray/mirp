@@ -227,11 +227,12 @@ def import_image_and_mask(
 
         elif all(image.file_name is not None for image in image_list):
             for image in image_list:
-                image.set_sample_name(sample_name=image.file_name)
+                file_sample_name = image.get_sample_name_from_file(must_succeed=True)
+                image.set_sample_name(sample_name=file_sample_name)
 
                 if image.associated_masks is not None:
                     for mask in image.associated_masks:
-                        mask.set_sample_name(sample_name=image.file_name)
+                        mask.set_sample_name(sample_name=file_sample_name)
 
     # Then set any sample names for images that still miss them.
     if any(image.sample_name is None for image in image_list):

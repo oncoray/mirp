@@ -419,7 +419,7 @@ class ImageFile(BaseImage):
         # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
         # filename into parts that should contain the sample name.
         if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
-            if self._get_sample_name_from_file() is None:
+            if self.get_sample_name_from_file() is None:
                 if raise_error:
                     raise ValueError(
                         f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
@@ -432,11 +432,14 @@ class ImageFile(BaseImage):
     def _check_modality(self, raise_error: bool) -> bool:
         return True
 
-    def _get_sample_name_from_file(self) -> None | str:
+    def get_sample_name_from_file(self, must_succeed=False) -> None | str:
         allowed_file_extensions = supported_file_types(self.file_type)
 
         # Do not obtain sample name from the file name if a file name has already been set.
         if isinstance(self.sample_name, str):
+            return None
+
+        if self.file_name is None:
             return None
 
         # Select the most appropriate sample name.
@@ -500,6 +503,8 @@ class ImageFile(BaseImage):
 
             return matching_name
 
+        elif must_succeed:
+            return bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
         else:
             return None
 
@@ -613,7 +618,7 @@ class ImageFile(BaseImage):
     def _complete_sample_name(self):
         # Set sample name.
         if isinstance(self.sample_name, list):
-            file_sample_name = self._get_sample_name_from_file()
+            file_sample_name = self.get_sample_name_from_file()
 
             if file_sample_name is None and len(self.sample_name) == 1:
                 self.sample_name = self.sample_name[0]
