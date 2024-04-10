@@ -152,7 +152,7 @@ class ContourClass:
         return slice_list, mask_list
 
 
-def mesh2grid(verts, faces, spacing, origin=None):
+def mesh2grid(verts, faces, spacing, origin=None):  # pragma: no cover
 
     # Remove superfluous dimensions
     verts = np.squeeze(np.asarray(verts))
@@ -283,7 +283,7 @@ def poly2grid(verts, lines, spacing, origin, shape):
     return vox_grid.astype(dtype=bool)
 
 
-def ray_triangle_intersect(ray_orig, ray_dir, vert_1, vert_2, vert_3):
+def ray_triangle_intersect(ray_orig, ray_dir, vert_1, vert_2, vert_3):  # pragma: no cover
     # Implementation of the Moeller-Trumbore intersection algorithm to determine intersection point
     # between ray and triangle
     # This point satisfies ray_orig + t * ray_dir = (1 - u -v) * vert_1 + u * vert_2 + v * vert_3
