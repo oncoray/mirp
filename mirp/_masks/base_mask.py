@@ -580,7 +580,7 @@ class BaseMask:
             self,
             image: GenericImage,
             settings: SettingsClass,
-            append_str: str = ""
+            append_str: str | None = None
     ) -> pd.DataFrame:
         """ Creates diagnostic features for the ROI """
 
@@ -620,11 +620,11 @@ class BaseMask:
         # Compute bounding boxes
         int_bounding_box_dim = mask_copy.roi_intensity.get_bounding_box()
         mrp_bounding_box_dim = mask_copy.roi_morphology.get_bounding_box()
-        if any(x is None for x in int_bounding_box_dim) or (y is None for y in mrp_bounding_box_dim):
+        if any(x is None for x in int_bounding_box_dim) or any(y is None for y in mrp_bounding_box_dim):
             return df
 
-        int_bounding_box_dim = np.squeeze(np.diff(int_bounding_box_dim, axis=0) + 1)
-        mrp_bounding_box_dim = np.squeeze(np.diff(mrp_bounding_box_dim, axis=0) + 1)
+        int_bounding_box_dim = np.squeeze(np.diff(int_bounding_box_dim, axis=1) + 1)
+        mrp_bounding_box_dim = np.squeeze(np.diff(mrp_bounding_box_dim, axis=1) + 1)
 
         # Set intensity mask features
         df["int_map_dim_x"] = mask_copy.roi_intensity.image_dimension[2]
@@ -657,7 +657,10 @@ class BaseMask:
         df["mrp_max_int"] = np.max(img_voxel_grid[mrp_voxel_grid])
 
         # Update column names
-        df.columns = ["_".join(["diag", feature, append_str]).strip("_") for feature in df.columns]
+        if append_str is None:
+            df.columns = ["_".join(["diag", feature]) for feature in df.columns]
+        else:
+            df.columns = ["_".join(["diag", feature, append_str]) for feature in df.columns]
 
         del mask_copy
 
