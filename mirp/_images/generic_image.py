@@ -1204,6 +1204,11 @@ class GenericImage(BaseImage):
             image_data = self.get_voxel_grid()
             np.save(file_path, image_data)
 
+        else:
+            raise ValueError(
+                f"file format was not recognised: {file_format}. MIRP currently supports nifti and numpy are supported."
+            )
+
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = []
 
