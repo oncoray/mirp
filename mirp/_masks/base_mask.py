@@ -57,8 +57,13 @@ class BaseMask:
             slice_mask.roi = self.roi.get_slices(slice_number=current_slice_id)
             if slice_mask.roi_intensity is not None and not primary_mask_only:
                 slice_mask.roi_intensity = self.roi_intensity.get_slices(slice_number=current_slice_id)
+            else:
+                slice_mask.roi_intensity = None
+
             if slice_mask.roi_morphology is not None and not primary_mask_only:
-                slice_mask.roi_intensity = self.roi_morphology.get_slices(slice_number=slice_number)
+                slice_mask.roi_morphology = self.roi_morphology.get_slices(slice_number=current_slice_id)
+            else:
+                slice_mask.roi_morphology = None
 
             if slice_mask.is_empty():
                 continue

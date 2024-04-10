@@ -80,3 +80,45 @@ def test_base_mask_compute_export_all(tmp_path):
     assert len(files) == 2
     assert any(file.endswith("_int.npy") for file in files)
     assert any(file.endswith("_morph.npy") for file in files)
+
+
+def test_base_mask_interpolate():
+    settings = import_configuration_settings(
+        compute_features=False
+    )[0]
+
+    images, masks = extract_images(
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "image", "phantom.nii.gz"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "mask", "mask.nii.gz"),
+        image_export_format="native",
+        settings=settings
+    )[0]
+
+    mask: BaseMask = masks[0]
+
+    # Update settings
+    settings.img_interpolate.interpolate = True
+    settings.img_interpolate.new_spacing = [1.0, 1.0, 1.0]
+
+    # Test by registering to image.
+    test_mask = mask.copy()
+    test_mask.interpolate(image=images[0], settings=settings)
+
+    # Nothing should change compared to the original roi, as the image is still the same.
+    assert test_mask.roi.image_spacing == mask.roi.image_spacing
+    assert np.array_equal(test_mask.roi.get_voxel_grid(), mask.roi.get_voxel_grid())
+    assert test_mask.roi_intensity.image_spacing == mask.roi_intensity.image_spacing
+    assert np.array_equal(test_mask.roi_intensity.get_voxel_grid(), mask.roi_intensity.get_voxel_grid())
+    assert test_mask.roi_morphology.image_spacing == mask.roi_morphology.image_spacing
+    assert np.array_equal(test_mask.roi_morphology.get_voxel_grid(), mask.roi_morphology.get_voxel_grid())
+
+    # Test stand-alone interpolation.
+    test_mask = mask.copy()
+    test_mask.interpolate(image=None, settings=settings)
+
+    # The test mask should be interpolated.
+    assert test_mask.roi.image_spacing == (1.0, 1.0, 1.0)
+    assert test_mask.roi_intensity.image_spacing == (1.0, 1.0, 1.0)
+    assert test_mask.roi_morphology.image_spacing == (1.0, 1.0, 1.0)
+
+
