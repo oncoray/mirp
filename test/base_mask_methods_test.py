@@ -122,3 +122,52 @@ def test_base_mask_interpolate():
     assert test_mask.roi_morphology.image_spacing == (1.0, 1.0, 1.0)
 
 
+def test_base_mask_get_slices():
+    settings = import_configuration_settings(
+        compute_features=False
+    )[0]
+
+    images, masks = extract_images(
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "image", "phantom.nii.gz"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "mask", "mask.nii.gz"),
+        image_export_format="native",
+        settings=settings
+    )[0]
+
+    mask: BaseMask = masks[0]
+
+    # All slices from every type of roi in the mask.
+    mask_slices = mask.get_slices()
+
+    assert len(mask_slices) == 4
+    assert mask_slices[0].roi is not None
+    assert mask_slices[0].roi_intensity is not None
+    assert mask_slices[0].roi_morphology is not None
+    assert mask_slices[0].roi.image_origin == mask.roi.image_origin
+    assert mask_slices[1].roi.image_origin == (2.0, 0.0, 0.0)
+
+    # All slices from the original roi in the mask.
+    mask_slices = mask.get_slices(primary_mask_only=True)
+
+    assert len(mask_slices) == 4
+    assert mask_slices[0].roi is not None
+    assert mask_slices[0].roi_intensity is None
+    assert mask_slices[0].roi_morphology is None
+    assert mask_slices[0].roi.image_origin == mask.roi.image_origin
+    assert mask_slices[1].roi.image_origin == (2.0, 0.0, 0.0)
+
+    # Select single slice from every type of roi in the mask.
+    mask_slice: BaseMask = mask.get_slices(slice_number=1)
+
+    assert mask_slice.roi is not None
+    assert mask_slice.roi_intensity is not None
+    assert mask_slice.roi_morphology is not None
+    assert mask_slice.roi.image_origin == (2.0, 0.0, 0.0)
+
+    # Select single slice from the original roi in the mask.
+    mask_slice: BaseMask = mask.get_slices(slice_number=1, primary_mask_only=True)
+
+    assert mask_slice.roi is not None
+    assert mask_slice.roi_intensity is None
+    assert mask_slice.roi_morphology is None
+    assert mask_slice.roi.image_origin == (2.0, 0.0, 0.0)
