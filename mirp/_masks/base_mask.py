@@ -96,17 +96,6 @@ class BaseMask:
     def is_empty_mask(self):
         return self.roi.is_empty_mask()
 
-    def append_name(self, x):
-        if isinstance(self.roi_name, str):
-            self.roi_name = [self.roi_name]
-
-        if isinstance(x, str):
-            self.roi_name += [x]
-        elif isinstance(x, list):
-            self.roi_name += x
-        else:
-            raise TypeError("The x attribute is expected to be a string or list of strings.")
-
     def interpolate(
             self,
             image: None | GenericImage,
