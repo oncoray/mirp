@@ -1,5 +1,5 @@
 import os
-
+import pytest
 import numpy as np
 
 from mirp import extract_images
@@ -171,3 +171,101 @@ def test_base_mask_get_slices():
     assert mask_slice.roi_intensity is None
     assert mask_slice.roi_morphology is None
     assert mask_slice.roi.image_origin == (2.0, 0.0, 0.0)
+
+
+@pytest.mark.ci
+def test_base_mask_merge():
+    image = np.ones(shape=(3, 10, 10), dtype=float)
+    mask_1a = np.zeros(shape=(3, 10, 10), dtype=bool)
+    mask_1b = np.zeros(shape=(3, 10, 10), dtype=bool)
+
+    mask_1a[1, 0:3, 0:3] = True
+    mask_1b[1, 7:10, 7:10] = True
+    mask_1 = np.logical_or(mask_1a, mask_1b)
+
+    images, masks = extract_images(
+        image=image,
+        mask=[mask_1a, mask_1b],
+        image_export_format="native"
+    )[0]
+
+    merged_mask: BaseMask = masks[0].merge(masks)
+    assert np.array_equal(merged_mask.roi.get_voxel_grid(), mask_1)
+    assert np.array_equal(merged_mask.roi_intensity.get_voxel_grid(), mask_1)
+    assert np.array_equal(merged_mask.roi_morphology.get_voxel_grid(), mask_1)
+
+
+@pytest.mark.ci
+def test_base_mask_split_mask():
+    image = np.ones(shape=(3, 10, 10), dtype=float)
+    mask_1a = np.zeros(shape=(3, 10, 10), dtype=bool)
+    mask_1b = np.zeros(shape=(3, 10, 10), dtype=bool)
+
+    mask_1a[1, 0:3, 0:3] = True
+    mask_1b[1, 7:10, 7:10] = True
+    mask_1 = np.logical_or(mask_1a, mask_1b)
+
+    images, masks = extract_images(
+        image=image,
+        mask=mask_1,
+        image_export_format="native"
+    )[0]
+
+    split_masks: list[BaseMask] = masks[0].split_mask()
+    assert any(np.array_equal(mask.roi.get_voxel_grid(), mask_1a) for mask in split_masks)
+    assert any(np.array_equal(mask.roi.get_voxel_grid(), mask_1b) for mask in split_masks)
+    assert any(np.array_equal(mask.roi_intensity.get_voxel_grid(), mask_1a) for mask in split_masks)
+    assert any(np.array_equal(mask.roi_intensity.get_voxel_grid(), mask_1b) for mask in split_masks)
+    assert any(np.array_equal(mask.roi_morphology.get_voxel_grid(), mask_1a) for mask in split_masks)
+    assert any(np.array_equal(mask.roi_morphology.get_voxel_grid(), mask_1b) for mask in split_masks)
+
+
+@pytest.mark.ci
+def test_base_mask_select_largest_region():
+    image = np.ones(shape=(3, 10, 10), dtype=float)
+    mask_1a = np.zeros(shape=(3, 10, 10), dtype=bool)
+    mask_1b = np.zeros(shape=(3, 10, 10), dtype=bool)
+
+    mask_1a[1, 0:5, 0:5] = True
+    mask_1b[1, 7:10, 7:10] = True
+    mask_1 = np.logical_or(mask_1a, mask_1b)
+
+    images, masks = extract_images(
+        image=image,
+        mask=mask_1,
+        image_export_format="native"
+    )[0]
+
+    mask: BaseMask = masks[0]
+    mask.select_largest_region()
+
+    assert np.array_equal(mask.roi.get_voxel_grid(), mask_1a)
+    assert np.array_equal(mask.roi_intensity.get_voxel_grid(), mask_1a)
+    assert np.array_equal(mask.roi_morphology.get_voxel_grid(), mask_1a)
+
+
+@pytest.mark.ci
+def test_base_mask_select_largest_slice():
+    image = np.ones(shape=(3, 10, 10), dtype=float)
+    mask_1a = np.zeros(shape=(3, 10, 10), dtype=bool)
+    mask_1b = np.zeros(shape=(3, 10, 10), dtype=bool)
+    mask_1c = np.zeros(shape=(3, 10, 10), dtype=bool)
+
+    mask_1a[1, 0:5, 0:5] = True
+    mask_1b[1, 7:10, 7:10] = True
+    mask_1c[0, 0:5, 0:5] = True
+    mask_1 = np.logical_or(mask_1a, mask_1b)
+    mask_1 = np.logical_or(mask_1, mask_1c)
+
+    images, masks = extract_images(
+        image=image,
+        mask=mask_1,
+        image_export_format="native"
+    )[0]
+
+    mask: BaseMask = masks[0]
+    mask.select_largest_slice()
+
+    assert np.array_equal(mask.roi.get_voxel_grid(), np.logical_or(mask_1a, mask_1b))
+    assert np.array_equal(mask.roi_intensity.get_voxel_grid(), np.logical_or(mask_1a, mask_1b))
+    assert np.array_equal(mask.roi_morphology.get_voxel_grid(), np.logical_or(mask_1a, mask_1b))
