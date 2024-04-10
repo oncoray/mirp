@@ -3,6 +3,7 @@ import pandas as pd
 import copy
 import sys
 from typing import Any
+from pathlib import Path
 
 from mirp._images.generic_image import GenericImage
 from mirp._images.mask_image import MaskImage
@@ -692,7 +693,7 @@ class BaseMask:
 
     def write(
             self,
-            dir_path: str,
+            dir_path: str | Path,
             write_all: bool = False,
             file_format: str = "nifti"
     ):

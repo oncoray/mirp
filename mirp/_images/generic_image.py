@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 
 from typing import Any
+from pathlib import Path
+
 from mirp._images.base_image import BaseImage
 from mirp.settings.generic import SettingsClass
 
@@ -1153,7 +1155,7 @@ class GenericImage(BaseImage):
 
     def write(
             self,
-            dir_path: str,
+            dir_path: str | Path,
             file_name: None | str = None,
             file_format: str = "nifti"
     ):
