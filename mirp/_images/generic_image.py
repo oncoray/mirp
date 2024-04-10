@@ -173,7 +173,7 @@ class GenericImage(BaseImage):
     def update_image_data(self):
         pass
 
-    def show(self, mask=None, slice_id=None):
+    def show(self, mask=None, slice_id=None):  # pragma: no cover
         import matplotlib.pyplot as plt
         from mirp._images.utilities import InteractivePlot
 
