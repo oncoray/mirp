@@ -8,9 +8,10 @@ from mirp._masks.base_mask import BaseMask
 
 def read_image(
         image: ImageFile,
-        to_numpy=False
+        to_numpy=False,
+        **kwargs
 ) -> np.ndarray | GenericImage:
-    image = image.to_object().promote()
+    image = image.to_object(**kwargs).promote()
 
     if to_numpy:
         image = image.get_voxel_grid()
@@ -20,7 +21,8 @@ def read_image(
 
 def read_image_and_masks(
         image: ImageFile,
-        to_numpy=False
+        to_numpy=False,
+        **kwargs
 ) -> tuple[np.ndarray | GenericImage, list[np.ndarray] | list[BaseMask]]:
     mask_list = []
     if image.associated_masks is not None:
@@ -28,14 +30,14 @@ def read_image_and_masks(
 
     # Read masks from file.
     if mask_list is not None:
-        mask_list = [mask.to_object(image=image) for mask in mask_list]
+        mask_list = [mask.to_object(image=image, **kwargs) for mask in mask_list]
         mask_list = flatten_list(mask_list)
 
     # Remove None entries.
     mask_list = [mask for mask in mask_list if mask is not None]
 
     # Read image from file.
-    image = image.to_object().promote()
+    image = image.to_object(**kwargs).promote()
 
     if to_numpy:
         image = image.get_voxel_grid()

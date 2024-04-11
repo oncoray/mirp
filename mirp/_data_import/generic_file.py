@@ -753,7 +753,7 @@ class ImageFile(BaseImage):
 
     def to_object(self, **kwargs) -> GenericImage:
 
-        self.load_data()
+        self.load_data(**kwargs)
         self.complete()
         self.stack_slices()
         self.update_image_data()
