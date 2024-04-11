@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import datetime
 
@@ -47,9 +49,15 @@ class ImageDicomFilePT(ImageDicomFile):
     def create(self):
         return self
 
-    def load_data(self, **kwargs):
+    def load_data(
+            self,
+            pet_suv_conversion: str = "body_weight",
+            **kwargs
+    ):
         image_data = self.load_data_generic()
 
+        # Perform decay correction
+        image_data *= self._get_administration_decay_factor()
         # TODO: integrate SUV computations locally.
         suv_conversion_object = SUVscalingObj(dcm=self.image_metadata)
         scale_factor = suv_conversion_object.get_scale_factor(suv_normalisation="bw")
@@ -386,3 +394,172 @@ class ImageDicomFilePT(ImageDicomFile):
 
         metadata.update(dict(dcm_meta_data))
         return metadata
+
+    def _get_administration_decay_factor(self):
+        self.load_metadata()
+
+        # TODO: Determine if any decay correction took place from (0018,9758), which has either YES or NO, if present.
+        #  If YES, (0018,9701) should be present as well.
+        # TODO: Use Decay Correction DateTime (0018,9701) as alternative for determining the correction time.
+
+        # TODO: cross-check with https://niftypet.readthedocs.io/en/latest/tutorials/corrqnt/#id1
+
+        # Type of decay correction that is used
+        decay_correction = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1102),
+            tag_type="str",
+            default="NONE"
+        )
+        if decay_correction == "ADMIN":
+            return 1.0
+
+        elif decay_correction not in ["NONE", "START"]:
+            raise ValueError(
+                f"Decay correction DICOM tag in {self.file_path} was not recognised: {decay_correction}. One of ",
+                f"NONE, START or ADMIN was expected."
+            )
+
+        # Start of image acquisition for the current position
+        acquisition_start_date = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0022), tag_type="str")
+        acquisition_start_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0032), tag_type="str")
+        acquisition_ref_time = convert_dicom_time(date_str=acquisition_start_date, time_str=acquisition_start_time)
+
+        # Frame reference time frame (ms)
+        frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
+        frame_reference_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1300), tag_type="float")
+
+        # Set radiotracer administration reference time.
+        radio_admin_ref_time = None
+
+        # Set radiotracer administration reference time from radionuclide administration
+        if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
+            radio_admin_start_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                tag=(0x0018, 0x1078),
+                tag_type="str"
+            )
+            radio_admin_ref_time = convert_dicom_time(datetime_str=radio_admin_start_time)
+
+            if radio_admin_ref_time is None:
+                # If unsuccessful, attempt determining administration time from (0x0018, 0x1072)
+                radio_admin_start_time = get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                    tag=(0x0018, 0x1072),
+                    tag_type="str"
+                )
+                radio_admin_ref_time = convert_dicom_time(
+                    date_str=acquisition_start_date,
+                    time_str=radio_admin_start_time
+                )
+
+        # If neither (0x0018, 0x1078) or (0x0018, 0x1072) are present, attempt to read private tags
+        if radio_admin_ref_time is None:
+
+            # GE tags
+            ge_acquisition_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0009, 0x100d),
+                tag_type="str"
+            )
+            ge_radio_admin_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0009, 0x103b),
+                tag_type="str"
+            )
+
+            if ge_radio_admin_ref_time is not None:
+                radio_admin_ref_time = convert_dicom_time(datetime_str=ge_radio_admin_ref_time)
+                if ge_acquisition_ref_time is not None:
+                    acquisition_ref_time = convert_dicom_time(datetime_str=ge_acquisition_ref_time)
+
+        if radio_admin_ref_time is not None and acquisition_ref_time is not None:
+
+            day_diff = abs(radio_admin_ref_time - acquisition_ref_time).days
+            if day_diff > 1:
+                # Correct for de-identification mistakes (i.e. administration time was de-identified correctly,
+                # but acquisition time not). We do not expect that the difference between the two is more than a day,
+                # or even more than a few hours at most.
+                if radio_admin_ref_time > acquisition_ref_time:
+                    radio_admin_ref_time -= datetime.timedelta(days=day_diff)
+                else:
+                    radio_admin_ref_time += datetime.timedelta(days=day_diff)
+
+            if radio_admin_ref_time > acquisition_ref_time:
+                # Correct for overnight
+                radio_admin_ref_time -= datetime.timedelta(days=1)
+
+        # Radionuclide total dose and radionuclide half-life
+        half_life = None
+        if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
+            half_life = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                tag=(0x0018, 0x1075),
+                tag_type="float"
+            )
+
+        if half_life is None:
+            warnings.warn(
+                f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
+                f"information sequence (0x0054, 0x0016) of {self.file_path}.",
+                UserWarning
+            )
+            return 1.0
+
+        if frame_duration is None:
+            warnings.warn(f"Frame duration (0x0018, 0x1242) was missing in {self.file_path}.", UserWarning)
+            return 1.0
+
+        if decay_correction == "START" and frame_reference_time is None:
+            warnings.warn(f"Frame reference time (0x0054, 0x1300) was missing in {self.file_path}.", UserWarning)
+            return 1.0
+
+        if acquisition_ref_time is None:
+            warnings.warn(
+                f"Acquisition date (0x0008, 0x0022) and time (0x0008, 0x0032) were missing in {self.file_path}.",
+                UserWarning
+            )
+            return 1.0
+
+        if radio_admin_ref_time is None:
+            warnings.warn(
+                f"Time of radiotracer administration could not be determined in {self.file_path}.", UserWarning
+            )
+            return 1.0
+
+        # Process for different decay corrections
+        if decay_correction == "NONE":
+            # No decay correction; correct for period between administration and acquisition + 1/2 frame duration
+            frame_center_time = acquisition_ref_time + datetime.timedelta(
+                microseconds=int(np.round(frame_duration * 1000.0 / 2.0))
+            )
+            return np.power(2.0, (frame_center_time - radio_admin_ref_time).seconds / half_life)
+
+        elif decay_correction == "START":
+            # Decay correction of pixel values for the period from pixel acquisition up to scan start
+            # Additionally correct for decay between administration and acquisition start
+
+            # Back compute start reference time from acquisition date and time.
+            decay_constant = np.log(2) / half_life
+
+            # Compute decay during frame. Note that frame duration is converted from ms to s.
+            decay_during_frame = decay_constant * frame_duration / 1000.0
+
+            # Time at which the average count rate is found.
+            time_count_average = 1.0 / decay_constant * np.log(decay_during_frame / (1.0 - np.exp(-decay_during_frame)))
+
+            # Set reference start time (this may coincide with the series time, but series time may be unreliable).
+            reference_start_time = acquisition_ref_time + datetime.timedelta(
+                seconds=time_count_average - frame_reference_time / 1000.0
+            )
+
+            # Compute decay time.
+            decay_time = (reference_start_time - radio_admin_ref_time).seconds
+
+            return np.power(2.0, decay_time / half_life)
+
+        else:
+            raise ValueError(
+                f"Decay correction DICOM tag in {self.file_path} was not recognised: {decay_correction}. One of ",
+                f"NONE, START or ADMIN was expected."
+            )
