@@ -61,6 +61,10 @@
             <n_max_iterations></n_max_iterations>
             <!-- Convergence threshold for N4 bias field correction. Default: 0.001 -->
             <convergence_threshold></convergence_threshold>
+            <!-- Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
+            comparable between patients, these are converted to standardised uptake values. The following are possible:
+            body_weight, none. -->
+            <pet_suv_conversion></pet_suv_conversion>
             <!-- Algorithm used to normalise intensities in the image. Will use only intensities in voxels masked by
             the  tissue mask. Can be none (default), range (maps to an intensity range), relative_range (maps to a
             range  of relative intensities), quantile_range (maps to a range of relative intensities based on
