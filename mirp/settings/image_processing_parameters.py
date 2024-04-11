@@ -384,6 +384,7 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
             "bias_field_convergence_threshold", "float", xml_key="convergence_threshold",
             class_key="convergence_threshold", test=0.1
         ),
+        setting_def("pet_suv_conversion", "str", class_key="suv_conversion_type", test="none"),
         setting_def("intensity_normalisation", "str", test="relative_range"),
         setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
         setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),
