@@ -57,7 +57,7 @@ class ImageDicomFilePT(ImageDicomFile):
         image_data = self.load_data_generic()
 
         # Perform decay correction
-        image_data *= self._get_administration_decay_factor()
+        # image_data *= self._get_administration_decay_factor()
         # TODO: integrate SUV computations locally.
         suv_conversion_object = SUVscalingObj(dcm=self.image_metadata)
         scale_factor = suv_conversion_object.get_scale_factor(suv_normalisation="bw")
