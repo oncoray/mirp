@@ -56,7 +56,28 @@ class ImageDicomFilePT(ImageDicomFile):
     ):
         image_data = self.load_data_generic()
 
-        # Perform decay correction
+        # Get decay correction factor
+        try:
+            decay_factor = self._get_administration_decay_factor()
+        except ValueError as err:
+            warnings.warn(
+                f"Decay correction factor could not be determined. {str(err)}",
+                UserWarning
+            )
+            decay_factor = 1.0
+
+        # Get conversion factor to BQML
+        try:
+            bqml_factor = self._get_pet_unit_conversion_factor()
+        except ValueError as err:
+            warnings.warn(
+                f"BQML conversion factor could not be determined. {str(err)}",
+                UserWarning
+            )
+
+        # Get SUV conversion factor.
+        suv_factor = self._get_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+
         # image_data *= self._get_administration_decay_factor()
         # TODO: integrate SUV computations locally.
         suv_conversion_object = SUVscalingObj(dcm=self.image_metadata)
@@ -395,14 +416,68 @@ class ImageDicomFilePT(ImageDicomFile):
         metadata.update(dict(dcm_meta_data))
         return metadata
 
-    def _get_administration_decay_factor(self):
+    def _get_tracer_administration_time(self) -> datetime.datetime:
         self.load_metadata()
 
-        # TODO: Determine if any decay correction took place from (0018,9758), which has either YES or NO, if present.
-        #  If YES, (0018,9701) should be present as well.
-        # TODO: Use Decay Correction DateTime (0018,9701) as alternative for determining the correction time.
+        # Set initial value of tracer administration reference time.
+        admin_ref_time = None
 
-        # TODO: cross-check with https://niftypet.readthedocs.io/en/latest/tutorials/corrqnt/#id1
+        # Administration time should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
+        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+
+        # Prefer Radiopharmaceutical Start DateTime (0x0018, 0x1078)
+        if has_sequence and admin_ref_time is None:
+            admin_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                tag=(0x0018, 0x1078),
+                tag_type="str"
+            )
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+
+        # Fallback to Radiopharmaceutical Start Time (0x0018, 0x1072)
+        if has_sequence and admin_ref_time is None:
+            admin_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                tag=(0x0018, 0x1072),
+                tag_type="str"
+            )
+
+            if admin_ref_time is not None:
+                # Infer start date.
+                acquisition_start_time = self._get_acquisition_start_time()
+                admin_ref_time = datetime.datetime(
+                    year=acquisition_start_time.year,
+                    month=acquisition_start_time.month,
+                    day=acquisition_start_time.day,
+                    hour=int(admin_ref_time[0:2]),
+                    minute=int(admin_ref_time[2:4]),
+                    second=int(admin_ref_time[4:6]),
+                    microsecond=0 if len(admin_ref_time) <= 6 else int(round(float(admin_ref_time[6:]) * 1000))
+                )
+
+                # Correct for overnight recordings.
+                if admin_ref_time > acquisition_start_time:
+                    admin_ref_time -= datetime.timedelta(days=(acquisition_start_time - admin_ref_time).days)
+
+        #  Fall back to Private GE Radiopharmaceutical Start DateTime.
+        if admin_ref_time is None:
+            admin_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0009, 0x103b),
+                tag_type="str"
+            )
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+
+        # Final check.
+        if admin_ref_time is None:
+            raise ValueError(
+                f"Radiopharmaceutical start time cannot be determined from DICOM metadata in {self.file_path}."
+            )
+
+        return admin_ref_time
+
+    def _get_administration_decay_factor(self) -> float:
+        self.load_metadata()
 
         # Type of decay correction that is used
         decay_correction = get_pydicom_meta_tag(
@@ -420,74 +495,15 @@ class ImageDicomFilePT(ImageDicomFile):
                 f"NONE, START or ADMIN was expected."
             )
 
-        # Start of image acquisition for the current position
-        acquisition_start_date = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0022), tag_type="str")
-        acquisition_start_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0032), tag_type="str")
-        acquisition_ref_time = convert_dicom_time(date_str=acquisition_start_date, time_str=acquisition_start_time)
+        # Get acquisition start time and tracer administration time.
+        acquisition_start_time = self._get_acquisition_start_time()
+        tracer_administration_time = self._get_tracer_administration_time()
 
-        # Frame reference time frame (ms)
+        # Get frame duration in seconds.
         frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
-        frame_reference_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1300), tag_type="float")
-
-        # Set radiotracer administration reference time.
-        radio_admin_ref_time = None
-
-        # Set radiotracer administration reference time from radionuclide administration
-        if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
-            radio_admin_start_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1078),
-                tag_type="str"
-            )
-            radio_admin_ref_time = convert_dicom_time(datetime_str=radio_admin_start_time)
-
-            if radio_admin_ref_time is None:
-                # If unsuccessful, attempt determining administration time from (0x0018, 0x1072)
-                radio_admin_start_time = get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                    tag=(0x0018, 0x1072),
-                    tag_type="str"
-                )
-                radio_admin_ref_time = convert_dicom_time(
-                    date_str=acquisition_start_date,
-                    time_str=radio_admin_start_time
-                )
-
-        # If neither (0x0018, 0x1078) or (0x0018, 0x1072) are present, attempt to read private tags
-        if radio_admin_ref_time is None:
-
-            # GE tags
-            ge_acquisition_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0009, 0x100d),
-                tag_type="str"
-            )
-            ge_radio_admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0009, 0x103b),
-                tag_type="str"
-            )
-
-            if ge_radio_admin_ref_time is not None:
-                radio_admin_ref_time = convert_dicom_time(datetime_str=ge_radio_admin_ref_time)
-                if ge_acquisition_ref_time is not None:
-                    acquisition_ref_time = convert_dicom_time(datetime_str=ge_acquisition_ref_time)
-
-        if radio_admin_ref_time is not None and acquisition_ref_time is not None:
-
-            day_diff = abs(radio_admin_ref_time - acquisition_ref_time).days
-            if day_diff > 1:
-                # Correct for de-identification mistakes (i.e. administration time was de-identified correctly,
-                # but acquisition time not). We do not expect that the difference between the two is more than a day,
-                # or even more than a few hours at most.
-                if radio_admin_ref_time > acquisition_ref_time:
-                    radio_admin_ref_time -= datetime.timedelta(days=day_diff)
-                else:
-                    radio_admin_ref_time += datetime.timedelta(days=day_diff)
-
-            if radio_admin_ref_time > acquisition_ref_time:
-                # Correct for overnight
-                radio_admin_ref_time -= datetime.timedelta(days=1)
+        if frame_duration is None:
+            raise ValueError(f"Frame duration cannot be determined from DICOM metadata in {self.file_path}.")
+        frame_duration /= 1000.0  # From milliseconds to seconds.
 
         # Radionuclide total dose and radionuclide half-life
         half_life = None
@@ -499,67 +515,178 @@ class ImageDicomFilePT(ImageDicomFile):
             )
 
         if half_life is None:
-            warnings.warn(
+            raise ValueError(
                 f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
-                f"information sequence (0x0054, 0x0016) of {self.file_path}.",
-                UserWarning
+                f"information sequence (0x0054, 0x0016) of {self.file_path}."
             )
-            return 1.0
 
-        if frame_duration is None:
-            warnings.warn(f"Frame duration (0x0018, 0x1242) was missing in {self.file_path}.", UserWarning)
-            return 1.0
-
-        if decay_correction == "START" and frame_reference_time is None:
-            warnings.warn(f"Frame reference time (0x0054, 0x1300) was missing in {self.file_path}.", UserWarning)
-            return 1.0
-
-        if acquisition_ref_time is None:
-            warnings.warn(
-                f"Acquisition date (0x0008, 0x0022) and time (0x0008, 0x0032) were missing in {self.file_path}.",
-                UserWarning
-            )
-            return 1.0
-
-        if radio_admin_ref_time is None:
-            warnings.warn(
-                f"Time of radiotracer administration could not be determined in {self.file_path}.", UserWarning
-            )
-            return 1.0
+        # Decay constant.
+        _lambda = np.log(2.0) / half_life
 
         # Process for different decay corrections
         if decay_correction == "NONE":
-            # No decay correction; correct for period between administration and acquisition + 1/2 frame duration
-            frame_center_time = acquisition_ref_time + datetime.timedelta(
-                microseconds=int(np.round(frame_duration * 1000.0 / 2.0))
+            time_to_acquisition_start = acquisition_start_time - tracer_administration_time
+            time_to_acquisition_start = (
+                    time_to_acquisition_start.days * 86400.0 +
+                    time_to_acquisition_start.seconds +
+                    time_to_acquisition_start.microseconds / 1000000.0
             )
-            return np.power(2.0, (frame_center_time - radio_admin_ref_time).seconds / half_life)
+            decay_factor = (
+                frame_duration * _lambda * np.exp(_lambda * time_to_acquisition_start) /
+                (1.0 - np.exp(-_lambda * frame_duration))
+            )
 
         elif decay_correction == "START":
             # Decay correction of pixel values for the period from pixel acquisition up to scan start
-            # Additionally correct for decay between administration and acquisition start
+            # Additionally correct for decay between administration and acquisition start. Based on QIBA SUV
+            # vendorneutral pseudocode.
 
-            # Back compute start reference time from acquisition date and time.
-            decay_constant = np.log(2) / half_life
+            # Get frame_reference_time in seconds.
+            frame_reference_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1300), tag_type="float")
+            if frame_reference_time is None:
+                raise ValueError(f"Frame reference time (0x0054, 0x1300) was missing in {self.file_path}.")
+            frame_reference_time /= 1000.0
 
-            # Compute decay during frame. Note that frame duration is converted from ms to s.
-            decay_during_frame = decay_constant * frame_duration / 1000.0
+            # Time at which the average count rate is found, relative to acquisition start time.
+            time_count_average = 1.0 / _lambda * np.log(_lambda * frame_duration / (1.0 - np.exp(-_lambda * frame_duration)))
 
-            # Time at which the average count rate is found.
-            time_count_average = 1.0 / decay_constant * np.log(decay_during_frame / (1.0 - np.exp(-decay_during_frame)))
-
-            # Set reference start time (this may coincide with the series time, but series time may be unreliable).
-            reference_start_time = acquisition_ref_time + datetime.timedelta(
-                seconds=time_count_average - frame_reference_time / 1000.0
+            # Set reference start time (this may coincide with the acquisition start time).
+            reference_start_time = acquisition_start_time + datetime.timedelta(seconds=time_count_average - frame_reference_time)
+            time_to_reference_start = reference_start_time - tracer_administration_time
+            time_to_reference_start = (
+                    time_to_reference_start.days * 86400.0 +
+                    time_to_reference_start.seconds +
+                    time_to_reference_start.microseconds / 1000000.0
             )
-
-            # Compute decay time.
-            decay_time = (reference_start_time - radio_admin_ref_time).seconds
-
-            return np.power(2.0, decay_time / half_life)
+            decay_factor = np.exp(_lambda * time_to_reference_start)
 
         else:
             raise ValueError(
                 f"Decay correction DICOM tag in {self.file_path} was not recognised: {decay_correction}. One of ",
                 f"NONE, START or ADMIN was expected."
             )
+
+        return decay_factor
+
+    def _get_pet_unit_conversion_factor(self) -> float:
+        """To compute SUV, PET units need to be converted to BQML."""
+        self.load_metadata()
+
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        if pet_unit is None:
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing in {self.file_path}.")
+
+        if pet_unit in ["CNTS", "CPS"]:
+            conversion_factor = self._pet_unit_cnt_to_bqml()
+        elif pet_unit in ["BQML"]:
+            conversion_factor = 1.0
+        elif pet_unit in ["GML", "CM2ML"]:
+            conversion_factor = 1.0
+        else:
+            raise NotImplementedError(f"Conversion factor for converting {pet_unit} to BQML is not implemented")
+
+        return conversion_factor
+
+    def _pet_unit_cnt_to_bqml(self) -> float:
+        self.load_metadata()
+
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+
+        # Read private tag.
+        conversion_factor = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1009), tag_type="float")
+
+        # Use frame duration (if not CPS), and Radiopharmaceutical Volume to convert to Bq/ml.
+        if conversion_factor is None:
+            conversion_factor = 1.0
+            if pet_unit == "CNTS":
+                frame_duration = get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x0018, 0x1242),
+                    tag_type="float"
+                )
+                if frame_duration is None:
+                    raise ValueError(f"Frame duration cannot be determined from DICOM metadata in {self.file_path}.")
+                frame_duration /= 1000.0  # From milliseconds to seconds.
+                conversion_factor = 1.0 / frame_duration
+
+            # Radiopharmaceutical volume should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
+            if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
+                administered_volume = get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                    tag=(0x0018, 0x1071),
+                    tag_type="float"
+                )
+                if administered_volume is None:
+                    raise ValueError(
+                        f"Radiopharmaceutical volume cannot be determined from DICOM metadata in {self.file_path}"
+                    )
+
+                # Divide by administered volume (in cubic cm == milliliter)
+                conversion_factor /= administered_volume
+
+            else:
+                raise ValueError(
+                    f"Radiopharmaceutical Information Sequence (0x0054, 0x0016) is missing in DICOM metadata in "
+                    f"{self.file_path}."
+                )
+
+        # Final check
+        if conversion_factor is None:
+            raise ValueError(f"Conversion factor for converting {pet_unit} to BQML could not be established")
+
+        return conversion_factor
+
+    def _get_suv_conversion_factor(self, new_suv_type: str) -> float:
+        self.load_metadata()
+
+        current_suv_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1006),
+            tag_type="str"
+        )
+
+        # Set SUV type based on PET unit.
+        if current_suv_type is None:
+            pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+            if pet_unit is None:
+                raise ValueError(f"PET Units (0x0054, 0x1001) was missing in {self.file_path}.")
+
+            if pet_unit == "GML":
+                # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
+                current_suv_type = "BW"
+            elif pet_unit == "CM2ML":
+                current_suv_type = "BSA"
+
+        # If SUV type was not set, and cannot be inferred, assume that intensities do not represent SUV.
+        if current_suv_type is None:
+            current_suv_type = "none"
+
+        # Convert DICOM SUV type to internal format.
+        translation_table = dict([
+            ("none", "none"),
+            ("BW", "body_weight"),
+            ("LBM", "lean_body_mass_error"),
+            ("LBMJAMES128", "lean_body_mass"),
+            ("LBMJANMA", "lean_body_mass_bmi"),
+            ("IBW", "ideal_body_weight")
+        ])
+        current_suv_type = translation_table[current_suv_type]
+
+        if current_suv_type == new_suv_type:
+            return 1.0
+
+        # Convert back to BQML.
+        revert_suv_factor = 1.0
+        if current_suv_type != "none":
+            revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
+
+        suv_factor = 1.0
+        if new_suv_type != "none":
+            suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
+
+        return revert_suv_factor * suv_factor
+
+    def _compute_suv_factor(self, suv_type: str) -> float:
+        # TODO: update.
+
+        return 1.0

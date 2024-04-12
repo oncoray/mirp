@@ -1,3 +1,4 @@
+import datetime
 import os.path
 import hashlib
 import numpy as np
@@ -9,7 +10,7 @@ from warnings import warn
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
-    supported_mask_modalities, get_pydicom_meta_tag
+    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time
 
 
 class ImageDicomFile(ImageFile):
@@ -393,6 +394,66 @@ class ImageDicomFile(ImageFile):
         image_data = image_data * rescale_slope + rescale_intercept
 
         return image_data
+
+    def _get_acquisition_start_time(self) -> datetime.datetime:
+        self.load_metadata()
+
+        # Start of image acquisition. Prefer Acquisition Datetime (0x0008, 0x002A).
+        acquisition_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x002A),
+            tag_type="str"
+        )
+        acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+
+        # Fall back to Acquisition Date (0x0008, 0x002A) and Acquisition Time (0x0008, 0x0032).
+        if acquisition_ref_time is None:
+            acquisition_start_date = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0022),
+                tag_type="str"
+            )
+            acquisition_start_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0032),
+                tag_type="str"
+            )
+            acquisition_ref_time = convert_dicom_time(
+                date_str=acquisition_start_date,
+                time_str=acquisition_start_time
+            )
+
+        # Fall back to Private GE Acquisition DateTime (0x0009, 0x100d).
+        if acquisition_ref_time is None:
+            acquisition_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0009, 0x100d),
+                tag_type="str"
+            )
+            acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+
+        # Fall back to Series Date and Series Time (
+        if acquisition_ref_time is None:
+            acquisition_start_date = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0021),
+                tag_type="str"
+            )
+            acquisition_start_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0031),
+                tag_type="str"
+            )
+            acquisition_ref_time = convert_dicom_time(
+                date_str=acquisition_start_date,
+                time_str=acquisition_start_time
+            )
+
+        # Final check.
+        if acquisition_ref_time is None:
+            raise ValueError(f"Acquisition start time cannot be determined from DICOM metadata in {self.file_path}.")
+
+        return acquisition_ref_time
 
 
 class MaskDicomFile(ImageDicomFile, MaskFile):

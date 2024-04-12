@@ -7,7 +7,7 @@ import numpy as np
 from mirp._data_import.utilities import convert_dicom_time, get_pydicom_meta_tag, set_pydicom_meta_tag
 
 
-class SUVscalingObj:
+class SUVscalingObj:  # pragma: no cover
 
     def __init__(self, dcm):
 
