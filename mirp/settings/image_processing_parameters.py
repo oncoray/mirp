@@ -36,6 +36,16 @@ class ImagePostProcessingClass:
         comparable between patients, these are converted to standardised uptake values. The following are possible:
 
         * "body_weight": activity is normalised by body weight.
+        * "body_surface_area": activity is normalised by body surface area according to DuBois (A formula to estimate
+          the approximate surface area if height and weight be known. Arch intern med. 1916;17:863-71).
+        * "lean_body_mass": activity is normalised by lean body mass according to James et al. (DHSS/MRC Group on
+          Obesity Research, James WP, Waterlow JC. Research on Obesity: A Report of the DHSS/MRC Group; Compiled by
+          WPT James. HM Stationery Office; 1976).
+        * "lean_body_mass_bmi": activity is normalised by lean body mass according to Janmahasatian et al.
+          (Quantification of lean bodyweight. Clinical pharmacokinetics. 2005 Oct;44:1051-65).
+        * "ideal_body_weight": activity is normalised by ideal body weight according to Zasadny and Wahl (
+          Standardized uptake values of normal tissues at PET with 2-[fluorine-18]-fluoro-2-deoxy-D-glucose:
+          variations with body weight and a method for correction. Radiology. 1993 Dec;189(3):847-50).
         * "none": activity is not normalised.
 
         .. note::
@@ -203,10 +213,13 @@ class ImagePostProcessingClass:
         self.convergence_threshold: None | float = bias_field_convergence_threshold
 
         # Check that pet_suv_conversion has the correct values.
-        if pet_suv_conversion not in ["body_weight", "none"]:
+        if pet_suv_conversion not in [
+            "body_weight", "body_surface_area", "lean_body_mass", "lean_body_mass_bmi", "ideal_body_weight", "none"
+        ]:
             raise ValueError(
                 f"The pet_suv_conversion parameter is expected to have one of the following values: ",
-                f"'body_weight', 'none'. Found: {pet_suv_conversion}"
+                f"'body_weight', `body_surface_area`, `lean_body_mass`, `lean_body_mass_bmi`, `ideal_body_weight` or "
+                f"'none'. Found: {pet_suv_conversion}"
             )
 
         # Set suv_conversion_type parameter.

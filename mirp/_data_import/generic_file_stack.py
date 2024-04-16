@@ -190,7 +190,7 @@ class ImageFileStack(ImageFile):
     def load_data(self, **kwargs):
         # Load data for underlying files in the order indicated by self.image_file_objects.
         for image_file_object in self.image_file_objects:
-            image_file_object.load_data()
+            image_file_object.load_data(**kwargs)
 
     def stack_slices(self):
         if self.image_data is not None:

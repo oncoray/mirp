@@ -781,7 +781,7 @@ class ImageDicomFilePT(ImageDicomFile):
                 # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
                 norm_factor = (
                         1.10 * patient_weight - 128.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                        + 1.07 * patient_weight - 148.0 * ( patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                        + 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
                 ) / 2.0
             else:
                 raise ValueError("unreachable code")
