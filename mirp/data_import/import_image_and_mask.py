@@ -135,6 +135,10 @@ def import_image_and_mask(
     if len(image_list) == 0:
         raise ValueError(f"No images were found. Possible reasons are lack of images with the preferred modality.")
 
+    # Remove metadata (if any) - anything relevant can be loaded later.
+    for image in image_list:
+        image.remove_metadata()
+
     if mask is not None:
         # Generate list of masks from mask.
         mask_list = import_mask(
@@ -150,6 +154,10 @@ def import_image_and_mask(
 
         if len(mask_list) == 0:
             raise ValueError(f"No masks were found. Possible reasons are lack of masks with the preferred modality.")
+
+        # Remove metadata (if any) - anything relevant can be loaded later.
+        for mask in mask_list:
+            mask.remove_metadata()
 
         # Determine association strategy, if this is unset.
         possible_association_strategy = set_association_strategy(
