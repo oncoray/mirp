@@ -99,8 +99,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def load_data(self, **kwargs):
         pass
 
-    @staticmethod
-    def _get_limited_metadata_tags():
+    def _get_limited_metadata_tags(self):
         tags = super()._get_limited_metadata_tags()
 
         tags += [

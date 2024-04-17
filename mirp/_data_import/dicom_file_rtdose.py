@@ -121,8 +121,7 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
             self.image_dimension = dimensions
 
-    @staticmethod
-    def _get_limited_metadata_tags():
+    def _get_limited_metadata_tags(self):
         tags = super()._get_limited_metadata_tags()
 
         tags += [
