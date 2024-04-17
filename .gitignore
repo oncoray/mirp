@@ -14,3 +14,4 @@ test/data/configuration_files/settings.xml
 .coverage
 /docs_source/source/.ipynb_checkpoints
 /docs_source/source/sts_images
+/prof
