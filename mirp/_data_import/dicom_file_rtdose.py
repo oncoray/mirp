@@ -114,9 +114,9 @@ class ImageDicomFileRTDose(ImageDicomFile):
             self.load_metadata(limited=True)
 
             dimensions = tuple([
-                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x008), tag_type="int"),
-                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x010), tag_type="int"),
-                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x011), tag_type="int")
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0008), tag_type="int"),
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0010), tag_type="int"),
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0011), tag_type="int")
             ])
 
             self.image_dimension = dimensions
