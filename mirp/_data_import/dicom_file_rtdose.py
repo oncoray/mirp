@@ -134,14 +134,11 @@ class ImageDicomFileRTDose(ImageDicomFile):
             raise ValueError(f"A path to a file was expected, but not present.")
 
         # Load metadata.
-        self.load_metadata()
-
-        # Read
-        dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
-        image_data = dcm.pixel_array.astype(np.float32)
+        self.load_metadata(include_image=True)
+        image_data = self.image_metadata.pixel_array.astype(np.float32)
 
         # Update data with dose grid scaling
-        dose_grid_scaling = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x3004, 0x000E), tag_type="float", default=1.0)
+        dose_grid_scaling = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x3004, 0x000E), tag_type="float", default=1.0)
         image_data = image_data * dose_grid_scaling
 
         self.image_data = image_data

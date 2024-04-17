@@ -414,15 +414,12 @@ class ImageDicomFile(ImageFile):
             raise ValueError(f"A path to a file was expected, but not present.")
 
         # Load metadata.
-        self.load_metadata()
-
-        # Read
-        dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
-        image_data = dcm.pixel_array.astype(np.float32)
+        self.load_metadata(include_image=True)
+        image_data = self.image_metadata.pixel_array.astype(np.float32)
 
         # Update data with scale and intercept. These may change per slice.
-        rescale_intercept = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
-        rescale_slope = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
+        rescale_intercept = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
+        rescale_slope = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
         image_data = image_data * rescale_slope + rescale_intercept
 
         return image_data
