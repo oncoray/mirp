@@ -424,6 +424,26 @@ class ImageDicomFile(ImageFile):
 
         return image_data
 
+    @staticmethod
+    def _get_limited_metadata_tags():
+        # Limited tags are read to populate basic
+        return [
+            (0x0008, 0x0018),  # SOP instance UID
+            (0x0008, 0x1030),  # series description
+            (0x0008, 0x103E),  # study description
+            (0x0010, 0x0010),  # patient name
+            (0x0010, 0x0020),  # patient id
+            (0x0018, 0x0050),  # slice thickness
+            (0x0020, 0x000E),  # series instance UID
+            (0x0020, 0x0010),  # study id
+            (0x0020, 0x0032),  # origin
+            (0x0020, 0x0037),  # orientation
+            (0x0020, 0x0052),  # frame of reference UID
+            (0x0028, 0x0010),  # pixel rows
+            (0x0028, 0x0011),  # pixel columns
+            (0x0028, 0x0030)  # pixel spacing
+        ]
+
     def _get_acquisition_start_time(self) -> datetime.datetime:
         self.load_metadata()
 
