@@ -344,8 +344,16 @@ class ImageDicomFile(ImageFile):
 
         return super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
 
-    def load_metadata(self):
-        if self.image_metadata is not None:
+    def load_metadata(self, limited=False, include_image=False):
+        if include_image:
+            limited = False
+
+        # Limited metadata exists and limited metadata is sufficient.
+        if self.image_metadata is not None and self.is_limited_metadata and limited:
+            return
+
+        # A full image metadata set exists.
+        if self.image_metadata is not None and not self.is_limited_metadata:
             return
 
         if self.file_path is None or not os.path.exists(self.file_path):
@@ -354,10 +362,12 @@ class ImageDicomFile(ImageFile):
 
         dcm = dcmread(
             self.file_path,
-            stop_before_pixels=True,
-            force=True)
+            stop_before_pixels=not include_image,
+            force=True
+        )
 
         self.image_metadata = dcm
+        self.is_limited_metadata = limited
 
     def load_data(self, **kwargs):
         raise NotImplementedError(

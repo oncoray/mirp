@@ -122,7 +122,7 @@ class ImageITKFile(ImageFile):
     def create(self):
         return self
 
-    def load_metadata(self):
+    def load_metadata(self, **kwargs):
         if self.image_metadata is not None:
             return
 

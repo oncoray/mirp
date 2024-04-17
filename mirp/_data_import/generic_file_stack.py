@@ -182,10 +182,10 @@ class ImageFileStack(ImageFile):
             for ii in range(len(position_table))
         ]
 
-    def load_metadata(self):
+    def load_metadata(self, limited=False, include_image=False):
         # Load metadata for underlying files in the order indicated by self.image_file_objects.
         for image_file_object in self.image_file_objects:
-            image_file_object.load_metadata()
+            image_file_object.load_metadata(limited=limited, include_image=include_image)
 
     def remove_metadata(self):
         for image_file_object in self.image_file_objects:

@@ -66,6 +66,7 @@ class ImageFile(BaseImage):
 
         # Add metadata
         self.image_metadata = None
+        self.is_limited_metadata = False
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
@@ -656,7 +657,7 @@ class ImageFile(BaseImage):
             f"implementation for subclasses."
         )
 
-    def load_metadata(self):
+    def load_metadata(self, limited=False, include_image=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of load_metadata. Please specify "
             f"implementation for subclasses."
@@ -842,7 +843,7 @@ class MaskFile(ImageFile):
             f"implementation for subclasses."
         )
 
-    def load_metadata(self):
+    def load_metadata(self, **kwargs):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of load_metadata. Please specify "
             f"implementation for subclasses."
