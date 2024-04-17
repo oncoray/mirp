@@ -597,9 +597,6 @@ class ImageFile(BaseImage):
         return list(itertools.chain.from_iterable(file_name_parts))
 
     def complete(self, remove_metadata=False, force=False):
-        # Load metadata.
-        self.load_metadata()
-
         self._complete_modality()
         self._complete_sample_name()
         self._complete_image_dimensions(force=force)
