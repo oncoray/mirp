@@ -88,7 +88,7 @@ class ImageDicomFile(ImageFile):
             return True
 
         # Checks requires metadata.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         # Perform general checks.
         if not super().check(raise_error=raise_error):
@@ -165,7 +165,7 @@ class ImageDicomFile(ImageFile):
         from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
 
         # Load metadata so that the modality tag can be read.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
@@ -541,7 +541,7 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         from mirp._data_import.dicom_file_seg import MaskDicomFileSEG
 
         # Load metadata so that the modality tag can be read.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
