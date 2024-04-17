@@ -192,13 +192,13 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                 continue
 
             # Complete a copy of the current object.
-            temp_mask_object = self.copy()
-            temp_mask_object.image_data = image_data
-            temp_mask_object.image_origin = image.image_origin
-            temp_mask_object.image_spacing = image.image_spacing
-            temp_mask_object.image_dimension = image.image_dimension
-            temp_mask_object.image_orientation = image.image_orientation
-            temp_mask_object.complete()
+            temp_mask_object = MaskDicomFile(
+                image_data=image_data,
+                image_origin=image.image_origin,
+                image_spacing=image.image_spacing,
+                image_dimensions=image.image_dimension,
+                image_orientation=image.image_orientation
+            )
             temp_mask_object.update_image_data()
 
             current_roi_name = [
