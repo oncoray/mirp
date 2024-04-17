@@ -57,7 +57,7 @@ class ImageDicomFileStack(ImageFileStack):
         """
 
         # Load metadata of every slice.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         self._complete_modality()
         self._complete_sample_name()

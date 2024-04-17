@@ -42,6 +42,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
     def _complete_frame_of_reference_uid(self):
         if self.frame_of_reference_uid is None:
+            self.load_metadata(limited=True)
+
             # Try to obtain a frame of reference UID
             if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0052)):
                 if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0052), tag_type="str") is not None:

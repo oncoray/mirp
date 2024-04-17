@@ -104,17 +104,13 @@ class ImageFileStack(ImageFile):
 
     def _complete_sample_name(self):
         if self.sample_name is None:
-            image_object = copy.deepcopy(self.image_file_objects[0])
-            image_object._complete_sample_name()
-
-            self.sample_name = image_object.sample_name
+            self.image_file_objects[0]._complete_sample_name()
+            self.sample_name = self.image_file_objects[0].sample_name
 
     def _complete_modality(self):
         if self.modality is None:
-            image_object = copy.deepcopy(self.image_file_objects[0])
-            image_object._complete_modality()
-
-            self.modality = image_object.modality
+            self.image_file_objects[0]._complete_modality()
+            self.modality = self.image_file_objects[0].modality
 
     def _complete_image_origin(self, force=False):
         # Image origin and other image-related aspects are set using the complete method of subclasses.

@@ -205,19 +205,24 @@ class ImageDicomFile(ImageFile):
         super().complete(remove_metadata=False, force=force)
 
         # Set SOP instance UID.
-        self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
+        if self.sop_instance_uid is None:
+            self.load_metadata(limited=True)
+            self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
 
         # Set Frame of Reference UID (if any)
         self._complete_frame_of_reference_uid()
 
         # Set series UID
-        self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x000E), tag_type="str")
+        if self.series_instance_uid is None:
+            self.load_metadata(limited=True)
+            self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x000E), tag_type="str")
 
         if remove_metadata:
             self.remove_metadata()
 
     def _complete_modality(self):
         if self.modality is None:
+            self.load_metadata(limited=True)
             self.modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str")
 
         if self.modality is None:
@@ -230,6 +235,10 @@ class ImageDicomFile(ImageFile):
     def _complete_sample_name(self):
         # Set sample name -- note that if sample_name is a (single) string, it is neither replaced nor updated.
         if self.sample_name is None or isinstance(self.sample_name, list):
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             # Consider the following DICOM elements:
             # patient id, study id, patient name, series description and study description.
             # These are explicitly ordered by relevance for setting the sample name.
@@ -264,6 +273,9 @@ class ImageDicomFile(ImageFile):
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
 
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             origin = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0032), tag_type="mult_float")[::-1]
             self.image_origin = tuple(origin)
 
@@ -272,6 +284,9 @@ class ImageDicomFile(ImageFile):
             # Orientation needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
 
             orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
@@ -288,6 +303,9 @@ class ImageDicomFile(ImageFile):
             # Image spacing needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
 
             # Get pixel-spacing.
             spacing = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0030), tag_type="mult_float")
@@ -308,6 +326,9 @@ class ImageDicomFile(ImageFile):
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
 
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             dimensions = tuple([
                 1,
                 get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x010), tag_type="int"),
@@ -318,6 +339,7 @@ class ImageDicomFile(ImageFile):
 
     def _complete_frame_of_reference_uid(self):
         if self.frame_of_reference_uid is None:
+            self.load_metadata(limited=True)
             self.frame_of_reference_uid = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0052),

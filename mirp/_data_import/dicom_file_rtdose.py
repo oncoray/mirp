@@ -50,6 +50,8 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
     def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
 
             # This is orientation for x and y directions.
             orientation: list[float] = get_pydicom_meta_tag(
@@ -65,6 +67,9 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
     def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
 
             # Get pixel-spacing.
             spacing = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0030), tag_type="mult_float")
@@ -104,6 +109,10 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
     def _complete_image_dimensions(self, force=False):
         if self.image_dimension is None:
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             dimensions = tuple([
                 get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x008), tag_type="int"),
                 get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x010), tag_type="int"),
