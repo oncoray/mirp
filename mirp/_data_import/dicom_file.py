@@ -382,11 +382,19 @@ class ImageDicomFile(ImageFile):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}")
 
-        dcm = dcmread(
-            self.file_path,
-            stop_before_pixels=not include_image,
-            force=True
-        )
+        if limited:
+            dcm = dcmread(
+                self.file_path,
+                stop_before_pixels=True,
+                force=True,
+                specific_tags=self._get_limited_metadata_tags()
+            )
+        else:
+            dcm = dcmread(
+                self.file_path,
+                stop_before_pixels=not include_image,
+                force=True
+            )
 
         self.image_metadata = dcm
         self.is_limited_metadata = limited
