@@ -429,6 +429,7 @@ class ImageDicomFile(ImageFile):
         # Limited tags are read to populate basic
         return [
             (0x0008, 0x0018),  # SOP instance UID
+            (0x0008, 0x0060),  # modality
             (0x0008, 0x1030),  # series description
             (0x0008, 0x103E),  # study description
             (0x0010, 0x0010),  # patient name
