@@ -88,6 +88,9 @@ class ImageFile(BaseImage):
     def copy(self):
         return copy.deepcopy(self)
 
+    def on_file_system(self):
+        return self.file_path is None or self.dir_path is None
+
     def get_identifiers(self, as_hash=False) -> dict | bytes:
         """
         General identifiers for images. Note that image_origin is not included, as this should be different for every

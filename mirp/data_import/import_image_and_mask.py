@@ -209,9 +209,9 @@ def import_image_and_mask(
         for image in image_list:
             image.associated_masks = [MaskFullImage()]
 
-    # Ensure that we are working with deep copies from this point - we don't want to propagate changes to masks,
-    # images by reference.
-    image_list = [image.copy() for image in image_list]
+    # In case we are not working with file-based images, ensure that we are working with deep copies from this point -
+    # we don't want to propagate changes to masks and images by reference.
+    image_list = [image if image.on_file_system() else image.copy() for image in image_list]
 
     # Set sample names. First we check if all sample names are missing.
     if all(image.sample_name is None for image in image_list):
