@@ -51,5 +51,5 @@ def test_pet_suv_conversion_body_surface_area():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 8.0 < feature_data["stat_max"].values[0] < 8.05
-    assert 0.15 < feature_data["stat_min"].values[0] < 0.20
+    assert 0.195 < feature_data["stat_max"].values[0] < 0.200
+    assert 0.004 < feature_data["stat_min"].values[0] < 0.005

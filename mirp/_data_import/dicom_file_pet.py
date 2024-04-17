@@ -742,7 +742,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Body surface area-corrected SUV ------------------------------------------------------------------------------
         if suv_type == "body_surface_area":
             # Kim et al. Journal of Nuclear Medicine. Volume 35, No. 1, January 1994. pp 164-167
-            return patient_weight ** 0.425 * (patient_height * 100.0) ** 0.725 * 0.007184 / administered_dose
+            return 1000.0 * patient_weight ** 0.425 * (patient_height * 100.0) ** 0.725 * 0.007184 / administered_dose
 
         # Require patient biological sex.
         patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
