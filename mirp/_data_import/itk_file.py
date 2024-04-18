@@ -70,6 +70,8 @@ class ImageITKFile(ImageFile):
 
     def _complete_image_origin(self, force=False):
         if self.image_origin is None:
+            self.load_metadata()
+
             # Get dimensions, as this determines what can be meaningfully read.
             n_dimensions = self.image_metadata.GetNumberOfDimensions()
 
@@ -83,6 +85,8 @@ class ImageITKFile(ImageFile):
 
     def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
+            self.load_metadata()
+
             # Get dimensions, as this determines what can be meaningfully read.
             n_dimensions = self.image_metadata.GetNumberOfDimensions()
 
@@ -95,6 +99,8 @@ class ImageITKFile(ImageFile):
 
     def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
+            self.load_metadata()
+
             # Get dimensions, as this determines what can be meaningfully read.
             n_dimensions = self.image_metadata.GetNumberOfDimensions()
 
@@ -107,6 +113,8 @@ class ImageITKFile(ImageFile):
             self.image_spacing = tuple(spacing)
 
     def _complete_image_dimensions(self, force=False):
+        self.load_metadata()
+
         if self.image_dimension is None:
             # Get dimensions, as this determines what can be meaningfully read.
             n_dimensions = self.image_metadata.GetNumberOfDimensions()
