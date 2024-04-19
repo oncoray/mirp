@@ -24,6 +24,9 @@ def read_image_and_masks(
         to_numpy=False,
         **kwargs
 ) -> tuple[np.ndarray | GenericImage, list[np.ndarray] | list[BaseMask]]:
+    # Read image from file.
+    image_out = image.to_object(**kwargs).promote()
+
     mask_list = []
     if image.associated_masks is not None:
         mask_list = image.associated_masks
@@ -36,11 +39,8 @@ def read_image_and_masks(
     # Remove None entries.
     mask_list = [mask for mask in mask_list if mask is not None]
 
-    # Read image from file.
-    image = image.to_object(**kwargs).promote()
-
     if to_numpy:
-        image = image.get_voxel_grid()
+        image_out = image_out.get_voxel_grid()
         mask_list = [mask.roi.get_voxel_grid() for mask in mask_list]
 
-    return image, mask_list
+    return image_out, mask_list
