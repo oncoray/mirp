@@ -35,10 +35,17 @@ MIRP
 
    contributing
 
-Welcome to MIRP! If you need to analyse medical images using a standardised workflow, you have come to the right place!
+Welcome to MIRP! If you need to quantitatively analyse medical images using a standardised workflow, you have come to
+the right place!
 
 What can MIRP help you do?
 --------------------------
+MIRP is a python package for quantitative analysis of medical images. It focuses on processing images for integration
+with radiomics workflows. These workflows either use quantitative features computed using MIRP, or directly use MIRP
+to process images as input for neural networks and other deep learning models.
+
+.. image:: images/positioning_mirp.svg
+   :align: left
 
 
 Supported image and mask modalities
