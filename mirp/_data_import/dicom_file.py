@@ -453,9 +453,11 @@ class ImageDicomFile(ImageFile):
             (0x0020, 0x0032),  # origin
             (0x0020, 0x0037),  # orientation
             (0x0020, 0x0052),  # frame of reference UID
+            (0x0028, 0x0008),  # number of frames
             (0x0028, 0x0010),  # pixel rows
             (0x0028, 0x0011),  # pixel columns
-            (0x0028, 0x0030)  # pixel spacing
+            (0x0028, 0x0030),  # pixel spacing
+            (0x3004, 0x000C)  # grid frame offset vector
         ]
 
     def _get_acquisition_start_time(self) -> datetime.datetime:
@@ -595,6 +597,5 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
 
         tags += [
             (0x3006, 0x0020),  # Structure set roi sequence
-            (0x0028, 0x0008),  # number of frames
-            (0x3004, 0x000C)  # grid frame offset vector
+            (0x0028, 0x0008)  # number of frames
         ]
