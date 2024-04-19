@@ -13,6 +13,7 @@ from mirp._data_import.numpy_file_stack import MaskNumpyFileStack
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_single_mask_import():
 
     # Read a Nifti image directly.
@@ -109,6 +110,7 @@ def test_single_mask_import():
     assert mask_list[0].modality == "generic_mask"
 
 
+@pytest.mark.ci
 def test_multiple_mask_import():
     # Read Nifti _masks directly.
     mask_list = import_mask([
@@ -127,8 +129,7 @@ def test_multiple_mask_import():
     assert len(mask_list) == 2
     assert all(isinstance(mask_object, MaskDicomFileRTSTRUCT) for mask_object in mask_list)
     assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
-    assert mask_list[0].sample_name == "STS_002"
-    assert mask_list[1].sample_name == "STS_003"
+    assert {mask_list[0].sample_name, mask_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read a numpy mask directly.
     mask_list = import_mask([
@@ -156,8 +157,7 @@ def test_multiple_mask_import():
     assert len(mask_list) == 2
     assert all(isinstance(mask_object, MaskITKFile) for mask_object in mask_list)
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert mask_list[0].sample_name == "STS_002"
-    assert mask_list[1].sample_name == "STS_003"
+    assert {mask_list[0].sample_name, mask_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read DICOM RTSTRUCT files for specific samples.
     mask_list = import_mask(
@@ -167,8 +167,7 @@ def test_multiple_mask_import():
     assert len(mask_list) == 2
     assert all(isinstance(mask_object, MaskDicomFileRTSTRUCT) for mask_object in mask_list)
     assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
-    assert mask_list[0].sample_name == "STS_002"
-    assert mask_list[1].sample_name == "STS_003"
+    assert {mask_list[0].sample_name, mask_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read numpy _masks for specific samples.
     mask_list = import_mask(
@@ -178,8 +177,7 @@ def test_multiple_mask_import():
     assert len(mask_list) == 2
     assert all(isinstance(mask_object, MaskNumpyFile) for mask_object in mask_list)
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert mask_list[0].sample_name == "STS_002"
-    assert mask_list[1].sample_name == "STS_003"
+    assert {mask_list[0].sample_name, mask_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read numpy mask stacks for specific samples.
     mask_list = import_mask(
@@ -189,8 +187,7 @@ def test_multiple_mask_import():
     assert len(mask_list) == 2
     assert all(isinstance(mask_object, MaskNumpyFileStack) for mask_object in mask_list)
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
-    assert mask_list[0].sample_name == "STS_002"
-    assert mask_list[1].sample_name == "STS_003"
+    assert {mask_list[0].sample_name, mask_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read Nifti _masks for all samples.
     mask_list = import_mask(
@@ -207,9 +204,8 @@ def test_multiple_mask_import():
     assert len(mask_list) == 3
     assert all(isinstance(mask_object, MaskDicomFileRTSTRUCT) for mask_object in mask_list)
     assert all(mask_object.modality == "rtstruct" for mask_object in mask_list)
-    assert mask_list[0].sample_name == "STS_001"
-    assert mask_list[1].sample_name == "STS_002"
-    assert mask_list[2].sample_name == "STS_003"
+    assert {mask_list[0].sample_name, mask_list[1].sample_name, mask_list[2].sample_name} == \
+           {"STS_001", "STS_002", "STS_003"}
 
     # Read numpy _masks for all samples.
     mask_list = import_mask(
@@ -226,6 +222,7 @@ def test_multiple_mask_import():
     assert all(isinstance(mask_object, MaskNumpyFileStack) for mask_object in mask_list)
 
 
+@pytest.mark.ci
 def test_single_mask_import_flat():
     # Read a Nifti mask directly.
     mask_list = import_mask(
@@ -274,6 +271,7 @@ def test_single_mask_import_flat():
             sample_name="STS_001")
 
 
+@pytest.mark.ci
 def test_multiple_mask_import_flat():
 
     # Read Nifti _masks for specific samples.
@@ -396,6 +394,7 @@ def test_multiple_mask_import_flat():
     assert all(mask_object.modality == "generic_mask" for mask_object in mask_list)
 
 
+@pytest.mark.ci
 def test_mask_import_flat_poor_naming():
     """
     Tests whether we can select files if their naming convention is poor, e.g. sample_1, sample_11, sample_111.

@@ -1,6 +1,6 @@
 from mirp.data_import.import_image import import_image
 from mirp.data_import.import_mask import import_mask
-from mirp._data_import.generic_file import ImageFile, MaskFile
+from mirp._data_import.generic_file import ImageFile, MaskFile, MaskFullImage
 from mirp._data_import.dicom_file import ImageDicomFile, MaskDicomFile
 from mirp._data_import.dicom_file_stack import ImageDicomFileStack
 from mirp.utilities.utilities import random_string
@@ -18,7 +18,7 @@ def import_image_and_mask(
         mask_file_type: None | str = None,
         mask_modality: None | str | list[str] = None,
         mask_sub_folder: None | str = None,
-        roi_name: None | str | list[str] | dict[str | str] = None,
+        roi_name: None | str | list[str] | dict[str, str] = None,
         association_strategy: None | str | list[str] = None,
         stack_images: str = "auto",
         stack_masks: str = "auto"
@@ -81,7 +81,7 @@ def import_image_and_mask(
         Fixed directory substructure where mask files are located. If None, the directory substructure is not used for
         filtering files.
 
-    roi_name: str, optional, default: None
+    roi_name: str or list of str or dict, optional, default: None
         Name of the regions of interest that should be assessed.
 
     association_strategy: {"frame_of_reference", "sample_name", "file_distance", "file_name_similarity",  "list_order", "position", "single_image"}
@@ -109,7 +109,16 @@ def import_image_and_mask(
     list[ImageFile]
         The functions returns a list of ImageFile objects, if any were found with the specified filters.
     """
-    if mask is None:
+
+    # If mask = None, this can mean several things. Here we check that mask should not be interpreted as having the
+    # same meaning as image.
+    if mask is None and (
+            mask_name is not None or mask_sub_folder is not None or mask_modality is not None or
+            mask_file_type is not None or roi_name is not None
+    ):
+        mask = image
+
+    elif mask is None and isinstance(image, str) and image.endswith(".xml"):
         mask = image
 
     # Generate list of images.
@@ -123,79 +132,94 @@ def import_image_and_mask(
         stack_images=stack_images
     )
 
-    # Generate list of images.
-    mask_list = import_mask(
-        mask,
-        sample_name=sample_name,
-        mask_name=mask_name,
-        mask_file_type=mask_file_type,
-        mask_modality=mask_modality,
-        mask_sub_folder=mask_sub_folder,
-        stack_masks=stack_masks,
-        roi_name=roi_name
-    )
-
     if len(image_list) == 0:
         raise ValueError(f"No images were found. Possible reasons are lack of images with the preferred modality.")
-    if len(mask_list) == 0:
-        raise ValueError(f"No masks were found. Possible reasons are lack of masks with the preferred modality.")
 
-    # Determine association strategy, if this is unset.
-    possible_association_strategy = set_association_strategy(
-        image_list=image_list,
-        mask_list=mask_list
-    )
+    # Remove metadata (if any) - anything relevant can be loaded later.
+    for image in image_list:
+        image.remove_metadata()
 
-    if association_strategy is None:
-        association_strategy = possible_association_strategy
-    elif isinstance(association_strategy, str):
-        association_strategy = [association_strategy]
-
-    if not isinstance(association_strategy, set):
-        association_strategy = set(association_strategy)
-
-    # Test association strategy.
-    unavailable_strategy = association_strategy - possible_association_strategy
-    if len(unavailable_strategy) > 0:
-        raise ValueError(
-            f"One or more strategies for associating images and masks are not available for the provided image and "
-            f"mask set: {', '.join(list(unavailable_strategy))}. Only the following strategies are available: "
-            f"{'. '.join(list(possible_association_strategy))}"
+    if mask is not None:
+        # Generate list of masks from mask.
+        mask_list = import_mask(
+            mask,
+            sample_name=sample_name,
+            mask_name=mask_name,
+            mask_file_type=mask_file_type,
+            mask_modality=mask_modality,
+            mask_sub_folder=mask_sub_folder,
+            stack_masks=stack_masks,
+            roi_name=roi_name
         )
 
-    if len(possible_association_strategy) == 0:
-        raise ValueError(
-            f"No strategies for associating images and masks are available, indicating that there is no clear way to "
-            f"establish an association."
+        if len(mask_list) == 0:
+            raise ValueError(f"No masks were found. Possible reasons are lack of masks with the preferred modality.")
+
+        # Remove metadata (if any) - anything relevant can be loaded later.
+        for mask in mask_list:
+            mask.remove_metadata()
+
+        # Determine association strategy, if this is unset.
+        possible_association_strategy = set_association_strategy(
+            image_list=image_list,
+            mask_list=mask_list
         )
 
-    # Start association.
-    if association_strategy == {"list_order"}:
-        # If only the list_order strategy is available, use this.
-        for ii, image in enumerate(image_list):
-            image.associated_masks = [mask_list[ii]]
+        if association_strategy is None:
+            association_strategy = possible_association_strategy
+        elif isinstance(association_strategy, str):
+            association_strategy = [association_strategy]
 
-    elif association_strategy == {"single_image"}:
-        # If single_image is the only strategy, use this.
-        image_list[0].associated_masks = mask_list
+        if not isinstance(association_strategy, set):
+            association_strategy = set(association_strategy)
 
-    else:
-        for ii, image in enumerate(image_list):
-            image.associate_with_mask(
-                mask_list=mask_list,
-                association_strategy=association_strategy
+        # Test association strategy.
+        unavailable_strategy = association_strategy - possible_association_strategy
+        if len(unavailable_strategy) > 0:
+            raise ValueError(
+                f"One or more strategies for associating images and masks are not available for the provided image and "
+                f"mask set: {', '.join(list(unavailable_strategy))}. Only the following strategies are available: "
+                f"{'. '.join(list(possible_association_strategy))}"
             )
 
-        if all(image.associated_masks is None for image in image_list):
-            if "single_image" in association_strategy:
-                image_list[0].associated_masks = mask_list
-            elif "list_order" in association_strategy:
-                for ii, image in enumerate(image_list):
-                    image.associated_masks = [mask_list[ii]]
+        if len(possible_association_strategy) == 0:
+            raise ValueError(
+                f"No strategies for associating images and masks are available, indicating that there is no clear way to "
+                f"establish an association."
+            )
 
-    # Ensure that we are working with deep copies from this point - we don't want to propagate changes to masks,
-    # images by reference.
-    image_list = [image.copy() for image in image_list]
+        # Start association.
+        if association_strategy == {"list_order"}:
+            # If only the list_order strategy is available, use this.
+            for ii, image in enumerate(image_list):
+                image.associated_masks = [mask_list[ii]]
+
+        elif association_strategy == {"single_image"}:
+            # If single_image is the only strategy, use this.
+            image_list[0].associated_masks = mask_list
+
+        else:
+            for ii, image in enumerate(image_list):
+                image.associate_with_mask(
+                    mask_list=mask_list,
+                    association_strategy=association_strategy
+                )
+
+            if all(image.associated_masks is None for image in image_list):
+                if "single_image" in association_strategy:
+                    image_list[0].associated_masks = mask_list
+                elif "list_order" in association_strategy:
+                    for ii, image in enumerate(image_list):
+                        image.associated_masks = [mask_list[ii]]
+
+    else:
+        # Generate full masks.
+        for image in image_list:
+            image.associated_masks = [MaskFullImage()]
+
+    # In case we are not working with file-based images, ensure that we are working with deep copies from this point -
+    # we don't want to propagate changes to masks and images by reference.
+    image_list = [image if image.on_file_system() else image.copy() for image in image_list]
 
     # Set sample names. First we check if all sample names are missing.
     if all(image.sample_name is None for image in image_list):
@@ -211,11 +235,12 @@ def import_image_and_mask(
 
         elif all(image.file_name is not None for image in image_list):
             for image in image_list:
-                image.set_sample_name(sample_name=image.file_name)
+                file_sample_name = image.get_sample_name_from_file(must_succeed=True)
+                image.set_sample_name(sample_name=file_sample_name)
 
                 if image.associated_masks is not None:
                     for mask in image.associated_masks:
-                        mask.set_sample_name(sample_name=image.file_name)
+                        mask.set_sample_name(sample_name=file_sample_name)
 
     # Then set any sample names for images that still miss them.
     if any(image.sample_name is None for image in image_list):

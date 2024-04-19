@@ -7,13 +7,13 @@ from mirp._images.mask_image import MaskImage
 from mirp._masks.base_mask import BaseMask
 
 
-class InteractivePlot:
+class InteractivePlot:  # pragma: no cover
 
     def __init__(
             self,
-            axes: plt.Axes,
             image: GenericImage,
-            mask: MaskImage | BaseMask | None = None
+            mask: MaskImage | BaseMask | None = None,
+            slice_id: int | None = None
     ):
 
         # Determine if a mask should be shown.
@@ -24,7 +24,15 @@ class InteractivePlot:
         if show_mask:
             show_mask = not mask.is_empty_mask()
 
+        # Generate figure
+        figure, axes = plt.subplots()
         self.axes = axes
+        self.figure = figure
+
+        # Attach connections
+        self.scroll_cid = self.figure.canvas.mpl_connect("scroll_event", self.onscroll)
+        self.close_cid = self.figure.canvas.mpl_connect("close_event", self.disconnect)
+
         self.image_data = image.get_voxel_grid()
 
         self.mask_data = None
@@ -32,7 +40,10 @@ class InteractivePlot:
             self.mask_data = mask.get_voxel_grid()
 
         self.n_slices, _, _ = image.image_dimension
-        self.slice_index = int(np.floor(self.n_slices / 2.0))
+        if slice_id is None or slice_id < 1 or slice_id > self.n_slices:
+            self.slice_index = int(np.floor(self.n_slices / 2.0))
+        else:
+            self.slice_index = slice_id - 1
 
         # Set plotting options
         colour_map = image.get_colour_map()
@@ -99,3 +110,7 @@ class InteractivePlot:
         if self.mask_layer is not None:
             self.mask_layer.set_data(self.mask_data[self.slice_index, :, :])
             self.mask_layer.axes.figure.canvas.draw()
+
+    def disconnect(self):
+        self.figure.canvas.mpl_disconnect(self.scroll_cid)
+        self.figure.canvas.mpl_disconnect(self.close_cid)

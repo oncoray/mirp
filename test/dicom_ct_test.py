@@ -1,4 +1,5 @@
 import os
+import pytest
 
 from mirp._images.ct_image import CTImage
 from mirp._masks.base_mask import BaseMask
@@ -7,6 +8,7 @@ from mirp.extract_features_and_images import extract_features_and_images
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_basic_ct_feature_extraction():
 
     data = extract_features_and_images(

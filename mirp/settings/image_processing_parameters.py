@@ -16,8 +16,10 @@ class ImagePostProcessingClass:
     ----------
     bias_field_correction: bool, optional, default: False
         Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
-        correction is conducted using the information contained within the mask. Bias-field correction can only be
-        applied to MR imaging.
+        correction is conducted using the information contained within the mask.
+
+        .. note::
+            Bias-field correction can only be applied to MR imaging.
 
     bias_field_correction_n_fitting_levels: int, optional, default: 1
         The number of fitting levels for the N4 bias field correction algorithm.
@@ -28,6 +30,31 @@ class ImagePostProcessingClass:
 
     bias_field_convergence_threshold: float, optional, default: 0.001
         Convergence threshold for N4 bias field correction algorithm.
+
+    pet_suv_conversion: {"body_weight", "none"}, default: "body_weight"
+        Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
+        comparable between patients, these are converted to standardised uptake values. The following are possible:
+
+        * "body_weight": activity is normalised by body weight.
+        * "body_surface_area": activity is normalised by body surface area according to DuBois (A formula to estimate
+          the approximate surface area if height and weight be known. Arch intern med. 1916;17:863-71).
+        * "lean_body_mass": activity is normalised by lean body mass according to James et al. (DHSS/MRC Group on
+          Obesity Research, James WP, Waterlow JC. Research on Obesity: A Report of the DHSS/MRC Group; Compiled by
+          WPT James. HM Stationery Office; 1976).
+        * "lean_body_mass_bmi": activity is normalised by lean body mass according to Janmahasatian et al.
+          (Quantification of lean bodyweight. Clinical pharmacokinetics. 2005 Oct;44:1051-65).
+        * "ideal_body_weight": activity is normalised by ideal body weight according to Zasadny and Wahl (
+          Standardized uptake values of normal tissues at PET with 2-[fluorine-18]-fluoro-2-deoxy-D-glucose:
+          variations with body weight and a method for correction. Radiology. 1993 Dec;189(3):847-50).
+        * "none": activity is not normalised.
+
+        .. note::
+            Conversion of activity to standardised uptake values can only be performed for PET data.
+
+        .. warning::
+            Conversion of activity to standardised uptake values requires metadata related to image acquisition and to
+            the patient. These metadata are only present in DICOM files. MIRP cannot convert activity to standardised
+            uptake values for images in different formats, and this parameter will have no effect.
 
     intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation"}, default: "none"
         Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
@@ -44,7 +71,8 @@ class ImagePostProcessingClass:
           deviation of intensities.
 
         .. note::
-            intensity normalisation may remove any physical meaning of intensity units.
+            Intensity normalisation may remove any physical meaning of intensity units. For example, intensity
+            normalisation of CT images yield intensities that no longer represent Hounsfield Units.
 
     intensity_normalisation_range: list of float, optional
         Required for "range", "relative_range", and "quantile_range" intensity normalisation methods, and defines the
@@ -93,6 +121,7 @@ class ImagePostProcessingClass:
             bias_field_correction_n_fitting_levels: int = 1,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
             bias_field_convergence_threshold: float = 0.001,
+            pet_suv_conversion: str = "body_weight",
             intensity_normalisation: str = "none",
             intensity_normalisation_range: list[float] | None = None,
             intensity_normalisation_saturation: list[float] | None = None,
@@ -182,6 +211,19 @@ class ImagePostProcessingClass:
 
         # Set convergence_threshold attribute.
         self.convergence_threshold: None | float = bias_field_convergence_threshold
+
+        # Check that pet_suv_conversion has the correct values.
+        if pet_suv_conversion not in [
+            "body_weight", "body_surface_area", "lean_body_mass", "lean_body_mass_bmi", "ideal_body_weight", "none"
+        ]:
+            raise ValueError(
+                f"The pet_suv_conversion parameter is expected to have one of the following values: ",
+                f"'body_weight', `body_surface_area`, `lean_body_mass`, `lean_body_mass_bmi`, `ideal_body_weight` or "
+                f"'none'. Found: {pet_suv_conversion}"
+            )
+
+        # Set suv_conversion_type parameter.
+        self.suv_conversion_type = pet_suv_conversion
 
         # Check that intensity_normalisation has the correct values.
         if intensity_normalisation not in ["none", "range", "relative_range", "quantile_range", "standardisation"]:
@@ -355,6 +397,7 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
             "bias_field_convergence_threshold", "float", xml_key="convergence_threshold",
             class_key="convergence_threshold", test=0.1
         ),
+        setting_def("pet_suv_conversion", "str", class_key="suv_conversion_type", test="none"),
         setting_def("intensity_normalisation", "str", test="relative_range"),
         setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
         setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),

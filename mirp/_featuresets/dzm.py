@@ -221,65 +221,6 @@ class DistanceZoneMatrix:
         # Add matrix to object
         self.matrix = df_dzm
 
-    def calculate_matrix_deprecated(self, img_obj, roi_obj, df_img):
-
-        # Check if the input image and roi exist
-        if img_obj.is_missing or roi_obj.roi_intensity is None or df_img is None:
-            self.set_empty()
-            return
-
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLDZM.
-        if not np.any(roi_obj.roi_intensity.get_voxel_grid()):
-            self.set_empty()
-            return
-
-        from skimage.measure import label
-
-        # Define neighbour directions
-        if self.spatial_method == "3d":
-            connectivity = 3
-            img_vol = copy.deepcopy(img_obj.get_voxel_grid())
-            roi_vol = copy.deepcopy(roi_obj.roi_intensity.get_voxel_grid())
-            df_dzm = copy.deepcopy(df_img)
-
-        elif self.spatial_method in ["2d", "2.5d"]:
-            connectivity = 2
-            img_vol = img_obj.get_voxel_grid()[self.slice, :, :]
-            roi_vol = roi_obj.roi_intensity.get_voxel_grid()[self.slice, :, :]
-            df_dzm = copy.deepcopy(df_img[df_img.z == self.slice])
-
-        else:
-            raise ValueError("The spatial method for grey level distance zone matrices should be one of \"2d\", \"2.5d\" or \"3d\".")
-
-        # Check dimensionality and update connectivity if necessary.
-        connectivity = min([connectivity, real_ndim(img_vol)])
-
-        # Set voxels outside the roi to 0.0
-        img_vol[~roi_vol] = 0.0
-
-        # Count the number of voxels within the roi
-        self.n_v = np.sum(roi_vol)
-
-        # Label all connected voxels with the same grey level
-        img_label = label(img_vol, background=0, connectivity=connectivity)
-
-        # Add group labels
-        df_dzm["vol_id"] = np.ravel(img_label)
-
-        # Select minimum group distance for unique groups
-        df_dzm = df_dzm[df_dzm.roi_int_mask].groupby(by=["g", "vol_id"])["border_distance"].min().reset_index(
-
-        ).rename(columns={"border_distance": "d"})
-
-        # Count occurrence of grey level and distance
-        df_dzm = df_dzm.groupby(by=["g", "d"]).size().reset_index(name="n")
-
-        # Rename columns
-        df_dzm.columns = ["i", "d", "n"]
-
-        # Add matrix to object
-        self.matrix = df_dzm
-
     def compute_features(self):
 
         # Create feature table

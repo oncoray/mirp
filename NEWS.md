@@ -1,3 +1,31 @@
+# Version 2.2.1
+
+## Minor changes
+
+- If mask-related parameters are not provided for computing features or processing of images for deep learning, a 
+  mask is generated that covers the entire image.
+
+- Add fall-back methods for missing installation of the `ray` package for parallel processing. This can happen when 
+  a python version is not supported by the `ray` package. `ray` is now a conditional dependency, until that package 
+  is released for python `3.12`.
+
+- The default export format for `deep_learning_processing` and `deep_learning_processing_generator` is now `dict`, 
+  because the sample name is important for matching against observed outcomes.
+
+- `write_file` arguments of `extract_mask_labels` and `extract_image_parameters` were deprecated as these were 
+  redundant.
+
+## Fixes
+
+- Streamlined importing and reading DICOM files results in faster processing of DICOM-based imaging.
+
+- Fixed an indexing issue when attempting to split masks into bulk and rim sections in a slice-wise fashion.
+
+- Fixed an indexing issue in Rank's method for noise estimation.
+
+- Fixed incorrectly named image parameters file export. Instead of `mask_labels.csv`, image parameters are now 
+  correctly exported to `image_metadata.csv`.
+
 # Version 2.2.0
 
 ## Major changes

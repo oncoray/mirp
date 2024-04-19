@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction &mdash; mirp 2.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installing MIRP" href="installation.html" />
+    <link rel="prev" title="MIRP" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-mirp">What is MIRP?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-radiomics">What is radiomics?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contact">Contact</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Introduction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/introduction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="introduction">
+<h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
+<section id="what-is-mirp">
+<h2>What is MIRP?<a class="headerlink" href="#what-is-mirp" title="Link to this heading"></a></h2>
+<p>Medical Image Radiomics Processor (MIRP) is a python package for medical image analysis that is compliant with the
+reference standards of the Image Biomarker Standardisation Initiative (IBSI) <a class="reference internal" href="#zwanenburg2020" id="id1"><span>[Zwanenburg2020]</span></a>,
+<a class="reference internal" href="#whybra2024" id="id2"><span>[Whybra2024]</span></a>. MIRP focuses on radiomics applications  and supports computation of features for conventional
+radiomics and image processing for deep-learning applications.</p>
+</section>
+<section id="what-is-radiomics">
+<h2>What is radiomics?<a class="headerlink" href="#what-is-radiomics" title="Link to this heading"></a></h2>
+<p>Radiomics is the process of using medical images for, e.g., diagnosing disease or predicting how patients respond to
+a treatment. Radiomics involves the use of computer algorithms to process medical images and predicting such outcomes.
+There are two major radiomics branches, defined by what algorithms are used to predict outcomes. The first branch
+(historically) of radiomics is characterised by the use of quantitative (handcrafted) features that are then used by
+machine learning algorithms for tabular data. The second, more recent, branch uses deep learning algorithms to
+directly learn from images themselves.</p>
+<p>For more details, see reviews by Lambin et al. <a class="reference internal" href="#lambin2017" id="id3"><span>[Lambin2017]</span></a> and van Timmeren et al. <a class="reference internal" href="#vantimmeren2020" id="id4"><span>[vanTimmeren2020]</span></a>.</p>
+</section>
+<section id="contact">
+<h2>Contact<a class="headerlink" href="#contact" title="Link to this heading"></a></h2>
+<p>If you have any questions or run into issues, please visit the MIRP <a class="reference external" href="https://github.com/oncoray/mirp">GitHub repository</a>.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="lambin2017" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Lambin2017</a><span class="fn-bracket">]</span></span>
+<p>Lambin P, Leijenaar RTH, Deist TM, Peerlings J, de Jong EEC, van Timmeren J, et al. Radiomics: the
+bridge between medical imaging and personalized medicine. Nat Rev Clin Oncol. 2017;14: 749–762.
+doi:10.1038/nrclinonc.2017.141</p>
+</div>
+<div class="citation" id="vantimmeren2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">vanTimmeren2020</a><span class="fn-bracket">]</span></span>
+<p>van Timmeren JE, Cester D, Tanadini-Lang S, Alkadhi H, Baessler B. Radiomics in medical
+imaging-“how-to” guide and critical reflection. Insights Imaging. 2020;11: 91. doi:10.1186/s13244-020-00887-2</p>
+</div>
+<div class="citation" id="zwanenburg2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Zwanenburg2020</a><span class="fn-bracket">]</span></span>
+<p>Zwanenburg A, Vallieres M, Abdalah MA, Aerts HJWL, Andrearczyk V, Apte A, et al. The Image
+Biomarker Standardization Initiative: Standardized Quantitative Radiomics for High-Throughput Image-based
+Phenotyping. Radiology. 2020;295: 328-338. doi:10.1148/radiol.2020191145</p>
+</div>
+<div class="citation" id="whybra2024" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Whybra2024</a><span class="fn-bracket">]</span></span>
+<p>Whybra P, Zwanenburg A, Andrearczyk V, Schaer R, Apte AP, Ayotte A, et al. The Image Biomarker
+Standardization Initiative: Standardized Convolutional Filters for Reproducible Radiomics and Enhanced Clinical
+Insights. Radiology. 2024;310: e231319. doi:10.1148/radiol.231319</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="MIRP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installing MIRP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

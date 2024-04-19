@@ -84,7 +84,11 @@ class StandardWorkflow(BaseWorkflow):
         logging.info(self._message_start())
 
         # Read image and masks.
-        image, masks = read_image_and_masks(self.image_file, to_numpy=False)
+        image, masks = read_image_and_masks(
+            self.image_file,
+            to_numpy=False,
+            pet_suv_conversion=self.settings.post_process.suv_conversion_type
+        )
 
         if masks is None or len(masks) == 0:
             warnings.warn("No segmentation masks were read.")

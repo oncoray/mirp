@@ -1,4 +1,5 @@
 import os
+import pytest
 from mirp import extract_features_and_images
 from mirp._images.generic_image import GenericImage
 from mirp._images.mr_image import MRImage
@@ -7,6 +8,7 @@ from mirp._masks.base_mask import BaseMask
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_intensity_scaling():
 
     data = extract_features_and_images(
@@ -110,4 +112,3 @@ def test_intensity_scaling():
 
     assert isinstance(image, GenericImage)
     assert isinstance(mask, BaseMask)
-

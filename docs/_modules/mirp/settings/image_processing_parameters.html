@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=92fd9be5" />
+  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
   
@@ -14,9 +14,10 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=b21de401"></script>
+        <script src="../../../_static/documentation_options.js?v=16656018"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -41,14 +42,27 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.importData.html">Configure image and mask import</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.settings.html">Configure the image processing and feature extraction workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractImageParameters.html">Extract image metadata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.deepLearningPreprocessing.html">Preprocess images for deep learning</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractFeaturesAndImages.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 </ul>
 
         </div>
@@ -84,7 +98,7 @@
 
 
 <div class="viewcode-block" id="ImagePostProcessingClass">
-<a class="viewcode-back" href="../../../mirp.settings.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass">[docs]</a>
+<a class="viewcode-back" href="../../../configuration.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass">[docs]</a>
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="nc">ImagePostProcessingClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -96,8 +110,10 @@
 <span class="sd">    ----------</span>
 <span class="sd">    bias_field_correction: bool, optional, default: False</span>
 <span class="sd">        Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field</span>
-<span class="sd">        correction is conducted using the information contained within the mask. Bias-field correction can only be</span>
-<span class="sd">        applied to MR imaging.</span>
+<span class="sd">        correction is conducted using the information contained within the mask.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Bias-field correction can only be applied to MR imaging.</span>
 
 <span class="sd">    bias_field_correction_n_fitting_levels: int, optional, default: 1</span>
 <span class="sd">        The number of fitting levels for the N4 bias field correction algorithm.</span>
@@ -108,6 +124,31 @@
 
 <span class="sd">    bias_field_convergence_threshold: float, optional, default: 0.001</span>
 <span class="sd">        Convergence threshold for N4 bias field correction algorithm.</span>
+
+<span class="sd">    pet_suv_conversion: {&quot;body_weight&quot;, &quot;none&quot;}, default: &quot;body_weight&quot;</span>
+<span class="sd">        Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more</span>
+<span class="sd">        comparable between patients, these are converted to standardised uptake values. The following are possible:</span>
+
+<span class="sd">        * &quot;body_weight&quot;: activity is normalised by body weight.</span>
+<span class="sd">        * &quot;body_surface_area&quot;: activity is normalised by body surface area according to DuBois (A formula to estimate</span>
+<span class="sd">          the approximate surface area if height and weight be known. Arch intern med. 1916;17:863-71).</span>
+<span class="sd">        * &quot;lean_body_mass&quot;: activity is normalised by lean body mass according to James et al. (DHSS/MRC Group on</span>
+<span class="sd">          Obesity Research, James WP, Waterlow JC. Research on Obesity: A Report of the DHSS/MRC Group; Compiled by</span>
+<span class="sd">          WPT James. HM Stationery Office; 1976).</span>
+<span class="sd">        * &quot;lean_body_mass_bmi&quot;: activity is normalised by lean body mass according to Janmahasatian et al.</span>
+<span class="sd">          (Quantification of lean bodyweight. Clinical pharmacokinetics. 2005 Oct;44:1051-65).</span>
+<span class="sd">        * &quot;ideal_body_weight&quot;: activity is normalised by ideal body weight according to Zasadny and Wahl (</span>
+<span class="sd">          Standardized uptake values of normal tissues at PET with 2-[fluorine-18]-fluoro-2-deoxy-D-glucose:</span>
+<span class="sd">          variations with body weight and a method for correction. Radiology. 1993 Dec;189(3):847-50).</span>
+<span class="sd">        * &quot;none&quot;: activity is not normalised.</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            Conversion of activity to standardised uptake values can only be performed for PET data.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Conversion of activity to standardised uptake values requires metadata related to image acquisition and to</span>
+<span class="sd">            the patient. These metadata are only present in DICOM files. MIRP cannot convert activity to standardised</span>
+<span class="sd">            uptake values for images in different formats, and this parameter will have no effect.</span>
 
 <span class="sd">    intensity_normalisation: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;, &quot;quantile_range&quot;, &quot;standardisation&quot;}, default: &quot;none&quot;</span>
 <span class="sd">        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels</span>
@@ -124,7 +165,8 @@
 <span class="sd">          deviation of intensities.</span>
 
 <span class="sd">        .. note::</span>
-<span class="sd">            intensity normalisation may remove any physical meaning of intensity units.</span>
+<span class="sd">            Intensity normalisation may remove any physical meaning of intensity units. For example, intensity</span>
+<span class="sd">            normalisation of CT images yield intensities that no longer represent Hounsfield Units.</span>
 
 <span class="sd">    intensity_normalisation_range: list of float, optional</span>
 <span class="sd">        Required for &quot;range&quot;, &quot;relative_range&quot;, and &quot;quantile_range&quot; intensity normalisation methods, and defines the</span>
@@ -173,6 +215,7 @@
             <span class="n">bias_field_correction_n_fitting_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
             <span class="n">bias_field_correction_n_max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">bias_field_convergence_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">pet_suv_conversion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;body_weight&quot;</span><span class="p">,</span>
             <span class="n">intensity_normalisation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
             <span class="n">intensity_normalisation_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">intensity_normalisation_saturation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -262,6 +305,19 @@
 
         <span class="c1"># Set convergence_threshold attribute.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">convergence_threshold</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">bias_field_convergence_threshold</span>
+
+        <span class="c1"># Check that pet_suv_conversion has the correct values.</span>
+        <span class="k">if</span> <span class="n">pet_suv_conversion</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;body_weight&quot;</span><span class="p">,</span> <span class="s2">&quot;body_surface_area&quot;</span><span class="p">,</span> <span class="s2">&quot;lean_body_mass&quot;</span><span class="p">,</span> <span class="s2">&quot;lean_body_mass_bmi&quot;</span><span class="p">,</span> <span class="s2">&quot;ideal_body_weight&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span>
+        <span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The pet_suv_conversion parameter is expected to have one of the following values: &quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;body_weight&#39;, `body_surface_area`, `lean_body_mass`, `lean_body_mass_bmi`, `ideal_body_weight` or &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;none&#39;. Found: </span><span class="si">{</span><span class="n">pet_suv_conversion</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Set suv_conversion_type parameter.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">suv_conversion_type</span> <span class="o">=</span> <span class="n">pet_suv_conversion</span>
 
         <span class="c1"># Check that intensity_normalisation has the correct values.</span>
         <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">,</span> <span class="s2">&quot;standardisation&quot;</span><span class="p">]:</span>
@@ -436,6 +492,7 @@
             <span class="s2">&quot;bias_field_convergence_threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span>
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">0.1</span>
         <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;pet_suv_conversion&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;suv_conversion_type&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;relative_range&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">]),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_saturation&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">]),</span>

@@ -1,4 +1,5 @@
 import os.path
+import pytest
 import numpy as np
 
 from mirp.data_import.import_image_and_mask import import_image_and_mask
@@ -13,6 +14,7 @@ from mirp._images.mr_image import MRImage
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_read_itk_image_and_mask():
     # Simple test.
     image_list = import_image_and_mask(
@@ -74,6 +76,7 @@ def test_read_itk_image_and_mask():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_numpy_image_and_mask():
     # Simple test.
     image_list = import_image_and_mask(
@@ -135,6 +138,7 @@ def test_read_numpy_image_and_mask():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_numpy_image_and_mask_stack():
 
     # Simple test.
@@ -197,6 +201,7 @@ def test_read_numpy_image_and_mask_stack():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
 def test_read_numpy_image_and_mask_online():
     """
     Test reading numpy arrays that are provided directly as input.
@@ -236,7 +241,8 @@ def test_read_numpy_image_and_mask_online():
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
 
-def test_read_dicom_image_and_mask_stack():
+@pytest.mark.ci
+def test_read_dicom_image_and_rtstruct_mask_stack():
     # Simple test.
     image_list = import_image_and_mask(
         image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
@@ -300,6 +306,73 @@ def test_read_dicom_image_and_mask_stack():
     assert roi_list[0].roi_name == "gtv"
 
 
+@pytest.mark.ci
+def test_read_dicom_image_and_seg_mask_stack():
+    # Simple test.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 6
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert any(roi.roi_name == "Liver" for roi in roi_list)
+
+    # With roi name specified.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name="Liver"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "Liver"
+
+    # With roi name not appearing.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name="some_roi"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 0
+
+    # Multiple roi names of which one is present.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name=["Liver", "some_roi", "another_roi"]
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "Liver"
+
+    # Multiple roi names, with dictionary to set labels.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm"),
+        roi_name={"Tumor_1": "lesion_1", "Tumor_2": "lesion_2", "3": "another_roi"}
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 2
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "lesion_1"
+    assert roi_list[1].roi_name == "lesion_2"
+
+
+@pytest.mark.ci
 def test_read_dicom_image_and_mask_modality_specific():
     # Read CT image.
     image_list = import_image_and_mask(
@@ -338,6 +411,7 @@ def test_read_dicom_image_and_mask_modality_specific():
     assert roi_list[0].roi_name == "GTV_Mass_MR_T1"
 
 
+@pytest.mark.ci
 def test_read_generic_image_and_mask_modality_specific():
     # Read CT image.
     image_list = import_image_and_mask(
@@ -379,13 +453,10 @@ def test_read_generic_image_and_mask_modality_specific():
     assert roi_list[0].roi_name == "region_1"
 
 
-def test_read_dicom_image_and_mask_data_xml():
+@pytest.mark.ci
+def test_read_dicom_image_and_mask_data_xml(tmp_path):
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):
-        os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
 
     # Load xml.
     tree = ElemTree.parse(os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_data.xml"))
@@ -398,10 +469,11 @@ def test_read_dicom_image_and_mask_data_xml():
         mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
 
     # Save as temporary xml file.
-    tree.write(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+    file = os.path.join(tmp_path, "temp_test_config_data.xml")
+    tree.write(file)
 
     image_list = import_image_and_mask(
-        image=os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")
+        image=file
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])

@@ -57,7 +57,7 @@ class ImageDicomFileStack(ImageFileStack):
         """
 
         # Load metadata of every slice.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         self._complete_modality()
         self._complete_sample_name()
@@ -181,11 +181,11 @@ class ImageDicomFileStack(ImageFileStack):
         # Set image dimensions. First, find the number of rows (y) and columns (x) in the data set.
         n_x = get_pydicom_meta_tag(
             dcm_seq=self.image_file_objects[0].image_metadata,
-            tag=(0x0028, 0x011),
+            tag=(0x0028, 0x0011),
             tag_type="int")
         n_y = get_pydicom_meta_tag(
             dcm_seq=self.image_file_objects[0].image_metadata,
-            tag=(0x0028, 0x010),
+            tag=(0x0028, 0x0010),
             tag_type="int")
 
         if self.image_dimension is None:

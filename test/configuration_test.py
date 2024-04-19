@@ -1,5 +1,7 @@
 import os.path
 
+import pytest
+
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -16,19 +18,16 @@ def _type_converter(type_str: str):
         raise ValueError(f"type could not be linked to an object type: {type_str}")
 
 
-def test_general_settings_configuration():
+@pytest.mark.ci
+def test_general_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.general_parameters import get_general_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     settings_definitions = get_general_settings()
 
@@ -80,23 +79,17 @@ def test_general_settings_configuration():
         assert getattr(settings_keyword.general, class_key) == test_value
         assert isinstance(test_value, value_type)
 
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
 
-
-def test_post_processing_settings_configuration():
+@pytest.mark.ci
+def test_post_processing_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.image_processing_parameters import get_post_processing_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     settings_definitions = get_post_processing_settings()
 
@@ -157,23 +150,17 @@ def test_post_processing_settings_configuration():
             assert getattr(settings_keyword.post_process, class_key) == test_value
             assert isinstance(test_value, value_type)
 
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
 
-
-def test_interpolation_settings_configuration():
+@pytest.mark.ci
+def test_interpolation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.interpolation_parameters import get_image_interpolation_settings, get_mask_interpolation_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     # All default settings.
     tree = ElemTree.parse(temp_file)
@@ -270,23 +257,17 @@ def test_interpolation_settings_configuration():
             assert getattr(settings_keyword.roi_interpolate, class_key) == test_value
             assert isinstance(test_value, value_type)
 
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
 
-
-def test_perturbation_settings_configuration():
+@pytest.mark.ci
+def test_perturbation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.perturbation_parameters import get_perturbation_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     settings_definitions = get_perturbation_settings()
 
@@ -347,23 +328,17 @@ def test_perturbation_settings_configuration():
             assert getattr(settings_keyword.perturbation, class_key) == test_value
             assert isinstance(test_value, value_type)
 
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
 
-
-def test_mask_resegmentation_settings_configuration():
+@pytest.mark.ci
+def test_mask_resegmentation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.resegmentation_parameters import get_mask_resegmentation_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     settings_definitions = get_mask_resegmentation_settings()
 
@@ -424,23 +399,17 @@ def test_mask_resegmentation_settings_configuration():
             assert getattr(settings_keyword.roi_resegment, class_key) == test_value
             assert isinstance(test_value, value_type)
 
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
 
-
-def test_feature_extraction_settings_configuration():
+@pytest.mark.ci
+def test_feature_extraction_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.feature_parameters import get_feature_extraction_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     settings_definitions = get_feature_extraction_settings()
 
@@ -504,23 +473,17 @@ def test_feature_extraction_settings_configuration():
             assert getattr(settings_keyword.feature_extr, class_key) == test_value
             assert isinstance(test_value, value_type)
 
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
 
-
-def test_image_transformation_settings_configuration():
+@pytest.mark.ci
+def test_image_transformation_settings_configuration(tmp_path):
     from xml.etree import ElementTree as ElemTree
     from mirp import get_settings_xml
     from mirp.settings.transformation_parameters import get_image_transformation_settings
     from mirp.settings.import_config_parameters import create_settings_object
     from mirp.settings.generic import SettingsClass
 
-    temp_file = os.path.join(CURRENT_DIR, "data", "configuration_files", "settings.xml")
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(temp_file):
-        os.remove(temp_file)
-    get_settings_xml(os.path.join(CURRENT_DIR, "data", "configuration_files"))
+    temp_file = os.path.join(tmp_path, "settings.xml")
+    get_settings_xml(tmp_path)
 
     settings_definitions = get_image_transformation_settings()
 
@@ -597,6 +560,3 @@ def test_image_transformation_settings_configuration():
         else:
             assert getattr(settings_keyword.img_transform, class_key) == test_value
             assert isinstance(test_value, value_type)
-
-    if os.path.exists(temp_file):
-        os.remove(temp_file)

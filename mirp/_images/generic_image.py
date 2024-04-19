@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 
 from typing import Any
+from pathlib import Path
+
 from mirp._images.base_image import BaseImage
 from mirp.settings.generic import SettingsClass
 
@@ -171,7 +173,7 @@ class GenericImage(BaseImage):
     def update_image_data(self):
         pass
 
-    def show(self, mask=None):
+    def show(self, mask=None, slice_id=None):  # pragma: no cover
         import matplotlib.pyplot as plt
         from mirp._images.utilities import InteractivePlot
 
@@ -188,16 +190,13 @@ class GenericImage(BaseImage):
                 anti_aliasing_smoothing_beta=0.98
             )
 
-        figure, axes = plt.subplots()
-
         # Create an index tracked object
         tracker = InteractivePlot(
-            axes=axes,
             image=self,
-            mask=mask
+            mask=mask,
+            slice_id=slice_id
         )
 
-        figure.canvas.mpl_connect('scroll_event', tracker.onscroll)
         plt.show()
 
     @staticmethod
@@ -638,14 +637,13 @@ class GenericImage(BaseImage):
             local_variance[local_variance < 0.0] = 0.0
 
             # Select robust range (within IQR)
-            local_variance = local_variance[
-                np.percentile(local_variance, 25) <= local_variance <= np.percentile(local_variance, 75)
-            ]
+            local_variance = local_variance[np.logical_and(
+                local_variance >= np.percentile(local_variance, 25),
+                local_variance <= np.percentile(local_variance, 75)
+            )]
 
             # Calculate Gaussian noise
             estimated_noise = np.sqrt(np.mean(local_variance))
-
-            del local_variance
 
         elif method == "ikeda":
             """ Estimate image noise level using a method by Ikeda, Makino, Imai et al., A method for estimating noise
@@ -1157,7 +1155,7 @@ class GenericImage(BaseImage):
 
     def write(
             self,
-            dir_path: str,
+            dir_path: str | Path,
             file_name: None | str = None,
             file_format: str = "nifti"
     ):
@@ -1207,6 +1205,11 @@ class GenericImage(BaseImage):
         elif file_format == "numpy":
             image_data = self.get_voxel_grid()
             np.save(file_path, image_data)
+
+        else:
+            raise ValueError(
+                f"file format was not recognised: {file_format}. MIRP currently supports nifti and numpy are supported."
+            )
 
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = []

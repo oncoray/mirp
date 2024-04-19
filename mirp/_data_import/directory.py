@@ -388,7 +388,9 @@ class ImageDirectory:
                 if self.image_name is not None:
                     # Skip files that do not contain the image_name pattern.
                     if not match_file_name(
-                            current_item, pattern=self.image_name, file_extension=allowed_file_extensions
+                            current_item,
+                            pattern=self.image_name,
+                            file_extension=allowed_file_extensions
                     ):
                         continue
 
@@ -405,8 +407,10 @@ class ImageDirectory:
 
             # Create image file object.
             image_file = self._create_image_file(image_file_name=image_file_name)
+            if image_file is None:
+                continue
 
-            if not image_file.check(raise_error=False):
+            if not image_file.check(raise_error=False, remove_metadata=False):
                 continue
 
             image_file.complete()

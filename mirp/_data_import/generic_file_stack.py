@@ -104,17 +104,13 @@ class ImageFileStack(ImageFile):
 
     def _complete_sample_name(self):
         if self.sample_name is None:
-            image_object = copy.deepcopy(self.image_file_objects[0])
-            image_object._complete_sample_name()
-
-            self.sample_name = image_object.sample_name
+            self.image_file_objects[0]._complete_sample_name()
+            self.sample_name = self.image_file_objects[0].sample_name
 
     def _complete_modality(self):
         if self.modality is None:
-            image_object = copy.deepcopy(self.image_file_objects[0])
-            image_object._complete_modality()
-
-            self.modality = image_object.modality
+            self.image_file_objects[0]._complete_modality()
+            self.modality = self.image_file_objects[0].modality
 
     def _complete_image_origin(self, force=False):
         # Image origin and other image-related aspects are set using the complete method of subclasses.
@@ -182,15 +178,19 @@ class ImageFileStack(ImageFile):
             for ii in range(len(position_table))
         ]
 
-    def load_metadata(self):
+    def load_metadata(self, limited=False, include_image=False):
         # Load metadata for underlying files in the order indicated by self.image_file_objects.
         for image_file_object in self.image_file_objects:
-            image_file_object.load_metadata()
+            image_file_object.load_metadata(limited=limited, include_image=include_image)
+
+    def remove_metadata(self):
+        for image_file_object in self.image_file_objects:
+            image_file_object.remove_metadata()
 
     def load_data(self, **kwargs):
         # Load data for underlying files in the order indicated by self.image_file_objects.
         for image_file_object in self.image_file_objects:
-            image_file_object.load_data()
+            image_file_object.load_data(**kwargs)
 
     def stack_slices(self):
         if self.image_data is not None:

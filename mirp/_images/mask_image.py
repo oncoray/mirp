@@ -193,7 +193,7 @@ class MaskImage(GenericImage):
 
         # Set spacing
         if by_slice:
-            spacing = np.array(self.image_spacing)[1, 2]
+            spacing = np.array(self.image_spacing)[[1, 2]]
         else:
             spacing = np.array(self.image_spacing)
 
@@ -291,7 +291,7 @@ class MaskImage(GenericImage):
 
         # Set spacing.
         if by_slice:
-            spacing = np.array(self.image_spacing)[1, 2]
+            spacing = np.array(self.image_spacing)[[1, 2]]
         else:
             spacing = np.array(self.image_spacing)
 

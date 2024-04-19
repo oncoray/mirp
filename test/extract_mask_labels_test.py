@@ -1,4 +1,5 @@
 import os
+import pytest
 import numpy as np
 
 from mirp.extract_mask_labels import extract_mask_labels
@@ -7,6 +8,7 @@ from mirp.extract_mask_labels import extract_mask_labels
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
+@pytest.mark.ci
 def test_extract_mask_labels_generic():
     # Single mask.
     mask_labels = extract_mask_labels(
@@ -31,6 +33,7 @@ def test_extract_mask_labels_generic():
     assert all(x in [1, 2, 3] for x in mask_labels.roi_label.values)
 
 
+@pytest.mark.ci
 def test_extract_mask_labels_rtstruct():
     # Single mask.
     mask_labels = extract_mask_labels(
@@ -48,3 +51,16 @@ def test_extract_mask_labels_rtstruct():
 
     # TODO: Mask with multiple labels
     ...
+
+
+def test_extract_mask_labels_rtstruct_to_file(tmp_path):
+    import pandas as pd
+
+    extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        write_dir=tmp_path
+    )
+
+    mask_labels = pd.read_csv(os.path.join(tmp_path, "mask_labels.csv"))
+    assert len(mask_labels) == 3

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial &mdash; mirp 2.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="tutorial">
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Link to this heading"></a></h1>
+<p>This tutorial describes a</p>
+<section id="installing-mirp">
+<h2>Installing MIRP<a class="headerlink" href="#installing-mirp" title="Link to this heading"></a></h2>
+<p>First you need to install MIRP.</p>
+<dl class="simple">
+<dt>Before you begin, you need to:</dt><dd><ol class="arabic simple">
+<li><p>Install MIRP (see <span class="xref std std-ref">installation</span>).</p></li>
+<li><p>Have a dataset with imaging and corresponding masks.</p></li>
+</ol>
+</dd>
+</dl>
+</section>
+<section id="computing-quantitative-features">
+<h2>Computing quantitative features<a class="headerlink" href="#computing-quantitative-features" title="Link to this heading"></a></h2>
+<p>Suppose you have a dataset of computed tomography (CT) DICOM images with corresponding segmentation masks that you want
+to use to compute quantitative features from. Now, suppose that both images and masks are seperated by patient
+directories within a general <code class="docutils literal notranslate"><span class="pre">path/to/data</span></code> folder. For each patient, the CT image is in the <code class="docutils literal notranslate"><span class="pre">image</span></code> directory,
+and its corresponding segmentation in <code class="docutils literal notranslate"><span class="pre">mask</span></code>. For patient <code class="docutils literal notranslate"><span class="pre">patient_003</span></code>, the full path to the
+image directory is <code class="docutils literal notranslate"><span class="pre">path/to/data/patient_003/image</span></code>, and to the mask directory is <code class="docutils literal notranslate"><span class="pre">path/to/data/patient_003/mask</span></code>.</p>
+<p>We want to compute features from a pre-defined gross tumour mask (called <code class="docutils literal notranslate"><span class="pre">GTV</span></code>). We are interested in the soft-tissue
+range, with Hounsfield Units between -150 and 200 HU. To harmonise differences in resolution and slice distance
+between CT images from different patients, all voxels are resampled to a 1.0 by 1.0 by 1.0 mm size. Histogram and
+texture features are computed after discretisation using the <cite>fixed bin size</cite> method with a bin size of 25 Hounsfield
+Units.</p>
+<p>MIRP can compute quantitative features using the function call below:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span>
+    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">resegmentation_intensity_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">150.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">],</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">25.0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The above code results in <code class="docutils literal notranslate"><span class="pre">feature_data</span></code> which is a list of <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that contains feature values for
+every patient. These can combined into a single <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> as follows:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">feature_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">feature_data</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="visualising-filtered-images">
+<h2>Visualising filtered images<a class="headerlink" href="#visualising-filtered-images" title="Link to this heading"></a></h2>
+<p>Image filters enhance aspects such as edges, blobs and directional structures. MIRP supports several filters (see
+<span class="xref std std-ref">quantitative_image_analysis</span>). Suppose you want to use a Laplacian-of-Gaussian filter, with the width of the
+Gaussian equal to 2.0 mm.</p>
+<p>We can first inspect the images visually using <code class="docutils literal notranslate"><span class="pre">extract_images</span></code>. By default, <code class="docutils literal notranslate"><span class="pre">export_images</span></code> exports images and
+masks as dictionary with <code class="docutils literal notranslate"><span class="pre">numpy</span></code> data and metadata (or as NIfTI files, in case <code class="docutils literal notranslate"><span class="pre">write_dir</span></code> is provided). These
+can be used with external viewers, or your own scripts. MIRP also has a simple viewer for its internal native
+image objects. To use this viewer, you can set <code class="docutils literal notranslate"><span class="pre">image_export_format</span> <span class="pre">=</span> <span class="pre">&quot;native&quot;</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+
+<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span>
+    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">resegmentation_intensity_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">150.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">],</span>
+    <span class="n">filter_kernels</span><span class="o">=</span><span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span>
+    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, <code class="docutils literal notranslate"><span class="pre">images</span></code> is a list of images and masks, with one entry for each patient. Each entry consist of two nested
+lists, one for images and the second for masks. In this case, the nested list of images contains two entries, and
+that of masks only one (for the <code class="docutils literal notranslate"><span class="pre">GTV</span></code> region of interest). The first image is the CT image, after interpolation to
+1.0 by 1.0 by 1.0 mm voxels. The second image is the Laplacian-of-Gaussian filtered image. Each image can be viewed
+using the <code class="docutils literal notranslate"><span class="pre">show</span></code> method:</p>
+</section>
+<section id="computing-quantitative-features-from-filtered-images">
+<h2>Computing quantitative features from filtered images<a class="headerlink" href="#computing-quantitative-features-from-filtered-images" title="Link to this heading"></a></h2>
+<p>Of course, features can also be computed from filtered images (also known as response maps). By default, only
+statistical features <a class="reference internal" href="#zwanenburg2016" id="id1"><span>[Zwanenburg2016]</span></a> are computed from filtered images.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span>
+    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">resegmentation_intensity_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">150.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">],</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span>
+    <span class="n">filter_kernels</span><span class="o">=</span><span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span>
+    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="mf">2.0</span>
+<span class="p">)</span>
+
+<span class="n">feature_data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">feature_data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">feature_data</span></code> is a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> similar to the first example, but with features computed from the
+Laplacian-of-Gaussian image appended as new columns.</p>
+</section>
+<section id="processing-images">
+<h2>Processing images<a class="headerlink" href="#processing-images" title="Link to this heading"></a></h2>
+<p>Computing quantitative features is nice, but what if you use deep learning instead? Suppose you just want to process
+images as input for a VGG16 network <a class="reference internal" href="#simonyan2015" id="id2"><span>[Simonyan2015]</span></a>. These networks have a default input size of 224 by 224 pixels.
+For many deep learning applications, images should be provided 1-by-1, and we therefore will use a generator. By
+providing the name of the region of interest, images will be cropped based on the center of the mask:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">deep_learning_preprocessing_generator</span>
+
+<span class="n">image_generator</span> <span class="o">=</span> <span class="n">deep_learning_preprocessing_generator</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">mask</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="s2">&quot;image&quot;</span><span class="p">,</span>
+    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="s2">&quot;mask&quot;</span><span class="p">,</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">crop_size</span><span class="o">=</span><span class="p">[</span><span class="mi">224</span><span class="p">,</span> <span class="mi">224</span><span class="p">],</span>
+    <span class="n">output_slices</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="n">image_slices</span><span class="p">,</span> <span class="n">mask_slices</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="n">image_generator</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The generator yields a set of image slices (each 224 by 224 pixels) with corresponding masks. <code class="docutils literal notranslate"><span class="pre">output_slices=False</span></code>
+can be used to generate 3D volumes.</p>
+</section>
+<section id="extracting-metadata">
+<h2>Extracting metadata<a class="headerlink" href="#extracting-metadata" title="Link to this heading"></a></h2>
+<p>DICOM files contains metadata that are relevant to report in studies. MIRP can extract and collect such metadata:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_image_parameters</span>
+
+<span class="n">image_parameters</span> <span class="o">=</span> <span class="n">extract_image_parameters</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path/to/data&quot;</span><span class="p">,</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="s2">&quot;image&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">image_parameters</span></code> is a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that contains relevant parameters extracted from DICOM metadata, such
+as image resolution, scanner type and vendor as well as modality-specific attributes such as tube voltage for CT.
+Note that metadata for other file types (e.g. NIfTI) are considerably more limited.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="simonyan2015" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Simonyan2015</a><span class="fn-bracket">]</span></span>
+<p>Simonyan K, Zisserman A. Very Deep Convolutional Networks for Large-Scale Image Recognition. arXiv
+[cs.CV] 2014. doi:10.48550/arXiv.1409.1556</p>
+</div>
+<div class="citation" id="zwanenburg2016" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Zwanenburg2016</a><span class="fn-bracket">]</span></span>
+<p>Zwanenburg A, Leger S, Vallieres M, Loeck S. Image Biomarker Standardisation Initiative. arXiv
+[cs.CV] 2016. doi:10.48550/arXiv.1612.070035</p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

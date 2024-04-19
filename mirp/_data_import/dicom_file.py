@@ -1,3 +1,4 @@
+import datetime
 import os.path
 import hashlib
 import numpy as np
@@ -9,7 +10,7 @@ from warnings import warn
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
-    supported_mask_modalities, get_pydicom_meta_tag
+    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time
 
 
 class ImageDicomFile(ImageFile):
@@ -87,7 +88,7 @@ class ImageDicomFile(ImageFile):
             return True
 
         # Checks requires metadata.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         # Perform general checks.
         if not super().check(raise_error=raise_error):
@@ -164,8 +165,7 @@ class ImageDicomFile(ImageFile):
         from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
 
         # Load metadata so that the modality tag can be read.
-        self.load_metadata()
-
+        self.load_metadata(limited=True)
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
         if modality is None:
@@ -181,9 +181,9 @@ class ImageDicomFile(ImageFile):
             file_class = ImageDicomFileRTDose
         else:
             # This will return a base class, which will fail to pass the modality check.
-            return self
+            return None
 
-        return file_class(
+        image = file_class(
             file_path=self.file_path,
             dir_path=self.dir_path,
             sample_name=self.sample_name,
@@ -195,8 +195,14 @@ class ImageDicomFile(ImageFile):
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
             image_spacing=self.image_spacing,
-            image_dimensions=self.image_dimension
+            image_dimensions=self.image_dimension,
         )
+
+        # Set metadata of image.
+        image.image_metadata = self.image_metadata
+        image.is_limited_metadata = self.is_limited_metadata
+
+        return image
 
     def complete(self, remove_metadata=False, force=False):
 
@@ -204,19 +210,24 @@ class ImageDicomFile(ImageFile):
         super().complete(remove_metadata=False, force=force)
 
         # Set SOP instance UID.
-        self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
+        if self.sop_instance_uid is None:
+            self.load_metadata(limited=True)
+            self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
 
         # Set Frame of Reference UID (if any)
         self._complete_frame_of_reference_uid()
 
         # Set series UID
-        self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x000E), tag_type="str")
+        if self.series_instance_uid is None:
+            self.load_metadata(limited=True)
+            self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x000E), tag_type="str")
 
         if remove_metadata:
             self.remove_metadata()
 
     def _complete_modality(self):
         if self.modality is None:
+            self.load_metadata(limited=True)
             self.modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str")
 
         if self.modality is None:
@@ -229,6 +240,10 @@ class ImageDicomFile(ImageFile):
     def _complete_sample_name(self):
         # Set sample name -- note that if sample_name is a (single) string, it is neither replaced nor updated.
         if self.sample_name is None or isinstance(self.sample_name, list):
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             # Consider the following DICOM elements:
             # patient id, study id, patient name, series description and study description.
             # These are explicitly ordered by relevance for setting the sample name.
@@ -263,6 +278,9 @@ class ImageDicomFile(ImageFile):
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
 
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             origin = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0032), tag_type="mult_float")[::-1]
             self.image_origin = tuple(origin)
 
@@ -271,6 +289,9 @@ class ImageDicomFile(ImageFile):
             # Orientation needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
 
             orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
@@ -287,6 +308,9 @@ class ImageDicomFile(ImageFile):
             # Image spacing needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
+
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
 
             # Get pixel-spacing.
             spacing = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0030), tag_type="mult_float")
@@ -307,16 +331,20 @@ class ImageDicomFile(ImageFile):
             if self.modality in stacking_dicom_image_modalities() and not force:
                 return
 
+            # Load relevant metadata.
+            self.load_metadata(limited=True)
+
             dimensions = tuple([
                 1,
-                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x010), tag_type="int"),
-                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x011), tag_type="int")
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0010), tag_type="int"),
+                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0011), tag_type="int")
             ])
 
             self.image_dimension = dimensions
 
     def _complete_frame_of_reference_uid(self):
         if self.frame_of_reference_uid is None:
+            self.load_metadata(limited=True)
             self.frame_of_reference_uid = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0052),
@@ -343,20 +371,38 @@ class ImageDicomFile(ImageFile):
 
         return super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
 
-    def load_metadata(self):
-        if self.image_metadata is not None:
+    def load_metadata(self, limited=False, include_image=False):
+        if include_image:
+            limited = False
+
+        # Limited metadata exists and limited metadata is sufficient.
+        if self.image_metadata is not None and self.is_limited_metadata and limited:
+            return
+
+        # A full image metadata set exists.
+        if self.image_metadata is not None and not self.is_limited_metadata:
             return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}")
 
-        dcm = dcmread(
-            self.file_path,
-            stop_before_pixels=True,
-            force=True)
+        if limited:
+            dcm = dcmread(
+                self.file_path,
+                stop_before_pixels=True,
+                force=True,
+                specific_tags=self._get_limited_metadata_tags()
+            )
+        else:
+            dcm = dcmread(
+                self.file_path,
+                stop_before_pixels=not include_image,
+                force=True
+            )
 
         self.image_metadata = dcm
+        self.is_limited_metadata = limited
 
     def load_data(self, **kwargs):
         raise NotImplementedError(
@@ -381,18 +427,98 @@ class ImageDicomFile(ImageFile):
             raise ValueError(f"A path to a file was expected, but not present.")
 
         # Load metadata.
-        self.load_metadata()
-
-        # Read
-        dcm = dcmread(self.file_path, stop_before_pixels=False, force=True)
-        image_data = dcm.pixel_array.astype(np.float32)
+        self.load_metadata(include_image=True)
+        image_data = self.image_metadata.pixel_array.astype(np.float32)
 
         # Update data with scale and intercept. These may change per slice.
-        rescale_intercept = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
-        rescale_slope = get_pydicom_meta_tag(dcm_seq=dcm, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
+        rescale_intercept = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x1052), tag_type="float", default=0.0)
+        rescale_slope = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x1053), tag_type="float", default=1.0)
         image_data = image_data * rescale_slope + rescale_intercept
 
         return image_data
+
+    @staticmethod
+    def _get_limited_metadata_tags():
+        # Limited tags are read to populate basic
+        return [
+            (0x0008, 0x0018),  # SOP instance UID
+            (0x0008, 0x0060),  # modality
+            (0x0008, 0x1030),  # series description
+            (0x0008, 0x103E),  # study description
+            (0x0010, 0x0010),  # patient name
+            (0x0010, 0x0020),  # patient id
+            (0x0018, 0x0050),  # slice thickness
+            (0x0020, 0x000E),  # series instance UID
+            (0x0020, 0x0010),  # study id
+            (0x0020, 0x0032),  # origin
+            (0x0020, 0x0037),  # orientation
+            (0x0020, 0x0052),  # frame of reference UID
+            (0x0028, 0x0008),  # number of frames
+            (0x0028, 0x0010),  # pixel rows
+            (0x0028, 0x0011),  # pixel columns
+            (0x0028, 0x0030),  # pixel spacing
+            (0x3004, 0x000C)  # grid frame offset vector
+        ]
+
+    def _get_acquisition_start_time(self) -> datetime.datetime:
+        self.load_metadata()
+
+        # Start of image acquisition. Prefer Acquisition Datetime (0x0008, 0x002A).
+        acquisition_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x002A),
+            tag_type="str"
+        )
+        acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+
+        # Fall back to Acquisition Date (0x0008, 0x002A) and Acquisition Time (0x0008, 0x0032).
+        if acquisition_ref_time is None:
+            acquisition_start_date = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0022),
+                tag_type="str"
+            )
+            acquisition_start_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0032),
+                tag_type="str"
+            )
+            acquisition_ref_time = convert_dicom_time(
+                date_str=acquisition_start_date,
+                time_str=acquisition_start_time
+            )
+
+        # Fall back to Private GE Acquisition DateTime (0x0009, 0x100d).
+        if acquisition_ref_time is None:
+            acquisition_ref_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0009, 0x100d),
+                tag_type="str"
+            )
+            acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+
+        # Fall back to Series Date and Series Time (
+        if acquisition_ref_time is None:
+            acquisition_start_date = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0021),
+                tag_type="str"
+            )
+            acquisition_start_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0031),
+                tag_type="str"
+            )
+            acquisition_ref_time = convert_dicom_time(
+                date_str=acquisition_start_date,
+                time_str=acquisition_start_time
+            )
+
+        # Final check.
+        if acquisition_ref_time is None:
+            raise ValueError(f"Acquisition start time cannot be determined from DICOM metadata in {self.file_path}.")
+
+        return acquisition_ref_time
 
 
 class MaskDicomFile(ImageDicomFile, MaskFile):
@@ -430,7 +556,7 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         from mirp._data_import.dicom_file_seg import MaskDicomFileSEG
 
         # Load metadata so that the modality tag can be read.
-        self.load_metadata()
+        self.load_metadata(limited=True)
 
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
@@ -442,10 +568,9 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         elif modality == "seg":
             file_class = MaskDicomFileSEG
         else:
-            # This will return a base class, which will fail to pass the modality check.
-            return self
+            return None
 
-        return file_class(
+        mask = file_class(
             file_path=self.file_path,
             dir_path=self.dir_path,
             sample_name=self.sample_name,
@@ -460,3 +585,17 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
             image_dimensions=self.image_dimension,
             roi_name=self.roi_name
         )
+
+        # Set metadata of mask.
+        mask.image_metadata = self.image_metadata
+        mask.is_limited_metadata = self.is_limited_metadata
+
+        return mask
+
+    def _get_limited_metadata_tags(self):
+        tags = super()._get_limited_metadata_tags()
+
+        tags += [
+            (0x3006, 0x0020),  # Structure set roi sequence
+            (0x0028, 0x0008)  # number of frames
+        ]

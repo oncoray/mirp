@@ -124,14 +124,10 @@ def run_experiment(image, roi, **kwargs):
     return data
 
 
-def test_xml_configurations():
+def test_xml_configurations(tmp_path):
     # Read the data settings xml file, and update path to image and mask.
     from xml.etree import ElementTree as ElemTree
     from mirp.extract_features_and_images import extract_features
-
-    # Remove temporary data xml file if it exists.
-    if os.path.exists(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml")):
-        os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
 
     # Load xml.
     tree = ElemTree.parse(os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_data.xml"))
@@ -144,12 +140,12 @@ def test_xml_configurations():
         mask.text = str(os.path.join(CURRENT_DIR, "data", "sts_images"))
 
     # Save as temporary xml file.
-    tree.write(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
+    tree.write(os.path.join(tmp_path, "temp_test_config_data.xml"))
 
     data = extract_features(
         write_features=False,
         export_features=True,
-        image=os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"),
+        image=os.path.join(tmp_path, "temp_test_config_data.xml"),
         settings=os.path.join(CURRENT_DIR, "data", "configuration_files", "test_config_settings.xml")
     )
 
@@ -161,9 +157,6 @@ def test_xml_configurations():
     assert all(data["image_voxel_size_x"].values == 3.0)
     assert all(data["image_voxel_size_y"].values == 3.0)
     assert all(data["image_voxel_size_z"].values == 3.0)
-
-    # Clean up
-    os.remove(os.path.join(CURRENT_DIR, "data", "configuration_files", "temp_test_config_data.xml"))
 
 
 def test_edge_cases_basic_pipeline():

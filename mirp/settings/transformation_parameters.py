@@ -12,7 +12,8 @@ from mirp.settings.utilities import setting_def
 class ImageTransformationSettingsClass:
     """
     Parameters related to image transformation using filters. Many parameters are conditional on the selected image
-    filter (``filter_kernels``). By default, only statistical features are computed from filtered images.
+    filter (``filter_kernels``). Filters and their parameters are defined `here <https://arxiv.org/abs/2006.05470>`_
+    By default, only statistical features are computed from filtered images.
 
     .. note::
         Many feature extraction parameters are copied from
@@ -60,7 +61,7 @@ class ImageTransformationSettingsClass:
         * "all": all features are computed.
 
         A list of tags may be provided to select multiple feature families. Morphological features are not computed
-        from response maps, because these are mask-based and are invariant to filtering.
+        from response maps (filtered images), because these are mask-based and are invariant to filtering.
 
     response_map_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "fixed_bin_size_pyradiomics", "none"}, optional, default: "fixed_bin_number"
         Method used for discretising intensities. Used to compute intensity histogram as well as texture features.
@@ -124,7 +125,7 @@ class ImageTransformationSettingsClass:
         .. warning::
             Riesz transformation and steerable riesz transformations are experimental. The implementation of these
             filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature
-            derived from response maps of Riesz transformations is unlikely to be reproducible.
+            derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.
 
         .. warning::
             Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference
@@ -154,17 +155,17 @@ class ImageTransformationSettingsClass:
 
     separable_wavelet_decomposition_level: int or list of int, optional, default: 1
         Sets the wavelet decomposition level. For the first decomposition level, the base image is used as input to
-        generate a  response map. For decomposition levels greater than 1, the low-pass image from the previous level
-        is used as input. More than 1 value may be specified in a list.
+        generate a  response map (filtered image). For decomposition levels greater than 1, the low-pass image from the
+        previous level is used as input. More than 1 value may be specified in a list.
 
     separable_wavelet_rotation_invariance: bool, optional, default: True
         Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates
-        permutations of the filter and, as a consequence, additional response maps. These maps are then merged using
-        the pooling method (``separable_wavelet_pooling_method``).
+        permutations of the filter and, as a consequence, additional response maps (filtered images). These maps are
+        then merged using the pooling method (``separable_wavelet_pooling_method``).
 
     separable_wavelet_pooling_method: {"max", "min", "mean", "sum"}, optional, default: "max"
-        Response maps are pooled to create a rotationally invariant response map. This sets the method for
-        pooling.
+        Response maps are pooled to create a rotationally invariant response map (filtered image). This sets the
+        method for pooling.
 
         * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
           response maps.
@@ -190,9 +191,9 @@ class ImageTransformationSettingsClass:
 
     nonseparable_wavelet_response: {"modulus", "abs", "magnitude", "angle", "phase", "argument", "real", "imaginary"}, optional, default: "real"
         Nonseparable wavelets produce response maps with complex numbers. The complex-valued response map is
-        converted to a real-valued response map using the specified method. "modulus", "abs", "magnitude" are
-        synonymous, as are "angle", "phase", and "argument". "real" selects the real component of the complex values,
-        and "imaginary" selects the imaginary component.
+        converted to a real-valued response map (filtered image) using the specified method. "modulus", "abs",
+        "magnitude" are synonymous, as are "angle", "phase", and "argument". "real" selects the real component of the
+        complex values, and "imaginary" selects the imaginary component.
 
     nonseparable_wavelet_boundary_condition: str, optional, default: "mirror"
         Sets the boundary condition for non-separable wavelets. This supersedes any value set by the general
@@ -215,8 +216,8 @@ class ImageTransformationSettingsClass:
         Width, in sigma, at which the filter is truncated.
 
     laplacian_of_gaussian_pooling_method: {"max", "min", "mean", "sum", "none"}, optional, default: "none"
-        Determines whether and how response maps for filters with different widths (``laplacian_of_gaussian_sigma``)
-        are pooled.
+        Determines whether and how response maps (filtered images) for filters with different widths (
+        ``laplacian_of_gaussian_sigma``) are pooled.
 
         * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
           response maps.
@@ -240,19 +241,19 @@ class ImageTransformationSettingsClass:
         ``by_slice=False``).
 
     laws_compute_energy: bool, optional, default: True
-        Determine whether an energy image should be computed, or just the response map.
+        Determine whether an energy image should be computed, or just the response map (filtered) image.
 
     laws_delta: int or list of int, optional, default: 7
         Delta for chebyshev distance between center voxel and neighbourhood boundary used to calculate energy maps.
 
     laws_rotation_invariance: bool, optional, default: True
         Determines whether separable filters are applied in a pseudo-rotational invariant manner. This generates
-        permutations of the filter and, as a consequence, additional response maps. These maps are then merged using
-        the pooling method (``laws_pooling_method``).
+        permutations of the filter and, as a consequence, additional response maps (filtered images). These maps are
+        then merged using the pooling method (``laws_pooling_method``).
 
     laws_pooling_method:  {"max", "min", "mean", "sum"}, optional, default: "max"
-        Response maps are pooled to create a rotationally invariant response map. This sets the method for
-        pooling.
+        Response maps are pooled to create a rotationally invariant response map (filtered image). This sets the
+        method for pooling.
 
         * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
           response maps.
@@ -286,17 +287,17 @@ class ImageTransformationSettingsClass:
         stepping.
 
     gabor_response: {"modulus", "abs", "magnitude", "angle", "phase", "argument", "real", "imaginary"}, optional, default: "modulus"
-        Type of response map created by Gabor filters. Gabor kernels consist of complex numbers, and the response map
-        will be complex as well. The complex-valued response map is converted to a real-valued response map using the
-        specified method.
+        Type of response map (filtered image) created by Gabor filters. Gabor kernels consist of complex numbers,
+        and the response map will be complex as well. The complex-valued response map is converted to a real-valued
+        response map using the specified method.
 
     gabor_rotation_invariance: bool, optional, default: False
         Determines whether (2D) Gabor filters are applied in a pseudo-rotational invariant manner. If True,
         Gabor filters are applied in each of the orthogonal planes.
 
     gabor_pooling_method: {"max", "min", "mean", "sum"}, optional, default: "max"
-        Response maps are pooled to create a rotationally invariant response map. This sets the method for
-        pooling.
+        Response maps are pooled to create a rotationally invariant response map (filtered image). This sets the
+        method for pooling.
 
         * "max": Each voxel of the pooled response map represents the maximum value for that voxel in the underlying
           response maps.
@@ -313,7 +314,8 @@ class ImageTransformationSettingsClass:
         ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
 
     mean_filter_kernel_size: int or list of int, optional
-        Length of the kernel in pixels. Multiple values can be specified to create multiple response maps.
+        Length of the kernel in pixels. Multiple values can be specified to create multiple response maps (filtered
+        images).
 
     mean_filter_boundary_condition: str, optional, default: "mirror"
         Sets the boundary condition for mean filters. This supersedes any value set by the general

@@ -22,7 +22,7 @@ copyright = '2024, Alex Zwanenburg'
 author = 'Alex Zwanenburg'
 
 # The full version, including alpha/beta/rc tags
-release = '2.2.0'
+release = '2.2.1'
 
 
 # -- General configuration ---------------------------------------------------
@@ -34,7 +34,8 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx.ext.autodoc",
     "sphinx.ext.viewcode",
-    "sphinx_rtd_theme"
+    "sphinx_rtd_theme",
+    "nbsphinx"
 ]
 
 # Add any paths that contain templates here, relative to this directory.

@@ -7,7 +7,7 @@ from mirp.settings.utilities import setting_def
 class FeatureExtractionSettingsClass:
     """
     Parameters related to feature computation. Many are conditional on the type of features that will be computed (
-    ``base_feature_families``).
+    ``base_feature_families``). Features and their parameters are defined `here <https://arxiv.org/abs/1612.07003>`_.
 
     Parameters
     ----------

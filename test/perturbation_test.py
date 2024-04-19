@@ -15,8 +15,6 @@ from mirp.settings.general_parameters import GeneralSettingsClass
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-WRITE_TEMP_FILES = False
-
 
 def test_noise_perturbation():
 
@@ -475,16 +473,6 @@ def run_experiment(perturbation_settings, by_slice=False):
         by_slice=by_slice,
         perturbation_settings=perturbation_settings
     )
-
-    # Set testing directory
-    if WRITE_TEMP_FILES:
-        write_path = os.path.join(CURRENT_DIR, "data", "temp")
-
-        # Create directory, if necessary.
-        if not os.path.isdir(write_path):
-            os.makedirs(write_path)
-    else:
-        write_path = None
 
     data = extract_features_and_images(
         write_features=False,

@@ -1,5 +1,5 @@
 import os
-
+import pytest
 import numpy as np
 
 from mirp.extract_features_and_images import extract_features_and_images
@@ -41,12 +41,14 @@ def test_parallel_feature_extraction():
         assert sequential_data[ii].equals(paralell_data[ii])
 
 
+@pytest.mark.ci
 def test_parallel_dl_preprocessing():
     sequential_images = deep_learning_preprocessing(
         output_slices=False,
         crop_size=[20, 50, 50],
         export_images=True,
         write_images=False,
+        image_export_format="numpy",
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image"),
         mask_sub_folder=os.path.join("CT", "nifti", "mask")
@@ -58,6 +60,7 @@ def test_parallel_dl_preprocessing():
         crop_size=[20, 50, 50],
         export_images=True,
         write_images=False,
+        image_export_format="numpy",
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
         image_sub_folder=os.path.join("CT", "nifti", "image"),
         mask_sub_folder=os.path.join("CT", "nifti", "mask")
@@ -66,3 +69,17 @@ def test_parallel_dl_preprocessing():
     for ii in range(len(sequential_images)):
         assert np.array_equal(sequential_images[ii][0], parallel_images[ii][0])
         assert np.array_equal(sequential_images[ii][1], parallel_images[ii][1])
+
+
+def test_limit_threads():
+    from mirp.utilities.parallel import limit_inner_threads
+
+    limit_inner_threads()
+
+    assert os.environ["OMP_NUM_THREADS"] == "1"
+    assert os.environ["OPENBLAS_NUM_THREADS"] == "1"
+    assert os.environ["MKL_NUM_THREADS"] == "1"
+    assert os.environ["BLIS_NUM_THREADS"] == "1"
+    assert os.environ["VECLIB_MAXIMUM_THREADS"] == "1"
+    assert os.environ["NUMBA_NUM_THREADS"] == "1"
+    assert os.environ["NUMEXPR_NUM_THREADS"] == "1"

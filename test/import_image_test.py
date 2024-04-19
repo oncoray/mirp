@@ -15,7 +15,7 @@ from mirp._data_import.numpy_file_stack import ImageNumpyFileStack
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-def _convert_to_numpy(as_slice=False):
+def _convert_to_numpy(as_slice=False):  # pragma: no cover
     """
     Helper script for converting NIfTI files to numpy for testing numpy-based imports.
 
@@ -92,7 +92,7 @@ def _convert_to_numpy(as_slice=False):
                 np.save(target_mask_file, arr=source_mask)
 
 
-def _convert_to_flat_directory():
+def _convert_to_flat_directory():  # pragma: no cover
     """
     Helper script for converting soft-tissue sarcoma imaging files to a flat directory.
     :return:
@@ -128,6 +128,7 @@ def _convert_to_flat_directory():
                         )
 
 
+@pytest.mark.ci
 def test_sample_name_parser():
     """
     This tests the isolate_sample_name function that is used to determine sample names from the name of file after a
@@ -241,6 +242,7 @@ def test_sample_name_parser():
     assert sample_name is None
 
 
+@pytest.mark.ci
 def test_single_image_import():
 
     # Read a Nifti image directly.
@@ -338,6 +340,7 @@ def test_single_image_import():
     assert image_list[0].modality == "ct"
 
 
+@pytest.mark.ci
 def test_multiple_image_import():
     # Read Nifti _images directly.
     image_list = import_image([
@@ -354,8 +357,7 @@ def test_multiple_image_import():
     ])
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_002"
-    assert image_list[1].sample_name == "STS_003"
+    assert {image_list[0].sample_name, image_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read a numpy image directly.
     image_list = import_image([
@@ -380,8 +382,7 @@ def test_multiple_image_import():
         image_sub_folder=os.path.join("CT", "nifti", "image"))
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageITKFile) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_002"
-    assert image_list[1].sample_name == "STS_003"
+    assert {image_list[0].sample_name, image_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read DICOM image stacks for a specific samples.
     image_list = import_image(
@@ -390,8 +391,7 @@ def test_multiple_image_import():
         image_sub_folder=os.path.join("CT", "dicom", "image"))
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_002"
-    assert image_list[1].sample_name == "STS_003"
+    assert {image_list[0].sample_name, image_list[1].sample_name} == {"STS_002", "STS_003"}
     assert all(image_object.modality == "ct" for image_object in image_list)
 
     # Read numpy _images for specific samples.
@@ -401,8 +401,7 @@ def test_multiple_image_import():
         image_sub_folder=os.path.join("CT", "numpy", "image"))
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageNumpyFile) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_002"
-    assert image_list[1].sample_name == "STS_003"
+    assert {image_list[0].sample_name, image_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read numpy image stacks for specific samples.
     image_list = import_image(
@@ -411,8 +410,7 @@ def test_multiple_image_import():
         image_sub_folder=os.path.join("CT", "numpy_slice", "image"))
     assert len(image_list) == 2
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_002"
-    assert image_list[1].sample_name == "STS_003"
+    assert {image_list[0].sample_name, image_list[1].sample_name} == {"STS_002", "STS_003"}
 
     # Read Nifti _images for all samples.
     image_list = import_image(
@@ -427,9 +425,8 @@ def test_multiple_image_import():
         image_sub_folder=os.path.join("CT", "dicom", "image"))
     assert len(image_list) == 3
     assert all(isinstance(image_object, ImageDicomFileStack) for image_object in image_list)
-    assert image_list[0].sample_name == "STS_001"
-    assert image_list[1].sample_name == "STS_002"
-    assert image_list[2].sample_name == "STS_003"
+    assert {image_list[0].sample_name, image_list[1].sample_name, image_list[2].sample_name} == \
+           {"STS_001", "STS_002", "STS_003"}
     assert all(image_object.modality == "ct" for image_object in image_list)
 
     # Read numpy _images for all samples.
@@ -447,6 +444,7 @@ def test_multiple_image_import():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
 
+@pytest.mark.ci
 def test_single_image_import_flat():
     # Read a Nifti image directly.
     image_list = import_image(
@@ -493,6 +491,7 @@ def test_single_image_import_flat():
             sample_name="STS_001")
 
 
+@pytest.mark.ci
 def test_multiple_image_import_flat():
 
     # Read Nifti _images for specific samples.
@@ -606,6 +605,7 @@ def test_multiple_image_import_flat():
     assert all(isinstance(image_object, ImageNumpyFileStack) for image_object in image_list)
 
 
+@pytest.mark.ci
 def test_image_import_flat_poor_naming():
     """
     Tests whether we can select files if their naming convention is poor, e.g. sample_1, sample_11, sample_111.

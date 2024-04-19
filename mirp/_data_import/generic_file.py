@@ -66,6 +66,7 @@ class ImageFile(BaseImage):
 
         # Add metadata
         self.image_metadata = None
+        self.is_limited_metadata = False
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
@@ -87,6 +88,9 @@ class ImageFile(BaseImage):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def on_file_system(self):
+        return self.file_path is None or self.dir_path is None
 
     def get_identifiers(self, as_hash=False) -> dict | bytes:
         """
@@ -419,7 +423,7 @@ class ImageFile(BaseImage):
         # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
         # filename into parts that should contain the sample name.
         if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
-            if self._get_sample_name_from_file() is None:
+            if self.get_sample_name_from_file() is None:
                 if raise_error:
                     raise ValueError(
                         f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
@@ -432,11 +436,14 @@ class ImageFile(BaseImage):
     def _check_modality(self, raise_error: bool) -> bool:
         return True
 
-    def _get_sample_name_from_file(self) -> None | str:
+    def get_sample_name_from_file(self, must_succeed=False) -> None | str:
         allowed_file_extensions = supported_file_types(self.file_type)
 
         # Do not obtain sample name from the file name if a file name has already been set.
         if isinstance(self.sample_name, str):
+            return None
+
+        if self.file_name is None:
             return None
 
         # Select the most appropriate sample name.
@@ -500,6 +507,8 @@ class ImageFile(BaseImage):
 
             return matching_name
 
+        elif must_succeed:
+            return bare_file_name(x=self.file_name, file_extension=allowed_file_extensions)
         else:
             return None
 
@@ -588,9 +597,6 @@ class ImageFile(BaseImage):
         return list(itertools.chain.from_iterable(file_name_parts))
 
     def complete(self, remove_metadata=False, force=False):
-        # Load metadata.
-        self.load_metadata()
-
         self._complete_modality()
         self._complete_sample_name()
         self._complete_image_dimensions(force=force)
@@ -613,7 +619,7 @@ class ImageFile(BaseImage):
     def _complete_sample_name(self):
         # Set sample name.
         if isinstance(self.sample_name, list):
-            file_sample_name = self._get_sample_name_from_file()
+            file_sample_name = self.get_sample_name_from_file()
 
             if file_sample_name is None and len(self.sample_name) == 1:
                 self.sample_name = self.sample_name[0]
@@ -648,7 +654,7 @@ class ImageFile(BaseImage):
             f"implementation for subclasses."
         )
 
-    def load_metadata(self):
+    def load_metadata(self, limited=False, include_image=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of load_metadata. Please specify "
             f"implementation for subclasses."
@@ -748,7 +754,7 @@ class ImageFile(BaseImage):
 
     def to_object(self, **kwargs) -> GenericImage:
 
-        self.load_data()
+        self.load_data(**kwargs)
         self.complete()
         self.stack_slices()
         self.update_image_data()
@@ -834,7 +840,7 @@ class MaskFile(ImageFile):
             f"implementation for subclasses."
         )
 
-    def load_metadata(self):
+    def load_metadata(self, **kwargs):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of load_metadata. Please specify "
             f"implementation for subclasses."
@@ -1097,3 +1103,35 @@ class MaskFile(ImageFile):
             "file_path": [self.file_name] * n_labels,
             "roi_label": labels
         }
+
+
+class MaskFullImage(MaskFile):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.roi_name = "full_image_mask"
+
+    def to_object(
+            self,
+            image: None | ImageFile,
+            **kwargs
+    ) -> None | list[BaseMask]:
+        if image is None:
+            raise TypeError(
+                f"Creation of a full image mask requires that the corresponding image is set. "
+                f"No image was provided ({self.file_path})."
+            )
+        else:
+            image.complete()
+
+        self._complete_modality()
+
+        return [BaseMask(
+            roi_name=self.roi_name,
+            sample_name=image.sample_name,
+            image_modality=self.modality,
+            image_data=np.ones(image.image_dimension, dtype=bool),
+            image_spacing=image.image_spacing,
+            image_origin=image.image_origin,
+            image_orientation=image.image_orientation,
+            image_dimensions=image.image_dimension
+        )]

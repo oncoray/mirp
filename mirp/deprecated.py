@@ -1,14 +1,14 @@
 def get_roi_labels(**kwargs):
     raise RuntimeError(
         f"The get_roi_labels function has been replaced by "
-        f"mirp.extractMaskLabels.extract_mask_labels."
+        f"mirp.extract_mask_labels."
     )
 
 
 def get_image_acquisition_parameters(**kwargs):
     raise RuntimeError(
         f"The get_image_acquisition_parameters function has been replaced by "
-        f"mirp.extractImageParameters.extract_image_parameters."
+        f"mirp.extract_image_parameters."
     )
 
 
@@ -27,23 +27,23 @@ def parse_file_structure(**kwargs):
 def extract_images_for_deep_learning(**kwargs):
     raise RuntimeError(
         f"The extract_images_for_deep_learning function has been replaced by "
-        f"mirp.deepLearningPreprocessing.deep_learning_preprocessing."
+        f"mirp.deep_learning_preprocessing."
     )
 
 
 def extract_features(**kwargs):
     raise RuntimeError(
-        f"The extract_features function has been replaced by mirp.extractFeaturesAndImage.extract_features."
+        f"The extract_features function has been replaced by mirp.extract_features."
     )
 
 
 def extract_images_to_nifti(**kwargs):
     raise RuntimeError(
-        f"The extract_images_to_nifti function has been replaced by mirp.extractFeaturesAndImage.extract_images."
+        f"The extract_images_to_nifti function has been replaced by mirp.extract_images."
     )
 
 
 def process_images(**kwargs):
     raise RuntimeError(
-        "The process_images function has been replaced by mirp.extractFeaturesAndImage.extract_features_and_images."
+        "The process_images function has been replaced by mirp.extract_features_and_images."
     )
