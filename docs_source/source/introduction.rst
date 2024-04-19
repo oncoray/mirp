@@ -11,15 +11,29 @@ radiomics and image processing for deep-learning applications.
 
 What is radiomics?
 ------------------
+Radiomics is the process of using medical images for, e.g., diagnosing disease or predicting how patients respond to
+a treatment. Radiomics involves the use of computer algorithms to process medical images and predicting such outcomes.
+There are two major radiomics branches, defined by what algorithms are used to predict outcomes. The first branch
+(historically) of radiomics is characterised by the use of quantitative (handcrafted) features that are then used by
+machine learning algorithms for tabular data. The second, more recent, branch uses deep learning algorithms to
+directly learn from images themselves.
 
-Contributing
-------------
+For more details, see reviews by Lambin et al. [Lambin2017]_ and van Timmeren et al. [vanTimmeren2020]_.
 
 Contact
 -------
+If you have any questions or run into issues, please visit the MIRP `GitHub repository <https://github
+.com/oncoray/mirp>`_.
 
 References
 ----------
+
+.. [Lambin2017] Lambin P, Leijenaar RTH, Deist TM, Peerlings J, de Jong EEC, van Timmeren J, et al. Radiomics: the
+  bridge between medical imaging and personalized medicine. Nat Rev Clin Oncol. 2017;14: 749–762.
+  doi:10.1038/nrclinonc.2017.141
+
+.. [vanTimmeren2020] van Timmeren JE, Cester D, Tanadini-Lang S, Alkadhi H, Baessler B. Radiomics in medical
+  imaging-“how-to” guide and critical reflection. Insights Imaging. 2020;11: 91. doi:10.1186/s13244-020-00887-2
 
 .. [Zwanenburg2020] Zwanenburg A, Vallieres M, Abdalah MA, Aerts HJWL, Andrearczyk V, Apte A, et al. The Image
   Biomarker Standardization Initiative: Standardized Quantitative Radiomics for High-Throughput Image-based
