@@ -17,6 +17,8 @@
 
 ## Fixes
 
+- Streamlined importing and reading DICOM files results in faster processing of DICOM-based imaging.
+
 - Fixed an indexing issue when attempting to split masks into bulk and rim sections in a slice-wise fashion.
 
 - Fixed an indexing issue in Rank's method for noise estimation.

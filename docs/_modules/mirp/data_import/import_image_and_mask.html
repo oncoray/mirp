@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.data_import.import_image_and_mask &mdash; mirp 2.2.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=92fd9be5" />
+  <title>mirp.data_import.import_image_and_mask &mdash; mirp 2.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
   
@@ -14,9 +14,10 @@
   
         <script src="../../../_static/jquery.js?v=5d32c60e"></script>
         <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=b21de401"></script>
+        <script src="../../../_static/documentation_options.js?v=16656018"></script>
         <script src="../../../_static/doctools.js?v=888ff710"></script>
         <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -41,14 +42,27 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.importData.html">Configure image and mask import</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.settings.html">Configure the image processing and feature extraction workflow</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractImageParameters.html">Extract image metadata</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractMaskLabels.html">Extract mask labels</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.deepLearningPreprocessing.html">Preprocess images for deep learning</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mirp.extractFeaturesAndImages.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing.html">Contributing</a></li>
 </ul>
 
         </div>
@@ -78,14 +92,14 @@
   <h1>Source code for mirp.data_import.import_image_and_mask</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">mirp.data_import.import_image</span> <span class="kn">import</span> <span class="n">import_image</span>
 <span class="kn">from</span> <span class="nn">mirp.data_import.import_mask</span> <span class="kn">import</span> <span class="n">import_mask</span>
-<span class="kn">from</span> <span class="nn">mirp._data_import.generic_file</span> <span class="kn">import</span> <span class="n">ImageFile</span><span class="p">,</span> <span class="n">MaskFile</span>
+<span class="kn">from</span> <span class="nn">mirp._data_import.generic_file</span> <span class="kn">import</span> <span class="n">ImageFile</span><span class="p">,</span> <span class="n">MaskFile</span><span class="p">,</span> <span class="n">MaskFullImage</span>
 <span class="kn">from</span> <span class="nn">mirp._data_import.dicom_file</span> <span class="kn">import</span> <span class="n">ImageDicomFile</span><span class="p">,</span> <span class="n">MaskDicomFile</span>
 <span class="kn">from</span> <span class="nn">mirp._data_import.dicom_file_stack</span> <span class="kn">import</span> <span class="n">ImageDicomFileStack</span>
 <span class="kn">from</span> <span class="nn">mirp.utilities.utilities</span> <span class="kn">import</span> <span class="n">random_string</span>
 
 
 <div class="viewcode-block" id="import_image_and_mask">
-<a class="viewcode-back" href="../../../mirp.importData.html#mirp.data_import.import_image_and_mask.import_image_and_mask">[docs]</a>
+<a class="viewcode-back" href="../../../image_mask_import.html#mirp.data_import.import_image_and_mask.import_image_and_mask">[docs]</a>
 <span class="k">def</span> <span class="nf">import_image_and_mask</span><span class="p">(</span>
         <span class="n">image</span><span class="p">,</span>
         <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -98,7 +112,7 @@
         <span class="n">mask_file_type</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">mask_modality</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">mask_sub_folder</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">roi_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span> <span class="o">|</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">roi_name</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">association_strategy</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">stack_images</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
         <span class="n">stack_masks</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span>
@@ -161,7 +175,7 @@
 <span class="sd">        Fixed directory substructure where mask files are located. If None, the directory substructure is not used for</span>
 <span class="sd">        filtering files.</span>
 
-<span class="sd">    roi_name: str, optional, default: None</span>
+<span class="sd">    roi_name: str or list of str or dict, optional, default: None</span>
 <span class="sd">        Name of the regions of interest that should be assessed.</span>
 
 <span class="sd">    association_strategy: {&quot;frame_of_reference&quot;, &quot;sample_name&quot;, &quot;file_distance&quot;, &quot;file_name_similarity&quot;,  &quot;list_order&quot;, &quot;position&quot;, &quot;single_image&quot;}</span>
@@ -189,7 +203,16 @@
 <span class="sd">    list[ImageFile]</span>
 <span class="sd">        The functions returns a list of ImageFile objects, if any were found with the specified filters.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+    <span class="c1"># If mask = None, this can mean several things. Here we check that mask should not be interpreted as having the</span>
+    <span class="c1"># same meaning as image.</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="n">mask_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">mask_sub_folder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">mask_modality</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span>
+            <span class="n">mask_file_type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">roi_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">image</span>
+
+    <span class="k">elif</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">image</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.xml&quot;</span><span class="p">):</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">image</span>
 
     <span class="c1"># Generate list of images.</span>
@@ -203,79 +226,94 @@
         <span class="n">stack_images</span><span class="o">=</span><span class="n">stack_images</span>
     <span class="p">)</span>
 
-    <span class="c1"># Generate list of images.</span>
-    <span class="n">mask_list</span> <span class="o">=</span> <span class="n">import_mask</span><span class="p">(</span>
-        <span class="n">mask</span><span class="p">,</span>
-        <span class="n">sample_name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">,</span>
-        <span class="n">mask_name</span><span class="o">=</span><span class="n">mask_name</span><span class="p">,</span>
-        <span class="n">mask_file_type</span><span class="o">=</span><span class="n">mask_file_type</span><span class="p">,</span>
-        <span class="n">mask_modality</span><span class="o">=</span><span class="n">mask_modality</span><span class="p">,</span>
-        <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">mask_sub_folder</span><span class="p">,</span>
-        <span class="n">stack_masks</span><span class="o">=</span><span class="n">stack_masks</span><span class="p">,</span>
-        <span class="n">roi_name</span><span class="o">=</span><span class="n">roi_name</span>
-    <span class="p">)</span>
-
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No images were found. Possible reasons are lack of images with the preferred modality.&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No masks were found. Possible reasons are lack of masks with the preferred modality.&quot;</span><span class="p">)</span>
 
-    <span class="c1"># Determine association strategy, if this is unset.</span>
-    <span class="n">possible_association_strategy</span> <span class="o">=</span> <span class="n">set_association_strategy</span><span class="p">(</span>
-        <span class="n">image_list</span><span class="o">=</span><span class="n">image_list</span><span class="p">,</span>
-        <span class="n">mask_list</span><span class="o">=</span><span class="n">mask_list</span>
-    <span class="p">)</span>
+    <span class="c1"># Remove metadata (if any) - anything relevant can be loaded later.</span>
+    <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">:</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">remove_metadata</span><span class="p">()</span>
 
-    <span class="k">if</span> <span class="n">association_strategy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">association_strategy</span> <span class="o">=</span> <span class="n">possible_association_strategy</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">association_strategy</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="n">association_strategy</span> <span class="o">=</span> <span class="p">[</span><span class="n">association_strategy</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">association_strategy</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
-        <span class="n">association_strategy</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">association_strategy</span><span class="p">)</span>
-
-    <span class="c1"># Test association strategy.</span>
-    <span class="n">unavailable_strategy</span> <span class="o">=</span> <span class="n">association_strategy</span> <span class="o">-</span> <span class="n">possible_association_strategy</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unavailable_strategy</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;One or more strategies for associating images and masks are not available for the provided image and &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;mask set: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">unavailable_strategy</span><span class="p">))</span><span class="si">}</span><span class="s2">. Only the following strategies are available: &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;. &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">possible_association_strategy</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Generate list of masks from mask.</span>
+        <span class="n">mask_list</span> <span class="o">=</span> <span class="n">import_mask</span><span class="p">(</span>
+            <span class="n">mask</span><span class="p">,</span>
+            <span class="n">sample_name</span><span class="o">=</span><span class="n">sample_name</span><span class="p">,</span>
+            <span class="n">mask_name</span><span class="o">=</span><span class="n">mask_name</span><span class="p">,</span>
+            <span class="n">mask_file_type</span><span class="o">=</span><span class="n">mask_file_type</span><span class="p">,</span>
+            <span class="n">mask_modality</span><span class="o">=</span><span class="n">mask_modality</span><span class="p">,</span>
+            <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">mask_sub_folder</span><span class="p">,</span>
+            <span class="n">stack_masks</span><span class="o">=</span><span class="n">stack_masks</span><span class="p">,</span>
+            <span class="n">roi_name</span><span class="o">=</span><span class="n">roi_name</span>
         <span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_association_strategy</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s2">&quot;No strategies for associating images and masks are available, indicating that there is no clear way to &quot;</span>
-            <span class="sa">f</span><span class="s2">&quot;establish an association.&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No masks were found. Possible reasons are lack of masks with the preferred modality.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Remove metadata (if any) - anything relevant can be loaded later.</span>
+        <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">mask_list</span><span class="p">:</span>
+            <span class="n">mask</span><span class="o">.</span><span class="n">remove_metadata</span><span class="p">()</span>
+
+        <span class="c1"># Determine association strategy, if this is unset.</span>
+        <span class="n">possible_association_strategy</span> <span class="o">=</span> <span class="n">set_association_strategy</span><span class="p">(</span>
+            <span class="n">image_list</span><span class="o">=</span><span class="n">image_list</span><span class="p">,</span>
+            <span class="n">mask_list</span><span class="o">=</span><span class="n">mask_list</span>
         <span class="p">)</span>
 
-    <span class="c1"># Start association.</span>
-    <span class="k">if</span> <span class="n">association_strategy</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;list_order&quot;</span><span class="p">}:</span>
-        <span class="c1"># If only the list_order strategy is available, use this.</span>
-        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
-            <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_list</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">association_strategy</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">association_strategy</span> <span class="o">=</span> <span class="n">possible_association_strategy</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">association_strategy</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">association_strategy</span> <span class="o">=</span> <span class="p">[</span><span class="n">association_strategy</span><span class="p">]</span>
 
-    <span class="k">elif</span> <span class="n">association_strategy</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;single_image&quot;</span><span class="p">}:</span>
-        <span class="c1"># If single_image is the only strategy, use this.</span>
-        <span class="n">image_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="n">mask_list</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">association_strategy</span><span class="p">,</span> <span class="nb">set</span><span class="p">):</span>
+            <span class="n">association_strategy</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">association_strategy</span><span class="p">)</span>
 
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
-            <span class="n">image</span><span class="o">.</span><span class="n">associate_with_mask</span><span class="p">(</span>
-                <span class="n">mask_list</span><span class="o">=</span><span class="n">mask_list</span><span class="p">,</span>
-                <span class="n">association_strategy</span><span class="o">=</span><span class="n">association_strategy</span>
+        <span class="c1"># Test association strategy.</span>
+        <span class="n">unavailable_strategy</span> <span class="o">=</span> <span class="n">association_strategy</span> <span class="o">-</span> <span class="n">possible_association_strategy</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unavailable_strategy</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;One or more strategies for associating images and masks are not available for the provided image and &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;mask set: </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">unavailable_strategy</span><span class="p">))</span><span class="si">}</span><span class="s2">. Only the following strategies are available: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;. &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">possible_association_strategy</span><span class="p">))</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">):</span>
-            <span class="k">if</span> <span class="s2">&quot;single_image&quot;</span> <span class="ow">in</span> <span class="n">association_strategy</span><span class="p">:</span>
-                <span class="n">image_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="n">mask_list</span>
-            <span class="k">elif</span> <span class="s2">&quot;list_order&quot;</span> <span class="ow">in</span> <span class="n">association_strategy</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
-                    <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_list</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_association_strategy</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;No strategies for associating images and masks are available, indicating that there is no clear way to &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;establish an association.&quot;</span>
+            <span class="p">)</span>
 
-    <span class="c1"># Ensure that we are working with deep copies from this point - we don&#39;t want to propagate changes to masks,</span>
-    <span class="c1"># images by reference.</span>
-    <span class="n">image_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">image</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">]</span>
+        <span class="c1"># Start association.</span>
+        <span class="k">if</span> <span class="n">association_strategy</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;list_order&quot;</span><span class="p">}:</span>
+            <span class="c1"># If only the list_order strategy is available, use this.</span>
+            <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
+                <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_list</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span>
+
+        <span class="k">elif</span> <span class="n">association_strategy</span> <span class="o">==</span> <span class="p">{</span><span class="s2">&quot;single_image&quot;</span><span class="p">}:</span>
+            <span class="c1"># If single_image is the only strategy, use this.</span>
+            <span class="n">image_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="n">mask_list</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
+                <span class="n">image</span><span class="o">.</span><span class="n">associate_with_mask</span><span class="p">(</span>
+                    <span class="n">mask_list</span><span class="o">=</span><span class="n">mask_list</span><span class="p">,</span>
+                    <span class="n">association_strategy</span><span class="o">=</span><span class="n">association_strategy</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">):</span>
+                <span class="k">if</span> <span class="s2">&quot;single_image&quot;</span> <span class="ow">in</span> <span class="n">association_strategy</span><span class="p">:</span>
+                    <span class="n">image_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="n">mask_list</span>
+                <span class="k">elif</span> <span class="s2">&quot;list_order&quot;</span> <span class="ow">in</span> <span class="n">association_strategy</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">image</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">image_list</span><span class="p">):</span>
+                        <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">mask_list</span><span class="p">[</span><span class="n">ii</span><span class="p">]]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Generate full masks.</span>
+        <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">:</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">MaskFullImage</span><span class="p">()]</span>
+
+    <span class="c1"># In case we are not working with file-based images, ensure that we are working with deep copies from this point -</span>
+    <span class="c1"># we don&#39;t want to propagate changes to masks and images by reference.</span>
+    <span class="n">image_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">image</span> <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">on_file_system</span><span class="p">()</span> <span class="k">else</span> <span class="n">image</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">]</span>
 
     <span class="c1"># Set sample names. First we check if all sample names are missing.</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">sample_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">):</span>
@@ -291,11 +329,12 @@
 
         <span class="k">elif</span> <span class="nb">all</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">:</span>
-                <span class="n">image</span><span class="o">.</span><span class="n">set_sample_name</span><span class="p">(</span><span class="n">sample_name</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+                <span class="n">file_sample_name</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">get_sample_name_from_file</span><span class="p">(</span><span class="n">must_succeed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">image</span><span class="o">.</span><span class="n">set_sample_name</span><span class="p">(</span><span class="n">sample_name</span><span class="o">=</span><span class="n">file_sample_name</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">image</span><span class="o">.</span><span class="n">associated_masks</span><span class="p">:</span>
-                        <span class="n">mask</span><span class="o">.</span><span class="n">set_sample_name</span><span class="p">(</span><span class="n">sample_name</span><span class="o">=</span><span class="n">image</span><span class="o">.</span><span class="n">file_name</span><span class="p">)</span>
+                        <span class="n">mask</span><span class="o">.</span><span class="n">set_sample_name</span><span class="p">(</span><span class="n">sample_name</span><span class="o">=</span><span class="n">file_sample_name</span><span class="p">)</span>
 
     <span class="c1"># Then set any sample names for images that still miss them.</span>
     <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">sample_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">):</span>

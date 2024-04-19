@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial: Computing radiomics features &mdash; mirp 2.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configure image and mask import" href="image_mask_import.html" />
+    <link rel="prev" title="Installing MIRP" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial: Computing radiomics features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Download-example-data">Download example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Finding-mask-labels">Finding mask labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Visualising-images">Visualising images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Assessing-image-metadata">Assessing image metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Computing-features">Computing features</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial: Computing radiomics features</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial_compute_radiomics_features_mr.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial:-Computing-radiomics-features">
+<h1>Tutorial: Computing radiomics features<a class="headerlink" href="#Tutorial:-Computing-radiomics-features" title="Link to this heading"></a></h1>
+<p>This tutorial describes step-by-step how you can compute radiomics features from medical imaging using MIRP.</p>
+<section id="Download-example-data">
+<h2>Download example data<a class="headerlink" href="#Download-example-data" title="Link to this heading"></a></h2>
+<p>We have prepared an (anonymised) example dataset of T1-weighted images of patients with soft-tissue sarcoma. This is a zip-file containing data for three patients.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">ZipFile</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;https://github.com/oncoray/mirp/raw/acd0b11521acd07aa9597e8f55d480bc54af4e04/data/tutorial_radiomics_mr_t1_data.zip&quot;</span>
+
+<span class="c1"># Specify location where the data is stored.</span>
+<span class="n">save_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+
+<span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_url_pointer</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">zip_url_pointer</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span> <span class="k">as</span> <span class="n">example_data</span><span class="p">:</span>
+        <span class="n">example_data</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>This creates a folder with the following structure:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>sts_images
+├─ STS_001
+│   └─ ...
+├─ ...
+└─ STS_003
+    └─ mr_t1
+        ├─ image
+        |  ├─ 1-01.dcm
+        |  ├─ ...
+        |  └─ 1-36.dcm
+        └─ mask
+            └─ 1-1.dcm
+</pre></div>
+</div>
+<p>In this example dataset, the T1-weighted images are stored in DICOM format in the <code class="docutils literal notranslate"><span class="pre">mr_t1/image</span></code> subdirectory. A segmentation mask is also stored in DICOM format, but in the <code class="docutils literal notranslate"><span class="pre">mr_t1/mask</span></code> subdirectory.</p>
+</section>
+<section id="Finding-mask-labels">
+<h2>Finding mask labels<a class="headerlink" href="#Finding-mask-labels" title="Link to this heading"></a></h2>
+<p>Radiomics features are typically computed from regions of interest, such as a tumour. These regions are delineated by experts or auto-segmentation AI, and stored as segmentation masks. MIRP needs to know which mask label (region of interest) should be used for computing features. A first step is to identify which mask labels exist. This can be done using the <code class="docutils literal notranslate"><span class="pre">extract_mask_labels</span></code> function. We need to define the main directory (<code class="docutils literal notranslate"><span class="pre">.../sts_images</span></code>), and optionally the directory structure
+relative to the patient directory (<code class="docutils literal notranslate"><span class="pre">mr_t1/mask</span></code>), where the masks can be found.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_mask_labels</span>
+
+<span class="n">extract_mask_labels</span><span class="p">(</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
+    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample_name</th>
+      <th>dir_path</th>
+      <th>file_path</th>
+      <th>roi_label</th>
+      <th>mask_index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>STS_001</td>
+      <td>sts_images\STS_001\mr_t1\mask</td>
+      <td>1-1.dcm</td>
+      <td>GTV_Mass</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>STS_001</td>
+      <td>sts_images\STS_001\mr_t1\mask</td>
+      <td>1-1.dcm</td>
+      <td>GTV_Edema</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>STS_002</td>
+      <td>sts_images\STS_002\mr_t1\mask</td>
+      <td>1-1.dcm</td>
+      <td>GTV_Mass</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>STS_002</td>
+      <td>sts_images\STS_002\mr_t1\mask</td>
+      <td>1-1.dcm</td>
+      <td>GTV_Edema</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>STS_003</td>
+      <td>sts_images\STS_003\mr_t1\mask</td>
+      <td>1-1.dcm</td>
+      <td>GTV_Mass</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>STS_003</td>
+      <td>sts_images\STS_003\mr_t1\mask</td>
+      <td>1-1.dcm</td>
+      <td>GTV_Edema</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>We are lucky that all masks are consistently labelled. <code class="docutils literal notranslate"><span class="pre">GTV_Mass</span></code> and <code class="docutils literal notranslate"><span class="pre">GTV_Edema</span></code> both refer to the gross tumour volume, i.e. that part of the tumour that is visible in medical imaging. <code class="docutils literal notranslate"><span class="pre">GTV-Edema</span></code> also covers fluid surrounding the gross tumour volume itself.</p>
+</section>
+<section id="Visualising-images">
+<h2>Visualising images<a class="headerlink" href="#Visualising-images" title="Link to this heading"></a></h2>
+<p>It is often useful to inspect images before computing radiomics features. External viewers for DICOM and many other image types exist, but MIRP also has a simple visualisation tool. You can visualise images by exporting them in MIRP internal formats using <code class="docutils literal notranslate"><span class="pre">extract_images</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+
+<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">,</span> <span class="s2">&quot;STS_003&quot;</span><span class="p">,</span> <span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">,</span> <span class="s2">&quot;STS_003&quot;</span><span class="p">,</span> <span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">),</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV_Mass&quot;</span><span class="p">,</span>
+    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+INFO    : MainProcess    2024-04-09 11:07:28,625         Initialising image extraction using mr images for STS_003.
+</pre></div></div>
+</div>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> will export dictionaries containing image and mask data (as <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>) and associated metadata. These data can be visualised using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> and other tools. Using <code class="docutils literal notranslate"><span class="pre">image_export_format=&quot;native&quot;</span></code> exports images and masks in the native MIRP format. The output of <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> is a list of images and masks, with one entry per image dataset. We only assess a single image here, which means that <code class="docutils literal notranslate"><span class="pre">images</span></code> only has one element. The nested list always
+consists of the image – and any derivatives, such as filtered images – and masks associated with the image. We can visualise an exported image using its <code class="docutils literal notranslate"><span class="pre">show</span></code> method as follows:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slice_id</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_compute_radiomics_features_mr_7_0.png" src="_images/tutorial_compute_radiomics_features_mr_7_0.png" />
+</div>
+</div>
+<p>Though just an image is shown here, executing this code outside of a Jupyter Notebook will start an interactive plotter that can be scrolled through.</p>
+<p>The T1-weighted image appears as expected: muscle tissue appears grey, and fatty tissue appears bright. The <code class="docutils literal notranslate"><span class="pre">GTV_Mass</span></code> segmentation mask covers the tumour – use <code class="docutils literal notranslate"><span class="pre">image[0].show()</span></code> to view the image without a mask.</p>
+</section>
+<section id="Assessing-image-metadata">
+<h2>Assessing image metadata<a class="headerlink" href="#Assessing-image-metadata" title="Link to this heading"></a></h2>
+<p>Image metadata are important for understanding the image and how it was acquired and reconstructed. MIRP allows for exporting image metadata from DICOM and other image formats, though for non-DICOM formats metadata will be considerably more limited.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_image_parameters</span>
+
+<span class="n">extract_image_parameters</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample_name</th>
+      <th>modality</th>
+      <th>spacing_z</th>
+      <th>spacing_y</th>
+      <th>spacing_x</th>
+      <th>scanner_type</th>
+      <th>manufacturer</th>
+      <th>image_type</th>
+      <th>scanning_sequence</th>
+      <th>scanning_sequence_variant</th>
+      <th>image_index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>STS_001</td>
+      <td>mr</td>
+      <td>5.2</td>
+      <td>0.390625</td>
+      <td>0.390625</td>
+      <td>Avanto</td>
+      <td>SIEMENS</td>
+      <td>['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']</td>
+      <td>SE</td>
+      <td>['SK', 'SP', 'OSP']</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>STS_002</td>
+      <td>mr</td>
+      <td>7.0</td>
+      <td>0.892857</td>
+      <td>0.892857</td>
+      <td>Intera</td>
+      <td>Philips Medical Systems</td>
+      <td>['ORIGINAL', 'PRIMARY', 'M_SE', 'M', 'SE']</td>
+      <td>SE</td>
+      <td>OSP</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>STS_003</td>
+      <td>mr</td>
+      <td>7.0</td>
+      <td>0.781300</td>
+      <td>0.781300</td>
+      <td>Signa HDxt</td>
+      <td>GE MEDICAL SYSTEMS</td>
+      <td>['ORIGINAL', 'PRIMARY', 'OTHER']</td>
+      <td>SE</td>
+      <td>SK</td>
+      <td>2</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Only known metadata are shown. For example, magnetic field strength was not present in the image metadata in this example.</p>
+<p>The metadata have important implications for the image processing:</p>
+<ul class="simple">
+<li><p>The in-plane resolution is much higher than the distance between slices. This suggests that features should be computed by slice, instead in 3D.</p></li>
+<li><p>The in-plane resolution differs between patients. This suggests that the images should be resampled to isotropic pixel sizes, e.g. 1.0 by 1.0 mm.</p></li>
+<li><p>All three images were recorded in different scanners. This suggests that MR intensities cannot be compared between patients, and should be standardised.</p></li>
+</ul>
+</section>
+<section id="Computing-features">
+<h2>Computing features<a class="headerlink" href="#Computing-features" title="Link to this heading"></a></h2>
+<p>The presented metadata suggest that image processing is required to make the MR images more comparable between patients. We will define three image processing steps:</p>
+<ol class="arabic simple">
+<li><p>Image processing and feature computation is performed by slice (<code class="docutils literal notranslate"><span class="pre">by_slice=True</span></code>) due to large distances between image slices.</p></li>
+<li><p>In-plane resolution is resampled to 1.0 by 1.0 mm (<code class="docutils literal notranslate"><span class="pre">new_spacing=1.0</span></code>).</p></li>
+<li><p>Intensities are normalised, here using <em>z-normalisation</em> (<code class="docutils literal notranslate"><span class="pre">intensity_normalisation=&quot;standardisation&quot;</span></code>).</p></li>
+</ol>
+<p>In addition, we need to define parameters related to intensity discretisation for computing histogram-based and texture features. Since intensities were normalised using <em>z-normalisation</em>, we will use a <em>fixed bin number</em> algorithm (<code class="docutils literal notranslate"><span class="pre">base_discretisation_method=&quot;fixed_bin_number&quot;</span></code>) with 16 bins (<code class="docutils literal notranslate"><span class="pre">base_discretisation_n_bins=16</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">features</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
+    <span class="n">image_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
+    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">),</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV_Mass&quot;</span><span class="p">,</span>
+    <span class="n">by_slice</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">intensity_normalisation</span><span class="o">=</span><span class="s2">&quot;standardisation&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_n_bins</span><span class="o">=</span><span class="mi">16</span>
+<span class="p">)</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+INFO    : MainProcess    2024-04-09 11:07:31,379         Initialising feature computation using mr images for STS_001.
+INFO    : MainProcess    2024-04-09 11:07:45,791         Initialising feature computation using mr images for STS_002.
+INFO    : MainProcess    2024-04-09 11:07:55,411         Initialising feature computation using mr images for STS_003.
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample_name</th>
+      <th>image_settings_id</th>
+      <th>image_modality</th>
+      <th>image_voxel_size_x</th>
+      <th>image_voxel_size_y</th>
+      <th>image_voxel_size_z</th>
+      <th>image_noise_level</th>
+      <th>image_noise_iteration_id</th>
+      <th>image_rotation_angle</th>
+      <th>image_translation_x</th>
+      <th>...</th>
+      <th>ngl_hdhge_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_glnu_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_glnu_norm_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_dcnu_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_dcnu_norm_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_dc_perc_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_gl_var_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_dc_var_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_dc_entr_d1_a0.0_2d_fbn_n16</th>
+      <th>ngl_dc_energy_d1_a0.0_2d_fbn_n16</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>STS_001</td>
+      <td></td>
+      <td>mr</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>5.2</td>
+      <td>0.0</td>
+      <td>NaN</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>649.904779</td>
+      <td>685.643163</td>
+      <td>0.202679</td>
+      <td>573.379973</td>
+      <td>0.164149</td>
+      <td>1.0</td>
+      <td>2.124407</td>
+      <td>2.835808</td>
+      <td>5.207281</td>
+      <td>0.034652</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>STS_002</td>
+      <td></td>
+      <td>mr</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>7.0</td>
+      <td>0.0</td>
+      <td>NaN</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>731.317187</td>
+      <td>232.044296</td>
+      <td>0.208755</td>
+      <td>212.059230</td>
+      <td>0.183419</td>
+      <td>1.0</td>
+      <td>3.301315</td>
+      <td>5.169630</td>
+      <td>5.048137</td>
+      <td>0.050158</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>STS_003</td>
+      <td></td>
+      <td>mr</td>
+      <td>1.0</td>
+      <td>1.0</td>
+      <td>7.0</td>
+      <td>0.0</td>
+      <td>NaN</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>...</td>
+      <td>608.689328</td>
+      <td>472.701740</td>
+      <td>0.345461</td>
+      <td>334.257475</td>
+      <td>0.238191</td>
+      <td>1.0</td>
+      <td>3.232402</td>
+      <td>5.422279</td>
+      <td>4.222418</td>
+      <td>0.132661</td>
+    </tr>
+  </tbody>
+</table>
+<p>3 rows × 192 columns</p>
+</div></div>
+</div>
+<p>This results in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that has a row per image and mask. The first several columns contain parameters related to that image and mask, and how these were processed. After these, feature values are shown. These can be used for, e.g., machine learning using <code class="docutils literal notranslate"><span class="pre">`scikit-learn</span></code> &lt;<a class="reference external" href="https://scikit-learn.org/stable/">https://scikit-learn.org/stable/</a>&gt;`__ or <code class="docutils literal notranslate"><span class="pre">`familiar</span></code> &lt;<a class="reference external" href="https://cran.r-project.org/web/packages/familiar/index.html">https://cran.r-project.org/web/packages/familiar/index.html</a>&gt;`__.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installing MIRP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="image_mask_import.html" class="btn btn-neutral float-right" title="Configure image and mask import" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
