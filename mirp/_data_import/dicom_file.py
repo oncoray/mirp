@@ -579,3 +579,11 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
             image_dimensions=self.image_dimension,
             roi_name=self.roi_name
         )
+    def _get_limited_metadata_tags(self):
+        tags = super()._get_limited_metadata_tags()
+
+        tags += [
+            (0x3006, 0x0020),  # Structure set roi sequence
+            (0x0028, 0x0008),  # number of frames
+            (0x3004, 0x000C)  # grid frame offset vector
+        ]

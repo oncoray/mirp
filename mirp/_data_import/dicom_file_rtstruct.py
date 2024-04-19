@@ -99,13 +99,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def load_data(self, **kwargs):
         pass
 
-    def _get_limited_metadata_tags(self):
-        tags = super()._get_limited_metadata_tags()
-
-        tags += [
-            (0x3006, 0x0020)  # Structure set roi sequence
-        ]
-
     def to_object(
             self,
             image: None | ImageFile,

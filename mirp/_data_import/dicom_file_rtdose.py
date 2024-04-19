@@ -121,14 +121,6 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
             self.image_dimension = dimensions
 
-    def _get_limited_metadata_tags(self):
-        tags = super()._get_limited_metadata_tags()
-
-        tags += [
-            (0x0028, 0x0008),  # number of frames
-            (0x3004, 0x000C)  # grid frame offset vector
-        ]
-
     def load_data(self, **kwargs):
         if self.image_data is not None:
             return self.image_data
