@@ -166,7 +166,6 @@ class ImageDicomFile(ImageFile):
 
         # Load metadata so that the modality tag can be read.
         self.load_metadata(limited=True)
-
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
         if modality is None:
@@ -182,9 +181,9 @@ class ImageDicomFile(ImageFile):
             file_class = ImageDicomFileRTDose
         else:
             # This will return a base class, which will fail to pass the modality check.
-            return self
+            return None
 
-        return file_class(
+        image = file_class(
             file_path=self.file_path,
             dir_path=self.dir_path,
             sample_name=self.sample_name,
@@ -196,8 +195,14 @@ class ImageDicomFile(ImageFile):
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
             image_spacing=self.image_spacing,
-            image_dimensions=self.image_dimension
+            image_dimensions=self.image_dimension,
         )
+
+        # Set metadata of image.
+        image.image_metadata = self.image_metadata
+        image.is_limited_metadata = self.is_limited_metadata
+
+        return image
 
     def complete(self, remove_metadata=False, force=False):
 
@@ -561,10 +566,9 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         elif modality == "seg":
             file_class = MaskDicomFileSEG
         else:
-            # This will return a base class, which will fail to pass the modality check.
-            return self
+            return None
 
-        return file_class(
+        mask = file_class(
             file_path=self.file_path,
             dir_path=self.dir_path,
             sample_name=self.sample_name,
@@ -579,6 +583,13 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
             image_dimensions=self.image_dimension,
             roi_name=self.roi_name
         )
+
+        # Set metadata of mask.
+        mask.image_metadata = self.image_metadata
+        mask.is_limited_metadata = self.is_limited_metadata
+
+        return mask
+
     def _get_limited_metadata_tags(self):
         tags = super()._get_limited_metadata_tags()
 
