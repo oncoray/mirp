@@ -1,3 +1,7 @@
+# Version 2.2.2
+
+- Added a new tutorial on applying image filters. 
+
 # Version 2.2.1
 
 ## Minor changes
