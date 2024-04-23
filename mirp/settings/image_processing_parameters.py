@@ -31,7 +31,7 @@ class ImagePostProcessingClass:
     bias_field_convergence_threshold: float, optional, default: 0.001
         Convergence threshold for N4 bias field correction algorithm.
 
-    pet_suv_conversion: {"body_weight", "none"}, default: "body_weight"
+    pet_suv_conversion: {"body_weight", "body_surface_area", "lean_body_mass", "lean_body_mass_bmi", "ideal_body_weight". "none"}, default: "body_weight"
         Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
         comparable between patients, these are converted to standardised uptake values. The following are possible:
 
