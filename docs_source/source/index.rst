@@ -15,6 +15,7 @@ MIRP
    :caption: Tutorials
 
    tutorial_compute_radiomics_features_mr
+   tutorial_apply_image_filter
 
 .. toctree::
    :hidden:
