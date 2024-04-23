@@ -201,7 +201,7 @@ def extract_features_and_images(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
 
         * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
         * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
@@ -223,7 +223,7 @@ def extract_features_and_images(
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)
     * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
@@ -275,7 +275,7 @@ def extract_features_and_images_generator(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
 
         * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
         * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
@@ -297,7 +297,7 @@ def extract_features_and_images_generator(
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)
     * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)

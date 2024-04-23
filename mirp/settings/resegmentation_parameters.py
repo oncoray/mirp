@@ -19,8 +19,6 @@ class ResegmentationSettingsClass:
 
     Parameters
     ----------
-    Sets parameters related to resegmentation of the segmentation mask.
-
     resegmentation_intensity_range: list of float, optional
         Intensity threshold for threshold-based re-segmentation ("threshold" and "range"). If set, requires two
         values for lower and upper range respectively. The upper range value can also be np.nan for half-open ranges.
