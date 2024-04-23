@@ -1,6 +1,16 @@
 # Version 2.2.2
 
-- Added a new tutorial on applying image filters. 
+## Minor changes
+
+- `show` method of `GenericImage` and subclasses now indicate if a user-provided `slice_id` is out-of-volume and 
+  select the nearest slice instead.
+
+- Naming of branches in the settings `xml` file now matches that of their respective settings classes. `xml` files 
+  with the previous branch names still function.
+
+## Documentation
+
+- Added a new tutorial on applying image filters to images.
 
 # Version 2.2.1
 

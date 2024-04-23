@@ -22,7 +22,7 @@
             Default: True -->
             <no_approximation></no_approximation>
         </general>
-        <img_interpolate>
+        <image_interpolation>
             <!-- Voxel spacing after interpolation. Units are defined by the headers of the image files. Every
             value represents the spacing that will be applied in all directions. Non-uniform voxel spacing may also
             be provided, but requires 3 values for z, y, and x directions (if by_slice = False) or 2 values for y and
@@ -36,15 +36,15 @@
             <!-- Smoothing parameter beta for antialiasing filter. Must be in range (0.0, 1.0]. At 1.0 no
             antialiasing is performed. Default is 0.98. -->
             <smoothing_beta></smoothing_beta>
-        </img_interpolate>
-        <roi_interpolate>
+        </image_interpolation>
+        <mask_interpolation>
             <!-- Sets the order of the interpolation spline. It can be 0 (nearest neighbour), 1 (linear), 2 (cubic),
             3, 4, 5. Nearest neighbour or linear interpolation (default) are recommended. -->
             <spline_order></spline_order>
             <!-- Threshold for ROIS with partial volumes after interpolation. Default: 0.5 -->
             <incl_threshold></incl_threshold>
-        </roi_interpolate>
-        <post_processing>
+        </mask_interpolation>
+        <image_processing>
             <!-- Type of algorithm used to produce an approximate mask of the tissue. Can be none, range (requires
             intensity values), relative_range (default; requires fractions). -->
             <tissue_mask_type></tissue_mask_type>
@@ -63,7 +63,7 @@
             <convergence_threshold></convergence_threshold>
             <!-- Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
             comparable between patients, these are converted to standardised uptake values. The following are possible:
-            body_weight, none. -->
+            body_weight, body_surface_area, lean_body_mass, lean_body_mass_bmi, ideal_body_weight, none -->
             <pet_suv_conversion></pet_suv_conversion>
             <!-- Algorithm used to normalise intensities in the image. Will use only intensities in voxels masked by
             the  tissue mask. Can be none (default), range (maps to an intensity range), relative_range (maps to a
@@ -80,8 +80,8 @@
             normalisation (if any). For example, intensity_scaling = 1000.0, combined with intensity_normalisation =
             "range" results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0]. -->
             <intensity_scaling></intensity_scaling>
-        </post_processing>
-        <vol_adapt>
+        </image_processing>
+        <image_perturbation>
             <!-- Whether the image may be cut to only maintain the interesting parts. Default: False. Setting this to
              True speeds up calculations and saves memory. -->
             <crop_around_roi></crop_around_roi>
@@ -118,16 +118,16 @@
             Fraction of the original volume, e.g. 0.6 means that the bulk contains at least 60% of the original mask.
              -->
             <roi_split_max_erosion></roi_split_max_erosion>
-        </vol_adapt>
-        <roi_resegment>
+        </image_perturbation>
+        <mask_resegmentation>
             <!-- Intensity threshold for threshold-based re-segmentation (threshold and range). If set, requires two
              values for lower and upper range respectively. The upper range value can also be nan for half-open
              ranges. -->
             <intensity_range></intensity_range>
             <!-- Number of standard deviations for outlier-based intensity re-segmentation. 3 is a common setting. -->
             <sigma></sigma>
-        </roi_resegment>
-        <feature_extr>
+        </mask_resegmentation>
+        <feature_computation>
             <!-- Set of feature families to be computed from the image. Default is all. -->
             <feature_families></feature_families>
             <!-- Discretisation algorithm. Can be none, fixed_bin_number and/or fixed_bin_size. Combinations are
@@ -166,8 +166,8 @@
             <ngldm_difference_level></ngldm_difference_level>
             <!-- Calculate NGLDM in 2d, 2.5d or 3d. Default: same as general/by_slice. -->
 			<ngldm_spatial_method></ngldm_spatial_method>
-        </feature_extr>
-        <img_transform>
+        </feature_computation>
+        <image_transformation>
             <!-- Filter kernels to apply. Options: gabor, laplacian_of_gaussian, laws, mean, separable_wavelet,
             nonseparable_wavelet. See documentation for additional filter kernels. -->
             <filter_kernels></filter_kernels>
@@ -272,6 +272,6 @@
             <riesz_filter_order></riesz_filter_order>
             <!--Sigma for Gaussian filter used in steerable Riesz transformation. -->
             <riesz_filter_tensor_sigma></riesz_filter_tensor_sigma>
-        </img_transform>
+        </image_transformation>
     </config>
 </root>
