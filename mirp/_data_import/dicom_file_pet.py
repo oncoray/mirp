@@ -53,28 +53,44 @@ class ImageDicomFilePT(ImageDicomFile):
     ):
         image_data = self.load_data_generic()
 
+        conversion_possible = True
         # Get decay correction factor
         try:
             decay_factor = self._get_administration_decay_factor()
         except ValueError as err:
             warnings.warn(
-                f"Decay correction factor could not be determined. {str(err)}",
+                f"Decay correction factor could not be determined. {str(err)}. SUV cannot be computed.",
                 UserWarning
             )
+            conversion_possible = False
             decay_factor = 1.0
 
         # Get conversion factor to BQML
         try:
             bqml_factor = self._get_pet_unit_conversion_factor()
         except ValueError as err:
-            warnings.warn(
-                f"BQML conversion factor could not be determined. {str(err)}",
-                UserWarning
-            )
+            if pet_suv_conversion != "none":
+                warnings.warn(
+                    f"BQML conversion factor could not be determined. {str(err)}. SUV cannot be computed.",
+                    UserWarning
+                )
+            conversion_possible = False
+            bqml_factor = 1.0
+
+        except NotImplementedError as err:
+            if pet_suv_conversion != "none":
+                warnings.warn(
+                    f"BQML conversion factor could not be determined. {str(err)}. SUV cannot be computed.",
+                    UserWarning
+                )
+            conversion_possible = False
             bqml_factor = 1.0
 
         # Get SUV conversion factor.
-        suv_factor = self._get_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+        if conversion_possible:
+            suv_factor = self._get_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+        else:
+            suv_factor = 1.0
 
         # Update image_data
         image_data *= decay_factor * bqml_factor * suv_factor
@@ -573,7 +589,7 @@ class ImageDicomFilePT(ImageDicomFile):
         elif pet_unit in ["GML", "CM2ML"]:
             conversion_factor = 1.0
         else:
-            raise NotImplementedError(f"Conversion factor for converting {pet_unit} to BQML is not implemented")
+            raise NotImplementedError(f"Conversion factor for converting {pet_unit} to BQML in {self.file_path} is not implemented.")
 
         return conversion_factor
 
