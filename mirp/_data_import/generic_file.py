@@ -783,6 +783,18 @@ class ImageFile(BaseImage):
             ]
 
         return dict(metadata)
+    def _get_export_attributes(self, n_labels: int = 1) -> dict[str, Any]:
+        attributes = []
+        if self.sample_name is not None:
+            attributes += [("sample_name", [self.sample_name] * n_labels)]
+        if self.modality is not None:
+            attributes += [("modality", [self.modality] * n_labels)]
+        if self.dir_path is not None:
+            attributes += [("dir_path", [self.dir_path] * n_labels)]
+        if self.file_name is not None:
+            attributes += [("file_name", [self.file_name] * n_labels)]
+
+        return dict(attributes)
 
 
 class MaskFile(ImageFile):
@@ -1097,12 +1109,14 @@ class MaskFile(ImageFile):
         if len(labels) == 0:
             labels = [None]
 
-        return {
-            "sample_name": [self.sample_name] * n_labels,
-            "dir_path": [self.dir_path] * n_labels,
-            "file_path": [self.file_name] * n_labels,
-            "roi_label": labels
-        }
+        # Get general attributes.
+        parent_attributes = self._get_export_attributes(n_labels=n_labels)
+
+        # Add roi labels as attribute.
+        attributes = [("roi_label", labels)]
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
 
 
 class MaskFullImage(MaskFile):

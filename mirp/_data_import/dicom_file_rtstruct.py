@@ -722,9 +722,11 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if len(labels) == 0:
             labels = [None]
 
-        return {
-            "sample_name": [self.sample_name] * n_labels,
-            "dir_path": [self.dir_path] * n_labels,
-            "file_path": [self.file_name] * n_labels,
-            "roi_label": labels
-        }
+        # Get general attributes.
+        parent_attributes = self._get_export_attributes(n_labels=n_labels)
+
+        # Add roi labels as attribute.
+        attributes = [("roi_label", labels)]
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
