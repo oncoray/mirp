@@ -570,7 +570,6 @@ def get_minimum_volume_enclosing_ellipsoid(pos_mat, tolerance=10E-4):
     # Cast to np.matrix
     mat_p = copy.deepcopy(pos_mat)
     mat_p = np.transpose(mat_p)
-    mat_p = np.asmatrix(mat_p)
 
     # Dimension of the point set
     ndim = np.shape(mat_p)[0]
@@ -593,11 +592,11 @@ def get_minimum_volume_enclosing_ellipsoid(pos_mat, tolerance=10E-4):
         # Matrix multiplication:
         # np.diag(u) : if u is a vector, places the elements of u
         # in the diagonal of an NxN matrix of zeros
-        mat_x = mat_q * np.diag(vec_u) * np.transpose(mat_q)
+        mat_x = np.matmul(mat_q, np.matmul(np.diag(vec_u), np.transpose(mat_q)))
 
         # npla.inv(mat_x) returns the matrix inverse of mat_x
         # np.diag(mat_M) when mat_M is a matrix returns the diagonal vector of mat_M
-        vec_m = np.diag(np.transpose(mat_q) * npla.inv(mat_x) * mat_q)
+        vec_m = np.diag(np.matmul(np.transpose(mat_q), np.matmul(npla.inv(mat_x), mat_q)))
 
         # Find the value and location of the maximum element in the vector M
         max_m = np.max(vec_m)
@@ -624,14 +623,13 @@ def get_minimum_volume_enclosing_ellipsoid(pos_mat, tolerance=10E-4):
 
     # Put the elements of the vector u into the diagonal of a matrix
     # U with the rest of the elements as 0
-    mat_u = np.asmatrix(np.diag(vec_u))
+    mat_u = np.diag(vec_u)
 
     # Compute the A-matrix
-    vec_u = np.transpose(np.asmatrix(vec_u))
-    mat_a = (1.0 / ndim) * npla.inv(mat_p * mat_u * np.transpose(mat_p) - (mat_p * vec_u) * np.transpose(mat_p * vec_u))
-
-    # Compute the center - This is not required as output.
-    # mat_c = mat_p * vec_u
+    mat_a = (1.0 / ndim) * npla.inv(
+        np.matmul(mat_p, np.matmul(mat_u, np.transpose(mat_p)))
+        - np.matmul(np.matmul(mat_p, vec_u), np.transpose(np.matmul(mat_p, vec_u)))
+    )
 
     # Perform singular value decomposition
     s = npla.svd(mat_a, compute_uv=False)

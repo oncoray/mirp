@@ -48,6 +48,9 @@ addopts = ["--strict-markers"]
 markers = [
     "ci: marks tests for continuous integration"
 ]
+# filterwarnings = [
+#    "error:the matrix subclass"
+# ]
 
 [tool.setuptools.packages.find]
 where = ["."]
