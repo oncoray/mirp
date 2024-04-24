@@ -770,17 +770,20 @@ class ImageFile(BaseImage):
         )
 
     def export_metadata(self, **kwargs) -> None | dict[str, Any]:
+        # Get general attributes.
+        parent_attributes = self._get_export_attributes()
+
+        # Add metadata.
         metadata = []
-        if self.sample_name is not None:
-            metadata += [("sample_name", self.sample_name)]
-        if self.modality is not None:
-            metadata += [("modality", self.modality)]
         if self.image_spacing is not None:
             metadata += [
                 ("spacing_z", self.image_spacing[0]),
                 ("spacing_y", self.image_spacing[1]),
                 ("spacing_x", self.image_spacing[2])
             ]
+        parent_attributes.update(dict(metadata))
+
+        return parent_attributes
 
     def _get_export_attributes(self) -> dict[str, Any]:
         attributes = []
