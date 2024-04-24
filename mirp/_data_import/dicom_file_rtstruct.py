@@ -723,7 +723,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             labels = [None]
 
         # Get general attributes.
-        parent_attributes = self._get_export_attributes(n_labels=n_labels)
+        parent_attributes = self._get_export_attributes()
 
         # Add roi labels as attribute.
         attributes = [("roi_label", labels)]

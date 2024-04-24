@@ -782,17 +782,16 @@ class ImageFile(BaseImage):
                 ("spacing_x", self.image_spacing[2])
             ]
 
-        return dict(metadata)
-    def _get_export_attributes(self, n_labels: int = 1) -> dict[str, Any]:
+    def _get_export_attributes(self) -> dict[str, Any]:
         attributes = []
         if self.sample_name is not None:
-            attributes += [("sample_name", [self.sample_name] * n_labels)]
+            attributes += [("sample_name", self.sample_name)]
         if self.modality is not None:
-            attributes += [("modality", [self.modality] * n_labels)]
+            attributes += [("modality", self.modality)]
         if self.dir_path is not None:
-            attributes += [("dir_path", [self.dir_path] * n_labels)]
+            attributes += [("dir_path", self.dir_path)]
         if self.file_name is not None:
-            attributes += [("file_name", [self.file_name] * n_labels)]
+            attributes += [("file_name", self.file_name)]
 
         return dict(attributes)
 
@@ -1110,7 +1109,7 @@ class MaskFile(ImageFile):
             labels = [None]
 
         # Get general attributes.
-        parent_attributes = self._get_export_attributes(n_labels=n_labels)
+        parent_attributes = self._get_export_attributes()
 
         # Add roi labels as attribute.
         attributes = [("roi_label", labels)]
