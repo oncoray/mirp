@@ -692,19 +692,19 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         return merged_contour_list
 
-    @staticmethod
-    def _match_slice_position(slice_position, known_position, image_spacing_z):
-        # Match slice position of mask with any known slice position.
-        img_slice_position = slice_position * image_spacing_z
-        position_difference = np.around(np.abs(img_slice_position - known_position), 3)
-
-        # Check if there is any matching position.
-        if np.any(position_difference == 0.0):
-            int_slice_position = int(np.argwhere(position_difference == 0.0))
-        else:
-            int_slice_position = None
-
-        return int_slice_position
+    # @staticmethod
+    # def _match_slice_position(slice_position, known_position, image_spacing_z):
+    #     # Match slice position of mask with any known slice position.
+    #     img_slice_position = slice_position * image_spacing_z
+    #     position_difference = np.around(np.abs(img_slice_position - known_position), 3)
+    #
+    #     # Check if there is any matching position.
+    #     if np.any(position_difference == 0.0):
+    #         int_slice_position = int(np.argwhere(position_difference == 0.0))
+    #     else:
+    #         int_slice_position = None
+    #
+    #     return int_slice_position
 
     def export_roi_labels(self):
 
