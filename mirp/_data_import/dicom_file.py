@@ -107,8 +107,10 @@ class ImageDicomFile(ImageFile):
         if dicom_modality.lower() not in support_modalities:
             if raise_error:
                 raise ValueError(
-                    f"The current DICOM file {self.file_path} does not have the expected modality. "
-                    f"Found: {dicom_modality.lower()}. Expected: {', '.join(support_modalities)}")
+                    f"The current DICOM file does not have the expected modality. "
+                    f"Found: {dicom_modality.lower()}. Expected: one of {', '.join(support_modalities)}. "
+                    f"[{self.describe_self()}]"
+                )
 
             return False
 
@@ -140,9 +142,10 @@ class ImageDicomFile(ImageFile):
                 if len(matching_sample_name) == 0:
                     if raise_error:
                         raise ValueError(
-                            f"The current DICOM file {self.file_path} does not have a matching sample name among "
-                            f"potential identifiers. Potential identifiers: {', '.join(dicom_sample_name)}; "
-                            f"Expected identifiers: {', '.join(allowed_sample_name)}."
+                            f"The current DICOM file does not have a matching sample name among potential identifiers. "
+                            f"Potential identifiers: {', '.join(dicom_sample_name)}; "
+                            f"Expected identifiers: {', '.join(allowed_sample_name)}. "
+                            f"[{self.describe_self()}]"
                         )
                     else:
                         return False
@@ -169,7 +172,7 @@ class ImageDicomFile(ImageFile):
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
         if modality is None:
-            raise TypeError(f"Modality attribute could not be obtained from DICOM file ({self.file_path})")
+            raise TypeError(f"Modality attribute could not be obtained from DICOM file. [{self.describe_self()}]")
 
         if modality == "ct":
             file_class = ImageDicomFileCT
@@ -212,7 +215,11 @@ class ImageDicomFile(ImageFile):
         # Set SOP instance UID.
         if self.sop_instance_uid is None:
             self.load_metadata(limited=True)
-            self.sop_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0018), tag_type="str")
+            self.sop_instance_uid = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0008, 0x0018),
+                tag_type="str"
+            )
 
         # Set Frame of Reference UID (if any)
         self._complete_frame_of_reference_uid()
@@ -220,7 +227,11 @@ class ImageDicomFile(ImageFile):
         # Set series UID
         if self.series_instance_uid is None:
             self.load_metadata(limited=True)
-            self.series_instance_uid = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x000E), tag_type="str")
+            self.series_instance_uid = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0020, 0x000E),
+                tag_type="str"
+            )
 
         if remove_metadata:
             self.remove_metadata()
@@ -231,7 +242,7 @@ class ImageDicomFile(ImageFile):
             self.modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str")
 
         if self.modality is None:
-            warn(f"Could not ascertain the modality from the DICOM file ({self.file_path}).", UserWarning)
+            warn(f"Could not ascertain the modality from the DICOM file. [{self.describe_self()}]", UserWarning)
 
             self.modality = "generic"
         else:
@@ -385,7 +396,8 @@ class ImageDicomFile(ImageFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
+                f"The image file could not be found at the expected location: {self.file_path}. "
+                f"[{self.describe_self()}]")
 
         if limited:
             dcm = dcmread(
@@ -420,11 +432,11 @@ class ImageDicomFile(ImageFile):
 
         if self.file_path is not None and not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}"
+                f"The image file could not be found at the expected location: {self.file_path}. [{self.describe_self()}]"
             )
 
         if self.file_path is None:
-            raise ValueError(f"A path to a file was expected, but not present.")
+            raise ValueError(f"A path to a file was expected, but not present. [{self.describe_self()}]")
 
         # Load metadata.
         self.load_metadata(include_image=True)
@@ -516,7 +528,9 @@ class ImageDicomFile(ImageFile):
 
         # Final check.
         if acquisition_ref_time is None:
-            raise ValueError(f"Acquisition start time cannot be determined from DICOM metadata in {self.file_path}.")
+            raise ValueError(
+                f"Acquisition start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
+            )
 
         return acquisition_ref_time
 
@@ -561,8 +575,11 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         if dicom_modality.lower() not in support_modalities:
             if raise_error:
                 raise ValueError(
-                    f"The current DICOM file {self.file_path} does not have the expected modality. "
-                    f"Found: {dicom_modality.lower()}. Expected: {', '.join(support_modalities)}")
+                    f"The current DICOM file does not have the expected modality. "
+                    f"Found: {dicom_modality.lower()}. "
+                    f"Expected: {', '.join(support_modalities)}. "
+                    f"[{self.describe_self()}]"
+                )
 
             return False
 
@@ -591,7 +608,7 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str").lower()
 
         if modality is None:
-            raise TypeError(f"Modality attribute could not be obtained from DICOM file ({self.file_path})")
+            raise TypeError(f"Modality attribute could not be obtained from the DICOM file. [{self.describe_self()}]")
 
         if modality == "rtstruct":
             file_class = MaskDicomFileRTSTRUCT

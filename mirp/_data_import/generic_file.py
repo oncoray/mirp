@@ -218,10 +218,10 @@ class ImageFile(BaseImage):
             return
 
         if not isinstance(modality, str):
-            raise ValueError(f"modality is expected to be a character string. Found: {modality}")
+            raise ValueError(f"modality is expected to be a character string. Found: {modality} [{self.describe_self()}]")
 
         if modality == "generic":
-            raise ValueError(f"modality cannot be 'generic'")
+            raise ValueError(f"modality cannot be 'generic' [{self.describe_self()}]")
 
         modality = supported_image_modalities(modality)
         if self.modality is None or self.modality == "generic":
@@ -259,7 +259,9 @@ class ImageFile(BaseImage):
             file_type = "numpy"
 
         else:
-            raise NotImplementedError(f"The provided image type is not implemented: {self.file_type}")
+            raise NotImplementedError(
+                f"The provided image type is not implemented: {self.file_type} [{self.describe_self()}]"
+            )
 
         image_file = file_class(
             file_path=self.file_path,
@@ -296,7 +298,9 @@ class ImageFile(BaseImage):
         if not self.file_path.lower().endswith(tuple(allowed_file_extensions)):
             if raise_error:
                 raise ValueError(
-                    f"The file type does not correspond to a known, implemented image type: {self.file_type}.")
+                    f"The file type does not correspond to a known, implemented image type: {self.file_type}. "
+                    f"[{self.describe_self()}]"
+                )
 
             return False
 
@@ -304,7 +308,9 @@ class ImageFile(BaseImage):
         if not os.path.exists(self.file_path):
             if raise_error:
                 raise FileNotFoundError(
-                    f"The image file could not be found at the expected location: {self.file_path}")
+                    f"The image file could not be found at the expected location: {self.file_path} "
+                    f"[{self.describe_self()}]"
+                )
 
             return False
 
@@ -314,7 +320,8 @@ class ImageFile(BaseImage):
                 if raise_error:
                     raise ValueError(
                         f"The file name of the image file {os.path.basename(self.file_path)} does not match "
-                        f"the expected pattern: {self.image_name}")
+                        f"the expected pattern: {self.image_name} [{self.describe_self()}]"
+                    )
 
             return False
 
@@ -339,7 +346,7 @@ class ImageFile(BaseImage):
             if raise_error:
                 raise TypeError(
                     f"The image_data argument expects None or a numpy ndarray. Found object with class "
-                    f"{type(self.image_data).name}"
+                    f"{type(self.image_data).name} [{self.describe_self()}]"
                 )
             else:
                 return False
@@ -350,7 +357,7 @@ class ImageFile(BaseImage):
             if raise_error:
                 raise ValueError(
                     f"MIRP supports image data up to 3 dimensions. The current numpy array has a dimension of "
-                    f"{len(data_shape)} ({data_shape})."
+                    f"{len(data_shape)} ({data_shape}). [{self.describe_self()}]"
                 )
             else:
                 return False
@@ -361,6 +368,7 @@ class ImageFile(BaseImage):
                 raise ValueError(
                     f"The shape of the image data itself and the purported shape (image_dimensions) are different. The "
                     f"current numpy array has dimensions ({data_shape}), where ({self.image_dimension}) is expected."
+                    f"[{self.describe_self()}]"
                 )
             else:
                 return False
@@ -370,7 +378,7 @@ class ImageFile(BaseImage):
             if raise_error:
                 raise ValueError(
                     f"The dimensions of the image data itself ({len(data_shape)} and the dimensions of the origin ("
-                    f"image_origin; {len(self.image_origin)}) are different."
+                    f"image_origin; {len(self.image_origin)}) are different. [{self.describe_self()}]"
                 )
             else:
                 return False
@@ -382,6 +390,7 @@ class ImageFile(BaseImage):
                     raise ValueError(
                         f"The orientation matrix should be square, with a dimension equal to the dimensions "
                         f"the image data itself ({len(data_shape)}. Found: {self.image_orientation.shape}."
+                        f"[{self.describe_self()}]"
                     )
                 else:
                     return False
@@ -393,6 +402,7 @@ class ImageFile(BaseImage):
                 if raise_error:
                     raise ValueError(
                         f"The orientation matrix should be square with an l2-norm of 1.0. Found: {l2_norm}."
+                        f"[{self.describe_self()}]"
                     )
                 else:
                     return False
@@ -403,7 +413,7 @@ class ImageFile(BaseImage):
                 if raise_error:
                     raise ValueError(
                         f"The dimensions of the image data itself ({len(data_shape)}) and the dimensions of the voxel "
-                        f"spacing (image_spacing; {len(self.image_spacing)}) are different."
+                        f"spacing (image_spacing; {len(self.image_spacing)}) are different. [{self.describe_self()}]"
                     )
                 else:
                     return False
@@ -413,7 +423,8 @@ class ImageFile(BaseImage):
             if np.any(np.array(self.image_spacing) <= 0.0):
                 if raise_error:
                     raise ValueError(
-                        f"Image spacing should be strictly positive. Found: {self.image_spacing}."
+                        f"Image spacing should be strictly positive. Found: {self.image_spacing}. "
+                        f"[{self.describe_self()}]"
                     )
                 else:
                     return False
@@ -427,7 +438,8 @@ class ImageFile(BaseImage):
                 if raise_error:
                     raise ValueError(
                         f"The file name of the image file {os.path.basename(self.file_path)} does not contain "
-                        f"any of the expected patterns: {', '.join(self.sample_name)}")
+                        f"any of the expected patterns: {', '.join(self.sample_name)} [{self.describe_self()}]"
+                    )
                 else:
                     return False
 
@@ -564,7 +576,10 @@ class ImageFile(BaseImage):
         # Remove sample name.
         if self.sample_name is not None:
             if isinstance(self.sample_name, list):
-                raise TypeError("The sample_name attribute cannot be a list for extracting numeric sequences.")
+                raise TypeError(
+                    f"The sample_name attribute cannot be a list for extracting numeric sequences. "
+                    f"[{self.describe_self()}]"
+                )
 
             file_name_parts = [
                 current_file_name_part.split(sep=self.sample_name)
@@ -688,7 +703,7 @@ class ImageFile(BaseImage):
         if not isinstance(self.image_data, np.ndarray):
             raise TypeError(
                 f"The image_data argument expects None or a numpy ndarray. Found object with class "
-                f"{type(self.image_data).name}"
+                f"{type(self.image_data).name}. [{self.describe_self()}]"
             )
 
         # If the image is already 3D, we forgo adding dimensions.
@@ -698,7 +713,7 @@ class ImageFile(BaseImage):
         if not 1 <= len(self.image_data.shape) <= 3:
             raise ValueError(
                 f"MIRP supports image data up to 3 dimensions. The current numpy array has a dimension of "
-                f"{len(self.image_data.shape)} ({self.image_data.shape})."
+                f"{len(self.image_data.shape)} ({self.image_data.shape}). [{self.describe_self()}]"
             )
 
         dims_to_add = 3 - len(self.image_data.shape)
@@ -798,6 +813,9 @@ class ImageFile(BaseImage):
 
         return dict(attributes)
 
+    def describe_self(self):
+        return f"{self._get_export_attributes()}"
+
 
 class MaskFile(ImageFile):
 
@@ -817,7 +835,7 @@ class MaskFile(ImageFile):
         else:
             raise TypeError(
                 f"ROI names are expected to be a string, a list of strings, or a dictionary of strings. Found:"
-                f" {roi_name} with type {type(roi_name)}.")
+                f" {roi_name} with type {type(roi_name)}. [{self.describe_self()}]")
 
     def is_stackable(self, stack_images: str):
         raise NotImplementedError(
@@ -872,10 +890,12 @@ class MaskFile(ImageFile):
             return
 
         if not isinstance(modality, str):
-            raise ValueError(f"modality is expected to be a character string. Found: {modality}")
+            raise ValueError(
+                f"modality is expected to be a character string. Found: {modality}. [{self.describe_self()}]"
+            )
 
         if modality == "generic_mask":
-            raise ValueError(f"modality cannot be 'generic_mask'")
+            raise ValueError(f"modality cannot be 'generic_mask'. [{self.describe_self()}]")
 
         modality = supported_mask_modalities(modality)
         if self.modality is None or self.modality == "generic_mask":
@@ -913,7 +933,9 @@ class MaskFile(ImageFile):
             file_type = "numpy"
 
         else:
-            raise NotImplementedError(f"The provided mask type is not implemented: {self.file_type}")
+            raise NotImplementedError(
+                f"The provided mask type is not implemented: {self.file_type}. [{self.describe_self()}]"
+            )
 
         image_file = file_class(
             file_path=self.file_path,
@@ -935,16 +957,17 @@ class MaskFile(ImageFile):
 
     def check_mask(self, raise_error=True):
         if self.image_data is None:
-            raise TypeError("DEV: the image_data attribute has not been set.")
+            raise TypeError(f"DEV: the image_data attribute has not been set. [{self.describe_self()}]")
 
         if np.issubdtype(self.image_data.dtype, bool):
 
             if not np.any(self.image_data):
                 if raise_error:
                     warnings.warn(
-                        f"No regions of interest were formed ({self.file_path}. "
+                        f"No regions of interest were formed. "
                         f"The mask object only contains background values (False). "
-                        f"No voxels were found with True values to identify segmentation masks.",
+                        f"No voxels were found with True values to identify segmentation masks. "
+                        f"[{self.describe_self()}]",
                         UserWarning
                     )
             return True
@@ -953,24 +976,25 @@ class MaskFile(ImageFile):
             if np.any(self.image_data < 0):
                 if raise_error:
                     raise ValueError(
-                        f"Labels in a mask should be 0 or positive integers. Negative values were found in "
-                        f"{self.file_path}. Note that 0 is interpreted as background."
+                        f"Labels in a mask should be 0 or positive integers. Negative values were found. "
+                        f"Note that 0 is interpreted as background. [{self.describe_self()}]"
                     )
                 return False
 
             if len(np.unique(self.image_data)) > 10:
                 if raise_error:
                     warnings.warn(
-                        f"More than 10 labels were found ({self.file_path}). Please check that this is correct.",
+                        f"More than 10 labels were found. Please check that this is correct. "
+                        f"[{self.describe_self()}]",
                         UserWarning
                     )
 
             if np.all(self.image_data == 0):
                 if raise_error:
                     warnings.warn(
-                        f"No regions of interest were formed ({self.file_path}. The mask object only contains "
+                        f"No regions of interest were formed. The mask object only contains "
                         f"background values (0). No voxels were found with positive integers to identify segmentation "
-                        f"masks.",
+                        f"masks. [{self.describe_self()}]",
                         UserWarning
                     )
 
@@ -999,9 +1023,9 @@ class MaskFile(ImageFile):
                     roi_name = self.roi_name[0]
                 else:
                     warnings.warn(
-                        f"The name of the region of interest could not be unambiguously determined ("
-                        f"{self.file_path}). One of the following should be used, but it is not clear which: "
-                        f"{self.roi_name}",
+                        f"The name of the region of interest could not be unambiguously determined. "
+                        f"One of the following should be used, but it is not clear which: {self.roi_name}. "
+                        f"[{self.describe_self()}]",
                         UserWarning
                     )
                     roi_name = "region_1"
@@ -1010,9 +1034,9 @@ class MaskFile(ImageFile):
                     roi_name = list(self.roi_name.values())[0]
                 else:
                     warnings.warn(
-                        f"The name of the region of interest could not be unambiguously determined ("
-                        f"{self.file_path}). One of the following should be used, but it is not clear which: "
-                        f"{self.roi_name}",
+                        f"The name of the region of interest could not be unambiguously determined. "
+                        f"One of the following should be used, but it is not clear which: {self.roi_name}. "
+                        f"[{self.describe_self()}]",
                         UserWarning
                     )
                     roi_name = "region_1"
@@ -1057,9 +1081,10 @@ class MaskFile(ImageFile):
 
             if len(filtered_labels) == 0:
                 warnings.warn(
-                    f"No regions of interest were formed ({self.file_path}). "
+                    f"No regions of interest were formed. "
                     f"The available labels ({', '.join([str(x) for x in labels])}) likely did not match "
-                    f"any of the expected labels ({self.roi_name}).",
+                    f"any of the expected labels ({self.roi_name}). "
+                    f"[{self.describe_self()}]",
                     UserWarning
                 )
 
@@ -1134,7 +1159,7 @@ class MaskFullImage(MaskFile):
         if image is None:
             raise TypeError(
                 f"Creation of a full image mask requires that the corresponding image is set. "
-                f"No image was provided ({self.file_path})."
+                f"No image was provided. [{self.describe_self()}]"
             )
         else:
             image.complete()

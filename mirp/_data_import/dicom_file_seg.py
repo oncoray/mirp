@@ -40,7 +40,7 @@ class MaskDicomFileSEG(MaskDicomFile):
         if not get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0062, 0x0002), test_tag=True):
             if raise_error:
                 warnings.warn(
-                    f"The SEG set ({self.file_path}) did not contain any segment sequences.",
+                    f"The current SEG set did not contain any segment sequences. [{self.describe_self()}]",
                 )
             return False
 
@@ -52,13 +52,13 @@ class MaskDicomFileSEG(MaskDicomFile):
 
         if len(roi_name_present) == 0 and raise_error:
             warnings.warn(
-                f"The current SEG set ({self.file_path}) does not contain any segmentations."
+                f"The current SEG set does not contain any segmentations. [{self.describe_self()}]"
             )
             return False
 
         if any(x is None for x in roi_name_present) and raise_error:
             warnings.warn(
-                f"The current SEG set ({self.file_path}) does not contain any labels."
+                f"The current SEG set does not contain any labels. [{self.describe_self()}]"
             )
             return False
 
@@ -191,7 +191,9 @@ class MaskDicomFileSEG(MaskDicomFile):
                 )
 
             if current_roi_number is None:
-                raise ValueError(f"The current frame ({ii + 1}) has no associated segment number.")
+                raise ValueError(
+                    f"The current frame ({ii + 1}) has no associated segment number. [{self.describe_self()}]"
+                )
 
             if roi_index == current_roi_number:
                 yield ii
@@ -215,8 +217,8 @@ class MaskDicomFileSEG(MaskDicomFile):
         # Check that the Per-Frame Functional Groups Sequence exists.
         if not has_pydicom_meta_tag(self.image_metadata, tag=(0x5200, 0x9230)):
             raise ValueError(
-                f"The DICOM SEG file ({self.file_path}) lacks a Per-Frame Functions Groups Sequence that is required ",
-                f"to set the spatial origin of the mask."
+                f"The DICOM SEG file lacks a Per-Frame Functions Groups Sequence that is required ",
+                f"to set the spatial origin of the mask. [{self.describe_self()}]"
             )
 
         mask_position = self._get_origin_position_table(frames=frames)
@@ -259,9 +261,9 @@ class MaskDicomFileSEG(MaskDicomFile):
 
         if not len(frame_functional_groups) == len(frames):
             raise ValueError(
-                f"The DICOM SEG file ({self.file_path}) does not have the same number of per-frame functional group "
+                f"The DICOM SEG file does not have the same number of per-frame functional group "
                 f"sequences ({len(frame_functional_groups)}) as the expected number of frames containing a part of "
-                f"the segmentation ({len(frames)}."
+                f"the segmentation ({len(frames)}. [{self.describe_self()}]"
             )
 
         mask_spacing_x = None
@@ -270,8 +272,8 @@ class MaskDicomFileSEG(MaskDicomFile):
         for ii, frame_functional_group in enumerate(frame_functional_groups):
             if not has_pydicom_meta_tag(frame_functional_group, tag=(0x0028, 0x9110)):
                 raise ValueError(
-                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
-                    f"a Pixel Measure Sequence (0028, 9110) to determine the mask spacing."
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file lack a Pixel Measure "
+                    f"Sequence (0028, 9110) to determine the mask spacing. [{self.describe_self()}]"
                 )
 
             pixel_spacing = get_pydicom_meta_tag(
@@ -290,8 +292,8 @@ class MaskDicomFileSEG(MaskDicomFile):
 
             if pixel_spacing is None or slice_spacing is None:
                 raise ValueError(
-                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
-                    f"a complete Pixel Measure Sequence (0028, 9110) to determine the mask spacing."
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file lack a complete Pixel "
+                    f"Measure Sequence (0028, 9110) to determine the mask spacing. [{self.describe_self()}]"
                 )
 
             if mask_spacing_x is None or mask_spacing_y is None or mask_spacing_z is None:
@@ -302,7 +304,8 @@ class MaskDicomFileSEG(MaskDicomFile):
             elif not (mask_spacing_x == pixel_spacing[0] and mask_spacing_y == pixel_spacing[1] and mask_spacing_z ==
                       slice_spacing):
                 raise ValueError(
-                    f"Inconsistent spacing detected for one or more frames of the DICOM SEG file ({self.file_path})."
+                    f"Inconsistent spacing detected for one or more frames of the DICOM SEG file. "
+                    f"[{self.describe_self()}]"
                 )
             else:
                 pass
@@ -335,16 +338,16 @@ class MaskDicomFileSEG(MaskDicomFile):
 
         if not len(frame_functional_groups) == len(frames):
             raise ValueError(
-                f"The DICOM SEG file ({self.file_path}) does not have the same number of per-frame functional group "
+                f"The DICOM SEG file does not have the same number of per-frame functional group "
                 f"sequences ({len(frame_functional_groups)}) as the expected number of frames containing a part of "
-                f"the segmentation ({len(frames)}."
+                f"the segmentation ({len(frames)}. [{self.describe_self()}]"
             )
 
         for ii, frame_functional_group in enumerate(frame_functional_groups):
             if not has_pydicom_meta_tag(frame_functional_group, tag=(0x0020, 0x9116)):
                 raise ValueError(
-                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
-                    f"a Pixel Measure Sequence (0020, 9110) to determine the mask spacing."
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file lack "
+                    f"a Pixel Measure Sequence (0020, 9110) to determine the mask spacing. [{self.describe_self()}]"
                 )
 
             frame_mask_orientation = get_pydicom_meta_tag(
@@ -356,8 +359,9 @@ class MaskDicomFileSEG(MaskDicomFile):
 
             if frame_mask_orientation is None:
                 raise ValueError(
-                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
-                    f"a complete Pixel Orientation Sequence (0020, 9116) to determine the mask orientation."
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file lack "
+                    f"a complete Pixel Orientation Sequence (0020, 9116) to determine the mask orientation. "
+                    f"[{self.describe_self()}]"
                 )
 
             if mask_orientation is None:
@@ -365,8 +369,8 @@ class MaskDicomFileSEG(MaskDicomFile):
 
             elif not (mask_orientation == frame_mask_orientation):
                 raise ValueError(
-                    f"Inconsistent orientation detected for one or more frames of the DICOM SEG file "
-                    f"({self.file_path})."
+                    f"Inconsistent orientation detected for one or more frames of the DICOM SEG file. "
+                    f"[{self.describe_self()}]"
                 )
             else:
                 pass
@@ -426,16 +430,16 @@ class MaskDicomFileSEG(MaskDicomFile):
 
         if not len(frame_functional_groups) == len(frames):
             raise ValueError(
-                f"The DICOM SEG file ({self.file_path}) does not have the same number of per-frame functional group "
+                f"The DICOM SEG file does not have the same number of per-frame functional group "
                 f"sequences ({len(frame_functional_groups)}) as the expected number of frames containing a part of "
-                f"the segmentation ({len(frames)}."
+                f"the segmentation ({len(frames)}. [{self.describe_self()}]"
             )
 
         for ii, frame_functional_group in enumerate(frame_functional_groups):
             if not has_pydicom_meta_tag(frame_functional_group, tag=(0x0020, 0x9113)):
                 raise ValueError(
-                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
-                    f"a Plane Position Sequence (0020, 9113) to determine the mask origin."
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file lack "
+                    f"a Plane Position Sequence (0020, 9113) to determine the mask origin. [{self.describe_self()}]"
                 )
 
             slice_origin = get_pydicom_meta_tag(
@@ -447,8 +451,9 @@ class MaskDicomFileSEG(MaskDicomFile):
 
             if slice_origin is None:
                 raise ValueError(
-                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file ({self.file_path}) lack "
-                    f"a complete Plane Position Sequence (0020, 9113) to determine the mask origin."
+                    f"One or more Per-Frame Functional Group Sequences of the DICOM SEG file lack "
+                    f"a complete Plane Position Sequence (0020, 9113) to determine the mask origin. "
+                    f"[{self.describe_self()}]"
                 )
             slice_origin = slice_origin[::-1]
 

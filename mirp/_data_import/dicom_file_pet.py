@@ -59,7 +59,7 @@ class ImageDicomFilePT(ImageDicomFile):
             decay_factor = self._get_administration_decay_factor()
         except ValueError as err:
             warnings.warn(
-                f"Decay correction factor could not be determined. {str(err)}. SUV cannot be computed.",
+                f"SUV cannot be computed as decay correction factor could not be determined. {str(err)}",
                 UserWarning
             )
             conversion_possible = False
@@ -71,7 +71,7 @@ class ImageDicomFilePT(ImageDicomFile):
         except ValueError as err:
             if pet_suv_conversion != "none":
                 warnings.warn(
-                    f"BQML conversion factor could not be determined. {str(err)}. SUV cannot be computed.",
+                    f"SUV cannot be computed. BQML conversion factor could not be determined. {str(err)}",
                     UserWarning
                 )
             conversion_possible = False
@@ -80,7 +80,7 @@ class ImageDicomFilePT(ImageDicomFile):
         except NotImplementedError as err:
             if pet_suv_conversion != "none":
                 warnings.warn(
-                    f"BQML conversion factor could not be determined. {str(err)}. SUV cannot be computed.",
+                    f"SUV cannot be computed. BQML conversion factor could not be determined. {str(err)}",
                     UserWarning
                 )
             conversion_possible = False
@@ -477,7 +477,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Final check.
         if admin_ref_time is None:
             raise ValueError(
-                f"Radiopharmaceutical start time cannot be determined from DICOM metadata in {self.file_path}."
+                f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
             )
 
         return admin_ref_time
@@ -497,8 +497,8 @@ class ImageDicomFilePT(ImageDicomFile):
 
         elif decay_correction not in ["NONE", "START"]:
             raise ValueError(
-                f"Decay correction DICOM tag in {self.file_path} was not recognised: {decay_correction}. One of ",
-                f"NONE, START or ADMIN was expected."
+                f"Decay correction DICOM tag was not recognised: {decay_correction}. One of ",
+                f"NONE, START or ADMIN was expected. [{self.describe_self()}]"
             )
 
         # Get acquisition start time and tracer administration time.
@@ -508,7 +508,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Get frame duration in seconds.
         frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
         if frame_duration is None:
-            raise ValueError(f"Frame duration cannot be determined from DICOM metadata in {self.file_path}.")
+            raise ValueError(f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]")
         frame_duration /= 1000.0  # From milliseconds to seconds.
 
         # Radionuclide total dose and radionuclide half-life
@@ -523,7 +523,7 @@ class ImageDicomFilePT(ImageDicomFile):
         if half_life is None:
             raise ValueError(
                 f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
-                f"information sequence (0x0054, 0x0016) of {self.file_path}."
+                f"information sequence (0x0054, 0x0016). [{self.describe_self()}]"
             )
 
         # Decay constant.
@@ -548,16 +548,24 @@ class ImageDicomFilePT(ImageDicomFile):
             # vendorneutral pseudocode.
 
             # Get frame_reference_time in seconds.
-            frame_reference_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1300), tag_type="float")
+            frame_reference_time = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0054, 0x1300),
+                tag_type="float"
+            )
             if frame_reference_time is None:
-                raise ValueError(f"Frame reference time (0x0054, 0x1300) was missing in {self.file_path}.")
+                raise ValueError(f"Frame reference time (0x0054, 0x1300) was missing. [{self.describe_self()}]")
             frame_reference_time /= 1000.0
 
             # Time at which the average count rate is found, relative to acquisition start time.
-            time_count_average = 1.0 / _lambda * np.log(_lambda * frame_duration / (1.0 - np.exp(-_lambda * frame_duration)))
+            time_count_average = 1.0 / _lambda * np.log(
+                _lambda * frame_duration / (1.0 - np.exp(-_lambda * frame_duration))
+            )
 
             # Set reference start time (this may coincide with the acquisition start time).
-            reference_start_time = acquisition_start_time + datetime.timedelta(seconds=time_count_average - frame_reference_time)
+            reference_start_time = acquisition_start_time + datetime.timedelta(
+                seconds=time_count_average - frame_reference_time
+            )
             time_to_reference_start = reference_start_time - tracer_administration_time
             time_to_reference_start = (
                     time_to_reference_start.days * 86400.0 +
@@ -568,8 +576,8 @@ class ImageDicomFilePT(ImageDicomFile):
 
         else:
             raise ValueError(
-                f"Decay correction DICOM tag in {self.file_path} was not recognised: {decay_correction}. One of ",
-                f"NONE, START or ADMIN was expected."
+                f"Decay correction DICOM tag was not recognised: {decay_correction}. One of NONE, START or ADMIN "
+                f"was expected. [{self.describe_self()}]"
             )
 
         return decay_factor
@@ -580,7 +588,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
         if pet_unit is None:
-            raise ValueError(f"PET Units (0x0054, 0x1001) was missing in {self.file_path}.")
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
         if pet_unit in ["CNTS", "CPS"]:
             conversion_factor = self._pet_unit_cnt_to_bqml()
@@ -589,7 +597,9 @@ class ImageDicomFilePT(ImageDicomFile):
         elif pet_unit in ["GML", "CM2ML"]:
             conversion_factor = 1.0
         else:
-            raise NotImplementedError(f"Conversion factor for converting {pet_unit} to BQML in {self.file_path} is not implemented.")
+            raise NotImplementedError(
+                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+            )
 
         return conversion_factor
 
@@ -611,7 +621,9 @@ class ImageDicomFilePT(ImageDicomFile):
                     tag_type="float"
                 )
                 if frame_duration is None:
-                    raise ValueError(f"Frame duration cannot be determined from DICOM metadata in {self.file_path}.")
+                    raise ValueError(
+                        f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]"
+                    )
                 frame_duration /= 1000.0  # From milliseconds to seconds.
                 conversion_factor = 1.0 / frame_duration
 
@@ -624,7 +636,7 @@ class ImageDicomFilePT(ImageDicomFile):
                 )
                 if administered_volume is None:
                     raise ValueError(
-                        f"Radiopharmaceutical volume cannot be determined from DICOM metadata in {self.file_path}"
+                        f"Radiopharmaceutical volume cannot be determined from DICOM metadata. [{self.describe_self()}]"
                     )
 
                 # Divide by administered volume (in cubic cm == milliliter)
@@ -632,13 +644,16 @@ class ImageDicomFilePT(ImageDicomFile):
 
             else:
                 raise ValueError(
-                    f"Radiopharmaceutical Information Sequence (0x0054, 0x0016) is missing in DICOM metadata in "
-                    f"{self.file_path}."
+                    f"Radiopharmaceutical Information Sequence (0x0054, 0x0016) is missing in DICOM metadata. "
+                    f"[{self.describe_self()}]"
                 )
 
         # Final check
         if conversion_factor is None:
-            raise ValueError(f"Conversion factor for converting {pet_unit} to BQML could not be established")
+            raise ValueError(
+                f"Conversion factor for converting {pet_unit} to BQML could not be established. "
+                f"[{self.describe_self()}]"
+            )
 
         return conversion_factor
 
@@ -655,7 +670,7 @@ class ImageDicomFilePT(ImageDicomFile):
         if current_suv_type is None:
             pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
             if pet_unit is None:
-                raise ValueError(f"PET Units (0x0054, 0x1001) was missing in {self.file_path}.")
+                raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
             if pet_unit == "GML":
                 # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
@@ -703,12 +718,13 @@ class ImageDicomFilePT(ImageDicomFile):
         patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
         if patient_weight is None:
             raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was missing in {self.file_path}. SUV normalisation is not possible."
+                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
+                f"[{self.describe_self()}]"
             )
         elif patient_weight <= 0.0:
             raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}) in {self.file_path}. SUV "
-                f"normalisation is not possible."
+                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
+                f"possible. [{self.describe_self()}]"
             )
         elif patient_weight >= 1000.0:
             # Weight is likely provide in grams, not kilograms. Convert to kg.
@@ -726,13 +742,13 @@ class ImageDicomFilePT(ImageDicomFile):
 
         if administered_dose is None:
             raise ValueError(
-                f"Radionuclide Total Dose (0x0018, 0x1074) was missing in {self.file_path}. SUV normalisation is not "
-                f"possible."
+                f"Radionuclide Total Dose (0x0018, 0x1074) was missing. SUV normalisation is not possible. "
+                f"[{self.describe_self()}]"
             )
         elif administered_dose <= 0.0:
             raise ValueError(
-                f"Radionuclide Total Dose (0x0018, 0x1074) was not positive ({administered_dose}) in "
-                f"{self.file_path}. SUV normalisation is not possible."
+                f"Radionuclide Total Dose (0x0018, 0x1074) was not positive ({administered_dose}). "
+                f"SUV normalisation is not possible. [{self.describe_self()}]"
             )
 
         # Body weight-corrected SUV ------------------------------------------------------------------------------------
@@ -743,13 +759,13 @@ class ImageDicomFilePT(ImageDicomFile):
         patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
         if patient_height is None:
             raise ValueError(
-                f"Patient Size (0x0010, 0x1020) was missing in {self.file_path}. SUV normalisation ({suv_type}) is not "
-                f"possible."
+                f"Patient Size (0x0010, 0x1020) was missing. SUV normalisation ({suv_type}) is not possible. "
+                f"[{self.describe_self()}]"
             )
         elif patient_height <= 0.0:
             raise ValueError(
-                f"Patient Size (0x0010, 0x1020) was not positive ({patient_height}) in {self.file_path}. SUV "
-                f"normalisation ({suv_type}) is not possible."
+                f"Patient Size (0x0010, 0x1020) was not positive ({patient_height}). SUV normalisation ({suv_type}) "
+                f"is not possible. [{self.describe_self()}]"
             )
         elif patient_height > 3.0:
             # Interpret patient height as cm and convert to meter.
@@ -766,8 +782,8 @@ class ImageDicomFilePT(ImageDicomFile):
             patient_biological_sex = "O"
         if patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
             raise ValueError(
-                f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex} in {self.file_path}. SUV "
-                f"normalisation ({suv_type}) is not possible."
+                f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex}. SUV normalisation "
+                f"({suv_type}) is not possible. [{self.describe_self()}]"
             )
 
         # Erroneous lean body mass-corrected SUV -----------------------------------------------------------------------

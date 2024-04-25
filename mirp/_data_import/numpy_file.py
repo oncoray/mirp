@@ -49,7 +49,8 @@ class ImageNumpyFile(ImageFile):
         if stack_images in ["auto", "yes"]:
             if self.image_dimension is None:
                 raise ValueError(
-                    "The image_dimension argument is expected to be set. Call load_metadata to set this attribute."
+                    f"The image_dimension argument is expected to be set. Call load_metadata to set this attribute. "
+                    f"[{self.describe_self()}]"
                 )
 
             if len(self.image_dimension) < 3:
@@ -63,7 +64,8 @@ class ImageNumpyFile(ImageFile):
             return False
         else:
             raise ValueError(
-                f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}."
+                f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}. "
+                f"[{self.describe_self()}]"
             )
 
     def check(self, raise_error=False, remove_metadata=True) -> bool:
@@ -78,16 +80,20 @@ class ImageNumpyFile(ImageFile):
         # Check that the contents are in fact a ndarray.
         if not isinstance(image_data, np.ndarray):
             if raise_error:
-                raise TypeError(f"The current numpy dataset {self.file_path} does not have the expected content. "
-                                f"Found: {type(image_data)}. Expected: numpy.ndarray")
+                raise TypeError(
+                    f"The current numpy dataset {self.file_path} does not have the expected content. "
+                    f"Found: {type(image_data)}. Expected: numpy.ndarray. [{self.describe_self()}]"
+                )
 
             return False
 
         # Check dimensions.
         if not 0 < image_data.ndim <= 3:
             if raise_error:
-                raise ValueError(f"The current numpy dataset has as an unexpected number of dimensions: "
-                                 f"Found: {image_data.ndim}. Expected: 1, 2, or 3 dimensions")
+                raise ValueError(
+                    f"The current numpy dataset has as an unexpected number of dimensions: "
+                    f"Found: {image_data.ndim}. Expected: 1, 2, or 3 dimensions. [{self.describe_self()}]"
+                )
 
             return False
 
@@ -125,7 +131,9 @@ class ImageNumpyFile(ImageFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
+                f"The image file could not be found at the expected location: {self.file_path}. "
+                f"[{self.describe_self()}]"
+            )
 
         # `Lazy load the data
         self.image_metadata = np.load(file=self.file_path, mmap_mode="r")
@@ -137,7 +145,9 @@ class ImageNumpyFile(ImageFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
+                f"The image file could not be found at the expected location: {self.file_path}. "
+                f"[{self.describe_self()}]"
+            )
 
         self.image_data = np.load(self.file_path).astype(np.float32)
         self.update_image_data()
@@ -154,7 +164,8 @@ class MaskNumpyFile(ImageNumpyFile, MaskFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The mask file could not be found at the expected location: {self.file_path}")
+                f"The mask file could not be found at the expected location: {self.file_path}. [{self.describe_self()}]"
+            )
 
         self.image_data = np.load(self.file_path).astype(int)
         self.update_image_data()
