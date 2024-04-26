@@ -60,3 +60,178 @@ def test_gabor_filtered_image_descriptors():
 
     attributes = image.get_export_attributes()
     assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_gaussian_filtered_image_descriptors():
+    from mirp._images.transformed_image import GaussianTransformedImage
+
+    image = GaussianTransformedImage(
+        sigma_parameter=1.0,
+        sigma_cutoff_parameter=4.0,
+        boundary_condition="testboundarycondition",
+        riesz_order=1,
+        riesz_steering=True,
+        riesz_sigma_parameter=2.0,
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_laplacian_of_gaussian_filtered_image_descriptors():
+    from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
+
+    image = LaplacianOfGaussianTransformedImage(
+        sigma_parameter=1.0,
+        sigma_cutoff_parameter=4.0,
+        boundary_condition="testboundarycondition",
+        riesz_order=1,
+        riesz_steering=True,
+        riesz_sigma_parameter=2.0,
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_laws_filtered_image_descriptors():
+    from mirp._images.transformed_image import LawsTransformedImage
+
+    image = LawsTransformedImage(
+        laws_kernel="testlawskernel",
+        delta_parameter=3,
+        energy_map=True,
+        rotation_invariance=True,
+        pooling_method="testpoolingmethod",
+        boundary_condition="testboundarycondition",
+        riesz_order=1,
+        riesz_steering=True,
+        riesz_sigma_parameter=2.0,
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_mean_filtered_image_descriptors():
+    from mirp._images.transformed_image import MeanTransformedImage
+
+    image = MeanTransformedImage(
+        filter_size=5,
+        boundary_condition="testboundarycondition",
+        riesz_order=1,
+        riesz_steering=True,
+        riesz_sigma_parameter=2.0,
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_non_separable_wavelet_filtered_image_descriptors():
+    from mirp._images.transformed_image import NonSeparableWaveletTransformedImage
+
+    image = NonSeparableWaveletTransformedImage(
+        wavelet_family="testwaveletfamily",
+        decomposition_level=2,
+        response_type="testresponsetype",
+        boundary_condition="testboundarycondition",
+        riesz_order=1,
+        riesz_steering=True,
+        riesz_sigma_parameter=2.0,
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_separable_wavelet_filtered_image_descriptors():
+    from mirp._images.transformed_image import SeparableWaveletTransformedImage
+
+    image = SeparableWaveletTransformedImage(
+        wavelet_family="testwaveletfamily",
+        decomposition_level=2,
+        filter_kernel_set="testfilterkernelset",
+        stationary_wavelet=False,
+        rotation_invariance=True,
+        pooling_method="testpoolingmethod",
+        boundary_condition="testboundarycondition",
+        riesz_order=1,
+        riesz_steering=True,
+        riesz_sigma_parameter=2.0,
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_square_transformed_image_descriptors():
+    from mirp._images.transformed_image import SquareTransformedImage
+
+    image = SquareTransformedImage(**GENERIC_KWARGS)
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_square_root_transformed_image_descriptors():
+    from mirp._images.transformed_image import SquareRootTransformedImage
+
+    image = SquareRootTransformedImage(**GENERIC_KWARGS)
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_logarithm_transformed_image_descriptors():
+    from mirp._images.transformed_image import LogarithmTransformedImage
+
+    image = LogarithmTransformedImage(**GENERIC_KWARGS)
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_exponential_transformed_image_descriptors():
+    from mirp._images.transformed_image import ExponentialTransformedImage
+
+    image = ExponentialTransformedImage(**GENERIC_KWARGS)
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
