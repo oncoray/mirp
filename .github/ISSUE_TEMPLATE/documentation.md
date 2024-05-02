@@ -17,3 +17,9 @@ Where should this addition or change be made? If relevant, provide the name of t
 # Specifications
 
 - MIRP version: 
+
+*Hint*: the installed version of MIRP can be found using `importlib_metadata`:
+```
+import importlib_metadata
+importlib_metadata.version("mirp")
+```
