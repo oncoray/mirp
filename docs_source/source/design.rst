@@ -22,4 +22,66 @@ functions. Internally, these functions create objects that are then used in the 
   configuring various steps in workflows (more on workflows below). These object classes are defined in the
   `mirp.settings` module.
 
-The third layer is fully abstracted from the user.
+The third layer is fully abstracted from the user. `deep_learning_preprocessing` and `extract_features`
+(and similar functions) all work by first determining which data to load (`import_images_and_masks`) and how to process
+them (`import_configuration_settings`). Based on the data and processing parameters, a workflow object
+(`StandardWorkflow`) is created for each image with its associated masks. Depending on processing parameters
+(e.g. multiple rotations) multiple workflow objects may be created instead. Each workflow defines a single experiment,
+containing the relevant parameters and with a specific imaging dataset to import and process.
+
+After creating workflow objects, `deep_learning_preprocessing` calls their `deep_learning_conversion` methods, whereas
+`extract_features` and co. call their `standard_extraction` methods. Internally, both first access the
+`standard_image_processing` generator method, which performs image processing according to a pipeline that is compliant
+with the Image Biomarker Standardisation Initiative. This pipeline starts by loading the image and its mask(s) using
+`read_images_and_masks`. It then converts them to their internal representations: GenericImage (and subclasses) and
+BaseMask objects, respectively. `standard_image_processing` then relies on methods of these objects for further
+image and mask processing. Finally, if filter is to be applied to an image, the workflow's `transform_images` method is
+called.
+
+After yielding the processed (and transformed) images, the `standard_image_processing` generator stops. The
+`deep_learning_conversion` method then performs some final processing of the yielded images and masks, notably cropping
+to the desired output format, if specified. `extract_images` directly yields the processed images and masks.
+`extract_features` and `extract_features_and_images` do a bit more work. Features are computed from each image and each
+associated mask using the workflow's `_compute_radiomics_features` method.
+
+Submodules
+----------
+
+MIRP contains several submodules. The following submodules are part of the public API:
+
+* `data_import`: Contains the `import_image`, `import_mask` and `import_image_and_mask` functions that are used for
+  organising the available image and mask data.
+* `settings`: Contains functions and class definitions related to configuring workflows, e.g. image processing and
+  feature computation.
+* `utilities`: Contains various utility functions.
+
+The bulk of MIRPs functionality is located in private submodules:
+
+* `_data_import`: Contains classes for image and mask files and modalities.
+* `_featuresets`: Contains functions and classes involved in computing features.
+* `_image_processing`: Contains functions that help process images. Most of these internally use methods associated
+  with `GenericImage` (and subclasses) as well as `BaseMask` that are defined in the `_images` and `_masks` submodules
+  respectively.
+* `_imagefilters`: Contains classes for various convolutional filters and function transformations.
+* `_images`: Contains classes that form the internal image representation, divided by image modality.
+* `_masks`: Contains classes that form the internal mask representation.
+* `_workflows`: Contains workflow-related class definitions, importantly the `StandardWorkflow` class that facilitates
+  image and mask processing and feature computation.
+
+Features
+--------
+Feature computation is called from `StandardWorkflow._compute_radiomics_features`. At the moment feature computation is
+mostly functional, and organised by feature family.
+
+Future Implementations
+^^^^^^^^^^^^^^^^^^^^^^
+Feature computation is currently family-based, i.e. an entire family of features is computed at once. It may be
+preferable to move to a more directive-based approach by treating feature as an object. There are no current direct
+benefits to doing so, and would make feature computation a bit harder to program to avoid doing unnecessary work.
+However, such a system would allow for exporting features with added metadata, instead of just their values. These
+metadata could include IBSI identifiers of the features, as well as processing-related metadata that are currently
+included in the feature name. This would make it easier to export structured reports of image data.
+
+Filters
+-------
+WIP
