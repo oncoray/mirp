@@ -100,3 +100,16 @@ Future Directions
 ^^^^^^^^^^^^^^^^^
 We are generally happy with the current implementation of image filters. It is relatively straightforward to implement new
 filters should there be a need.
+
+Internal image representation
+-----------------------------
+All internal image representations derive from `_images.generic_image.GenericImage`, which implements general methods.
+These objects are created by the `read_image` and `read_image_and_masks` functions, that process `ImageFile` objects by
+first converting them to the internal format using `ImageFile.to_object` (or override methods of subclasses),
+and then promoting them to the correct image modality-specific subclass using the `GenericImage.promote` method.
+
+These modality-specific subclasses allow for implementing modality-specific processing steps and parameters. For example,
+bias-field correction is only implemented for `MRImage` objects.
+
+
+`
