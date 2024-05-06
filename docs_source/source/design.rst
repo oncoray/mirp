@@ -73,7 +73,7 @@ Features
 Feature computation is called from `StandardWorkflow._compute_radiomics_features`. At the moment feature computation is
 mostly functional, and organised by feature family.
 
-Future Directions
+Future directions
 ^^^^^^^^^^^^^^^^^
 Feature computation is currently family-based, i.e. an entire family of features is computed at once. It may be
 preferable to move to a more directive-based approach by treating feature as an object. There are no current direct
@@ -96,7 +96,7 @@ All filters are implemented as objects, defined in the `_imagefilters` submodule
 in the `StandardWorkflow.transform_images` method, yielding specific transformed image objects (defined in
 `_images.transformed_images`).
 
-Future Directions
+Future directions
 ^^^^^^^^^^^^^^^^^
 We are generally happy with the current implementation of image filters. It is relatively straightforward to implement new
 filters should there be a need.
@@ -109,7 +109,35 @@ first converting them to the internal format using `ImageFile.to_object` (or ove
 and then promoting them to the correct image modality-specific subclass using the `GenericImage.promote` method.
 
 These modality-specific subclasses allow for implementing modality-specific processing steps and parameters. For example,
-bias-field correction is only implemented for `MRImage` objects.
+bias-field correction is only implemented for `MRImage` objects. As another example, subclasses such as `CTImage`
+override the `get_default_lowest_intensity` method to provide modality-specific default values.
 
+`MaskImage` also derives from  `GenericImage`, and is designed to contain mask information. Its implementation is
+comparatively extensive because it contains or overrides methods that act upon masks specifically.
+One notable aspect of `MaskImage` is that the mask data are typically run-length encoded, and only decoded upon use, to
+provide better memory utilisation.
 
-`
+Future directions
+^^^^^^^^^^^^^^^^^
+The current implementation of internal image representations is sufficient. It is relatively straightforward to
+implement objects for new image modalities, for which existing classes such as `CTImage` and `PETImage` can be used as
+templates.
+
+Some objects may receive additional attributes to represent relevant metadata on the value representations, e.g. the
+type of SUV conversion used to create a `PETImage`.
+
+In addition, all internal image representations are volumetric. They contain a merged stack of image slices. However,
+in rare occasions, the original input data may contain image slices that are not equidistant, i.e. with variable slice
+spacing. It is safer to handle DICOM imaging, prior to resampling (`interpolation` in
+`StandardWorkflow.standard_image_processing`), as a stack of separate slices.
+
+Internal mask representation
+----------------------------
+Masks are internally represented by `_masks.base_mask.BaseMask`. `BaseMask` objects are containers for the actual masks,
+which are `_images.mask_image.MaskImage`. In fact, each `BaseMask` contains up to three variants of masks, notably the
+original mask, the morphological mask and the intensity mask. Whereas the original mask and morphological mask are
+currently direct
+
+Future directions
+^^^^^^^^^^^^^^^^^
+The current implementation of internal image representations is sufficient.

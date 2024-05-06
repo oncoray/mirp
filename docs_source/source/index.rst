@@ -35,6 +35,7 @@ MIRP
    :caption: Contributing
 
    contributing
+   design
 
 Welcome to MIRP! If you need to quantitatively analyse medical images using a standardised workflow, you have come to
 the right place!
