@@ -8,7 +8,7 @@ new DICOM modalities are especially welcome! If you have ideas or code to contri
 To help you get an overview of how MIRP is structured internally, we describe the overall design of MIRP here:
 :doc:`../design`
 
-Everyone likes high-quality and easy to maintain code. Though nobody writes perfect code from scratch, the following can
+Everyone likes high-quality and easy-to-maintain code. Though nobody writes perfect code from scratch, the following can
 help you make useful and enduring contributions to MIRP:
 
 * MIRP styles its code according to `PEP8 <https://peps.python.org/pep-0008/>`_, but allows for longer line lengths

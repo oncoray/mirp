@@ -20,6 +20,7 @@ that your code will work as intended. `pytest` has some peculiarities:
 * If your test exports to a file, you can declare a the temporary directory as part of the test definition:
 
   .. code-block:: python
+
      def first_great_test(tmp_path):
         # Your test starts here
         ...
