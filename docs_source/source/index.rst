@@ -28,6 +28,7 @@ MIRP
    mask_labels
    deep_learning
    quantitative_image_analysis
+   features_names
 
 .. toctree::
    :hidden:

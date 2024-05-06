@@ -18,6 +18,8 @@ images) and only processing images (without computing features):
 * :func:`~mirp.extract_features_and_images.extract_images`: conventional function that only processes images.
 * :func:`~mirp.extract_features_and_images.extract_images_generator`: generator that yields processed images.
 
+The features computed by MIRP are listed in :doc:`../features_names`.
+
 Examples
 --------
 
