@@ -142,6 +142,71 @@ definition of these features, whereas MIRP computes these features for specific 
 
 The `ivh_auc` feature lacks reference values in the IBSI standard. It is only computed if `ibsi_compliant=False`.
 
+Grey level co-occurrence matrix features (`LFYI`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from grey level co-occurrence matrices (GLCM) are:
+
+* `cm_joint_max`: Joint maximum (`GYBY`)
+* `cm_joint_avg`: Joint average (`60VM`)
+* `cm_joint_var`: Joint variance (`UR99`)
+* `cm_joint_entr`: Joint entropy (`TU9B`)
+* `cm_diff_avg`: Difference average (`TF7R`)
+* `cm_diff_var`: Difference variance (`D3YU`)
+* `cm_diff_entr`: Difference entropy (`NTRS`)
+* `cm_sum_avg`: Sum average (`ZGXS`)
+* `cm_sum_var`: Sum variance (`OEEB`)
+* `cm_sum_entr`: Sum entropy (`P6QZ`)
+* `cm_energy`: Angular second moment (`8ZQL`)
+* `cm_contrast`: Contrast (`ACUI`)
+* `cm_dissimilarity`: Dissimilarity (`8S9J`)
+* `cm_inv_diff`: Inverse difference (`IB1Z`)
+* `cm_inv_diff_norm`: Normalised inverse difference (`NDRX`)
+* `cm_inv_diff_mom`: Inverse difference moment (`WF0Z`)
+* `cm_inv_diff_mom_norm`: Normalised inverse difference moment (`1QCO`)
+* `cm_inv_var`: Inverse variance (`E8JP`)
+* `cm_corr`: Correlation (`NI2N`)
+* `cm_auto_corr`: Autocorrelation (`QWB0`)
+* `cm_clust_tend`: Cluster tendency (`DG8W`)
+* `cm_clust_shade`: Cluster shade (`7NFM`)
+* `cm_clust_prom`: Cluster prominence (`AE86`)
+* `cm_info_corr1`: First measure of information correlation (`R8DG`)
+* `cm_info_corr2`: Second measure of information correlation (`JN9H`)
+
+GLCM-features are computed with the following parameters:
+distance, spatial method .. TODO..
+
+Grey level run length matrix features (`TP0I`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from grey level run length matrices (GLRLM) are:
+
+* `rlm_sre`: Short runs emphasis (`22OV`)
+* `rlm_lre`: Long runs emphasis (`W4KF`)
+* `rlm_lgre`: Low grey level run emphasis (`V3SW`)
+* `rlm_hgre`: High grey level run emphasis (`G3QZ`)
+* `rlm_srlge`: Short run low grey level emphasis (`HTZT`)
+* `rlm_srhge`: Short run high grey level emphasis (`GD3A`)
+* `rlm_lrlge`: Long run low grey level emphasis (`IVPO`)
+* `rlm_lrhge`: Long run high grey level emphasis (`3KUM`)
+* `rlm_glnu`: Grey level non-uniformity (`R5YN`)
+* `rlm_glnu_norm`: Normalised grey level non-uniformity (`OVBL`)
+* `rlm_rlnu`: Run length non-uniformity (`W92Y`)
+* `rlm_rlnu_norm`: Normalised run length non-uniformity (`IC23`)
+* `rlm_r_perc`: Run percentage (`9ZK5`)
+* `rlm_gl_var`: Grey level variance (`8CE5`)
+* `rlm_rl_var`: Run length variance (`SXLW`)
+* `rlm_rl_entr`: Run entropy (`HJ9O`)
+
+GLRLM features are computed with the following parameters:
+distance, spatial method .. TODO..
+
+Grey level size zone matrix features (`9SAK`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from grey level size zone matrices (GLSZM) are:
+
+
 Examples
 --------
 
