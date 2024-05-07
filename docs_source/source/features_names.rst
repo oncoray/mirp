@@ -88,6 +88,59 @@ Statistical features are listed below:
 * `stat_energy`: Energy (`N8CA`)
 * `stat_rms`: Root mean square (`5ZWQ`)
 
+Intensity histogram features (`ZVCW`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Intensity histogram features are similar to the statistical features listed above, but are computed from discretised
+images. MIRP can compute the following intensity histogram features:
+
+* `ih_mean`: Intensity histogram mean: (`X6K6`)
+* `ih_var`: Intensity histogram variance (`CH89`)
+* `ih_skew`: Intensity histogram skewness (`88K1`)
+* `ih_kurt`: Intensity histogram kurtosis (`C3I7`)
+* `ih_median`: Intensity histogram median (`WIFQ`)
+* `ih_min`: Intensity histogram minimum (`1PR8`)
+* `ih_p10`: Intensity histogram 10th percentile (`GPMT`)
+* `ih_p90`: Intensity histogram 90th percentile (`OZ0C`)
+* `ih_max`: Intensity histogram maximum (`3NCY`)
+* `ih_mode`: Intensity histogram mode (`AMMC`)
+* `ih_iqr`: Intensity histogram interquartile range (`WR0O`)
+* `ih_range`: Intensity histogram range (`5Z3W`)
+* `ih_mad`: Intensity histogram mean absolute deviation (`D2ZX`)
+* `ih_rmad`: Intensity histogram robust mean absolute deviation (`WRZB`)
+* `ih_medad`: Intensity histogram median absolute deviation (`4RNL`)
+* `ih_cov`: Intensity histogram coefficient of variation (`CWYJ`)
+* `ih_qcod`: Intensity histogram quartile coefficient of dispersion (`SLWD`)
+* `ih_entropy`: Intensity histogram entropy (`TLU2`)
+* `ih_uniformity`: Intensity histogram uniformity (`BJ5W`)
+* `ih_max_grad`: Maximum histogram gradient (`12CE`)
+* `ih_max_grad_g`: Maximum histogram gradient grey level (`8E6O`)
+* `ih_min_grad`: Minimum histogram gradient (`VQB3`)
+* `ih_min_grad_g`: Minimum histogram gradient grey level (`RHQZ`)
+
+Intensity-volume histogram features (`P88C`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Intensity volume histogram features are listed below. Note that the IBSI reference standard provides a general
+definition of these features, whereas MIRP computes these features for specific values:
+
+* `ivh_v10`: Volume fraction at 10% intensity (`BC2M`)
+* `ivh_v25`: Volume fraction at 25% intensity (`BC2M`)
+* `ivh_v50`: Volume fraction at 50% intensity (`BC2M`)
+* `ivh_v75`: Volume fraction at 75% intensity (`BC2M`)
+* `ivh_v90`: Volume fraction at 90% intensity (`BC2M`)
+* `ivh_i10`: Intensity at 10% volume (`GBPN`)
+* `ivh_i25`: Intensity at 25% volume (`GBPN`)
+* `ivh_i50`: Intensity at 50% volume (`GBPN`)
+* `ivh_i75`: Intensity at 75% volume (`GBPN`)
+* `ivh_i90`: Intensity at 90% volume (`GBPN`)
+* `ivh_diff_v10_v90`: Difference in volume fraction between 10% and 90% intensity (`DDTU`)
+* `ivh_diff_v25_v75`: Difference in volume fraction between 25% and 75% intensity (`DDTU`)
+* `ivh_diff_i10_i90`: Difference in intensity between 10% and 90% volume (`CNV2`)
+* `ivh_diff_i25_i75`: Difference in intensity between 25% and 75% volume (`CNV2`)
+* `ivh_auc`: Area under IVH curve (`9CMM`; reference values absent)
+
+The `ivh_auc` feature lacks reference values in the IBSI standard. It is only computed if `ibsi_compliant=False`.
 
 Examples
 --------
