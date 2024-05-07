@@ -173,8 +173,21 @@ Features computed from grey level co-occurrence matrices (GLCM) are:
 * `cm_info_corr1`: First measure of information correlation (`R8DG`)
 * `cm_info_corr2`: Second measure of information correlation (`JN9H`)
 
-GLCM-features are computed with the following parameters:
-distance, spatial method .. TODO..
+GLCM-features are computed with the following parameters, in sequential order:
+
+* distance:
+    * `d#.#`: Chebyshev distance for considering the neighbourhood for determining co-occurrence (`PVMT`). Typically
+      `d1.0`.
+* feature and matrix aggregation:
+    * `2d_avg`: features computed by averaging feature values of each 2D directional matrix across all directions and
+      slices (`BTW3`)
+    * `2d_s_mrg`: features computed by averaging feature values for each slice after merging 2D directional matrices
+      within that slice (`SUJT`)
+    * `2.5d_d_mrg`: features computed by averaging feature values for each direction after merging 2D directional
+      matrices corresponding to that direction (`JJUI`)
+    * `2.5d_v_mrg`: feature computed from a single matrix after merging all 2D directional matrices (`ZW7Z`)
+    * `3d_avg`: features computed by averaging feature values of each 3D directional matrix (`ITBB`)
+    * `3d_v_mrg`: features computed from a single matrix after merging all 3D directional matrices (`IAZD`)
 
 Grey level run length matrix features (`TP0I`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -198,14 +211,144 @@ Features computed from grey level run length matrices (GLRLM) are:
 * `rlm_rl_var`: Run length variance (`SXLW`)
 * `rlm_rl_entr`: Run entropy (`HJ9O`)
 
-GLRLM features are computed with the following parameters:
-distance, spatial method .. TODO..
+GLRLM features are computed with the following parameter:
+
+* feature and matrix aggregation:
+    * `2d_avg`: features computed by averaging feature values of each 2D directional matrix across all directions and
+      slices (`BTW3`)
+    * `2d_s_mrg`: features computed by averaging feature values for each slice after merging 2D directional matrices
+      within that slice (`SUJT`)
+    * `2.5d_d_mrg`: features computed by averaging feature values for each direction after merging 2D directional
+      matrices corresponding to that direction (`JJUI`)
+    * `2.5d_v_mrg`: feature computed from a single matrix after merging all 2D directional matrices (`ZW7Z`)
+    * `3d_avg`: features computed by averaging feature values of each 3D directional matrix (`ITBB`)
+    * `3d_v_mrg`: features computed from a single matrix after merging all 3D directional matrices (`IAZD`)
 
 Grey level size zone matrix features (`9SAK`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Features computed from grey level size zone matrices (GLSZM) are:
 
+* `szm_sze`: Small zone emphasis (`5QRC`)
+* `szm_lze`: Large zone emphasis (`48P8`)
+* `szm_lgze`: Low grey level zone emphasis (`XMSY`)
+* `szm_hgze`: High grey level zone emphasis (`5GN9`)
+* `szm_szlge`: Small zone low grey level emphasis (`5RAI`)
+* `szm_szhge`: Small zone high grey level emphasis (`HW1V`)
+* `szm_lzlge`: Large zone low grey level emphasis (`YH51`)
+* `szm_lzhge`: Large zone high grey level emphasis (`J17V`)
+* `szm_glnu`: Grey level non-uniformity (`JNSA`)
+* `szm_glnu_norm`: Normalised grey level non-uniformity (`Y1RO`)
+* `szm_zsnu`: Zone size non-uniformity (`4JP3`)
+* `szm_zsnu_norm`: Normalised zone size non-uniformity (`VB3A`)
+* `szm_z_perc`: Zone percentage (`P30P`)
+* `szm_gl_var`: Grey level variance (`BYLV`)
+* `szm_zs_var`: Zone size variance (`3NSA`)
+* `szm_zs_entr`: Zone size entropy (`GU8N`)
+
+GLSZM features are computed with the following parameter:
+
+* feature and matrix aggregation:
+    * `2d`: features computed by averaging feature values of each 2D matrix across all slices (`8QNN`)
+    * `2.5d`: features computed from a single matrix after merging all 2D matrices (`62GR`)
+    * `3d`: features computed from 3D matrix (`KOBO`)
+
+Grey level distance zone matrix features (`VMDZ`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from grey level distance zone matrices (GLDZM) are:
+
+* `dzm_sde`: Small distance emphasis (`0GBI`)
+* `dzm_lde`: Large distance emphasis (`MB4I`)
+* `dzm_lgze`: Low grey level zone emphasis (`S1RA`)
+* `dzm_hgze`: High grey level zone emphasis (`K26C`)
+* `dzm_sdlge`: Small distance low grey level emphasis (`RUVG`)
+* `dzm_sdhge`: Small distance high grey level emphasis (`DKNJ`)
+* `dzm_ldlge`: Large distance low grey level emphasis (`A7WM`)
+* `dzm_ldhge`: Large distance high grey level emphasis (`KLTH`)
+* `dzm_glnu`: Grey level non-uniformity (`VFT7`)
+* `dzm_glnu_norm`: Normalised grey level non-uniformity (`7HP3`)
+* `dzm_zdnu`: Zone distance non-uniformity (`V294`)
+* `dzm_zdnu_norm`: Normalised zone distance non-uniformity (`IATH`)
+* `dzm_z_perc`: Zone percentage (`VIWW`)
+* `dzm_gl_var`: Grey level variance (`QK93`)
+* `dzm_zd_var`: Zone distance variance (`7WT1`)
+* `dzm_zd_entr`: Zone distance entropy (`GBDU`)
+
+GLDZM features are computed with the following parameter:
+
+* feature and matrix aggregation:
+    * `2d`: features computed by averaging feature values of each 2D matrix across all slices (`8QNN`)
+    * `2.5d`: features computed from a single matrix after merging all 2D matrices (`62GR`)
+    * `3d`: features computed from 3D matrix (`KOBO`)
+
+Neighbourhood grey tone difference matrix features (`IPET`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from neighbourhood grey tone difference matrix (NGTDM) features are:
+
+* `ngt_coarseness`: Coarseness (`QCDE`)
+* `ngt_contrast`: Contrast (`65HE`)
+* `ngt_busyness`: Busyness (`NQ30`)
+* `ngt_complexity`: Complexity (`HDEZ`)
+* `ngt_strength`: Strength (`1X9X`)
+
+NGTDM features are computed with the following parameter:
+
+* feature and matrix aggregation:
+    * `2d`: features computed by averaging feature values of each 2D matrix across all slices (`8QNN`)
+    * `2.5d`: features computed from a single matrix after merging all 2D matrices (`62GR`)
+    * `3d`: features computed from 3D matrix (`KOBO`)
+
+Neighbouring grey level dependence matrix features (`REK0`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed neighbouring grey level dependence matrix (NGLDM) features are:
+
+* `ngl_lde`: Low dependence emphasis (`SODN`)
+* `ngl_hde`: High dependence emphasis (`IMOQ`)
+* `ngl_lgce`: Low grey level count emphasis (`TL9H`)
+* `ngl_hgce`: High grey level count emphasis (`OAE7`)
+* `ngl_ldlge`: Low dependence low grey level emphasis (`EQ3F`)
+* `ngl_ldhge`: Low dependence high grey level emphasis (`JA6D`)
+* `ngl_hdlge`: High dependence low grey level emphasis (`NBZI`)
+* `ngl_hdhge`: High dependence high grey level emphasis (`9QMG`)
+* `ngl_glnu`: Grey level non-uniformity (`FP8K`)
+* `ngl_glnu_norm`: Normalised grey level non-uniformity (`5SPA`)
+* `ngl_dcnu`: Dependence count non-uniformity (`Z87G`)
+* `ngl_dcnu_norm`: Normalised dependence count non-uniformity (`OKJI`)
+* `ngl_dc_perc`: Dependence count percentage (`6XV8`)
+* `ngl_gl_var`: Grey level variance (`1PFV`)
+* `ngl_dc_var`: Dependence count variance (`DNX2`)
+* `ngl_dc_entr`: Dependence count entropy (`FCBV`)
+* `ngl_dc_energy`: Dependence count energy (`CAS9`)
+
+NGLDM features are computed with the following parameters:
+
+* distance:
+    * `d#.#`: Chebyshev distance for considering the neighbourhood for determining co-occurrence (`PVMT`). Typically
+      `d1.0`.
+* dependence coarseness:
+    * `a#`: Coarseness parameter for assessing dependence (`VXRR`). Typically `a0`.
+* feature and matrix aggregation:
+    * `2d`: features computed by averaging feature values of each 2D matrix across all slices (`8QNN`)
+    * `2.5d`: features computed from a single matrix after merging all 2D matrices (`62GR`)
+    * `3d`: features computed from 3D matrix (`KOBO`)
+
+Discretisation (`4R0B`)
+-----------------------
+
+Features from several feature families are computed from discretised images, i.e. where image intensities are binned,
+notably intensity histogram features and features computed from texture matrices. These are indicated as follows:
+
+* `fbs`: Fixed bin size (`Q3RU`)
+* `fbn`: Fixed bin number (`K15C`)
+* `fbsp`: Fixed bin size, pyradiomics variant (not IBSI-compliant)
+
+These are then followed by a parameter specifying the number of bins or bin size:
+
+* `w#.#`: Width of each bin for fixed bin size discretisation methods.
+* `n#`: Number of bins for the fixed bin number discretisation method.
 
 Examples
 --------
