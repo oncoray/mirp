@@ -413,9 +413,27 @@ Non-separable wavelets (`LODD`)
 
 Features computed from images filtered using non-separable wavelets are prefixed by:
 
-* `wavelet`: Indicating wavelet fil
-* Wavelet family (`389V`),
+* `wavelet`: Indicating wavelet filters.
+* Non-separable wavelet family (`389V`),
 * `level#`: Wavelet decomposition filter (`GCEK`)
+
+Separable wavelets (`25BO`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images filtered using separable wavelets are prefixed by:
+
+* `wavelet`: Indicating wavelet filters.
+* Separable wavelet family (`BPXS`).
+* Wavelet filter combination (`UK1F`).
+* `level#`: Wavelet decomposition filter (`GCEK`)
+* `decimated`: Decimated image decomposition (`PH3R`). Absent if stationary,
+* `invar`: Pseudo-rotational invariance (`O1AQ`). Absent if not invariant.
+
+Square transformation
+^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images that underwent square transformation are prefixed by:
+
 
 Examples
 --------
