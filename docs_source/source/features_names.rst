@@ -353,9 +353,69 @@ These are then followed by a parameter specifying the number of bins or bin size
 Filters
 -------
 
-Features can not only be computed from the base image, but also from filtered images.
+Features can not only be computed from the base image, but also from filtered images (*response maps*). Features
+computed from filtered images are prefixed by different filter-specific items, which are detailed below.
 
+Gabor transformation (`Q88H`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Features computed from images filtered using Gabor filters are prefixed by:
+
+* `gabor`: Indicating Gabor filters.
+* `s#.#`:  Scale parameter (`41LN`), in physical units.
+* `g#,#`: Ellipticity parameter (`GDR5`).
+* `l#,#`: Wavelength parameters (`S4N6`) in physical units.
+* `t#,#`: Filter orientation parameter (`FQER`), only shown if Gabor-filtered images are not pooled.
+* Filter application:
+    * `2D`: Gabor filter is applied by slice.
+    * `3D`: Gabor filters are applied along every orthogonal direction.
+* `invar`: Pseudo-rotational invariance (`O1AQ`). Absent if not invariant.
+
+Gaussian transformation
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images filtered using Gaussian filters are prefixed by:
+
+* `gaussian`: Indicating Gaussian filters.
+* `s#,#`: Scale parameter (`41LN`), in physical units.
+
+The Gaussian filters lack reference values in the IBSI standard. It is only computed if `ibsi_compliant=False`.
+
+Laplacian-of-Gaussian transformation (`L6PA`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images filtered using Laplacian-of-Gaussian filters are prefixed by:
+
+* `log`: Indicating Laplacian-of-Gaussian filters.
+* `s#,#`: Scale parameter (`41LN`), in physical units.
+
+Laws kernels (`JTXT`)
+^^^^^^^^^^^^^^^^^^^^^
+
+Feature computed from images filtered using Laws kernels are prefixed by:
+
+* `laws`: Indicating filter using Laws kernels.
+* Set of filter kernels (`JVAD`).
+* `energy`: Indicates that an energy map (`PQSD`) was computed, otherwise absent.
+* `delta`: Energy map distance (`I176`). Absent if an energy map was not computed.
+* `invar`: Pseudo-rotational invariance (`O1AQ`). Absent if not invariant.
+
+Mean transformation (`S60F`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images filtered using mean filters are prefixed by:
+
+* `mean`: Indicating mean filters.
+* `d#`: Filter support (`YNOF`)
+
+Non-separable wavelets (`LODD`)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images filtered using non-separable wavelets are prefixed by:
+
+* `wavelet`: Indicating wavelet fil
+* Wavelet family (`389V`),
+* `level#`: Wavelet decomposition filter (`GCEK`)
 
 Examples
 --------
