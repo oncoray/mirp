@@ -379,7 +379,7 @@ Features computed from images filtered using Gaussian filters are prefixed by:
 * `gaussian`: Indicating Gaussian filters.
 * `s#,#`: Scale parameter (`41LN`), in physical units.
 
-The Gaussian filters lack reference values in the IBSI standard. It is only computed if `ibsi_compliant=False`.
+Gaussian filters lack reference values in the IBSI standard. They are only computed if `ibsi_compliant=False`.
 
 Laplacian-of-Gaussian transformation (`L6PA`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -434,9 +434,39 @@ Square transformation
 
 Features computed from images that underwent square transformation are prefixed by:
 
+* `square`: Indicating square transformation.
 
-Examples
---------
+Square transformations lack reference values in the IBSI standard. They are only computed if `ibsi_compliant=False`.
+
+Square root transformation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images that underwent square root transformation are prefixed by:
+
+* `sqrt`: Indicating square root transformation.
+
+Square root transformations lack reference values in the IBSI standard. They are only computed if
+`ibsi_compliant=False`.
+
+Logarithmic transformation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images that underwent logarithmic transformation are prefixed by:
+
+* `lgrthm`: Indicating logarithmic transformation. Note that `log` refers to Laplacian-of-Gaussian filters.
+
+Exponential transformations lack reference values in the IBSI standard. They are only computed if
+`ibsi_compliant=False`.
+
+Exponential transformation
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images that underwent exponential transformation are prefixed by:
+
+* `exp`: Indicating exponential transformation.
+
+Exponential transformations lack reference values in the IBSI standard. They are only computed if
+`ibsi_compliant=False`.
 
 References
 ----------
