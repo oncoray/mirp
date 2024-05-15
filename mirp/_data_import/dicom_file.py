@@ -529,7 +529,7 @@ class ImageDicomFile(ImageFile):
         # Final check.
         if acquisition_ref_time is None:
             raise ValueError(
-                f"Acquisition start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
+                f"Acquisition start time cannot be determined from DICOM metadata."
             )
 
         return acquisition_ref_time
