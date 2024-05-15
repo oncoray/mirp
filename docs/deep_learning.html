@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Preprocess images for deep learning &mdash; mirp 2.2.1 documentation</title>
+  <title>Preprocess images for deep learning &mdash; mirp 2.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -53,6 +53,9 @@
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html#References">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="current">
@@ -70,10 +73,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
 </ul>
 
         </div>
@@ -155,7 +161,7 @@ are returned by this function. Required if <code class="docutils literal notrans
 parallelized using the <code class="docutils literal notranslate"><span class="pre">ray</span></code> package. If a ray cluster is defined by the user, this cluster will be used
 instead. By default, image and mask processing are processed sequentially.</p></li>
 <li><p><strong>**kwargs</strong> – Keyword arguments passed for importing images and masks (
-<code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code>) and configuring settings (notably
+<a class="reference internal" href="image_mask_import.html#mirp.data_import.import_image_and_mask.import_image_and_mask" title="mirp.data_import.import_image_and_mask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code></a>) and configuring settings (notably
 <a class="reference internal" href="configuration.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass" title="mirp.settings.image_processing_parameters.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>,
 <a class="reference internal" href="configuration.html#mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass" title="mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code></a>), among others.</p></li>
 </ul>
@@ -171,7 +177,7 @@ instead. By default, image and mask processing are processed sequentially.</p></
 <p class="admonition-title">See also</p>
 <p>Keyword arguments can be provided to configure the following:</p>
 <ul class="simple">
-<li><p>image and mask import (<code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code>)</p></li>
+<li><p>image and mask import (<a class="reference internal" href="image_mask_import.html#mirp.data_import.import_image_and_mask.import_image_and_mask" title="mirp.data_import.import_image_and_mask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code></a>)</p></li>
 <li><p>image post-processing (<a class="reference internal" href="configuration.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass" title="mirp.settings.image_processing_parameters.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>)</p></li>
 <li><p>image perturbation / augmentation (<a class="reference internal" href="configuration.html#mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass" title="mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code></a>)</p></li>
 <li><p>image interpolation / resampling (<a class="reference internal" href="configuration.html#mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass" title="mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageInterpolationSettingsClass</span></code></a> and
@@ -208,7 +214,7 @@ and <code class="docutils literal notranslate"><span class="pre">&quot;numpy&quo
 <li><p><strong>write_dir</strong> (<em>str</em><em>, </em><em>optional</em>) – Path to directory where processed images and masks should be written. If not set, processed images and masks
 are returned by this function. Required if <code class="docutils literal notranslate"><span class="pre">write_images=True</span></code>.</p></li>
 <li><p><strong>**kwargs</strong> – Keyword arguments passed for importing images and masks (
-<code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code>) and configuring settings (notably
+<a class="reference internal" href="image_mask_import.html#mirp.data_import.import_image_and_mask.import_image_and_mask" title="mirp.data_import.import_image_and_mask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code></a>) and configuring settings (notably
 <a class="reference internal" href="configuration.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass" title="mirp.settings.image_processing_parameters.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>,
 <code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code>), among others.</p></li>
 </ul>
@@ -221,7 +227,7 @@ are returned by this function. Required if <code class="docutils literal notrans
 <p class="admonition-title">See also</p>
 <p>Keyword arguments can be provided to configure the following:</p>
 <ul class="simple">
-<li><p>image and mask import (<code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code>)</p></li>
+<li><p>image and mask import (<a class="reference internal" href="image_mask_import.html#mirp.data_import.import_image_and_mask.import_image_and_mask" title="mirp.data_import.import_image_and_mask.import_image_and_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">import_image_and_mask()</span></code></a>)</p></li>
 <li><p>image post-processing (<a class="reference internal" href="configuration.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass" title="mirp.settings.image_processing_parameters.ImagePostProcessingClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePostProcessingClass</span></code></a>)</p></li>
 <li><p>image perturbation / augmentation (<a class="reference internal" href="configuration.html#mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass" title="mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImagePerturbationSettingsClass</span></code></a>)</p></li>
 <li><p>image interpolation / resampling (<a class="reference internal" href="configuration.html#mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass" title="mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">ImageInterpolationSettingsClass</span></code></a> and

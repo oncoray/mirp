@@ -50,6 +50,8 @@
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul>
@@ -125,7 +127,7 @@
 <span class="sd">    bias_field_convergence_threshold: float, optional, default: 0.001</span>
 <span class="sd">        Convergence threshold for N4 bias field correction algorithm.</span>
 
-<span class="sd">    pet_suv_conversion: {&quot;body_weight&quot;, &quot;none&quot;}, default: &quot;body_weight&quot;</span>
+<span class="sd">    pet_suv_conversion: {&quot;body_weight&quot;, &quot;body_surface_area&quot;, &quot;lean_body_mass&quot;, &quot;lean_body_mass_bmi&quot;, &quot;ideal_body_weight&quot;. &quot;none&quot;}, default: &quot;body_weight&quot;</span>
 <span class="sd">        Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more</span>
 <span class="sd">        comparable between patients, these are converted to standardised uptake values. The following are possible:</span>
 

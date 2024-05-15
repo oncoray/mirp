@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing &mdash; mirp 2.2.1 documentation</title>
+  <title>Contributing &mdash; mirp 2.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,14 +15,15 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Process image and compute quantitative image features" href="quantitative_image_analysis.html" /> 
+    <link rel="next" title="General design" href="design.html" />
+    <link rel="prev" title="Feature name references" href="features_names.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -46,11 +47,15 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html#References">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul>
@@ -60,9 +65,13 @@
 <li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
 </ul>
 
         </div>
@@ -94,20 +103,27 @@
 <p>MIRP is open-source software, hosted on <a class="reference external" href="https://github.com/oncoray/mirp">GitHub</a>. Contributions that enable
 new DICOM modalities are especially welcome! If you have ideas or code to contribute, please first open an
 <a class="reference external" href="https://github.com/oncoray/mirp/issues">issue</a> and describe your ideas.</p>
-<p>Technical documentation is forthcoming. For now, please keep the following in mind when contributing:</p>
+<p>To help you get an overview of how MIRP is structured internally, we describe the overall design of MIRP here:
+<a class="reference internal" href="design.html"><span class="doc">General design</span></a></p>
+<p>Everyone likes high-quality and easy-to-maintain code. Though nobody writes perfect code from scratch, the following can
+help you make useful and enduring contributions to MIRP:</p>
 <ul class="simple">
-<li><p>The main branch of MIRP is protected. You can therefore make a pull request for your contribution to a
-development branch of the intended future version.</p></li>
-<li><p>If you introduce new functionality, this functionality should be tested as part of the tests in the <code class="docutils literal notranslate"><span class="pre">test</span></code>
-directory. After implementation, please ensure that all tests complete without errors by running <code class="docutils literal notranslate"><span class="pre">pytest</span></code> from your
-IDE or console using <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">pytest</span> <span class="pre">test</span></code> from the mirp main directory. Likewise existing automated tests should
-pass.</p></li>
-<li><p>Code is styled according to <a class="reference external" href="https://peps.python.org/pep-0008/">PEP8</a>. Using a linter or IDE with automated linter
-is recommended.</p></li>
-<li><p>Function, class and method documentation is done using Numpy-flavoured
+<li><p>MIRP styles its code according to <a class="reference external" href="https://peps.python.org/pep-0008/">PEP8</a>, but allows for longer line lengths
+(120 characters). Using a linter or IDE with built-in linter may help stick to PEP8.</p></li>
+<li><p>Testing your code enables discovering if it actually works as you intend it to. We wrote a short guide on how tests
+are performed in MIRP: <a class="reference internal" href="contributing_tests.html"><span class="doc">Tests</span></a>.</p></li>
+<li><p>If you are contributing code that should become part of the public API (see <a class="reference internal" href="design.html"><span class="doc">General design</span></a>), you should document how the
+user can use that functionality. In MIRP, functions, classes and methods are documented using Numpy-flavoured
 <a class="reference external" href="https://numpydoc.readthedocs.io/en/latest/format.html">docstrings</a>.
-<a class="reference external" href="https://oncoray.github.io/mirp/">Long-form documentation</a> is partially created from function, class and method
-documentation, embedded in restructured text files in the <code class="docutils literal notranslate"><span class="pre">docs_source</span></code> directory.</p></li>
+<a class="reference external" href="https://oncoray.github.io/mirp/">Long-form documentation</a> is partially created from such
+documentation, embedded in restructured text files in the <code class="docutils literal notranslate"><span class="pre">docs_source</span></code> directory.
+Providing examples or even a tutorial to highlight new functionality can go a long way to help users use your
+contribution.</p></li>
+<li><p>Generally, please ensure that you use descriptive variable, function, class, etc., names in your contributions.
+If your code does something that is not readily apparent from reading it, please comment it.
+For longer pieces of code, commenting the main steps is also helpful for understanding the code. Your aim should be
+to write code you will be able to understand a year or more into the future.</p></li>
+<li><p>Because MIRP serves an international audience, your contributions should be in English.</p></li>
 </ul>
 </section>
 
@@ -115,7 +131,8 @@ documentation, embedded in restructured text files in the <code class="docutils 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="quantitative_image_analysis.html" class="btn btn-neutral float-left" title="Process image and compute quantitative image features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="features_names.html" class="btn btn-neutral float-left" title="Feature name references" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="design.html" class="btn btn-neutral float-right" title="General design" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Feature name references &mdash; mirp 2.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Contributing" href="contributing.html" />
+    <link rel="prev" title="Process image and compute quantitative image features" href="quantitative_image_analysis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html#References">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Feature name references</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#morphological-features-hcug">Morphological features (<cite>HCUG</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#local-intensity-features-9st6">Local intensity features (<cite>9ST6</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#intensity-based-statistical-features-uhiw">Intensity-based statistical features (<cite>UHIW</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#intensity-histogram-features-zvcw">Intensity histogram features (<cite>ZVCW</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#intensity-volume-histogram-features-p88c">Intensity-volume histogram features (<cite>P88C</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grey-level-co-occurrence-matrix-features-lfyi">Grey level co-occurrence matrix features (<cite>LFYI</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grey-level-run-length-matrix-features-tp0i">Grey level run length matrix features (<cite>TP0I</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grey-level-size-zone-matrix-features-9sak">Grey level size zone matrix features (<cite>9SAK</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grey-level-distance-zone-matrix-features-vmdz">Grey level distance zone matrix features (<cite>VMDZ</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#neighbourhood-grey-tone-difference-matrix-features-ipet">Neighbourhood grey tone difference matrix features (<cite>IPET</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#neighbouring-grey-level-dependence-matrix-features-rek0">Neighbouring grey level dependence matrix features (<cite>REK0</cite>)</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#discretisation-4r0b">Discretisation (<cite>4R0B</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#gabor-transformation-q88h">Gabor transformation (<cite>Q88H</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gaussian-transformation">Gaussian transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#laplacian-of-gaussian-transformation-l6pa">Laplacian-of-Gaussian transformation (<cite>L6PA</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#laws-kernels-jtxt">Laws kernels (<cite>JTXT</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mean-transformation-s60f">Mean transformation (<cite>S60F</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#non-separable-wavelets-lodd">Non-separable wavelets (<cite>LODD</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#separable-wavelets-25bo">Separable wavelets (<cite>25BO</cite>)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#square-transformation">Square transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#square-root-transformation">Square root transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#logarithmic-transformation">Logarithmic transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exponential-transformation">Exponential transformation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Feature name references</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/features_names.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="feature-name-references">
+<h1>Feature name references<a class="headerlink" href="#feature-name-references" title="Link to this heading"></a></h1>
+<p>Features values exported in a <cite>pandas.DataFrame</cite> by <cite>extract_features</cite> are encoded in columns, see e.g. this
+<a class="reference external" href="https://oncoray.github.io/mirp/tutorial_compute_radiomics_features_mr.html">tutorial</a>. The column name corresponds
+to the name of each feature. However, the naming of features can seem properly arcane to new users.</p>
+<p>Each feature name consists of maximum 4 components, in order:</p>
+<ol class="arabic simple">
+<li><p>The filter and its parameters (if any).</p></li>
+<li><p>The feature family and the feature name.</p></li>
+<li><p>Feature parameters (if any).</p></li>
+<li><p>Discretisation parameters (if any).</p></li>
+</ol>
+<p>Here we will first describe the feature names and their parameters, sorted by feature family, followed by discretisation
+parameters and filters, annotated with their Image Biomarker Standardisation Initiative identifiers <a class="reference internal" href="#zwanenburg2016" id="id1"><span>[Zwanenburg2016]</span></a>,
+<a class="reference internal" href="#depeursinge2020" id="id2"><span>[Depeursinge2020]</span></a>.</p>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<section id="morphological-features-hcug">
+<h3>Morphological features (<cite>HCUG</cite>)<a class="headerlink" href="#morphological-features-hcug" title="Link to this heading"></a></h3>
+<p>Three-dimensional morphological features are listed below:</p>
+<ul class="simple">
+<li><p><cite>morph_volume</cite>: Volume (<cite>RNU0</cite>)</p></li>
+<li><p><cite>morph_vol_approx</cite>: Approximate volume (<cite>YEKZ</cite>)</p></li>
+<li><p><cite>morph_area_mesh</cite>: Surface area (<cite>C0JK</cite>)</p></li>
+<li><p><cite>morph_av</cite>: Surface to volume ratio (<cite>2PR5</cite>)</p></li>
+<li><p><cite>morph_comp_1</cite>: Compactness 1 (<cite>SKGS</cite>)</p></li>
+<li><p><cite>morph_comp_2</cite>: Compactness 2 (<cite>BQWJ</cite>)</p></li>
+<li><p><cite>morph_sph_dispr</cite>: Spherical disproportion (<cite>KRCK</cite>)</p></li>
+<li><p><cite>morph_sphericity</cite>: Sphericity (<cite>QCFX</cite>)</p></li>
+<li><p><cite>morph_asphericity</cite>: Asphericity (<cite>25C7</cite>)</p></li>
+<li><p><cite>morph_com</cite>: Centre of mass shift (<cite>KLMA</cite>)</p></li>
+<li><p><cite>morph_diam</cite>: Maximum 3D diameter (<cite>L0JK</cite>)</p></li>
+<li><p><cite>morph_pca_maj_axis</cite>: Major axis length (<cite>TDIC</cite>)</p></li>
+<li><p><cite>morph_pca_min_axis</cite>: Minor axis length (<cite>P9VJ</cite>)</p></li>
+<li><p><cite>morph_pca_least_axis</cite>: Least axis length     (<cite>7J51</cite>)</p></li>
+<li><p><cite>morph_pca_elongation</cite>: Elongation (<cite>Q3CK</cite>)</p></li>
+<li><p><cite>morph_pca_flatness</cite>: Flatness (<cite>N17B</cite>)</p></li>
+<li><p><cite>morph_vol_dens_aabb</cite>: Volume density - axis-aligned bounding box     (<cite>PBX1</cite>)</p></li>
+<li><p><cite>morph_area_dens_aabb</cite>: Area density - axis-aligned bounding box (<cite>R59B</cite>)</p></li>
+<li><p><cite>morph_vol_dens_aee</cite>: Volume density - approximate enclosing ellipsoid (<cite>6BDE</cite>)</p></li>
+<li><p><cite>morph_area_dens_aee</cite>: Area density - approximate enclosing ellipsoid (<cite>RDD2</cite>)</p></li>
+<li><p><cite>morph_vol_dens_conv_hull</cite>: Volume density - convex hull (<cite>R3ER</cite>)</p></li>
+<li><p><cite>morph_area_dens_conv_hull</cite>: Area density - convex hull (<cite>7T7F</cite>)</p></li>
+<li><p><cite>morph_integ_int</cite>: Integrated intensity (<cite>99N0</cite>)</p></li>
+<li><p><cite>morph_moran_i</cite>: Moran’s I index (<cite>N365</cite>)</p></li>
+<li><p><cite>morph_geary_c</cite>: Geary’s C measure (<cite>NPT7</cite>)</p></li>
+<li><p><cite>morph_vol_dens_ombb</cite>: Volume density - oriented minimum bounding box (<cite>ZH1A</cite>; reference values absent)</p></li>
+<li><p><cite>morph_area_dens_ombb</cite>: Area density - oriented minimum bounding box (<cite>IQYR</cite>; reference values absent)</p></li>
+<li><p><cite>morph_vol_dens_mvee</cite>: Volume density - minimum volume enclosing ellipsoid (<cite>SWZ1</cite>; reference values absent)</p></li>
+<li><p><cite>morph_area_dens_mvee</cite>: Area density - minimum volume enclosing ellipsoid (<cite>BRI8</cite>; reference values absent)</p></li>
+</ul>
+<p>The final four features lack reference values in the IBSI standard. These are only computed if <cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="local-intensity-features-9st6">
+<h3>Local intensity features (<cite>9ST6</cite>)<a class="headerlink" href="#local-intensity-features-9st6" title="Link to this heading"></a></h3>
+<p>Local intensity features are listed below:</p>
+<ul class="simple">
+<li><p><cite>loc_peak_loc</cite>: Local intensity peak (<cite>VJGA</cite>)</p></li>
+<li><p><cite>loc_peak_glob</cite>: Global intensity peak (<cite>0F91</cite>)</p></li>
+</ul>
+</section>
+<section id="intensity-based-statistical-features-uhiw">
+<h3>Intensity-based statistical features (<cite>UHIW</cite>)<a class="headerlink" href="#intensity-based-statistical-features-uhiw" title="Link to this heading"></a></h3>
+<p>Statistical features are listed below:</p>
+<ul class="simple">
+<li><p><cite>stat_mean</cite>: Mean (<cite>Q4LE</cite>)</p></li>
+<li><p><cite>stat_var</cite>: Variance (<cite>ECT3</cite>)</p></li>
+<li><p><cite>stat_skew</cite>: Skewness (<cite>KE2A</cite>)</p></li>
+<li><p><cite>stat_kurt</cite>: Kurtosis (<cite>IPH6</cite>)</p></li>
+<li><p><cite>stat_median</cite>: Median (<cite>Y12H</cite>)</p></li>
+<li><p><cite>stat_min</cite>: Minimum (<cite>1GSF</cite>)</p></li>
+<li><p><cite>stat_p10</cite>: 10th percentile (<cite>QG58</cite>)</p></li>
+<li><p><cite>stat_p90</cite>: 90th percentile (<cite>8DWT</cite>)</p></li>
+<li><p><cite>stat_max</cite>: Maximum (<cite>84IY</cite>)</p></li>
+<li><p><cite>stat_iqr</cite>: Interquartile range (<cite>SALO</cite>)</p></li>
+<li><p><cite>stat_range</cite>: Range (<cite>2OJQ</cite>)</p></li>
+<li><p><cite>stat_mad</cite>: Mean absolute deviation (<cite>4FUA</cite>)</p></li>
+<li><p><cite>stat_rmad</cite>:Robust mean absolute deviation (<cite>1128</cite>)</p></li>
+<li><p><cite>stat_medad</cite>: Median absolute deviation (<cite>N72L</cite>)</p></li>
+<li><p><cite>stat_cov</cite>: Coefficient of variation (<cite>7TET</cite>)</p></li>
+<li><p><cite>stat_qcod</cite>: Quartile coefficient of dispersion (<cite>9S40</cite>)</p></li>
+<li><p><cite>stat_energy</cite>: Energy (<cite>N8CA</cite>)</p></li>
+<li><p><cite>stat_rms</cite>: Root mean square (<cite>5ZWQ</cite>)</p></li>
+</ul>
+</section>
+<section id="intensity-histogram-features-zvcw">
+<h3>Intensity histogram features (<cite>ZVCW</cite>)<a class="headerlink" href="#intensity-histogram-features-zvcw" title="Link to this heading"></a></h3>
+<p>Intensity histogram features are similar to the statistical features listed above, but are computed from discretised
+images. MIRP can compute the following intensity histogram features:</p>
+<ul class="simple">
+<li><p><cite>ih_mean</cite>: Intensity histogram mean: (<cite>X6K6</cite>)</p></li>
+<li><p><cite>ih_var</cite>: Intensity histogram variance (<cite>CH89</cite>)</p></li>
+<li><p><cite>ih_skew</cite>: Intensity histogram skewness (<cite>88K1</cite>)</p></li>
+<li><p><cite>ih_kurt</cite>: Intensity histogram kurtosis (<cite>C3I7</cite>)</p></li>
+<li><p><cite>ih_median</cite>: Intensity histogram median (<cite>WIFQ</cite>)</p></li>
+<li><p><cite>ih_min</cite>: Intensity histogram minimum (<cite>1PR8</cite>)</p></li>
+<li><p><cite>ih_p10</cite>: Intensity histogram 10th percentile (<cite>GPMT</cite>)</p></li>
+<li><p><cite>ih_p90</cite>: Intensity histogram 90th percentile (<cite>OZ0C</cite>)</p></li>
+<li><p><cite>ih_max</cite>: Intensity histogram maximum (<cite>3NCY</cite>)</p></li>
+<li><p><cite>ih_mode</cite>: Intensity histogram mode (<cite>AMMC</cite>)</p></li>
+<li><p><cite>ih_iqr</cite>: Intensity histogram interquartile range (<cite>WR0O</cite>)</p></li>
+<li><p><cite>ih_range</cite>: Intensity histogram range (<cite>5Z3W</cite>)</p></li>
+<li><p><cite>ih_mad</cite>: Intensity histogram mean absolute deviation (<cite>D2ZX</cite>)</p></li>
+<li><p><cite>ih_rmad</cite>: Intensity histogram robust mean absolute deviation (<cite>WRZB</cite>)</p></li>
+<li><p><cite>ih_medad</cite>: Intensity histogram median absolute deviation (<cite>4RNL</cite>)</p></li>
+<li><p><cite>ih_cov</cite>: Intensity histogram coefficient of variation (<cite>CWYJ</cite>)</p></li>
+<li><p><cite>ih_qcod</cite>: Intensity histogram quartile coefficient of dispersion (<cite>SLWD</cite>)</p></li>
+<li><p><cite>ih_entropy</cite>: Intensity histogram entropy (<cite>TLU2</cite>)</p></li>
+<li><p><cite>ih_uniformity</cite>: Intensity histogram uniformity (<cite>BJ5W</cite>)</p></li>
+<li><p><cite>ih_max_grad</cite>: Maximum histogram gradient (<cite>12CE</cite>)</p></li>
+<li><p><cite>ih_max_grad_g</cite>: Maximum histogram gradient grey level (<cite>8E6O</cite>)</p></li>
+<li><p><cite>ih_min_grad</cite>: Minimum histogram gradient (<cite>VQB3</cite>)</p></li>
+<li><p><cite>ih_min_grad_g</cite>: Minimum histogram gradient grey level (<cite>RHQZ</cite>)</p></li>
+</ul>
+</section>
+<section id="intensity-volume-histogram-features-p88c">
+<h3>Intensity-volume histogram features (<cite>P88C</cite>)<a class="headerlink" href="#intensity-volume-histogram-features-p88c" title="Link to this heading"></a></h3>
+<p>Intensity volume histogram features are listed below. Note that the IBSI reference standard provides a general
+definition of these features, whereas MIRP computes these features for specific values:</p>
+<ul class="simple">
+<li><p><cite>ivh_v10</cite>: Volume fraction at 10% intensity (<cite>BC2M</cite>; <cite>NK6P</cite>)</p></li>
+<li><p><cite>ivh_v25</cite>: Volume fraction at 25% intensity (<cite>BC2M</cite>)</p></li>
+<li><p><cite>ivh_v50</cite>: Volume fraction at 50% intensity (<cite>BC2M</cite>)</p></li>
+<li><p><cite>ivh_v75</cite>: Volume fraction at 75% intensity (<cite>BC2M</cite>)</p></li>
+<li><p><cite>ivh_v90</cite>: Volume fraction at 90% intensity (<cite>BC2M</cite>; <cite>4279</cite>)</p></li>
+<li><p><cite>ivh_i10</cite>: Intensity at 10% volume (<cite>GBPN</cite>; <cite>PWN1</cite>)</p></li>
+<li><p><cite>ivh_i25</cite>: Intensity at 25% volume (<cite>GBPN</cite>)</p></li>
+<li><p><cite>ivh_i50</cite>: Intensity at 50% volume (<cite>GBPN</cite>)</p></li>
+<li><p><cite>ivh_i75</cite>: Intensity at 75% volume (<cite>GBPN</cite>)</p></li>
+<li><p><cite>ivh_i90</cite>: Intensity at 90% volume (<cite>GBPN</cite>; <cite>BOHI</cite>)</p></li>
+<li><p><cite>ivh_diff_v10_v90</cite>: Difference in volume fraction between 10% and 90% intensity (<cite>DDTU</cite>; <cite>WITY</cite>)</p></li>
+<li><p><cite>ivh_diff_v25_v75</cite>: Difference in volume fraction between 25% and 75% intensity (<cite>DDTU</cite>)</p></li>
+<li><p><cite>ivh_diff_i10_i90</cite>: Difference in intensity between 10% and 90% volume (<cite>CNV2</cite>; <cite>JXJA</cite>)</p></li>
+<li><p><cite>ivh_diff_i25_i75</cite>: Difference in intensity between 25% and 75% volume (<cite>CNV2</cite>)</p></li>
+<li><p><cite>ivh_auc</cite>: Area under IVH curve (<cite>9CMM</cite>; reference values absent)</p></li>
+</ul>
+<p>The <cite>ivh_auc</cite> feature lacks reference values in the IBSI standard. It is only computed if <cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="grey-level-co-occurrence-matrix-features-lfyi">
+<h3>Grey level co-occurrence matrix features (<cite>LFYI</cite>)<a class="headerlink" href="#grey-level-co-occurrence-matrix-features-lfyi" title="Link to this heading"></a></h3>
+<p>Features computed from grey level co-occurrence matrices (GLCM) are:</p>
+<ul class="simple">
+<li><p><cite>cm_joint_max</cite>: Joint maximum (<cite>GYBY</cite>)</p></li>
+<li><p><cite>cm_joint_avg</cite>: Joint average (<cite>60VM</cite>)</p></li>
+<li><p><cite>cm_joint_var</cite>: Joint variance (<cite>UR99</cite>)</p></li>
+<li><p><cite>cm_joint_entr</cite>: Joint entropy (<cite>TU9B</cite>)</p></li>
+<li><p><cite>cm_diff_avg</cite>: Difference average (<cite>TF7R</cite>)</p></li>
+<li><p><cite>cm_diff_var</cite>: Difference variance (<cite>D3YU</cite>)</p></li>
+<li><p><cite>cm_diff_entr</cite>: Difference entropy (<cite>NTRS</cite>)</p></li>
+<li><p><cite>cm_sum_avg</cite>: Sum average (<cite>ZGXS</cite>)</p></li>
+<li><p><cite>cm_sum_var</cite>: Sum variance (<cite>OEEB</cite>)</p></li>
+<li><p><cite>cm_sum_entr</cite>: Sum entropy (<cite>P6QZ</cite>)</p></li>
+<li><p><cite>cm_energy</cite>: Angular second moment (<cite>8ZQL</cite>)</p></li>
+<li><p><cite>cm_contrast</cite>: Contrast (<cite>ACUI</cite>)</p></li>
+<li><p><cite>cm_dissimilarity</cite>: Dissimilarity (<cite>8S9J</cite>)</p></li>
+<li><p><cite>cm_inv_diff</cite>: Inverse difference (<cite>IB1Z</cite>)</p></li>
+<li><p><cite>cm_inv_diff_norm</cite>: Normalised inverse difference (<cite>NDRX</cite>)</p></li>
+<li><p><cite>cm_inv_diff_mom</cite>: Inverse difference moment (<cite>WF0Z</cite>)</p></li>
+<li><p><cite>cm_inv_diff_mom_norm</cite>: Normalised inverse difference moment (<cite>1QCO</cite>)</p></li>
+<li><p><cite>cm_inv_var</cite>: Inverse variance (<cite>E8JP</cite>)</p></li>
+<li><p><cite>cm_corr</cite>: Correlation (<cite>NI2N</cite>)</p></li>
+<li><p><cite>cm_auto_corr</cite>: Autocorrelation (<cite>QWB0</cite>)</p></li>
+<li><p><cite>cm_clust_tend</cite>: Cluster tendency (<cite>DG8W</cite>)</p></li>
+<li><p><cite>cm_clust_shade</cite>: Cluster shade (<cite>7NFM</cite>)</p></li>
+<li><p><cite>cm_clust_prom</cite>: Cluster prominence (<cite>AE86</cite>)</p></li>
+<li><p><cite>cm_info_corr1</cite>: First measure of information correlation (<cite>R8DG</cite>)</p></li>
+<li><p><cite>cm_info_corr2</cite>: Second measure of information correlation (<cite>JN9H</cite>)</p></li>
+</ul>
+<p>GLCM-features are computed with the following parameters, in sequential order:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>distance:</dt><dd><ul>
+<li><p><cite>d#.#</cite>: Chebyshev distance for considering the neighbourhood for determining co-occurrence (<cite>PVMT</cite>). Typically
+<cite>d1.0</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>feature and matrix aggregation:</dt><dd><ul>
+<li><p><cite>2d_avg</cite>: features computed by averaging feature values of each 2D directional matrix across all directions and
+slices (<cite>BTW3</cite>)</p></li>
+<li><p><cite>2d_s_mrg</cite>: features computed by averaging feature values for each slice after merging 2D directional matrices
+within that slice (<cite>SUJT</cite>)</p></li>
+<li><p><cite>2.5d_d_mrg</cite>: features computed by averaging feature values for each direction after merging 2D directional
+matrices corresponding to that direction (<cite>JJUI</cite>)</p></li>
+<li><p><cite>2.5d_v_mrg</cite>: feature computed from a single matrix after merging all 2D directional matrices (<cite>ZW7Z</cite>)</p></li>
+<li><p><cite>3d_avg</cite>: features computed by averaging feature values of each 3D directional matrix (<cite>ITBB</cite>)</p></li>
+<li><p><cite>3d_v_mrg</cite>: features computed from a single matrix after merging all 3D directional matrices (<cite>IAZD</cite>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="grey-level-run-length-matrix-features-tp0i">
+<h3>Grey level run length matrix features (<cite>TP0I</cite>)<a class="headerlink" href="#grey-level-run-length-matrix-features-tp0i" title="Link to this heading"></a></h3>
+<p>Features computed from grey level run length matrices (GLRLM) are:</p>
+<ul class="simple">
+<li><p><cite>rlm_sre</cite>: Short runs emphasis (<cite>22OV</cite>)</p></li>
+<li><p><cite>rlm_lre</cite>: Long runs emphasis (<cite>W4KF</cite>)</p></li>
+<li><p><cite>rlm_lgre</cite>: Low grey level run emphasis (<cite>V3SW</cite>)</p></li>
+<li><p><cite>rlm_hgre</cite>: High grey level run emphasis (<cite>G3QZ</cite>)</p></li>
+<li><p><cite>rlm_srlge</cite>: Short run low grey level emphasis (<cite>HTZT</cite>)</p></li>
+<li><p><cite>rlm_srhge</cite>: Short run high grey level emphasis (<cite>GD3A</cite>)</p></li>
+<li><p><cite>rlm_lrlge</cite>: Long run low grey level emphasis (<cite>IVPO</cite>)</p></li>
+<li><p><cite>rlm_lrhge</cite>: Long run high grey level emphasis (<cite>3KUM</cite>)</p></li>
+<li><p><cite>rlm_glnu</cite>: Grey level non-uniformity (<cite>R5YN</cite>)</p></li>
+<li><p><cite>rlm_glnu_norm</cite>: Normalised grey level non-uniformity (<cite>OVBL</cite>)</p></li>
+<li><p><cite>rlm_rlnu</cite>: Run length non-uniformity (<cite>W92Y</cite>)</p></li>
+<li><p><cite>rlm_rlnu_norm</cite>: Normalised run length non-uniformity (<cite>IC23</cite>)</p></li>
+<li><p><cite>rlm_r_perc</cite>: Run percentage (<cite>9ZK5</cite>)</p></li>
+<li><p><cite>rlm_gl_var</cite>: Grey level variance (<cite>8CE5</cite>)</p></li>
+<li><p><cite>rlm_rl_var</cite>: Run length variance (<cite>SXLW</cite>)</p></li>
+<li><p><cite>rlm_rl_entr</cite>: Run entropy (<cite>HJ9O</cite>)</p></li>
+</ul>
+<p>GLRLM features are computed with the following parameter:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>feature and matrix aggregation:</dt><dd><ul>
+<li><p><cite>2d_avg</cite>: features computed by averaging feature values of each 2D directional matrix across all directions and
+slices (<cite>BTW3</cite>)</p></li>
+<li><p><cite>2d_s_mrg</cite>: features computed by averaging feature values for each slice after merging 2D directional matrices
+within that slice (<cite>SUJT</cite>)</p></li>
+<li><p><cite>2.5d_d_mrg</cite>: features computed by averaging feature values for each direction after merging 2D directional
+matrices corresponding to that direction (<cite>JJUI</cite>)</p></li>
+<li><p><cite>2.5d_v_mrg</cite>: feature computed from a single matrix after merging all 2D directional matrices (<cite>ZW7Z</cite>)</p></li>
+<li><p><cite>3d_avg</cite>: features computed by averaging feature values of each 3D directional matrix (<cite>ITBB</cite>)</p></li>
+<li><p><cite>3d_v_mrg</cite>: features computed from a single matrix after merging all 3D directional matrices (<cite>IAZD</cite>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="grey-level-size-zone-matrix-features-9sak">
+<h3>Grey level size zone matrix features (<cite>9SAK</cite>)<a class="headerlink" href="#grey-level-size-zone-matrix-features-9sak" title="Link to this heading"></a></h3>
+<p>Features computed from grey level size zone matrices (GLSZM) are:</p>
+<ul class="simple">
+<li><p><cite>szm_sze</cite>: Small zone emphasis (<cite>5QRC</cite>)</p></li>
+<li><p><cite>szm_lze</cite>: Large zone emphasis (<cite>48P8</cite>)</p></li>
+<li><p><cite>szm_lgze</cite>: Low grey level zone emphasis (<cite>XMSY</cite>)</p></li>
+<li><p><cite>szm_hgze</cite>: High grey level zone emphasis (<cite>5GN9</cite>)</p></li>
+<li><p><cite>szm_szlge</cite>: Small zone low grey level emphasis (<cite>5RAI</cite>)</p></li>
+<li><p><cite>szm_szhge</cite>: Small zone high grey level emphasis (<cite>HW1V</cite>)</p></li>
+<li><p><cite>szm_lzlge</cite>: Large zone low grey level emphasis (<cite>YH51</cite>)</p></li>
+<li><p><cite>szm_lzhge</cite>: Large zone high grey level emphasis (<cite>J17V</cite>)</p></li>
+<li><p><cite>szm_glnu</cite>: Grey level non-uniformity (<cite>JNSA</cite>)</p></li>
+<li><p><cite>szm_glnu_norm</cite>: Normalised grey level non-uniformity (<cite>Y1RO</cite>)</p></li>
+<li><p><cite>szm_zsnu</cite>: Zone size non-uniformity (<cite>4JP3</cite>)</p></li>
+<li><p><cite>szm_zsnu_norm</cite>: Normalised zone size non-uniformity (<cite>VB3A</cite>)</p></li>
+<li><p><cite>szm_z_perc</cite>: Zone percentage (<cite>P30P</cite>)</p></li>
+<li><p><cite>szm_gl_var</cite>: Grey level variance (<cite>BYLV</cite>)</p></li>
+<li><p><cite>szm_zs_var</cite>: Zone size variance (<cite>3NSA</cite>)</p></li>
+<li><p><cite>szm_zs_entr</cite>: Zone size entropy (<cite>GU8N</cite>)</p></li>
+</ul>
+<p>GLSZM features are computed with the following parameter:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>feature and matrix aggregation:</dt><dd><ul>
+<li><p><cite>2d</cite>: features computed by averaging feature values of each 2D matrix across all slices (<cite>8QNN</cite>)</p></li>
+<li><p><cite>2.5d</cite>: features computed from a single matrix after merging all 2D matrices (<cite>62GR</cite>)</p></li>
+<li><p><cite>3d</cite>: features computed from 3D matrix (<cite>KOBO</cite>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="grey-level-distance-zone-matrix-features-vmdz">
+<h3>Grey level distance zone matrix features (<cite>VMDZ</cite>)<a class="headerlink" href="#grey-level-distance-zone-matrix-features-vmdz" title="Link to this heading"></a></h3>
+<p>Features computed from grey level distance zone matrices (GLDZM) are:</p>
+<ul class="simple">
+<li><p><cite>dzm_sde</cite>: Small distance emphasis (<cite>0GBI</cite>)</p></li>
+<li><p><cite>dzm_lde</cite>: Large distance emphasis (<cite>MB4I</cite>)</p></li>
+<li><p><cite>dzm_lgze</cite>: Low grey level zone emphasis (<cite>S1RA</cite>)</p></li>
+<li><p><cite>dzm_hgze</cite>: High grey level zone emphasis (<cite>K26C</cite>)</p></li>
+<li><p><cite>dzm_sdlge</cite>: Small distance low grey level emphasis (<cite>RUVG</cite>)</p></li>
+<li><p><cite>dzm_sdhge</cite>: Small distance high grey level emphasis (<cite>DKNJ</cite>)</p></li>
+<li><p><cite>dzm_ldlge</cite>: Large distance low grey level emphasis (<cite>A7WM</cite>)</p></li>
+<li><p><cite>dzm_ldhge</cite>: Large distance high grey level emphasis (<cite>KLTH</cite>)</p></li>
+<li><p><cite>dzm_glnu</cite>: Grey level non-uniformity (<cite>VFT7</cite>)</p></li>
+<li><p><cite>dzm_glnu_norm</cite>: Normalised grey level non-uniformity (<cite>7HP3</cite>)</p></li>
+<li><p><cite>dzm_zdnu</cite>: Zone distance non-uniformity (<cite>V294</cite>)</p></li>
+<li><p><cite>dzm_zdnu_norm</cite>: Normalised zone distance non-uniformity (<cite>IATH</cite>)</p></li>
+<li><p><cite>dzm_z_perc</cite>: Zone percentage (<cite>VIWW</cite>)</p></li>
+<li><p><cite>dzm_gl_var</cite>: Grey level variance (<cite>QK93</cite>)</p></li>
+<li><p><cite>dzm_zd_var</cite>: Zone distance variance (<cite>7WT1</cite>)</p></li>
+<li><p><cite>dzm_zd_entr</cite>: Zone distance entropy (<cite>GBDU</cite>)</p></li>
+</ul>
+<p>GLDZM features are computed with the following parameter:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>feature and matrix aggregation:</dt><dd><ul>
+<li><p><cite>2d</cite>: features computed by averaging feature values of each 2D matrix across all slices (<cite>8QNN</cite>)</p></li>
+<li><p><cite>2.5d</cite>: features computed from a single matrix after merging all 2D matrices (<cite>62GR</cite>)</p></li>
+<li><p><cite>3d</cite>: features computed from 3D matrix (<cite>KOBO</cite>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="neighbourhood-grey-tone-difference-matrix-features-ipet">
+<h3>Neighbourhood grey tone difference matrix features (<cite>IPET</cite>)<a class="headerlink" href="#neighbourhood-grey-tone-difference-matrix-features-ipet" title="Link to this heading"></a></h3>
+<p>Features computed from neighbourhood grey tone difference matrix (NGTDM) features are:</p>
+<ul class="simple">
+<li><p><cite>ngt_coarseness</cite>: Coarseness (<cite>QCDE</cite>)</p></li>
+<li><p><cite>ngt_contrast</cite>: Contrast (<cite>65HE</cite>)</p></li>
+<li><p><cite>ngt_busyness</cite>: Busyness (<cite>NQ30</cite>)</p></li>
+<li><p><cite>ngt_complexity</cite>: Complexity (<cite>HDEZ</cite>)</p></li>
+<li><p><cite>ngt_strength</cite>: Strength (<cite>1X9X</cite>)</p></li>
+</ul>
+<p>NGTDM features are computed with the following parameter:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>feature and matrix aggregation:</dt><dd><ul>
+<li><p><cite>2d</cite>: features computed by averaging feature values of each 2D matrix across all slices (<cite>8QNN</cite>)</p></li>
+<li><p><cite>2.5d</cite>: features computed from a single matrix after merging all 2D matrices (<cite>62GR</cite>)</p></li>
+<li><p><cite>3d</cite>: features computed from 3D matrix (<cite>KOBO</cite>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+<section id="neighbouring-grey-level-dependence-matrix-features-rek0">
+<h3>Neighbouring grey level dependence matrix features (<cite>REK0</cite>)<a class="headerlink" href="#neighbouring-grey-level-dependence-matrix-features-rek0" title="Link to this heading"></a></h3>
+<p>Features computed neighbouring grey level dependence matrix (NGLDM) features are:</p>
+<ul class="simple">
+<li><p><cite>ngl_lde</cite>: Low dependence emphasis (<cite>SODN</cite>)</p></li>
+<li><p><cite>ngl_hde</cite>: High dependence emphasis (<cite>IMOQ</cite>)</p></li>
+<li><p><cite>ngl_lgce</cite>: Low grey level count emphasis (<cite>TL9H</cite>)</p></li>
+<li><p><cite>ngl_hgce</cite>: High grey level count emphasis (<cite>OAE7</cite>)</p></li>
+<li><p><cite>ngl_ldlge</cite>: Low dependence low grey level emphasis (<cite>EQ3F</cite>)</p></li>
+<li><p><cite>ngl_ldhge</cite>: Low dependence high grey level emphasis (<cite>JA6D</cite>)</p></li>
+<li><p><cite>ngl_hdlge</cite>: High dependence low grey level emphasis (<cite>NBZI</cite>)</p></li>
+<li><p><cite>ngl_hdhge</cite>: High dependence high grey level emphasis (<cite>9QMG</cite>)</p></li>
+<li><p><cite>ngl_glnu</cite>: Grey level non-uniformity (<cite>FP8K</cite>)</p></li>
+<li><p><cite>ngl_glnu_norm</cite>: Normalised grey level non-uniformity (<cite>5SPA</cite>)</p></li>
+<li><p><cite>ngl_dcnu</cite>: Dependence count non-uniformity (<cite>Z87G</cite>)</p></li>
+<li><p><cite>ngl_dcnu_norm</cite>: Normalised dependence count non-uniformity (<cite>OKJI</cite>)</p></li>
+<li><p><cite>ngl_dc_perc</cite>: Dependence count percentage (<cite>6XV8</cite>)</p></li>
+<li><p><cite>ngl_gl_var</cite>: Grey level variance (<cite>1PFV</cite>)</p></li>
+<li><p><cite>ngl_dc_var</cite>: Dependence count variance (<cite>DNX2</cite>)</p></li>
+<li><p><cite>ngl_dc_entr</cite>: Dependence count entropy (<cite>FCBV</cite>)</p></li>
+<li><p><cite>ngl_dc_energy</cite>: Dependence count energy (<cite>CAS9</cite>)</p></li>
+</ul>
+<p>NGLDM features are computed with the following parameters:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>distance:</dt><dd><ul>
+<li><p><cite>d#.#</cite>: Chebyshev distance for considering the neighbourhood for determining co-occurrence (<cite>PVMT</cite>). Typically
+<cite>d1.0</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>dependence coarseness:</dt><dd><ul>
+<li><p><cite>a#</cite>: Coarseness parameter for assessing dependence (<cite>VXRR</cite>). Typically <cite>a0</cite>.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt>feature and matrix aggregation:</dt><dd><ul>
+<li><p><cite>2d</cite>: features computed by averaging feature values of each 2D matrix across all slices (<cite>8QNN</cite>)</p></li>
+<li><p><cite>2.5d</cite>: features computed from a single matrix after merging all 2D matrices (<cite>62GR</cite>)</p></li>
+<li><p><cite>3d</cite>: features computed from 3D matrix (<cite>KOBO</cite>)</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</section>
+</section>
+<section id="discretisation-4r0b">
+<h2>Discretisation (<cite>4R0B</cite>)<a class="headerlink" href="#discretisation-4r0b" title="Link to this heading"></a></h2>
+<p>Features from several feature families are computed from discretised images, i.e. where image intensities are binned,
+notably intensity histogram features and features computed from texture matrices. These are indicated as follows:</p>
+<ul class="simple">
+<li><p><cite>fbs</cite>: Fixed bin size (<cite>Q3RU</cite>)</p></li>
+<li><p><cite>fbn</cite>: Fixed bin number (<cite>K15C</cite>)</p></li>
+<li><p><cite>fbsp</cite>: Fixed bin size, pyradiomics variant (not IBSI-compliant)</p></li>
+</ul>
+<p>These are then followed by a parameter specifying the number of bins or bin size:</p>
+<ul class="simple">
+<li><p><cite>w#.#</cite>: Width of each bin for fixed bin size discretisation methods.</p></li>
+<li><p><cite>n#</cite>: Number of bins for the fixed bin number discretisation method.</p></li>
+</ul>
+</section>
+<section id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h2>
+<p>Features can not only be computed from the base image, but also from filtered images (<em>response maps</em>). Features
+computed from filtered images are prefixed by different filter-specific items, which are detailed below.</p>
+<section id="gabor-transformation-q88h">
+<h3>Gabor transformation (<cite>Q88H</cite>)<a class="headerlink" href="#gabor-transformation-q88h" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using Gabor filters are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>gabor</cite>: Indicating Gabor filters.</p></li>
+<li><p><cite>s#.#</cite>:  Scale parameter (<cite>41LN</cite>), in physical units.</p></li>
+<li><p><cite>g#,#</cite>: Ellipticity parameter (<cite>GDR5</cite>).</p></li>
+<li><p><cite>l#,#</cite>: Wavelength parameters (<cite>S4N6</cite>) in physical units.</p></li>
+<li><p><cite>t#,#</cite>: Filter orientation parameter (<cite>FQER</cite>), only shown if Gabor-filtered images are not pooled.</p></li>
+<li><dl class="simple">
+<dt>Filter application:</dt><dd><ul>
+<li><p><cite>2D</cite>: Gabor filter is applied by slice.</p></li>
+<li><p><cite>3D</cite>: Gabor filters are applied along every orthogonal direction.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p><cite>invar</cite>: Pseudo-rotational invariance (<cite>O1AQ</cite>). Absent if not invariant.</p></li>
+</ul>
+</section>
+<section id="gaussian-transformation">
+<h3>Gaussian transformation<a class="headerlink" href="#gaussian-transformation" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using Gaussian filters are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>gaussian</cite>: Indicating Gaussian filters.</p></li>
+<li><p><cite>s#,#</cite>: Scale parameter (<cite>41LN</cite>), in physical units.</p></li>
+</ul>
+<p>Gaussian filters lack reference values in the IBSI standard. They are only computed if <cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="laplacian-of-gaussian-transformation-l6pa">
+<h3>Laplacian-of-Gaussian transformation (<cite>L6PA</cite>)<a class="headerlink" href="#laplacian-of-gaussian-transformation-l6pa" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using Laplacian-of-Gaussian filters are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>log</cite>: Indicating Laplacian-of-Gaussian filters.</p></li>
+<li><p><cite>s#,#</cite>: Scale parameter (<cite>41LN</cite>), in physical units.</p></li>
+</ul>
+</section>
+<section id="laws-kernels-jtxt">
+<h3>Laws kernels (<cite>JTXT</cite>)<a class="headerlink" href="#laws-kernels-jtxt" title="Link to this heading"></a></h3>
+<p>Feature computed from images filtered using Laws kernels are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>laws</cite>: Indicating filter using Laws kernels.</p></li>
+<li><p>Set of filter kernels (<cite>JVAD</cite>).</p></li>
+<li><p><cite>energy</cite>: Indicates that an energy map (<cite>PQSD</cite>) was computed, otherwise absent.</p></li>
+<li><p><cite>delta</cite>: Energy map distance (<cite>I176</cite>). Absent if an energy map was not computed.</p></li>
+<li><p><cite>invar</cite>: Pseudo-rotational invariance (<cite>O1AQ</cite>). Absent if not invariant.</p></li>
+</ul>
+</section>
+<section id="mean-transformation-s60f">
+<h3>Mean transformation (<cite>S60F</cite>)<a class="headerlink" href="#mean-transformation-s60f" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using mean filters are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>mean</cite>: Indicating mean filters.</p></li>
+<li><p><cite>d#</cite>: Filter support (<cite>YNOF</cite>)</p></li>
+</ul>
+</section>
+<section id="non-separable-wavelets-lodd">
+<h3>Non-separable wavelets (<cite>LODD</cite>)<a class="headerlink" href="#non-separable-wavelets-lodd" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using non-separable wavelets are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>wavelet</cite>: Indicating wavelet filters.</p></li>
+<li><p>Non-separable wavelet family (<cite>389V</cite>),</p></li>
+<li><p><cite>level#</cite>: Wavelet decomposition filter (<cite>GCEK</cite>)</p></li>
+</ul>
+</section>
+<section id="separable-wavelets-25bo">
+<h3>Separable wavelets (<cite>25BO</cite>)<a class="headerlink" href="#separable-wavelets-25bo" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using separable wavelets are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>wavelet</cite>: Indicating wavelet filters.</p></li>
+<li><p>Separable wavelet family (<cite>BPXS</cite>).</p></li>
+<li><p>Wavelet filter combination (<cite>UK1F</cite>).</p></li>
+<li><p><cite>level#</cite>: Wavelet decomposition filter (<cite>GCEK</cite>)</p></li>
+<li><p><cite>decimated</cite>: Decimated image decomposition (<cite>PH3R</cite>). Absent if stationary,</p></li>
+<li><p><cite>invar</cite>: Pseudo-rotational invariance (<cite>O1AQ</cite>). Absent if not invariant.</p></li>
+</ul>
+</section>
+<section id="square-transformation">
+<h3>Square transformation<a class="headerlink" href="#square-transformation" title="Link to this heading"></a></h3>
+<p>Features computed from images that underwent square transformation are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>square</cite>: Indicating square transformation.</p></li>
+</ul>
+<p>Square transformations lack reference values in the IBSI standard. They are only computed if <cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="square-root-transformation">
+<h3>Square root transformation<a class="headerlink" href="#square-root-transformation" title="Link to this heading"></a></h3>
+<p>Features computed from images that underwent square root transformation are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>sqrt</cite>: Indicating square root transformation.</p></li>
+</ul>
+<p>Square root transformations lack reference values in the IBSI standard. They are only computed if
+<cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="logarithmic-transformation">
+<h3>Logarithmic transformation<a class="headerlink" href="#logarithmic-transformation" title="Link to this heading"></a></h3>
+<p>Features computed from images that underwent logarithmic transformation are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>lgrthm</cite>: Indicating logarithmic transformation. Note that <cite>log</cite> refers to Laplacian-of-Gaussian filters.</p></li>
+</ul>
+<p>Exponential transformations lack reference values in the IBSI standard. They are only computed if
+<cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="exponential-transformation">
+<h3>Exponential transformation<a class="headerlink" href="#exponential-transformation" title="Link to this heading"></a></h3>
+<p>Features computed from images that underwent exponential transformation are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>exp</cite>: Indicating exponential transformation.</p></li>
+</ul>
+<p>Exponential transformations lack reference values in the IBSI standard. They are only computed if
+<cite>ibsi_compliant=False</cite>.</p>
+</section>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="zwanenburg2016" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Zwanenburg2016</a><span class="fn-bracket">]</span></span>
+<p>Zwanenburg A, Leger S, Vallieres M, Loeck S. Image Biomarker Standardisation Initiative. arXiv
+[cs.CV] 2016. doi:<a class="reference external" href="https://doi.org/10.48550/arXiv.1612.07003">10.48550/arXiv.1612.07003</a></p>
+</div>
+<div class="citation" id="depeursinge2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Depeursinge2020</a><span class="fn-bracket">]</span></span>
+<p>Depeursinge A, Andrearczyk V, Whybra P, van Griethuysen J, Mueller H, Schaer R, et al.
+Standardised convolutional filtering for radiomics. arXiv [eess.IV]. 2020.
+doi:<a class="reference external" href="https://doi.org/10.48550/arXiv.2006.05470">10.48550/arXiv.2006.05470</a></p>
+</div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quantitative_image_analysis.html" class="btn btn-neutral float-left" title="Process image and compute quantitative image features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing.html" class="btn btn-neutral float-right" title="Contributing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

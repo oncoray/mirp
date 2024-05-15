@@ -44,11 +44,14 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../introduction.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installing MIRP</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul>
@@ -59,6 +62,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../deep_learning.html">Preprocess images for deep learning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../contributing.html">Contributing</a></li>
 </ul>
@@ -103,6 +107,7 @@
         <span class="n">write_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">export_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">num_cpus</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -122,8 +127,25 @@
 <span class="sd">        Path to directory where feature tables should be written. If not set, feature tables are returned by this</span>
 <span class="sd">        function. Required if ``write_features=True``.</span>
 
+<span class="sd">    num_cpus: int, optional, default: None</span>
+<span class="sd">        Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be</span>
+<span class="sd">        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used</span>
+<span class="sd">        instead. By default, images are processed sequentially.</span>
+
 <span class="sd">    **kwargs:</span>
-<span class="sd">        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.</span>
+<span class="sd">        Keyword arguments passed for importing images and masks (</span>
+<span class="sd">        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
+
+<span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">        * image interpolation / resampling (</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
+<span class="sd">        * feature computation / extraction (</span>
+<span class="sd">          :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -141,6 +163,7 @@
         <span class="n">write_images</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">export_images</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+        <span class="n">num_cpus</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span></div>
 
@@ -167,7 +190,19 @@
 <span class="sd">        Determines whether features computed from images should be returned by the function.</span>
 
 <span class="sd">    **kwargs:</span>
-<span class="sd">        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.</span>
+<span class="sd">        Keyword arguments passed for importing images and masks (</span>
+<span class="sd">        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
+
+<span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">        * image interpolation / resampling (</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
+<span class="sd">        * feature computation / extraction (</span>
+<span class="sd">          :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -195,6 +230,8 @@
         <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dict&quot;</span><span class="p">,</span>
+        <span class="n">num_cpus</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -214,8 +251,28 @@
 <span class="sd">        Path to directory where processed images and masks should be written. If not set, processed images and masks</span>
 <span class="sd">        are returned by this function. Required if ``write_images=True``.</span>
 
+<span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;dict&quot;</span>
+<span class="sd">        Return format for processed images and masks. ``&quot;dict&quot;`` returns dictionaries of images and masks as numpy</span>
+<span class="sd">        arrays and associated characteristics. ``&quot;native&quot;`` returns images and masks in their internal format.</span>
+<span class="sd">        ``&quot;numpy&quot;`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.</span>
+
+<span class="sd">    num_cpus: int, optional, default: None</span>
+<span class="sd">        Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be</span>
+<span class="sd">        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used</span>
+<span class="sd">        instead. By default, images are processed sequentially.</span>
+
 <span class="sd">    **kwargs:</span>
-<span class="sd">        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.</span>
+<span class="sd">        Keyword arguments passed for importing images and masks (</span>
+<span class="sd">        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
+
+<span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">        * image interpolation / resampling (</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -233,6 +290,8 @@
         <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
         <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
         <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">,</span>
+        <span class="n">num_cpus</span><span class="o">=</span><span class="n">num_cpus</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span></div>
 
@@ -243,6 +302,8 @@
 <span class="k">def</span> <span class="nf">extract_images_generator</span><span class="p">(</span>
         <span class="n">write_images</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">export_images</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dict&quot;</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -258,8 +319,27 @@
 <span class="sd">    export_images: bool, default: False</span>
 <span class="sd">       Determines whether processed images and masks should be returned by the function.</span>
 
+<span class="sd">    write_dir: str, optional</span>
+<span class="sd">        Path to directory where processed images and masks should be written. If not set, processed images and masks</span>
+<span class="sd">        are returned by this function. Required if ``write_images=True``.</span>
+
+<span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;dict&quot;</span>
+<span class="sd">        Return format for processed images and masks. ``&quot;dict&quot;`` returns dictionaries of images and masks as numpy</span>
+<span class="sd">        arrays and associated characteristics. ``&quot;native&quot;`` returns images and masks in their internal format.</span>
+<span class="sd">        ``&quot;numpy&quot;`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.</span>
+
 <span class="sd">    **kwargs:</span>
-<span class="sd">       Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.</span>
+<span class="sd">        Keyword arguments passed for importing images and masks (</span>
+<span class="sd">        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
+
+<span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
+<span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
+<span class="sd">        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
+<span class="sd">        * image interpolation / resampling (</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and</span>
+<span class="sd">          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)</span>
+<span class="sd">        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)</span>
+<span class="sd">        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)</span>
 
 <span class="sd">    Yields</span>
 <span class="sd">    ------</span>
@@ -276,6 +356,8 @@
         <span class="n">export_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
         <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+        <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">)</span></div>
 
@@ -284,6 +366,11 @@
 <div class="viewcode-block" id="extract_features_and_images">
 <a class="viewcode-back" href="../../quantitative_image_analysis.html#mirp.extract_features_and_images.extract_features_and_images">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_features_and_images</span><span class="p">(</span>
+        <span class="n">write_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dict&quot;</span><span class="p">,</span>
         <span class="n">num_cpus</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
@@ -293,6 +380,24 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    write_features: bool, optional</span>
+<span class="sd">        Determines whether features computed from images should be written to the directory indicated by the</span>
+<span class="sd">        ``write_dir`` keyword argument.</span>
+
+<span class="sd">    export_features: bool, optional</span>
+<span class="sd">        Determines whether features computed from images should be returned by the function.</span>
+
+<span class="sd">    write_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be written to the directory indicated by the</span>
+<span class="sd">        ``write_dir`` keyword argument.</span>
+
+<span class="sd">    export_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be returned by the function.</span>
+
+<span class="sd">    write_dir: str, optional</span>
+<span class="sd">        Path to directory where features, processed images and masks should be written. If not set, features, processed images and masks</span>
+<span class="sd">        are returned by this function. Required if ``write_features=True`` or ``write_images=True``.</span>
+
 <span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;dict&quot;</span>
 <span class="sd">        Return format for processed images and masks. ``&quot;dict&quot;`` returns dictionaries of images and masks as numpy</span>
 <span class="sd">        arrays and associated characteristics. ``&quot;native&quot;`` returns images and masks in their internal format.</span>
@@ -305,7 +410,7 @@
 
 <span class="sd">    **kwargs:</span>
 <span class="sd">        Keyword arguments passed for importing images and masks (</span>
-<span class="sd">        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
+<span class="sd">        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
 
 <span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
 <span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
@@ -327,7 +432,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    Keyword arguments can be provided to configure the following:</span>
 
-<span class="sd">    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)</span>
+<span class="sd">    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)</span>
 <span class="sd">    * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
 <span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
 <span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
@@ -348,7 +453,14 @@
         <span class="c1"># Parallel processing.</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">[</span>
             <span class="n">_ray_extractor</span><span class="o">.</span><span class="n">remote</span><span class="p">(</span><span class="n">workflow</span><span class="o">=</span><span class="n">workflow</span><span class="p">,</span> <span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">_base_extract_features_and_images</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">_base_extract_features_and_images</span><span class="p">(</span>
+                <span class="n">write_features</span><span class="o">=</span><span class="n">write_features</span><span class="p">,</span>
+                <span class="n">export_features</span><span class="o">=</span><span class="n">export_features</span><span class="p">,</span>
+                <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+                <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+                <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">kwargs</span>
+            <span class="p">)</span>
         <span class="p">]</span>
 
         <span class="n">results</span> <span class="o">=</span> <span class="n">ray_get</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
@@ -357,7 +469,15 @@
 
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Sequential processing.</span>
-        <span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_base_extract_features_and_images</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+        <span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_base_extract_features_and_images</span><span class="p">(</span>
+            <span class="n">write_features</span><span class="o">=</span><span class="n">write_features</span><span class="p">,</span>
+            <span class="n">export_features</span><span class="o">=</span><span class="n">export_features</span><span class="p">,</span>
+            <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+            <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+            <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">))</span>
+
         <span class="n">results</span> <span class="o">=</span> <span class="p">[</span><span class="n">workflow</span><span class="o">.</span><span class="n">standard_extraction</span><span class="p">(</span><span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">)</span> <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">results</span></div>
@@ -367,6 +487,11 @@
 <div class="viewcode-block" id="extract_features_and_images_generator">
 <a class="viewcode-back" href="../../quantitative_image_analysis.html#mirp.extract_features_and_images.extract_features_and_images_generator">[docs]</a>
 <span class="k">def</span> <span class="nf">extract_features_and_images_generator</span><span class="p">(</span>
+        <span class="n">write_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_features</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">image_export_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dict&quot;</span><span class="p">,</span>
         <span class="o">**</span><span class="n">kwargs</span>
 <span class="p">):</span>
@@ -375,14 +500,32 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;numpy&quot;</span>
+<span class="sd">    write_features: bool, optional</span>
+<span class="sd">        Determines whether features computed from images should be written to the directory indicated by the</span>
+<span class="sd">        ``write_dir`` keyword argument.</span>
+
+<span class="sd">    export_features: bool, optional</span>
+<span class="sd">        Determines whether features computed from images should be returned by the function.</span>
+
+<span class="sd">    write_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be written to the directory indicated by the</span>
+<span class="sd">        ``write_dir`` keyword argument.</span>
+
+<span class="sd">    export_images: bool, optional</span>
+<span class="sd">        Determines whether processed images and masks should be returned by the function.</span>
+
+<span class="sd">    write_dir: str, optional</span>
+<span class="sd">        Path to directory where features, processed images and masks should be written. If not set, features, processed images and masks</span>
+<span class="sd">        are returned by this function. Required if ``write_features=True`` or ``write_images=True``.</span>
+
+<span class="sd">    image_export_format: {&quot;dict&quot;, &quot;native&quot;, &quot;numpy&quot;}, default: &quot;dict&quot;</span>
 <span class="sd">        Return format for processed images and masks. ``&quot;dict&quot;`` returns dictionaries of images and masks as numpy</span>
 <span class="sd">        arrays and associated characteristics. ``&quot;native&quot;`` returns images and masks in their internal format.</span>
 <span class="sd">        ``&quot;numpy&quot;`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.</span>
 
 <span class="sd">    **kwargs:</span>
 <span class="sd">        Keyword arguments passed for importing images and masks (</span>
-<span class="sd">        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
+<span class="sd">        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:</span>
 
 <span class="sd">        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
 <span class="sd">        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
@@ -404,7 +547,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    Keyword arguments can be provided to configure the following:</span>
 
-<span class="sd">    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)</span>
+<span class="sd">    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)</span>
 <span class="sd">    * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)</span>
 <span class="sd">    * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)</span>
 <span class="sd">    * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)</span>
@@ -416,7 +559,14 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_base_extract_features_and_images</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="n">workflows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_base_extract_features_and_images</span><span class="p">(</span>
+        <span class="n">write_features</span><span class="o">=</span><span class="n">write_features</span><span class="p">,</span>
+        <span class="n">export_features</span><span class="o">=</span><span class="n">export_features</span><span class="p">,</span>
+        <span class="n">write_images</span><span class="o">=</span><span class="n">write_images</span><span class="p">,</span>
+        <span class="n">export_images</span><span class="o">=</span><span class="n">export_images</span><span class="p">,</span>
+        <span class="n">write_dir</span><span class="o">=</span><span class="n">write_dir</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">))</span>
     <span class="k">for</span> <span class="n">workflow</span> <span class="ow">in</span> <span class="n">workflows</span><span class="p">:</span>
         <span class="k">yield</span> <span class="n">workflow</span><span class="o">.</span><span class="n">standard_extraction</span><span class="p">(</span><span class="n">image_export_format</span><span class="o">=</span><span class="n">image_export_format</span><span class="p">)</span></div>
 

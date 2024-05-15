@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>General design &mdash; mirp 2.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Tests" href="contributing_tests.html" />
+    <link rel="prev" title="Contributing" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html#References">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">General design</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#future-directions">Future directions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Future directions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#internal-image-representation">Internal image representation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Future directions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#internal-mask-representation">Internal mask representation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Future directions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">General design</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/design.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="general-design">
+<h1>General design<a class="headerlink" href="#general-design" title="Link to this heading"></a></h1>
+<p>The overall design of MIRP is divided into three layers, as shown in the figure below.</p>
+<img alt="_images/mirp_general_design.svg" class="align-left" src="_images/mirp_general_design.svg" /><p>The most visible layer to the user is formed by the functions that are part of the public API. These functions, such as
+<cite>extract_features</cite> and <cite>extract_mask_labels</cite>, form entry points that revolve around specific tasks.</p>
+<p>The second layer is still public, but rarely directly addressed by users. This layer consists of import routines for
+images and masks, as well as settings. The functions from the first, fully public layer, pass arguments to these
+functions. Internally, these functions create objects that are then used in the calling function.</p>
+<ul class="simple">
+<li><p><cite>import_images</cite> creates <cite>ImageFile</cite> objects, or subclasses thereof. These are found in the <cite>mirp._data_import</cite> module.</p></li>
+<li><p><cite>import_masks</cite> creates <cite>MaskFile</cite> objects, or subclasses thereof. Like <cite>ImageFile</cite> (from which <cite>MaskFile</cite> inherits),
+these objects are defined in the <cite>mirp._data_import</cite> module.</p></li>
+<li><p><cite>import_images_and_masks</cite> creates both <cite>ImageFile</cite> and <cite>MaskFile</cite> objects (or subclasses thereof).
+<cite>import_images_and_masks</cite> also associates <cite>ImageFile</cite> objects with their corresponding <cite>MaskFile</cite> objects.</p></li>
+<li><p><cite>import_configuration_settings</cite> creates <cite>SettingsClass</cite> objects, which itself contains several underlying objects for
+configuring various steps in workflows (more on workflows below). These object classes are defined in the
+<cite>mirp.settings</cite> module.</p></li>
+</ul>
+<p>The third layer is fully abstracted from the user. <cite>deep_learning_preprocessing</cite> and <cite>extract_features</cite>
+(and similar functions) all work by first determining which data to load (<cite>import_images_and_masks</cite>) and how to process
+them (<cite>import_configuration_settings</cite>). Based on the data and processing parameters, a workflow object
+(<cite>StandardWorkflow</cite>) is created for each image with its associated masks. Depending on processing parameters
+(e.g. multiple rotations) multiple workflow objects may be created instead. Each workflow defines a single experiment,
+containing the relevant parameters and with a specific imaging dataset to import and process.</p>
+<p>After creating workflow objects, <cite>deep_learning_preprocessing</cite> calls their <cite>deep_learning_conversion</cite> methods, whereas
+<cite>extract_features</cite> and co. call their <cite>standard_extraction</cite> methods. Internally, both first access the
+<cite>standard_image_processing</cite> generator method, which performs image processing according to a pipeline that is compliant
+with the Image Biomarker Standardisation Initiative. This pipeline starts by loading the image and its mask(s) using
+<cite>read_images_and_masks</cite>. It then converts them to their internal representations: GenericImage (and subclasses) and
+BaseMask objects, respectively. <cite>standard_image_processing</cite> then relies on methods of these objects for further
+image and mask processing. Finally, if filter is to be applied to an image, the workflow’s <cite>transform_images</cite> method is
+called.</p>
+<p>After yielding the processed (and transformed) images, the <cite>standard_image_processing</cite> generator stops. The
+<cite>deep_learning_conversion</cite> method then performs some final processing of the yielded images and masks, notably cropping
+to the desired output format, if specified. <cite>extract_images</cite> directly yields the processed images and masks.
+<cite>extract_features</cite> and <cite>extract_features_and_images</cite> do a bit more work. Features are computed from each image and each
+associated mask using the workflow’s <cite>_compute_radiomics_features</cite> method.</p>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+<p>MIRP contains several submodules. The following submodules are part of the public API:</p>
+<ul class="simple">
+<li><p><cite>data_import</cite>: Contains the <cite>import_image</cite>, <cite>import_mask</cite> and <cite>import_image_and_mask</cite> functions that are used for
+organising the available image and mask data.</p></li>
+<li><p><cite>settings</cite>: Contains functions and class definitions related to configuring workflows, e.g. image processing and
+feature computation.</p></li>
+<li><p><cite>utilities</cite>: Contains various utility functions.</p></li>
+</ul>
+<p>The bulk of MIRPs functionality is located in private submodules:</p>
+<ul class="simple">
+<li><p><cite>_data_import</cite>: Contains classes for image and mask files and modalities.</p></li>
+<li><p><cite>_featuresets</cite>: Contains functions and classes involved in computing features.</p></li>
+<li><p><cite>_image_processing</cite>: Contains functions that help process images. Most of these internally use methods associated
+with <cite>GenericImage</cite> (and subclasses) as well as <cite>BaseMask</cite> that are defined in the <cite>_images</cite> and <cite>_masks</cite> submodules
+respectively.</p></li>
+<li><p><cite>_imagefilters</cite>: Contains classes for various convolutional filters and function transformations.</p></li>
+<li><p><cite>_images</cite>: Contains classes that form the internal image representation, divided by image modality.</p></li>
+<li><p><cite>_masks</cite>: Contains classes that form the internal mask representation.</p></li>
+<li><p><cite>_workflows</cite>: Contains workflow-related class definitions, importantly the <cite>StandardWorkflow</cite> class that facilitates
+image and mask processing and feature computation.</p></li>
+</ul>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<p>Feature computation is called from <cite>StandardWorkflow._compute_radiomics_features</cite>. At the moment feature computation is
+mostly functional, and organised by feature family.</p>
+<section id="future-directions">
+<h3>Future directions<a class="headerlink" href="#future-directions" title="Link to this heading"></a></h3>
+<p>Feature computation is currently family-based, i.e. an entire family of features is computed at once. It may be
+preferable to move to a more directive-based approach by treating feature as an object. There are no current direct
+benefits to doing so, and would make feature computation a bit harder to program to avoid doing unnecessary work. For
+example, computation of a grey level co-occurrence matrix feature relies on two prior steps: discretisation and
+computing the GLCM. This would mean that feature objects have to be sorted by discretisation required, and the set of
+parameters.</p>
+<p>A directive-based approach would have at least the following two advantages:</p>
+<ul class="simple">
+<li><p>Features can be exported with metadata, instead of just their values. These metadata could include their IBSI
+identifiers of the features, as well as processing-related metadata that are currently included in the feature name.
+This would make it easier to export structured reports of image data.</p></li>
+<li><p>Features can be defined that are not generated by default, e.g. different intensity-volume histogram features.</p></li>
+</ul>
+</section>
+</section>
+<section id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h2>
+<p>All filters are implemented as objects, defined in the <cite>_imagefilters</cite> submodule. The filters themselves are accessed
+in the <cite>StandardWorkflow.transform_images</cite> method, yielding specific transformed image objects (defined in
+<cite>_images.transformed_images</cite>).</p>
+<section id="id1">
+<h3>Future directions<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<p>We are generally happy with the current implementation of image filters. It is relatively straightforward to implement new
+filters should there be a need.</p>
+</section>
+</section>
+<section id="internal-image-representation">
+<h2>Internal image representation<a class="headerlink" href="#internal-image-representation" title="Link to this heading"></a></h2>
+<p>All internal image representations derive from <cite>_images.generic_image.GenericImage</cite>, which implements general methods.
+These objects are created by the <cite>read_image</cite> and <cite>read_image_and_masks</cite> functions, that process <cite>ImageFile</cite> objects by
+first converting them to the internal format using <cite>ImageFile.to_object</cite> (or override methods of subclasses),
+and then promoting them to the correct image modality-specific subclass using the <cite>GenericImage.promote</cite> method.</p>
+<p>These modality-specific subclasses allow for implementing modality-specific processing steps and parameters. For example,
+bias-field correction is only implemented for <cite>MRImage</cite> objects. As another example, subclasses such as <cite>CTImage</cite>
+override the <cite>get_default_lowest_intensity</cite> method to provide modality-specific default values.</p>
+<p><cite>MaskImage</cite> also derives from  <cite>GenericImage</cite>, and is designed to contain mask information. Its implementation is
+comparatively extensive because it contains or overrides methods that act upon masks specifically.
+One notable aspect of <cite>MaskImage</cite> is that the mask data are typically run-length encoded, and only decoded upon use, to
+provide better memory utilisation.</p>
+<section id="id2">
+<h3>Future directions<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<p>The current implementation of internal image representations is sufficient. It is relatively straightforward to
+implement objects for new image modalities, for which existing classes such as <cite>CTImage</cite> and <cite>PETImage</cite> can be used as
+templates.</p>
+<p>Some objects may receive additional attributes to represent relevant metadata on the value representations, e.g. the
+type of SUV conversion used to create a <cite>PETImage</cite>.</p>
+<p>In addition, all internal image representations are volumetric. They contain a merged stack of image slices. However,
+in rare occasions, the original input data may contain image slices that are not equidistant, i.e. with variable slice
+spacing. It is safer to handle DICOM imaging, prior to resampling (<cite>interpolation</cite> in
+<cite>StandardWorkflow.standard_image_processing</cite>), as a stack of separate slices.</p>
+</section>
+</section>
+<section id="internal-mask-representation">
+<h2>Internal mask representation<a class="headerlink" href="#internal-mask-representation" title="Link to this heading"></a></h2>
+<p>Masks are internally represented by <cite>_masks.base_mask.BaseMask</cite>. <cite>BaseMask</cite> objects are containers for the actual masks,
+which are <cite>_images.mask_image.MaskImage</cite>. In fact, each <cite>BaseMask</cite> contains up to three variants of masks, notably the
+original mask, the morphological mask and the intensity mask. Whereas the original mask and morphological mask are
+currently direct</p>
+<section id="id3">
+<h3>Future directions<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<p>The current implementation of internal image representations is sufficient.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="contributing_tests.html" class="btn btn-neutral float-right" title="Tests" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
