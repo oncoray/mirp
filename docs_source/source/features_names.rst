@@ -143,7 +143,7 @@ definition of these features, whereas MIRP computes these features for specific 
 The `ivh_auc` feature lacks reference values in the IBSI standard. It is only computed if `ibsi_compliant=False`.
 
 Grey level co-occurrence matrix features (`LFYI`)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Features computed from grey level co-occurrence matrices (GLCM) are:
 
@@ -190,7 +190,7 @@ GLCM-features are computed with the following parameters, in sequential order:
     * `3d_v_mrg`: features computed from a single matrix after merging all 3D directional matrices (`IAZD`)
 
 Grey level run length matrix features (`TP0I`)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Features computed from grey level run length matrices (GLRLM) are:
 
