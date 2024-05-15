@@ -8,9 +8,20 @@
 - Naming of branches in the settings `xml` file now matches that of their respective settings classes. `xml` files 
   with the previous branch names still function.
 
+- Errors encountered during file import and handling are now more descriptive.
+- `extract_mask_labels` and `extract_image_parameters` now export extra information from DICOM metadata, e.g. series 
+  UID.
+
 ## Documentation
 
 - Added a new tutorial on applying image filters to images.
+- Added documentation on the feature naming system.
+- Added documentation on the design of MIRP.
+
+## Fixes
+
+- Computing features related to the minimum volume enclosing ellipsoid no longer produces warnings due to the use of 
+  deprecated `numpy.matrix` class.
 
 # Version 2.2.1
 
