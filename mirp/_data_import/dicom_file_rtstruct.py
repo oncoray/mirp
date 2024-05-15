@@ -50,7 +50,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     self.frame_of_reference_uid = get_pydicom_meta_tag(
                         dcm_seq=self.image_metadata,
                         tag=(0x0020, 0x0052),
-                        tag_type="str")
+                        tag_type="str"
+                    )
 
             # For RT structure sets, the FOR UID may be tucked away in the Structure Set ROI Sequence
             if self.frame_of_reference_uid is None and \
@@ -62,7 +63,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                         self.frame_of_reference_uid = get_pydicom_meta_tag(
                             dcm_seq=structure_set_roi_element,
                             tag=(0x3006, 0x0024),
-                            tag_type="str")
+                            tag_type="str"
+                        )
                         break
 
     def check_mask(self, raise_error=True):
@@ -72,7 +74,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if not get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x3006, 0x0020), test_tag=True):
             if raise_error:
                 warnings.warn(
-                    f"The RT-structure set ({self.file_path}) did not contain any ROI sequences.",
+                    f"The current RT-structure set did not contain any ROI sequences. [{self.describe_self()}]",
                 )
             return False
 
@@ -84,13 +86,13 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         if len(roi_name_present) == 0 and raise_error:
             warnings.warn(
-                f"The current RT-structure set ({self.file_path}) does not contain any ROI contours."
+                f"The current RT-structure set does not contain any ROI contours. [{self.describe_self()}]"
             )
             return False
 
         if any(x is None for x in roi_name_present) and raise_error:
             warnings.warn(
-                f"The current RT-structure set ({self.file_path}) lacks one or more ROI names."
+                f"The current RT-structure set lacks one or more ROI names. [{self.describe_self()}]"
             )
             return False
 
@@ -108,7 +110,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if image is None:
             raise TypeError(
                 f"Converting an RT-structure to a segmentation mask requires that the corresponding image is set. "
-                f"No image was provided ({self.file_path})."
+                f"No image was provided. [{self.describe_self()}]"
             )
         else:
             image.complete()
@@ -692,19 +694,19 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
 
         return merged_contour_list
 
-    @staticmethod
-    def _match_slice_position(slice_position, known_position, image_spacing_z):
-        # Match slice position of mask with any known slice position.
-        img_slice_position = slice_position * image_spacing_z
-        position_difference = np.around(np.abs(img_slice_position - known_position), 3)
-
-        # Check if there is any matching position.
-        if np.any(position_difference == 0.0):
-            int_slice_position = int(np.argwhere(position_difference == 0.0))
-        else:
-            int_slice_position = None
-
-        return int_slice_position
+    # @staticmethod
+    # def _match_slice_position(slice_position, known_position, image_spacing_z):
+    #     # Match slice position of mask with any known slice position.
+    #     img_slice_position = slice_position * image_spacing_z
+    #     position_difference = np.around(np.abs(img_slice_position - known_position), 3)
+    #
+    #     # Check if there is any matching position.
+    #     if np.any(position_difference == 0.0):
+    #         int_slice_position = int(np.argwhere(position_difference == 0.0))
+    #     else:
+    #         int_slice_position = None
+    #
+    #     return int_slice_position
 
     def export_roi_labels(self):
 
@@ -722,9 +724,11 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         if len(labels) == 0:
             labels = [None]
 
-        return {
-            "sample_name": [self.sample_name] * n_labels,
-            "dir_path": [self.dir_path] * n_labels,
-            "file_path": [self.file_name] * n_labels,
-            "roi_label": labels
-        }
+        # Get general attributes.
+        parent_attributes = self._get_export_attributes()
+
+        # Add roi labels as attribute.
+        attributes = [("roi_label", labels)]
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes

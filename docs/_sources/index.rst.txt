@@ -15,6 +15,7 @@ MIRP
    :caption: Tutorials
 
    tutorial_compute_radiomics_features_mr
+   tutorial_apply_image_filter
 
 .. toctree::
    :hidden:
@@ -27,6 +28,7 @@ MIRP
    mask_labels
    deep_learning
    quantitative_image_analysis
+   features_names
 
 .. toctree::
    :hidden:
@@ -34,6 +36,8 @@ MIRP
    :caption: Contributing
 
    contributing
+   design
+   contributing_tests
 
 Welcome to MIRP! If you need to quantitatively analyse medical images using a standardised workflow, you have come to
 the right place!

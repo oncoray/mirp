@@ -33,6 +33,24 @@ def setting_def(
     }
 
 
+def find_branch(
+        tree: None | Element,
+        branch_name: str | list[str]
+) -> None | Element:
+    if tree is None:
+        return None
+
+    if isinstance(branch_name, str):
+        branch_name = [branch_name]
+
+    for current_branch_name in branch_name:
+        branch = tree.find(current_branch_name)
+        if isinstance(branch, Element):
+            return branch
+
+    return None
+
+
 def update_settings_from_branch(
         kwargs: dict[str, Any],
         branch: None | Element,

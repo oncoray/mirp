@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial: Applying image filters &mdash; mirp 2.2.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configure image and mask import" href="image_mask_import.html" />
+    <link rel="prev" title="Tutorial: Computing radiomics features" href="tutorial_compute_radiomics_features_mr.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mirp
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installing MIRP</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial: Applying image filters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Download-example-data">Download example data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Finding-mask-labels">Finding mask labels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Visualising-images">Visualising images</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Assessing-image-metadata">Assessing image metadata</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Applying-filters">Applying filters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#Mean-filter">Mean filter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Laplacian-of-Gaussian-filter">Laplacian-of-Gaussian filter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#Nonseparable-Simoncelli-wavelet-filter">Nonseparable Simoncelli wavelet filter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#Computing-features">Computing features</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="image_mask_import.html">Configure image and mask import</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configure the image processing and feature extraction workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image_metadata.html">Extract image metadata</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
+<li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mirp</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Tutorial: Applying image filters</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/tutorial_apply_image_filter.ipynb.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="Tutorial:-Applying-image-filters">
+<h1>Tutorial: Applying image filters<a class="headerlink" href="#Tutorial:-Applying-image-filters" title="Link to this heading"></a></h1>
+<p>This tutorial describes how to apply image filters using MIRP.</p>
+<section id="Download-example-data">
+<h2>Download example data<a class="headerlink" href="#Download-example-data" title="Link to this heading"></a></h2>
+<p>Here we use a publicly available <a class="reference external" href="https://www.cancerdata.org/resource/doi:10.17195/candat.2016.08.1">chest CT dataset</a>, that consist of a single image dataset and a mask.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">ZipFile</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;https://github.com/oncoray/mirp/raw/598293f7afb179b525b49f9b8300a9914fbdebd4/data/tutorial_radiomics_chest_ct_data.zip&quot;</span>
+
+<span class="c1"># Specify location where the data is stored.</span>
+<span class="n">save_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+
+<span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_url_pointer</span><span class="p">:</span>
+    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">zip_url_pointer</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span> <span class="k">as</span> <span class="n">example_data</span><span class="p">:</span>
+        <span class="n">example_data</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<p>This creates a folder with the following structure:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>chest_ct
+ ├─ image
+ |  ├─ DCM_IMG_00000.dcm
+ |  ├─ ...
+ |  └─ DCM_IMG_00059.dcm
+ └─ mask
+    └─ DCM_RS_00060.dcm
+</pre></div>
+</div>
+<p>In this example dataset, the CT image slices are stored in DICOM format in the <code class="docutils literal notranslate"><span class="pre">image</span></code> directory. A segmentation mask is stored in DICOM format in the <code class="docutils literal notranslate"><span class="pre">mask</span></code> subdirectory.</p>
+</section>
+<section id="Finding-mask-labels">
+<h2>Finding mask labels<a class="headerlink" href="#Finding-mask-labels" title="Link to this heading"></a></h2>
+<p>Radiomics features are typically computed from regions of interest, such as a tumour. These regions are delineated by experts or auto-segmentation AI, and stored as segmentation masks. MIRP needs to know which mask label (region of interest) should be used for computing features. A first step is to identify which mask labels exist. This can be done using the <code class="docutils literal notranslate"><span class="pre">extract_mask_labels</span></code> function. In this example, we directly provide a path to the mask file (<code class="docutils literal notranslate"><span class="pre">.../chest_ct/mask/DCM_RS_00060.dcm</span></code>).</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_mask_labels</span>
+
+<span class="n">extract_mask_labels</span><span class="p">(</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample_name</th>
+      <th>modality</th>
+      <th>dir_path</th>
+      <th>file_name</th>
+      <th>series_instance_uid</th>
+      <th>frame_of_reference_uid</th>
+      <th>roi_label</th>
+      <th>mask_index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>rtstruct</td>
+      <td>.\chest_ct\mask</td>
+      <td>DCM_RS_00060.dcm</td>
+      <td>1.3.6.1.4.1.9590.100.1.2.258301620411152643708...</td>
+      <td>1.3.6.1.4.1.9590.100.1.2.437537500115184941017...</td>
+      <td>GTV-1</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>The mask file contains only a single mask, called <code class="docutils literal notranslate"><span class="pre">GTV-1</span></code>.</p>
+</section>
+<section id="Visualising-images">
+<h2>Visualising images<a class="headerlink" href="#Visualising-images" title="Link to this heading"></a></h2>
+<p>It is often useful to inspect images before computing radiomics features. External viewers for DICOM and many other image types exist, but MIRP also has a simple visualisation tool. You can visualise images by exporting them in MIRP internal formats using <code class="docutils literal notranslate"><span class="pre">extract_images</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+
+<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV-1&quot;</span><span class="p">,</span>
+    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+INFO    : MainProcess    2024-04-24 11:26:22,645         Initialising image extraction using ct images for 1.
+</pre></div></div>
+</div>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> will export dictionaries containing image and mask data (as <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>) and associated metadata. That way <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> can be used to read and process images as part of an external workflow. The default output can be visualised using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> and other tools. Here we use <code class="docutils literal notranslate"><span class="pre">image_export_format=&quot;native&quot;</span></code> to export images and masks in the native MIRP format. The output of <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> is a list of images and masks, with one entry per image
+dataset. We only assess a single image here, which means that <code class="docutils literal notranslate"><span class="pre">images</span></code> only has one element. The nested list always consists of the image – and any derivatives, such as filtered images – and masks associated with the image. We can visualise an exported image using its <code class="docutils literal notranslate"><span class="pre">show</span></code> method as follows:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slice_id</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_7_0.png" src="_images/tutorial_apply_image_filter_7_0.png" />
+</div>
+</div>
+<p>Though just an image is shown here, executing this code outside of a Jupyter Notebook will start an interactive plotter that can be scrolled through.</p>
+<p>The CT image appears as expected: a large solid tumour is located in the right lung lobe.</p>
+</section>
+<section id="Assessing-image-metadata">
+<h2>Assessing image metadata<a class="headerlink" href="#Assessing-image-metadata" title="Link to this heading"></a></h2>
+<p>Image metadata are important for understanding the image and how it was acquired and reconstructed. MIRP allows for exporting image metadata from DICOM and other image formats, though for non-DICOM formats metadata will be considerably more limited.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_image_parameters</span>
+
+<span class="n">extract_image_parameters</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample_name</th>
+      <th>modality</th>
+      <th>dir_path</th>
+      <th>spacing_z</th>
+      <th>spacing_y</th>
+      <th>spacing_x</th>
+      <th>file_name</th>
+      <th>series_instance_uid</th>
+      <th>frame_of_reference_uid</th>
+      <th>scanner_type</th>
+      <th>manufacturer</th>
+      <th>image_type</th>
+      <th>image_index</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>ct</td>
+      <td>chest_ct\image</td>
+      <td>3.0</td>
+      <td>0.977</td>
+      <td>0.977</td>
+      <td>DCM_IMG_00059.dcm</td>
+      <td>1.3.6.1.4.1.9590.100.1.2.296658988911737913102...</td>
+      <td>1.3.6.1.4.1.9590.100.1.2.437537500115184941017...</td>
+      <td>CERR</td>
+      <td>CMS, Inc.</td>
+      <td>['ORIGINAL', 'PRIMARY', 'AXIAL']</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Only known metadata are shown. For example, tube voltage was not present in the image metadata in this example.</p>
+<p>The metadata, and our use case, have important implications for the image processing:</p>
+<ul class="simple">
+<li><p>Since we want to apply filters, we should ensure that pixel or voxel spacing should be isotropic.</p></li>
+<li><p>The in-plane resolution is a bit higher than the distance between slices, but can be resampled to isotropic voxels, e.g. 1.0 by 1.0 mm by 1.0 mm. We can apply a filter in 3D.</p></li>
+</ul>
+</section>
+<section id="Applying-filters">
+<h2>Applying filters<a class="headerlink" href="#Applying-filters" title="Link to this heading"></a></h2>
+<p>Image filters can be used to enhance specific characteristics of an image. Here we will apply to three filters: a mean filter, a Laplacian-of-Gaussian filter, and a non-separable wavelet filter. To do so, we specify the following parameters:</p>
+<ol class="arabic simple">
+<li><p>Voxels are resampled to 1.0 by 1.0 by 1.0 mm (<code class="docutils literal notranslate"><span class="pre">new_spacing=1.0</span></code>).</p></li>
+<li><p>Select filters (<code class="docutils literal notranslate"><span class="pre">filter_kernels=[&quot;mean&quot;,</span> <span class="pre">&quot;laplacian_of_gaussian&quot;,</span> <span class="pre">&quot;nonseparable_wavelet&quot;]</span></code>)</p></li>
+<li><p>Set width of the mean filter (in voxels) (<code class="docutils literal notranslate"><span class="pre">mean_filter_kernel_size=5</span></code>).</p></li>
+<li><p>Set width of the Laplacian-of-Gaussian filter (in mm) (<code class="docutils literal notranslate"><span class="pre">laplacian_of_gaussian_sigma=[1.0,</span> <span class="pre">3.0]</span></code>). Here we apply two filters: one with σ = 1.0 mm, and one with σ = 3.0.</p></li>
+<li><p>Use the Simoncelli wavelet (<code class="docutils literal notranslate"><span class="pre">nonseparable_wavelet_families=&quot;simoncelli&quot;</span></code>).</p></li>
+<li><p>Find the first three decompositions of the Simoncelli wavelet (<code class="docutils literal notranslate"><span class="pre">nonseparable_wavelet_decomposition_level=[1,</span> <span class="pre">2,</span> <span class="pre">3]</span></code>).</p></li>
+</ol>
+<p>Many more parameters can be specified, see <a class="reference external" href="https://oncoray.github.io/mirp/configuration.html">Configure the image processing and feature extraction workflow</a>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+
+<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV-1&quot;</span><span class="p">,</span>
+    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">filter_kernels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">],</span>
+    <span class="n">mean_filter_kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
+    <span class="n">nonseparable_wavelet_families</span><span class="o">=</span><span class="s2">&quot;simoncelli&quot;</span><span class="p">,</span>
+    <span class="n">nonseparable_wavelet_decomposition_level</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+INFO    : MainProcess    2024-04-24 11:26:24,360         Initialising image extraction using ct images for 1.
+</pre></div></div>
+</div>
+<p>Now we can first plot the base image. The base image is always part of the export. Because we resampled the image slices from 3.0 to 1.0 mm, the number of slices increased compared to the original image.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_13_0.png" src="_images/tutorial_apply_image_filter_13_0.png" />
+</div>
+</div>
+<p>Derivative (i.e. filtered) images are stored in the same list as the base image (<code class="docutils literal notranslate"><span class="pre">image[0]</span></code>).</p>
+<section id="Mean-filter">
+<h3>Mean filter<a class="headerlink" href="#Mean-filter" title="Link to this heading"></a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_15_0.png" src="_images/tutorial_apply_image_filter_15_0.png" />
+</div>
+</div>
+</section>
+<section id="Laplacian-of-Gaussian-filter">
+<h3>Laplacian-of-Gaussian filter<a class="headerlink" href="#Laplacian-of-Gaussian-filter" title="Link to this heading"></a></h3>
+<p>With σ = 1.0 mm:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_17_0.png" src="_images/tutorial_apply_image_filter_17_0.png" />
+</div>
+</div>
+<p>With σ = 3.0 mm:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_19_0.png" src="_images/tutorial_apply_image_filter_19_0.png" />
+</div>
+</div>
+</section>
+<section id="Nonseparable-Simoncelli-wavelet-filter">
+<h3>Nonseparable Simoncelli wavelet filter<a class="headerlink" href="#Nonseparable-Simoncelli-wavelet-filter" title="Link to this heading"></a></h3>
+<p>First decomposition level:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_21_0.png" src="_images/tutorial_apply_image_filter_21_0.png" />
+</div>
+</div>
+<p>Second decomposition level:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_23_0.png" src="_images/tutorial_apply_image_filter_23_0.png" />
+</div>
+</div>
+<p>Third decomposition level:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/tutorial_apply_image_filter_25_0.png" src="_images/tutorial_apply_image_filter_25_0.png" />
+</div>
+</div>
+</section>
+</section>
+<section id="Computing-features">
+<h2>Computing features<a class="headerlink" href="#Computing-features" title="Link to this heading"></a></h2>
+<p>Features can also be computed from filtered images. By default, only statistical features are computed, in addition to features computed from the base image.</p>
+<p>For the base image, we need to define parameters related to intensity discretisation for computing histogram-based and texture features. Since a CT image consists of Hounsfield units (HU), which are typically calibrated, we will use a <em>fixed bin size</em> algorithm (<code class="docutils literal notranslate"><span class="pre">base_discretisation_method=&quot;fixed_bin_size&quot;</span></code>) with a bin size of 20 HU (<code class="docutils literal notranslate"><span class="pre">base_discretisation_bin_size=20.0</span></code>). This method requires setting the lowest intensity of the first bin. By default, MIRP uses -1000 HU (corresponding to air).
+However, this is not always the most useful setting. Here, we will instead specify a soft-tissue window (<code class="docutils literal notranslate"><span class="pre">resegmentation_intensity_range=[-180.0,</span> <span class="pre">200.0]</span></code>), which sets the lowest intensity of the first bin to -180 HU.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+
+<span class="n">features</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
+    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
+    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
+    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV-1&quot;</span><span class="p">,</span>
+    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span><span class="p">,</span>
+    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">resegmentation_intensity_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">180.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">],</span>
+    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
+    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+    <span class="n">filter_kernels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">],</span>
+    <span class="n">mean_filter_kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
+    <span class="n">nonseparable_wavelet_families</span><span class="o">=</span><span class="s2">&quot;simoncelli&quot;</span><span class="p">,</span>
+    <span class="n">nonseparable_wavelet_decomposition_level</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+INFO    : MainProcess    2024-04-24 11:26:40,460         Initialising feature computation using ct images for 1.
+</pre></div></div>
+</div>
+<p>This results in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that has a row per image and mask. The first several columns contain parameters related to that image and mask, and how these were processed. The features computed from filtered images are appended after the features from the base image. These features can be used for, e.g., machine learning using <a class="reference external" href="https://scikit-learn.org/stable/">scikit-learn</a> or <a class="reference external" href="https://cran.r-project.org/web/packages/familiar/index.html">familiar</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tutorial_compute_radiomics_features_mr.html" class="btn btn-neutral float-left" title="Tutorial: Computing radiomics features" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="image_mask_import.html" class="btn btn-neutral float-right" title="Configure image and mask import" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

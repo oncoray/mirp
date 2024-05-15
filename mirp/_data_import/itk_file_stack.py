@@ -66,7 +66,9 @@ class ImageITKFileStack(ImageFileStack):
         if min_slice_spacing == 0.0:
             warnings.warn(
                 "Images files contain overlapping origins. Attempting to sort image files by numeric name "
-                "patterns.", UserWarning)
+                f"patterns. [{self.describe_self()}]",
+                UserWarning
+            )
             self.sort_image_objects_by_file()
 
             image_object = copy.deepcopy(self.image_file_objects[0])
@@ -103,9 +105,11 @@ class ImageITKFileStack(ImageFileStack):
         if np.any(image_slice_spacing_multiplier > 1.2):
             warnings.warn(
                 f"Inconsistent distance between slice origins of subsequent slices: {np.unique(image_slice_spacing)}. "
-                "Slices cannot be aligned correctly. This is likely due to missing slices. "
-                "MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis.",
-                UserWarning)
+                f"Slices cannot be aligned correctly. This is likely due to missing slices. "
+                f"MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis. "
+                f"[{self.describe_self()}]",
+                UserWarning
+            )
 
             # Update slice positions.
             self.slice_positions = list(np.cumsum(np.insert(np.around(image_slice_spacing, 5), 0, 0.0)))

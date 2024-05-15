@@ -104,7 +104,7 @@ def test_post_processing_settings_configuration(tmp_path):
     assert settings_keyword == settings_direct
 
     kwargs = []
-    branch = tree.getroot().find("config").find("post_processing")
+    branch = tree.getroot().find("config").find("image_processing")
 
     # Test alternative settings.
     for parameter in settings_definitions:
@@ -175,7 +175,7 @@ def test_interpolation_settings_configuration(tmp_path):
     kwargs = []
 
     # Test alternative settings.
-    branch = tree.getroot().find("config").find("img_interpolate")
+    branch = tree.getroot().find("config").find("image_interpolation")
     for parameter in get_image_interpolation_settings():
 
         test_value = parameter["test_value"]
@@ -198,7 +198,7 @@ def test_interpolation_settings_configuration(tmp_path):
         # Prepare kwargs.
         kwargs += [(argument_key, test_value)]
 
-    branch = tree.getroot().find("config").find("roi_interpolate")
+    branch = tree.getroot().find("config").find("mask_interpolation")
     for parameter in get_mask_interpolation_settings():
 
         test_value = parameter["test_value"]
@@ -282,7 +282,7 @@ def test_perturbation_settings_configuration(tmp_path):
     assert settings_keyword == settings_direct
 
     kwargs = []
-    branch = tree.getroot().find("config").find("vol_adapt")
+    branch = tree.getroot().find("config").find("image_perturbation")
 
     # Test alternative settings.
     for parameter in settings_definitions:
@@ -353,7 +353,7 @@ def test_mask_resegmentation_settings_configuration(tmp_path):
     assert settings_keyword == settings_direct
 
     kwargs = []
-    branch = tree.getroot().find("config").find("roi_resegment")
+    branch = tree.getroot().find("config").find("mask_resegmentation")
 
     # Test alternative settings.
     for parameter in settings_definitions:
@@ -424,7 +424,7 @@ def test_feature_extraction_settings_configuration(tmp_path):
     assert settings_keyword == settings_direct
 
     kwargs = []
-    branch = tree.getroot().find("config").find("feature_extr")
+    branch = tree.getroot().find("config").find("feature_computation")
 
     # Test alternative settings.
     for parameter in settings_definitions:
@@ -498,7 +498,7 @@ def test_image_transformation_settings_configuration(tmp_path):
     assert settings_keyword == settings_direct
 
     kwargs = []
-    branch = tree.getroot().find("config").find("img_transform")
+    branch = tree.getroot().find("config").find("image_transformation")
 
     # Test alternative settings.
     for parameter in settings_definitions:

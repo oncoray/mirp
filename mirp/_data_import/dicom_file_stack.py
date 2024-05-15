@@ -133,8 +133,9 @@ class ImageDicomFileStack(ImageFileStack):
         if np.any(image_slice_spacing_multiplier > 1.2):
             warnings.warn(
                 f"Inconsistent distance between slice origins of subsequent slices: {np.unique(image_slice_spacing)}. "
-                "Slices cannot be aligned correctly. This is likely due to missing slices. "
-                "MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis.",
+                f"Slices cannot be aligned correctly. This is likely due to missing slices. "
+                f"MIRP will attempt to interpolate the missing slices and their ROI masks for volumetric analysis. "
+                f"[{self.describe_self()}]",
                 UserWarning)
 
         # Determine image slice spacing.
@@ -148,8 +149,8 @@ class ImageDicomFileStack(ImageFileStack):
 
         if not np.around(image_slice_thickness - image_slice_spacing, decimals=3) == 0.0:
             warnings.warn(
-                f"Mismatch between slice thickness ({image_slice_thickness}) and actual slice spacing"
-                f" ({image_slice_spacing}). The actual slice spacing will be used.",
+                f"Mismatch between slice thickness ({image_slice_thickness}) and actual slice spacing "
+                f"({image_slice_spacing}). The actual slice spacing will be used. [{self.describe_self()}]",
                 UserWarning)
 
         image_pixel_spacing = get_pydicom_meta_tag(

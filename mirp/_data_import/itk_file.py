@@ -51,7 +51,7 @@ class ImageITKFile(ImageFile):
         elif stack_images == "yes":
             if self.image_dimension is None:
                 raise ValueError(
-                    "The image_dimension argument is expected to be set. Call load_metadata to set this attribute."
+                    "DEV: The image_dimension argument is expected to be set. Call load_metadata to set this attribute."
                 )
 
             if len(self.image_dimension) < 3:
@@ -65,7 +65,8 @@ class ImageITKFile(ImageFile):
             return False
         else:
             raise ValueError(
-                f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}."
+                f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}. "
+                f"[{self.describe_self()}]"
             )
 
     def _complete_image_origin(self, force=False):
@@ -136,7 +137,9 @@ class ImageITKFile(ImageFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
+                f"The image file could not be found at the expected location: {self.file_path}. "
+                f"[{self.describe_self()}]"
+            )
 
         # Generate reader.
         reader = itk.ImageIOFactory.CreateImageIO(self.file_path, itk.CommonEnums.IOFileMode_ReadMode)
@@ -151,7 +154,9 @@ class ImageITKFile(ImageFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}")
+                f"The image file could not be found at the expected location: {self.file_path}. "
+                f"[{self.describe_self()}]"
+            )
 
         # Load the image
         itk_img = itk.imread(os.path.join(self.file_path))
@@ -169,7 +174,9 @@ class MaskITKFile(ImageITKFile, MaskFile):
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
-                f"The mask file could not be found at the expected location: {self.file_path}")
+                f"The mask file could not be found at the expected location: {self.file_path}. "
+                f"[{self.describe_self()}]"
+            )
 
         # Load the image
         itk_img = itk.imread(os.path.join(self.file_path))
