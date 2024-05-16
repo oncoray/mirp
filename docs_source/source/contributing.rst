@@ -5,17 +5,25 @@ MIRP is open-source software, hosted on `GitHub <https://github.com/oncoray/mirp
 new DICOM modalities are especially welcome! If you have ideas or code to contribute, please first open an
 `issue <https://github.com/oncoray/mirp/issues>`_ and describe your ideas.
 
-Technical documentation is forthcoming. For now, please keep the following in mind when contributing:
+To help you get an overview of how MIRP is structured internally, we describe the overall design of MIRP here:
+:doc:`../design`
 
-* The main branch of MIRP is protected. You can therefore make a pull request for your contribution to a
-  development branch of the intended future version.
-* If you introduce new functionality, this functionality should be tested as part of the tests in the ``test``
-  directory. After implementation, please ensure that all tests complete without errors by running ``pytest`` from your
-  IDE or console using ``python -m pytest test`` from the mirp main directory. Likewise existing automated tests should
-  pass.
-* Code is styled according to `PEP8 <https://peps.python.org/pep-0008/>`_. Using a linter or IDE with automated linter
-  is recommended.
-* Function, class and method documentation is done using Numpy-flavoured
+Everyone likes high-quality and easy-to-maintain code. Though nobody writes perfect code from scratch, the following can
+help you make useful and enduring contributions to MIRP:
+
+* MIRP styles its code according to `PEP8 <https://peps.python.org/pep-0008/>`_, but allows for longer line lengths
+  (120 characters). Using a linter or IDE with built-in linter may help stick to PEP8.
+* Testing your code enables discovering if it actually works as you intend it to. We wrote a short guide on how tests
+  are performed in MIRP: :doc:`../contributing_tests`.
+* If you are contributing code that should become part of the public API (see :doc:`../design`), you should document how the
+  user can use that functionality. In MIRP, functions, classes and methods are documented using Numpy-flavoured
   `docstrings <https://numpydoc.readthedocs.io/en/latest/format.html>`_.
-  `Long-form documentation <https://oncoray.github.io/mirp/>`_ is partially created from function, class and method
+  `Long-form documentation <https://oncoray.github.io/mirp/>`_ is partially created from such
   documentation, embedded in restructured text files in the ``docs_source`` directory.
+  Providing examples or even a tutorial to highlight new functionality can go a long way to help users use your
+  contribution.
+* Generally, please ensure that you use descriptive variable, function, class, etc., names in your contributions.
+  If your code does something that is not readily apparent from reading it, please comment it.
+  For longer pieces of code, commenting the main steps is also helpful for understanding the code. Your aim should be
+  to write code you will be able to understand a year or more into the future.
+* Because MIRP serves an international audience, your contributions should be in English.

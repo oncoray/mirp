@@ -27,3 +27,9 @@ What steps are required to reproduce the problem? If possible, provide code and 
 - Python version:
 - Operating system:
 - Other package versions (*if relevant*):
+
+*Hint*: the installed version of MIRP can be found using `importlib_metadata`:
+```
+import importlib_metadata
+importlib_metadata.version("mirp")
+```

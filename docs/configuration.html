@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configure the image processing and feature extraction workflow &mdash; mirp 2.2.1 documentation</title>
+  <title>Configure the image processing and feature extraction workflow &mdash; mirp 2.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -53,6 +53,9 @@
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html#References">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul class="current">
@@ -101,10 +104,13 @@
 <li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
 </ul>
 
         </div>
@@ -196,7 +202,7 @@ correction is conducted using the information contained within the mask.</p>
 <li><p><strong>bias_field_correction_n_max_iterations</strong> (<em>int</em><em> or </em><em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em><em>, </em><em>default: 50</em>) – The number of fitting iterations for the N4 bias field algorithm. A single integer, or a list of integers
 with a length equal to the number of fitting levels is expected.</p></li>
 <li><p><strong>bias_field_convergence_threshold</strong> (<em>float</em><em>, </em><em>optional</em><em>, </em><em>default: 0.001</em>) – Convergence threshold for N4 bias field correction algorithm.</p></li>
-<li><p><strong>pet_suv_conversion</strong> (<em>{&quot;body_weight&quot;</em><em>, </em><em>&quot;none&quot;}</em><em>, </em><em>default: &quot;body_weight&quot;</em>) – <p>Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
+<li><p><strong>pet_suv_conversion</strong> (<em>{&quot;body_weight&quot;</em><em>, </em><em>&quot;body_surface_area&quot;</em><em>, </em><em>&quot;lean_body_mass&quot;</em><em>, </em><em>&quot;lean_body_mass_bmi&quot;</em><em>, </em><em>&quot;ideal_body_weight&quot;. &quot;none&quot;}</em><em>, </em><em>default: &quot;body_weight&quot;</em>) – <p>Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
 comparable between patients, these are converted to standardised uptake values. The following are possible:</p>
 <ul>
 <li><p>”body_weight”: activity is normalised by body weight.</p></li>
@@ -407,7 +413,6 @@ and are set to -1000.0 Hounsfield Units and 0.0 SUV, respectively.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mask.</strong> (<em>Sets parameters related to resegmentation</em><em> of </em><em>the segmentation</em>) – </p></li>
 <li><p><strong>resegmentation_intensity_range</strong> (<em>list</em><em> of </em><em>float</em><em>, </em><em>optional</em>) – Intensity threshold for threshold-based re-segmentation (“threshold” and “range”). If set, requires two
 values for lower and upper range respectively. The upper range value can also be np.nan for half-open ranges.</p></li>
 <li><p><strong>resegmentation_sigma</strong> (<em>float</em><em>, </em><em>optional</em>) – Number of standard deviations for outlier-based intensity re-segmentation (“sigma” and “outlier”).</p></li>

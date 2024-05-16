@@ -11,7 +11,7 @@ from mirp.settings.perturbation_parameters import get_perturbation_settings
 from mirp.settings.image_processing_parameters import get_post_processing_settings
 from mirp.settings.interpolation_parameters import get_image_interpolation_settings, get_mask_interpolation_settings
 from mirp.settings.general_parameters import get_general_settings
-from mirp.settings.utilities import update_settings_from_branch
+from mirp.settings.utilities import update_settings_from_branch, find_branch
 
 
 def create_settings_object(
@@ -24,14 +24,14 @@ def create_settings_object(
         # General settings
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("general"),
+            branch=find_branch(xml_tree, "general"),
             settings=get_general_settings()
         )
 
         # Post-processing settings
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("post_processing"),
+            branch=find_branch(xml_tree, ["post_processing", "image_processing"]),
             settings=get_post_processing_settings()
         )
 
@@ -44,28 +44,28 @@ def create_settings_object(
 
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("img_interpolate"),
+            branch=find_branch(xml_tree, ["img_interpolate", "image_interpolation"]),
             settings=get_image_interpolation_settings()
         )
 
         # Mask interpolation settings
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("roi_interpolate"),
+            branch=find_branch(xml_tree, ["roi_interpolate", "mask_interpolation"]),
             settings=get_mask_interpolation_settings()
         )
 
         # Perturbation settings
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("vol_adapt"),
+            branch=find_branch(xml_tree, ["vol_adapt", "image_perturbation"]),
             settings=get_perturbation_settings()
         )
 
         # Mask resegmentation settings
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("roi_resegment"),
+            branch=find_branch(xml_tree, ["roi_resegment", "mask_resegmentation"]),
             settings=get_mask_resegmentation_settings()
         )
 
@@ -88,7 +88,7 @@ def create_settings_object(
 
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("feature_extr"),
+            branch=find_branch(xml_tree, ["feature_extr", "feature_computation"]),
             settings=get_feature_extraction_settings()
         )
 
@@ -109,7 +109,7 @@ def create_settings_object(
 
         update_settings_from_branch(
             kwargs=kwargs,
-            branch=xml_tree.find("img_transform"),
+            branch=find_branch(xml_tree, ["img_transform", "image_transformation"]),
             settings=get_image_transformation_settings()
         )
 

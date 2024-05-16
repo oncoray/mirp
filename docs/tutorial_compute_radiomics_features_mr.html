@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial: Computing radiomics features &mdash; mirp 2.2.1 documentation</title>
+  <title>Tutorial: Computing radiomics features &mdash; mirp 2.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
       <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
@@ -16,7 +16,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -25,7 +25,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Configure image and mask import" href="image_mask_import.html" />
+    <link rel="next" title="Tutorial: Applying image filters" href="tutorial_apply_image_filter.html" />
     <link rel="prev" title="Installing MIRP" href="installation.html" /> 
 </head>
 
@@ -61,8 +61,10 @@
 <li class="toctree-l2"><a class="reference internal" href="#Visualising-images">Visualising images</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Assessing-image-metadata">Assessing image metadata</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Computing-features">Computing features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#References">References</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul>
@@ -72,10 +74,13 @@
 <li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
 </ul>
 
         </div>
@@ -107,7 +112,7 @@
 <p>This tutorial describes step-by-step how you can compute radiomics features from medical imaging using MIRP.</p>
 <section id="Download-example-data">
 <h2>Download example data<a class="headerlink" href="#Download-example-data" title="Link to this heading"></a></h2>
-<p>We have prepared an (anonymised) example dataset of T1-weighted images of patients with soft-tissue sarcoma. This is a zip-file containing data for three patients.</p>
+<p>We have prepared an (anonymised) example dataset of T1-weighted images of patients with soft-tissue sarcoma, that is a subset of the public <a class="reference external" href="https://www.cancerimagingarchive.net/collection/soft-tissue-sarcoma/">Soft-tissue Sarcoma dataset</a> [1]. The example dataset is a zip-file containing imaging data for three patients.</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
@@ -186,8 +191,14 @@ relative to the patient directory (<code class="docutils literal notranslate"><s
     <tr style="text-align: right;">
       <th></th>
       <th>sample_name</th>
+      <th>modality</th>
       <th>dir_path</th>
-      <th>file_path</th>
+      <th>file_name</th>
+      <th>study_description</th>
+      <th>series_description</th>
+      <th>acquisition_time</th>
+      <th>series_instance_uid</th>
+      <th>frame_of_reference_uid</th>
       <th>roi_label</th>
       <th>mask_index</th>
     </tr>
@@ -196,48 +207,84 @@ relative to the patient directory (<code class="docutils literal notranslate"><s
     <tr>
       <th>0</th>
       <td>STS_001</td>
+      <td>rtstruct</td>
       <td>sts_images\STS_001\mr_t1\mask</td>
       <td>1-1.dcm</td>
+      <td>^THIGH</td>
+      <td>RTstruct_T1</td>
+      <td>2009-10-17 17:16:35.000915</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.169505605471...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.178691248814...</td>
       <td>GTV_Mass</td>
       <td>0</td>
     </tr>
     <tr>
       <th>1</th>
       <td>STS_001</td>
+      <td>rtstruct</td>
       <td>sts_images\STS_001\mr_t1\mask</td>
       <td>1-1.dcm</td>
+      <td>^THIGH</td>
+      <td>RTstruct_T1</td>
+      <td>2009-10-17 17:16:35.000915</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.169505605471...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.178691248814...</td>
       <td>GTV_Edema</td>
       <td>0</td>
     </tr>
     <tr>
       <th>0</th>
       <td>STS_002</td>
+      <td>rtstruct</td>
       <td>sts_images\STS_002\mr_t1\mask</td>
       <td>1-1.dcm</td>
+      <td>L-SPINE</td>
+      <td>RTstruct_T1</td>
+      <td>2009-10-18 11:56:49.000312</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.337975716601...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.188414386222...</td>
       <td>GTV_Mass</td>
       <td>1</td>
     </tr>
     <tr>
       <th>1</th>
       <td>STS_002</td>
+      <td>rtstruct</td>
       <td>sts_images\STS_002\mr_t1\mask</td>
       <td>1-1.dcm</td>
+      <td>L-SPINE</td>
+      <td>RTstruct_T1</td>
+      <td>2009-10-18 11:56:49.000312</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.337975716601...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.188414386222...</td>
       <td>GTV_Edema</td>
       <td>1</td>
     </tr>
     <tr>
       <th>0</th>
       <td>STS_003</td>
+      <td>rtstruct</td>
       <td>sts_images\STS_003\mr_t1\mask</td>
       <td>1-1.dcm</td>
+      <td>MRI PELVIS C- C</td>
+      <td>RTstruct_T1</td>
+      <td>2009-10-18 12:10:34.000164</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.200331945037...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.179145981196...</td>
       <td>GTV_Mass</td>
       <td>2</td>
     </tr>
     <tr>
       <th>1</th>
       <td>STS_003</td>
+      <td>rtstruct</td>
       <td>sts_images\STS_003\mr_t1\mask</td>
       <td>1-1.dcm</td>
+      <td>MRI PELVIS C- C</td>
+      <td>RTstruct_T1</td>
+      <td>2009-10-18 12:10:34.000164</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.200331945037...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.179145981196...</td>
       <td>GTV_Edema</td>
       <td>2</td>
     </tr>
@@ -270,11 +317,11 @@ relative to the patient directory (<code class="docutils literal notranslate"><s
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-09 11:07:28,625         Initialising image extraction using mr images for STS_003.
+INFO    : MainProcess    2024-04-24 11:24:55,664         Initialising image extraction using mr images for STS_003.
 </pre></div></div>
 </div>
-<p>By default, <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> will export dictionaries containing image and mask data (as <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>) and associated metadata. These data can be visualised using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> and other tools. Using <code class="docutils literal notranslate"><span class="pre">image_export_format=&quot;native&quot;</span></code> exports images and masks in the native MIRP format. The output of <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> is a list of images and masks, with one entry per image dataset. We only assess a single image here, which means that <code class="docutils literal notranslate"><span class="pre">images</span></code> only has one element. The nested list always
-consists of the image – and any derivatives, such as filtered images – and masks associated with the image. We can visualise an exported image using its <code class="docutils literal notranslate"><span class="pre">show</span></code> method as follows:</p>
+<p>By default, <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> will export dictionaries containing image and mask data (as <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>) and associated metadata. That way <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> can be used to read and process images as part of an external workflow. The default output can be visualised using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> and other tools. Here we use <code class="docutils literal notranslate"><span class="pre">image_export_format=&quot;native&quot;</span></code> to export images and masks in the native MIRP format. The output of <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> is a list of images and masks, with one entry per image
+dataset. We only assess a single image here, which means that <code class="docutils literal notranslate"><span class="pre">images</span></code> only has one element. The nested list always consists of the image – and any derivatives, such as filtered images – and masks associated with the image. We can visualise an exported image using its <code class="docutils literal notranslate"><span class="pre">show</span></code> method as follows:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
@@ -335,9 +382,16 @@ consists of the image – and any derivatives, such as filtered images – and m
       <th></th>
       <th>sample_name</th>
       <th>modality</th>
+      <th>dir_path</th>
       <th>spacing_z</th>
       <th>spacing_y</th>
       <th>spacing_x</th>
+      <th>file_name</th>
+      <th>study_description</th>
+      <th>series_description</th>
+      <th>acquisition_time</th>
+      <th>series_instance_uid</th>
+      <th>frame_of_reference_uid</th>
       <th>scanner_type</th>
       <th>manufacturer</th>
       <th>image_type</th>
@@ -351,9 +405,16 @@ consists of the image – and any derivatives, such as filtered images – and m
       <th>0</th>
       <td>STS_001</td>
       <td>mr</td>
+      <td>sts_images\STS_001\mr_t1\image</td>
       <td>5.2</td>
       <td>0.390625</td>
       <td>0.390625</td>
+      <td>1-40.dcm</td>
+      <td>^THIGH</td>
+      <td>AXIAL SE T1 - RESEARCH</td>
+      <td>2000-09-03 11:10:33.000876</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.236909650266...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.178691248814...</td>
       <td>Avanto</td>
       <td>SIEMENS</td>
       <td>['ORIGINAL', 'PRIMARY', 'M', 'ND', 'NORM']</td>
@@ -365,9 +426,16 @@ consists of the image – and any derivatives, such as filtered images – and m
       <th>1</th>
       <td>STS_002</td>
       <td>mr</td>
+      <td>sts_images\STS_002\mr_t1\image</td>
       <td>7.0</td>
       <td>0.892857</td>
       <td>0.892857</td>
+      <td>1-01.dcm</td>
+      <td>L-SPINE</td>
+      <td>AXT1</td>
+      <td>2006-01-03 14:19:40.000530</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.103003228939...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.188414386222...</td>
       <td>Intera</td>
       <td>Philips Medical Systems</td>
       <td>['ORIGINAL', 'PRIMARY', 'M_SE', 'M', 'SE']</td>
@@ -379,9 +447,16 @@ consists of the image – and any derivatives, such as filtered images – and m
       <th>2</th>
       <td>STS_003</td>
       <td>mr</td>
+      <td>sts_images\STS_003\mr_t1\image</td>
       <td>7.0</td>
       <td>0.781300</td>
       <td>0.781300</td>
+      <td>1-36.dcm</td>
+      <td>MRI PELVIS C- C</td>
+      <td>AX T1</td>
+      <td>2005-03-30 11:28:05.000000</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.900154069973...</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.179145981196...</td>
       <td>Signa HDxt</td>
       <td>GE MEDICAL SYSTEMS</td>
       <td>['ORIGINAL', 'PRIMARY', 'OTHER']</td>
@@ -405,11 +480,12 @@ consists of the image – and any derivatives, such as filtered images – and m
 <h2>Computing features<a class="headerlink" href="#Computing-features" title="Link to this heading"></a></h2>
 <p>The presented metadata suggest that image processing is required to make the MR images more comparable between patients. We will define three image processing steps:</p>
 <ol class="arabic simple">
-<li><p>Image processing and feature computation is performed by slice (<code class="docutils literal notranslate"><span class="pre">by_slice=True</span></code>) due to large distances between image slices.</p></li>
+<li><p>Image processing and feature computation are performed by slice (<code class="docutils literal notranslate"><span class="pre">by_slice=True</span></code>) due to large distances between image slices.</p></li>
 <li><p>In-plane resolution is resampled to 1.0 by 1.0 mm (<code class="docutils literal notranslate"><span class="pre">new_spacing=1.0</span></code>).</p></li>
 <li><p>Intensities are normalised, here using <em>z-normalisation</em> (<code class="docutils literal notranslate"><span class="pre">intensity_normalisation=&quot;standardisation&quot;</span></code>).</p></li>
 </ol>
 <p>In addition, we need to define parameters related to intensity discretisation for computing histogram-based and texture features. Since intensities were normalised using <em>z-normalisation</em>, we will use a <em>fixed bin number</em> algorithm (<code class="docutils literal notranslate"><span class="pre">base_discretisation_method=&quot;fixed_bin_number&quot;</span></code>) with 16 bins (<code class="docutils literal notranslate"><span class="pre">base_discretisation_n_bins=16</span></code>).</p>
+<p>Many more parameters can be specified, see <a class="reference external" href="https://oncoray.github.io/mirp/configuration.html">Configure the image processing and feature extraction workflow</a>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
@@ -439,9 +515,9 @@ consists of the image – and any derivatives, such as filtered images – and m
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-09 11:07:31,379         Initialising feature computation using mr images for STS_001.
-INFO    : MainProcess    2024-04-09 11:07:45,791         Initialising feature computation using mr images for STS_002.
-INFO    : MainProcess    2024-04-09 11:07:55,411         Initialising feature computation using mr images for STS_003.
+INFO    : MainProcess    2024-04-24 11:24:57,113         Initialising feature computation using mr images for STS_001.
+INFO    : MainProcess    2024-04-24 11:25:10,524         Initialising feature computation using mr images for STS_002.
+INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature computation using mr images for STS_003.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -568,7 +644,13 @@ INFO    : MainProcess    2024-04-09 11:07:55,411         Initialising feature co
 <p>3 rows × 192 columns</p>
 </div></div>
 </div>
-<p>This results in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that has a row per image and mask. The first several columns contain parameters related to that image and mask, and how these were processed. After these, feature values are shown. These can be used for, e.g., machine learning using <code class="docutils literal notranslate"><span class="pre">`scikit-learn</span></code> &lt;<a class="reference external" href="https://scikit-learn.org/stable/">https://scikit-learn.org/stable/</a>&gt;`__ or <code class="docutils literal notranslate"><span class="pre">`familiar</span></code> &lt;<a class="reference external" href="https://cran.r-project.org/web/packages/familiar/index.html">https://cran.r-project.org/web/packages/familiar/index.html</a>&gt;`__.</p>
+<p>This results in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that has a row per image and mask. The first several columns contain parameters related to that image and mask, and how these were processed. After these, feature values are shown. These can be used for, e.g., machine learning using <a class="reference external" href="https://scikit-learn.org/stable/">scikit-learn</a> or <a class="reference external" href="https://cran.r-project.org/web/packages/familiar/index.html">familiar</a>.</p>
+</section>
+<section id="References">
+<h2>References<a class="headerlink" href="#References" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p>Vallières, Martin, Freeman, Carolyn R., Skamene, Sonia R., &amp; El Naqa, Issam. (2015). A radiomics model from joint FDG-PET and MRI texture features for the prediction of lung metastases in soft-tissue sarcomas of the extremities (Soft-tissue-Sarcoma) [Dataset]. The Cancer Imaging Archive. <a class="reference external" href="http://doi.org/10.7937/K9/TCIA.2015.7GO2GSKS">http://doi.org/10.7937/K9/TCIA.2015.7GO2GSKS</a></p></li>
+</ol>
 </section>
 </section>
 
@@ -577,7 +659,7 @@ INFO    : MainProcess    2024-04-09 11:07:55,411         Initialising feature co
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installing MIRP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="image_mask_import.html" class="btn btn-neutral float-right" title="Configure image and mask import" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="tutorial_apply_image_filter.html" class="btn btn-neutral float-right" title="Tutorial: Applying image filters" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

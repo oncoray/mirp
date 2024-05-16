@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Introduction &mdash; mirp 2.2.1 documentation</title>
+  <title>Introduction &mdash; mirp 2.2.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
@@ -15,7 +15,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=16656018"></script>
+        <script src="_static/documentation_options.js?v=219dea72"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -48,8 +48,9 @@
               <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#what-is-mirp">What is MIRP?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#what-is-radiomics">What is radiomics?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-mirp">What is MIRP?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#why-mirp">Why MIRP?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#contact">Contact</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
@@ -59,6 +60,9 @@
 <p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html">Tutorial: Computing radiomics features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_compute_radiomics_features_mr.html#References">References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html">Tutorial: Applying image filters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial_apply_image_filter.html#Applying-filters">Applying filters</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Deep Dive</span></p>
 <ul>
@@ -68,10 +72,13 @@
 <li class="toctree-l1"><a class="reference internal" href="mask_labels.html">Extract mask labels</a></li>
 <li class="toctree-l1"><a class="reference internal" href="deep_learning.html">Preprocess images for deep learning</a></li>
 <li class="toctree-l1"><a class="reference internal" href="quantitative_image_analysis.html">Process image and compute quantitative image features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="features_names.html">Feature name references</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Contributing</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
+<li class="toctree-l1"><a class="reference internal" href="design.html">General design</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing_tests.html">Tests</a></li>
 </ul>
 
         </div>
@@ -100,13 +107,6 @@
              
   <section id="introduction">
 <h1>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h1>
-<section id="what-is-mirp">
-<h2>What is MIRP?<a class="headerlink" href="#what-is-mirp" title="Link to this heading"></a></h2>
-<p>Medical Image Radiomics Processor (MIRP) is a python package for medical image analysis that is compliant with the
-reference standards of the Image Biomarker Standardisation Initiative (IBSI) <a class="reference internal" href="#zwanenburg2020" id="id1"><span>[Zwanenburg2020]</span></a>,
-<a class="reference internal" href="#whybra2024" id="id2"><span>[Whybra2024]</span></a>. MIRP focuses on radiomics applications  and supports computation of features for conventional
-radiomics and image processing for deep-learning applications.</p>
-</section>
 <section id="what-is-radiomics">
 <h2>What is radiomics?<a class="headerlink" href="#what-is-radiomics" title="Link to this heading"></a></h2>
 <p>Radiomics is the process of using medical images for, e.g., diagnosing disease or predicting how patients respond to
@@ -115,7 +115,22 @@ There are two major radiomics branches, defined by what algorithms are used to p
 (historically) of radiomics is characterised by the use of quantitative (handcrafted) features that are then used by
 machine learning algorithms for tabular data. The second, more recent, branch uses deep learning algorithms to
 directly learn from images themselves.</p>
-<p>For more details, see reviews by Lambin et al. <a class="reference internal" href="#lambin2017" id="id3"><span>[Lambin2017]</span></a> and van Timmeren et al. <a class="reference internal" href="#vantimmeren2020" id="id4"><span>[vanTimmeren2020]</span></a>.</p>
+<p>For more details, see reviews by Lambin et al. <a class="reference internal" href="#lambin2017" id="id1"><span>[Lambin2017]</span></a> and van Timmeren et al. <a class="reference internal" href="#vantimmeren2020" id="id2"><span>[vanTimmeren2020]</span></a>.</p>
+</section>
+<section id="what-is-mirp">
+<h2>What is MIRP?<a class="headerlink" href="#what-is-mirp" title="Link to this heading"></a></h2>
+<p>Medical Image Radiomics Processor (MIRP) is a python package for medical image analysis that is compliant with the
+reference standards of the Image Biomarker Standardisation Initiative (IBSI) <a class="reference internal" href="quantitative_image_analysis.html#zwanenburg2020" id="id3"><span>[Zwanenburg2020]</span></a>,
+<a class="reference internal" href="quantitative_image_analysis.html#whybra2024" id="id4"><span>[Whybra2024]</span></a>. MIRP focuses on radiomics applications and supports computation of features for conventional
+radiomics and image processing for deep-learning applications.</p>
+</section>
+<section id="why-mirp">
+<h2>Why MIRP?<a class="headerlink" href="#why-mirp" title="Link to this heading"></a></h2>
+<p>In radiomics, image processing and feature computation are part of a larger workflow that also includes machine
+learning. Python has some of the most commonly used machine learning packages, such <em>scikit-learn</em> and <em>pytorch</em>.
+However, there was no Python package for image processing and feature computation that was fully compliant with the
+IBSI reference standards – i.e. a package whose output is reproducible by other IBSI-compliant software. MIRP fills
+this gap.</p>
 </section>
 <section id="contact">
 <h2>Contact<a class="headerlink" href="#contact" title="Link to this heading"></a></h2>
@@ -125,27 +140,29 @@ directly learn from images themselves.</p>
 <h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
 <div role="list" class="citation-list">
 <div class="citation" id="lambin2017" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Lambin2017</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Lambin2017</a><span class="fn-bracket">]</span></span>
 <p>Lambin P, Leijenaar RTH, Deist TM, Peerlings J, de Jong EEC, van Timmeren J, et al. Radiomics: the
-bridge between medical imaging and personalized medicine. Nat Rev Clin Oncol. 2017;14: 749–762.
-doi:10.1038/nrclinonc.2017.141</p>
+bridge between medical imaging and personalized medicine. Nat Rev Clin Oncol. 2017;14: 749-762.
+doi:<a class="reference external" href="https://doi.org/10.1038/nrclinonc.2017.141">10.1038/nrclinonc.2017.141</a></p>
 </div>
 <div class="citation" id="vantimmeren2020" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">vanTimmeren2020</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">vanTimmeren2020</a><span class="fn-bracket">]</span></span>
 <p>van Timmeren JE, Cester D, Tanadini-Lang S, Alkadhi H, Baessler B. Radiomics in medical
-imaging-“how-to” guide and critical reflection. Insights Imaging. 2020;11: 91. doi:10.1186/s13244-020-00887-2</p>
+imaging-“how-to” guide and critical reflection. Insights Imaging. 2020;11: 91.
+doi:<a class="reference external" href="https://doi.org/10.1186/s13244-020-00887-2">10.1186/s13244-020-00887-2</a></p>
 </div>
 <div class="citation" id="zwanenburg2020" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Zwanenburg2020</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Zwanenburg2020</a><span class="fn-bracket">]</span></span>
 <p>Zwanenburg A, Vallieres M, Abdalah MA, Aerts HJWL, Andrearczyk V, Apte A, et al. The Image
 Biomarker Standardization Initiative: Standardized Quantitative Radiomics for High-Throughput Image-based
-Phenotyping. Radiology. 2020;295: 328-338. doi:10.1148/radiol.2020191145</p>
+Phenotyping. Radiology. 2020;295: 328-338.
+doi:<a class="reference external" href="https://doi.org/10.1148/radiol.2020191145">10.1148/radiol.2020191145</a></p>
 </div>
 <div class="citation" id="whybra2024" role="doc-biblioentry">
-<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Whybra2024</a><span class="fn-bracket">]</span></span>
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id4">Whybra2024</a><span class="fn-bracket">]</span></span>
 <p>Whybra P, Zwanenburg A, Andrearczyk V, Schaer R, Apte AP, Ayotte A, et al. The Image Biomarker
 Standardization Initiative: Standardized Convolutional Filters for Reproducible Radiomics and Enhanced Clinical
-Insights. Radiology. 2024;310: e231319. doi:10.1148/radiol.231319</p>
+Insights. Radiology. 2024;310: e231319. doi:<a class="reference external" href="https://doi.org/10.1148/radiol.231319">10.1148/radiol.231319</a></p>
 </div>
 </div>
 </section>

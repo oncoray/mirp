@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mirp"
-version = "2.2.1"
+version = "2.2.2"
 description = "A package for standardised processing of medical imaging and computation of quantitative features."
 authors = [
     {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
@@ -48,6 +48,9 @@ addopts = ["--strict-markers"]
 markers = [
     "ci: marks tests for continuous integration"
 ]
+# filterwarnings = [
+#    "error:the matrix subclass"
+# ]
 
 [tool.setuptools.packages.find]
 where = ["."]

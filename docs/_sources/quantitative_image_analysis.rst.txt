@@ -18,6 +18,8 @@ images) and only processing images (without computing features):
 * :func:`~mirp.extract_features_and_images.extract_images`: conventional function that only processes images.
 * :func:`~mirp.extract_features_and_images.extract_images_generator`: generator that yields processed images.
 
+The features computed by MIRP are listed in :doc:`../features_names`.
+
 Examples
 --------
 
@@ -204,16 +206,19 @@ API documentation
 
 References
 ----------
-.. [Depeursinge2020] Depeursinge A, Andrearczyk V, Whybra P, van Griethuysen J, Mueller H, Schaer R, et al.
-  Standardised convolutional filtering for radiomics. arXiv [eess.IV]. 2020. doi:10.48550/arXiv.2006.05470
-
-.. [Whybra2024] Whybra P, Zwanenburg A, Andrearczyk V, Schaer R, Apte AP, Ayotte A, et al. The Image Biomarker
-  Standardization Initiative: Standardized Convolutional Filters for Reproducible Radiomics and Enhanced Clinical
-  Insights. Radiology. 2024;310: e231319. doi:10.1148/radiol.231319
 
 .. [Zwanenburg2016] Zwanenburg A, Leger S, Vallieres M, Loeck S. Image Biomarker Standardisation Initiative. arXiv
-  [cs.CV] 2016. doi:10.48550/arXiv.1612.070035
+  [cs.CV] 2016. doi:`10.48550/arXiv.1612.07003 <https://doi.org/10.48550/arXiv.1612.07003>`_
 
 .. [Zwanenburg2020] Zwanenburg A, Vallieres M, Abdalah MA, Aerts HJWL, Andrearczyk V, Apte A, et al. The Image
   Biomarker Standardization Initiative: Standardized Quantitative Radiomics for High-Throughput Image-based
-  Phenotyping. Radiology. 2020;295: 328-338. doi:10.1148/radiol.2020191145
+  Phenotyping. Radiology. 2020;295: 328-338.
+  doi:`10.1148/radiol.2020191145 <https://doi.org/10.1148/radiol.2020191145>`_
+
+.. [Depeursinge2020] Depeursinge A, Andrearczyk V, Whybra P, van Griethuysen J, Mueller H, Schaer R, et al.
+  Standardised convolutional filtering for radiomics. arXiv [eess.IV]. 2020.
+  doi:`10.48550/arXiv.2006.05470 <https://doi.org/10.48550/arXiv.2006.05470>`_
+
+.. [Whybra2024] Whybra P, Zwanenburg A, Andrearczyk V, Schaer R, Apte AP, Ayotte A, et al. The Image Biomarker
+  Standardization Initiative: Standardized Convolutional Filters for Reproducible Radiomics and Enhanced Clinical
+  Insights. Radiology. 2024;310: e231319. doi:`10.1148/radiol.231319 <https://doi.org/10.1148/radiol.231319>`_

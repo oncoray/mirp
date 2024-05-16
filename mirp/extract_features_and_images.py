@@ -11,6 +11,7 @@ def extract_features(
         write_features: None | bool = None,
         export_features: None | bool = None,
         write_dir: None | str = None,
+        num_cpus: None | int = None,
         **kwargs
 ) -> None | list[Any]:
     """
@@ -30,8 +31,25 @@ def extract_features(
         Path to directory where feature tables should be written. If not set, feature tables are returned by this
         function. Required if ``write_features=True``.
 
+    num_cpus: int, optional, default: None
+        Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be
+        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used
+        instead. By default, images are processed sequentially.
+
     **kwargs:
-        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+
+        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
+        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
+        * image interpolation / resampling (
+          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and
+          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
+        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)
+        * feature computation / extraction (
+          :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)
 
     Returns
     -------
@@ -49,6 +67,7 @@ def extract_features(
         write_images=False,
         export_images=False,
         write_dir=write_dir,
+        num_cpus=num_cpus,
         **kwargs
     )
 
@@ -72,7 +91,19 @@ def extract_features_generator(
         Determines whether features computed from images should be returned by the function.
 
     **kwargs:
-        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+
+        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
+        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
+        * image interpolation / resampling (
+          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and
+          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
+        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)
+        * feature computation / extraction (
+          :class:`~mirp.settings.feature_parameters.FeatureExtractionSettingsClass`)
 
     Returns
     -------
@@ -97,6 +128,8 @@ def extract_images(
         write_images: None | bool = None,
         export_images: None | bool = None,
         write_dir: None | str = None,
+        image_export_format: str = "dict",
+        num_cpus: None | int = None,
         **kwargs
 ):
     """
@@ -116,8 +149,28 @@ def extract_images(
         Path to directory where processed images and masks should be written. If not set, processed images and masks
         are returned by this function. Required if ``write_images=True``.
 
+    image_export_format: {"dict", "native", "numpy"}, default: "dict"
+        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
+        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
+        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+
+    num_cpus: int, optional, default: None
+        Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be
+        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used
+        instead. By default, images are processed sequentially.
+
     **kwargs:
-        Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images`.
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+
+        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
+        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
+        * image interpolation / resampling (
+          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and
+          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
+        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)
 
     Returns
     -------
@@ -135,6 +188,8 @@ def extract_images(
         write_images=write_images,
         export_images=export_images,
         write_dir=write_dir,
+        image_export_format=image_export_format,
+        num_cpus=num_cpus,
         **kwargs
     )
 
@@ -142,6 +197,8 @@ def extract_images(
 def extract_images_generator(
         write_images: bool = False,
         export_images: bool = True,
+        write_dir: None | str = None,
+        image_export_format: str = "dict",
         **kwargs
 ):
     """
@@ -157,8 +214,27 @@ def extract_images_generator(
     export_images: bool, default: False
        Determines whether processed images and masks should be returned by the function.
 
+    write_dir: str, optional
+        Path to directory where processed images and masks should be written. If not set, processed images and masks
+        are returned by this function. Required if ``write_images=True``.
+
+    image_export_format: {"dict", "native", "numpy"}, default: "dict"
+        Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
+        arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
+        ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+
     **kwargs:
-       Keyword arguments passed to :func:`~mirp.extractFeaturesAndImages.extract_features_and_images_generator`.
+        Keyword arguments passed for importing images and masks (
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+
+        * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
+        * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
+        * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
+        * image interpolation / resampling (
+          :class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and
+          :class:`~mirp.settings.interpolation_parameters.MaskInterpolationSettingsClass`)
+        * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
+        * image transformation (:class:`~mirp.settings.transformation_parameters.ImageTransformationSettingsClass`)
 
     Yields
     ------
@@ -175,11 +251,18 @@ def extract_images_generator(
         export_features=False,
         write_images=write_images,
         export_images=export_images,
+        write_dir=write_dir,
+        image_export_format=image_export_format,
         **kwargs
     )
 
 
 def extract_features_and_images(
+        write_features: None | bool = None,
+        export_features: None | bool = None,
+        write_images: None | bool = None,
+        export_images: None | bool = None,
+        write_dir: None | str = None,
         image_export_format: str = "dict",
         num_cpus: None | int = None,
         **kwargs
@@ -189,6 +272,24 @@ def extract_features_and_images(
 
     Parameters
     ----------
+    write_features: bool, optional
+        Determines whether features computed from images should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_features: bool, optional
+        Determines whether features computed from images should be returned by the function.
+
+    write_images: bool, optional
+        Determines whether processed images and masks should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_images: bool, optional
+        Determines whether processed images and masks should be returned by the function.
+
+    write_dir: str, optional
+        Path to directory where features, processed images and masks should be written. If not set, features, processed images and masks
+        are returned by this function. Required if ``write_features=True`` or ``write_images=True``.
+
     image_export_format: {"dict", "native", "numpy"}, default: "dict"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
@@ -201,7 +302,7 @@ def extract_features_and_images(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
 
         * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
         * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
@@ -223,7 +324,7 @@ def extract_features_and_images(
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)
     * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
@@ -244,7 +345,14 @@ def extract_features_and_images(
         # Parallel processing.
         results = [
             _ray_extractor.remote(workflow=workflow, image_export_format=image_export_format)
-            for workflow in _base_extract_features_and_images(**kwargs)
+            for workflow in _base_extract_features_and_images(
+                write_features=write_features,
+                export_features=export_features,
+                write_images=write_images,
+                export_images=export_images,
+                write_dir=write_dir,
+                **kwargs
+            )
         ]
 
         results = ray_get(results)
@@ -253,13 +361,26 @@ def extract_features_and_images(
 
     else:
         # Sequential processing.
-        workflows = list(_base_extract_features_and_images(**kwargs))
+        workflows = list(_base_extract_features_and_images(
+            write_features=write_features,
+            export_features=export_features,
+            write_images=write_images,
+            export_images=export_images,
+            write_dir=write_dir,
+            **kwargs
+        ))
+
         results = [workflow.standard_extraction(image_export_format=image_export_format) for workflow in workflows]
 
     return results
 
 
 def extract_features_and_images_generator(
+        write_features: None | bool = None,
+        export_features: None | bool = None,
+        write_images: None | bool = None,
+        export_images: None | bool = None,
+        write_dir: None | str = None,
         image_export_format: str = "dict",
         **kwargs
 ):
@@ -268,14 +389,32 @@ def extract_features_and_images_generator(
 
     Parameters
     ----------
-    image_export_format: {"dict", "native", "numpy"}, default: "numpy"
+    write_features: bool, optional
+        Determines whether features computed from images should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_features: bool, optional
+        Determines whether features computed from images should be returned by the function.
+
+    write_images: bool, optional
+        Determines whether processed images and masks should be written to the directory indicated by the
+        ``write_dir`` keyword argument.
+
+    export_images: bool, optional
+        Determines whether processed images and masks should be returned by the function.
+
+    write_dir: str, optional
+        Path to directory where features, processed images and masks should be written. If not set, features, processed images and masks
+        are returned by this function. Required if ``write_features=True`` or ``write_images=True``.
+
+    image_export_format: {"dict", "native", "numpy"}, default: "dict"
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
         ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
+        :func:`mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings:
 
         * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
         * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
@@ -297,7 +436,7 @@ def extract_features_and_images_generator(
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)
     * general settings (:class:`~mirp.settings.general_parameters.GeneralSettingsClass`)
     * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
@@ -309,7 +448,14 @@ def extract_features_and_images_generator(
 
     """
 
-    workflows = list(_base_extract_features_and_images(**kwargs))
+    workflows = list(_base_extract_features_and_images(
+        write_features=write_features,
+        export_features=export_features,
+        write_images=write_images,
+        export_images=export_images,
+        write_dir=write_dir,
+        **kwargs
+    ))
     for workflow in workflows:
         yield workflow.standard_extraction(image_export_format=image_export_format)
 

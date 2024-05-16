@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
@@ -40,8 +42,19 @@ class InteractivePlot:  # pragma: no cover
             self.mask_data = mask.get_voxel_grid()
 
         self.n_slices, _, _ = image.image_dimension
-        if slice_id is None or slice_id < 1 or slice_id > self.n_slices:
+        if slice_id is None:
             self.slice_index = int(np.floor(self.n_slices / 2.0))
+        elif not isinstance(slice_id, int):
+            raise TypeError(f"slice_id should be an integer (int). Found: {type(slice_id)}")
+        elif slice_id < 1:
+            self.slice_index = 0
+            warnings.warn(f"slice_id cannot be smaller than 1. Found: {slice_id}", UserWarning)
+        elif slice_id > self.n_slices:
+            self.slice_index = self.n_slices - 1
+            warnings.warn(
+                f"slice_id cannot be greater than the number of slices ({self.n_slices}). Found: {slice_id}",
+                UserWarning
+            )
         else:
             self.slice_index = slice_id - 1
 

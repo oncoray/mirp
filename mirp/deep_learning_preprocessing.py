@@ -61,7 +61,7 @@ def deep_learning_preprocessing(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably
+        :func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably
         :class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`,
         :class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`), among others.
 
@@ -74,7 +74,7 @@ def deep_learning_preprocessing(
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)
     * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
     * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and
@@ -198,7 +198,7 @@ def deep_learning_preprocessing_generator(
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
-        :func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably
+        :func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably
         :class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`,
         :class:`~mirp.settings.settingsPerturbation.ImagePerturbationSettingsClass`), among others.
 
@@ -211,7 +211,7 @@ def deep_learning_preprocessing_generator(
     --------
     Keyword arguments can be provided to configure the following:
 
-    * image and mask import (:func:`~mirp._data_import.import_image_and_mask.import_image_and_mask`)
+    * image and mask import (:func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`)
     * image post-processing (:class:`~mirp.settings.image_processing_parameters.ImagePostProcessingClass`)
     * image perturbation / augmentation (:class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass`)
     * image interpolation / resampling (:class:`~mirp.settings.interpolation_parameters.ImageInterpolationSettingsClass` and

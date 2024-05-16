@@ -53,6 +53,22 @@ def test_extract_mask_labels_rtstruct():
     ...
 
 
+@pytest.mark.ci
+def test_extract_mask_labels_seg():
+    # Single mask.
+    mask_labels = extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg", "CRLM-CT-1004", "mask", "mask.dcm")
+    )
+    assert mask_labels.roi_label.values[0] == "Liver"
+
+    # Multiple masks.
+    mask_labels = extract_mask_labels(
+        mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg"),
+        mask_sub_folder=os.path.join("mask")
+    )
+    assert len([label for label in mask_labels.roi_label.values if label == "Liver"]) == 2
+
+
 def test_extract_mask_labels_rtstruct_to_file(tmp_path):
     import pandas as pd
 

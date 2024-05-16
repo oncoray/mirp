@@ -83,7 +83,9 @@ class ImageFileStack(ImageFile):
             file_type = "numpy"
 
         else:
-            raise TypeError(f"The list of image objects does not consist of a known object type.")
+            raise TypeError(
+                f"The list of image objects does not consist of a known object type. [{self.describe_self()}]"
+            )
 
         image_file_stack = file_stack_class(
             image_file_objects=self.image_file_objects,
@@ -140,7 +142,7 @@ class ImageFileStack(ImageFile):
         if any(current_file_name_numeric is None for current_file_name_numeric in file_name_numeric):
             warnings.warn(
                 f"Cannot form stacks from numpy slices based on the file name as numeric values are missing "
-                "from one or more files. The original file order is used.", UserWarning
+                f"from one or more files. The original file order is used. [{self.describe_self()}]", UserWarning
             )
             return
 
@@ -148,7 +150,8 @@ class ImageFileStack(ImageFile):
             warnings.warn(
                 f"Cannot form stacks from numpy slices based on the file name as more than one sequence of numeric "
                 f"values are present in the name of one or more files. This excludes the sample name (if known) and "
-                f"any identifiers for image data. The original file order is used.", UserWarning
+                f"any identifiers for image data. The original file order is used. [{self.describe_self()}]",
+                UserWarning
             )
             return
 
@@ -163,7 +166,8 @@ class ImageFileStack(ImageFile):
         if not np.all(np.diff(np.sort(np.array(file_name_numeric))) == 1):
             warnings.warn(
                 f"Cannot form stacks from numpy slices based on the file name as numbers are not fully sequential for"
-                f" all files. The original file order is used.", UserWarning
+                f" all files. The original file order is used. [{self.describe_self()}]",
+                UserWarning
             )
             return
 
@@ -241,7 +245,9 @@ class MaskFileStack(ImageFileStack, MaskFile):
             file_type = "numpy"
 
         else:
-            raise TypeError(f"The list of image objects does not consist of a known object type.")
+            raise TypeError(
+                f"The list of image objects does not consist of a known object type. [{self.describe_self()}]"
+            )
 
         image_file_stack = file_stack_class(
             image_file_objects=self.image_file_objects,
@@ -263,7 +269,8 @@ class MaskFileStack(ImageFileStack, MaskFile):
         for ii, image_file in enumerate(self.image_file_objects):
             if image_file.image_data is None:
                 raise ValueError(
-                    "DEV: the image_data attribute of underlying mask files are not set. Please call load_data first.")
+                    "DEV: the image_data attribute of underlying mask files are not set. Please call load_data first."
+                )
             image[ii, :, :] = image_file.image_data.astype(int)
 
         self.image_data = image

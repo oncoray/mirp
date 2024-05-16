@@ -13,6 +13,7 @@ from mirp.settings.image_processing_parameters import ImagePostProcessingClass
 from mirp.settings.interpolation_parameters import ImageInterpolationSettingsClass, MaskInterpolationSettingsClass
 from mirp.settings.general_parameters import GeneralSettingsClass
 
+
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -2320,5 +2321,3 @@ def test_all_features():
     assert "morph_vol_dens_mvee" in data.columns.values
     assert "morph_area_dens_mvee" in data.columns.values
     assert "ivh_auc" in data.columns.values
-
-
