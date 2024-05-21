@@ -32,6 +32,21 @@ class BaseImage:
         # Set sample name.
         self.sample_name = sample_name
 
+        # Set metadata. Entries with empty values (None or "") are removed from the keyword arguments dict to avoid
+        # polluting the dictionary with unset entries.
+        if isinstance(kwargs, dict) and len(kwargs) > 0:
+            metadata = copy.deepcopy(kwargs)
+            remove_keys = [key for key, value in metadata.items() if value is None or value == ""]
+            for current_key in remove_keys:
+                metadata.pop(current_key, None)
+
+            if len(metadata) > 0:
+                self.metadata = metadata
+            else:
+                self.metadata = dict()
+        else:
+            self.metadata = dict()
+
     def is_isotropic(self, by_slice: bool) -> bool:
         if by_slice:
             spacing = np.array(self.image_spacing)[[1, 2]]

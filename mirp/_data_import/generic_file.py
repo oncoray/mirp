@@ -80,6 +80,9 @@ class ImageFile(BaseImage):
         self.dir_path = dir_path
         self.associated_masks = None
 
+        # Object metadata that will be exported when converted to native format.
+        self.object_metadata: dict[str, str] = dict()
+
     def is_stackable(self, stack_images: str):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of is_stackable. Please specify "
@@ -773,6 +776,7 @@ class ImageFile(BaseImage):
         self.complete()
         self.stack_slices()
         self.update_image_data()
+        self.set_object_metadata()
 
         return GenericImage(
             sample_name=self.sample_name,
@@ -781,8 +785,19 @@ class ImageFile(BaseImage):
             image_spacing=self.image_spacing,
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
-            image_dimensions=self.image_dimension
+            image_dimensions=self.image_dimension,
+            **self.object_metadata
         )
+
+    def set_object_metadata(self):
+        """
+        Updates the object metadata that is passed to native image and mask classes in to_object.
+        """
+        # Add file name to object metadata.
+        if self.file_name is not None:
+            self.object_metadata.update(dict([
+                ("file_name", self.file_name)
+            ]))
 
     def export_metadata(self, **kwargs) -> None | dict[str, Any]:
         # Get general attributes.
