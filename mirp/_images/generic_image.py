@@ -1315,6 +1315,10 @@ class GenericImage(BaseImage):
             ("image_orientation", self.image_orientation)
         ]
 
+        attributes = dict(attributes)
+        if len(self.object_metadata) > 0:
+            attributes.update(self.object_metadata)
+
         return dict(attributes)
 
     def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
