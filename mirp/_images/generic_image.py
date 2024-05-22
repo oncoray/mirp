@@ -85,6 +85,7 @@ class GenericImage(BaseImage):
         self.image_spacing = copy.deepcopy(template.image_spacing)
         self.image_dimension = copy.deepcopy(template.image_dimension)
         self.sample_name = copy.deepcopy(template.sample_name)
+        self.object_metadata = copy.deepcopy(template.object_metadata)
 
         # Attributes from GenericImage
         self.separate_slices = template.separate_slices

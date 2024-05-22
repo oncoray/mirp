@@ -116,6 +116,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             image.complete()
 
         self.load_metadata()
+        self.set_object_metadata()
         if not self.check_mask():
             return None
 
@@ -221,7 +222,8 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
                     image_spacing=temp_mask_object.image_spacing,
                     image_origin=temp_mask_object.image_origin,
                     image_orientation=temp_mask_object.image_orientation,
-                    image_dimensions=temp_mask_object.image_dimension
+                    image_dimensions=temp_mask_object.image_dimension,
+                    metadata=self.object_metadata
                 )
             ]
 

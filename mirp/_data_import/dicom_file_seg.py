@@ -70,6 +70,7 @@ class MaskDicomFileSEG(MaskDicomFile):
     def to_object(self, **kwargs) -> None | list[BaseMask]:
 
         self.load_metadata()
+        self.set_object_metadata()
         if not self.check_mask():
             return None
 
@@ -160,7 +161,8 @@ class MaskDicomFileSEG(MaskDicomFile):
                     image_spacing=mask_spacing,
                     image_origin=mask_origin,
                     image_orientation=mask_orientation,
-                    image_dimensions=mask_dimension
+                    image_dimensions=mask_dimension,
+                    metadata=self.object_metadata
                 )
             ]
 

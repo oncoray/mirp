@@ -786,7 +786,7 @@ class ImageFile(BaseImage):
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
             image_dimensions=self.image_dimension,
-            **self.object_metadata
+            metadata=self.object_metadata
         )
 
     def set_object_metadata(self):
@@ -1024,6 +1024,7 @@ class MaskFile(ImageFile):
         self.complete()
         self.stack_slices()
         self.update_image_data()
+        self.set_object_metadata()
         self.check_mask(raise_error=True)
 
         mask_list = []
@@ -1067,7 +1068,8 @@ class MaskFile(ImageFile):
                     image_spacing=self.image_spacing,
                     image_origin=self.image_origin,
                     image_orientation=self.image_orientation,
-                    image_dimensions=self.image_dimension
+                    image_dimensions=self.image_dimension,
+                    metadata=self.object_metadata
                 )
             ]
 
@@ -1189,5 +1191,6 @@ class MaskFullImage(MaskFile):
             image_spacing=image.image_spacing,
             image_origin=image.image_origin,
             image_orientation=image.image_orientation,
-            image_dimensions=image.image_dimension
+            image_dimensions=image.image_dimension,
+            metadata=self.object_metadata
         )]
