@@ -454,6 +454,7 @@ class ImageDicomFile(ImageFile):
         Updates the object metadata that is passed to native image and mask classes in to_object.
         """
         metadata = []
+        super().set_object_metadata()
 
         # Ensure that metadata are present.
         self.load_metadata(limited=False)

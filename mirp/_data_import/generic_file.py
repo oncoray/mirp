@@ -793,11 +793,16 @@ class ImageFile(BaseImage):
         """
         Updates the object metadata that is passed to native image and mask classes in to_object.
         """
+        attributes = []
         # Add file name to object metadata.
         if self.file_name is not None:
-            self.object_metadata.update(dict([
-                ("file_name", self.file_name)
-            ]))
+            attributes += [("file_name", self.file_name)]
+
+        # Add directory to object metadata.
+        if self.dir_path is not None:
+            attributes += [("dir_path", self.dir_path)]
+
+        self.object_metadata.update(dict(attributes))
 
     def export_metadata(self, **kwargs) -> None | dict[str, Any]:
         # Get general attributes.

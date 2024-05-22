@@ -655,6 +655,7 @@ class StandardWorkflow(BaseWorkflow):
         feature_set_details = {
             "sample_name": _from_dict(image_metadata, "sample_name"),
             "image_file_name": _from_dict(image_metadata, "file_name"),
+            "image_directory": _from_dict(image_metadata, "dir_path"),
             "image_study_date": _from_dict(image_metadata, "study_date"),
             "image_study_description": _from_dict(image_metadata, "study_description"),
             "image_series_description": _from_dict(image_metadata, "series_description"),
@@ -663,6 +664,7 @@ class StandardWorkflow(BaseWorkflow):
             "image_pet_suv_type": _from_dict(image_metadata, "suv_type"),
             "image_mask_label": _from_dict(mask_metadata, "roi_name"),
             "image_mask_file_name": _from_dict(mask_metadata, "file_name"),
+            "image_mask_directory": _from_dict(mask_metadata, "dir_path"),
             "image_mask_series_description": _from_dict(mask_metadata, "series_description"),
             "image_mask_series_instance_uid": _from_dict(mask_metadata, "series_instance_uid"),
             "image_settings_id": settings_name,

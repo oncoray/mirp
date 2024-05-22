@@ -237,6 +237,7 @@ class ImageDicomFileStack(ImageFileStack):
         """
         self.image_file_objects[0].set_object_metadata()
         self.object_metadata = self.image_file_objects[0].object_metadata
+        self.object_metadata.pop("file_name", None)
 
     def export_metadata(self) -> None | dict[str, Any]:
         metadata = super().export_metadata()

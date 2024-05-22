@@ -1,3 +1,10 @@
+# Version 2.2.3
+
+## Minor changes
+
+- Tables with feature values now contain extra columns. These columns specify the file name (for non-DICOM input), 
+  the directory path of the image and masks and several DICOM tags for identifying the input.
+
 # Version 2.2.2
 
 ## Minor changes
