@@ -1,5 +1,6 @@
 import itk
 import os.path
+import copy
 import numpy as np
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
@@ -68,6 +69,20 @@ class ImageITKFile(ImageFile):
                 f"The stack_images argument is expected to be one of yes, auto, or no. Found: {stack_images}. "
                 f"[{self.describe_self()}]"
             )
+
+    def copy(self):
+        # Remove metadata during copying to prevent ITK SwigPyObjects from being pickled (which produces errors).
+        temporary_metadata = self.image_metadata
+        self.remove_metadata()
+
+        # Create a copy without copying any metadata.
+        image_copy = copy.deepcopy(self)
+
+        # Restore metadata.
+        self.image_metadata = temporary_metadata
+        image_copy.image_metadata = temporary_metadata
+
+        return image_copy
 
     def _complete_image_origin(self, force=False):
         if self.image_origin is None:
