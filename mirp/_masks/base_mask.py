@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import copy
@@ -130,8 +132,12 @@ class BaseMask:
         if (spline_order is None or anti_aliasing is None or anti_aliasing is None) and settings is None:
             raise ValueError("None of the parameters for registration can be set.")
 
+        # Check if there is any mask data to work with.
         if self.is_empty():
             return
+
+        # Check if the mask is empty.
+        empty_before_registration = self.is_empty_mask()
 
         if spline_order is None:
             spline_order = self.roi.get_interpolation_spline_order(settings=settings)
@@ -147,6 +153,16 @@ class BaseMask:
             anti_aliasing_smoothing_beta=anti_aliasing_smoothing_beta,
             mode="constant"
         )
+
+        # Warn if a previously non-empty mask is empty after registration. This may indicate issues with the frame of
+        # reference, i.e. world coordinate systems that do not have the same definition.
+        if self.is_empty_mask() and not empty_before_registration:
+            warnings.warn(
+                f"The {self.roi_name} mask is empty after registering it to its image. Please check that mask and "
+                f"image use the same frame of reference.",
+                UserWarning
+            )
+
         if self.roi_intensity is not None:
             self.roi_intensity.register(
                 image=image,
