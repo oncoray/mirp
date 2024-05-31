@@ -802,6 +802,10 @@ class ImageFile(BaseImage):
         if self.dir_path is not None:
             attributes += [("dir_path", self.dir_path)]
 
+        # Add file type to object metadata.
+        if self.file_type is not None:
+            attributes += [("file_type", self.file_type)]
+
         self.object_metadata.update(dict(attributes))
 
     def export_metadata(self, **kwargs) -> None | dict[str, Any]:
