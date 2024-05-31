@@ -5,11 +5,16 @@ import itertools
 import os
 import os.path
 import re
+import sys
 import warnings
 
 import numpy as np
 
 from typing import Any
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
@@ -841,7 +846,46 @@ class ImageFile(BaseImage):
         return f"{self._get_export_attributes()}"
 
     def check_associated_masks(self):
-        return 
+        if self.associated_masks is None:
+            return
+
+        for mask in self.associated_masks:
+            self._check_associated_mask_image_data(mask=mask)
+
+    def _check_associated_mask_image_data(self, mask: Self):
+        """Check whether image and mask plausibly share the same frame of reference."""
+
+        problem_list = []
+        # Mismatch in grid dimension
+        if not np.array_equal(self.image_dimension, mask.image_dimension):
+            problem_list += [
+                f"different dimensions: {self.image_dimension} (image) and {mask.image_dimension} (mask)"
+            ]
+
+        # Mismatch in origin
+        if not np.allclose(self.image_origin, mask.image_origin):
+            problem_list += [
+                f"different origin: {self.image_origin} (image) and {mask.image_origin} (mask)"
+            ]
+
+        # Mismatch in spacing
+        if not np.allclose(self.image_spacing, mask.image_spacing):
+            problem_list += [
+                f"different spacing: {self.image_spacing} (image) and {mask.image_spacing} (mask)"
+            ]
+
+        # Mismatch in orientation
+        if not np.allclose(self.image_orientation, mask.image_orientation):
+            problem_list += [
+                f"different orientation: {self.image_orientation} (image) and {mask.image_orientation} (mask)"
+            ]
+
+        if len(problem_list) > 0:
+            warnings.warn(
+                f"Image {self.describe_self()} and mask {mask.describe_self()} may not have the same frame of "
+                f"reference. Please check if segmentation masks are placed correctly:" + "\n\t".join(problem_list),
+                UserWarning
+            )
 
 
 class MaskFile(ImageFile):

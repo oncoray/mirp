@@ -4,6 +4,7 @@ import pandas as pd
 from typing import Any
 
 from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.generic_file import MaskFile
 from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
@@ -247,8 +248,25 @@ class ImageDicomFileStack(ImageFileStack):
         return metadata
 
     def check_associated_masks(self):
+
         if self.associated_masks is None:
             return
+
+        for mask in self.associated_masks:
+            self._check_associated_mask_image_data(mask=mask)
+
+    def _check_associated_mask_image_data(self, mask: MaskFile):
+        """
+        Check
+
+        """
+        from mirp._data_import.dicom_file import MaskDicomFile
+
+        # Skip if the mask is a DICOM file.
+        if isinstance(mask, MaskDicomFile):
+            return
+
+        super()._check_associated_mask_image_data(mask=mask)
 
 
 class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):
