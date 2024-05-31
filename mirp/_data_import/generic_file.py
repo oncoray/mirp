@@ -859,31 +859,32 @@ class ImageFile(BaseImage):
         # Mismatch in grid dimension
         if not np.array_equal(self.image_dimension, mask.image_dimension):
             problem_list += [
-                f"different dimensions: {self.image_dimension} (image) and {mask.image_dimension} (mask)"
+                f"different dimensions: \n\t\timage: {self.image_dimension}\n\t\tmask: {mask.image_dimension}"
             ]
 
         # Mismatch in origin
         if not np.allclose(self.image_origin, mask.image_origin):
             problem_list += [
-                f"different origin: {self.image_origin} (image) and {mask.image_origin} (mask)"
+                f"different origin: \n\t\timage: {self.image_origin}\n\t\tmask: {mask.image_origin}"
             ]
 
         # Mismatch in spacing
         if not np.allclose(self.image_spacing, mask.image_spacing):
             problem_list += [
-                f"different spacing: {self.image_spacing} (image) and {mask.image_spacing} (mask)"
+                f"different spacing: \n\t\timage: {self.image_spacing}\n\t\tmask: {mask.image_spacing}"
             ]
 
         # Mismatch in orientation
         if not np.allclose(self.image_orientation, mask.image_orientation):
             problem_list += [
-                f"different orientation: {self.image_orientation} (image) and {mask.image_orientation} (mask)"
+                f"different orientation: \n\t\timage: {np.ravel(self.image_orientation)}\n\t\tmask: "
+                f"{np.ravel(mask.image_orientation)}"
             ]
 
         if len(problem_list) > 0:
             warnings.warn(
                 f"Image {self.describe_self()} and mask {mask.describe_self()} may not have the same frame of "
-                f"reference. Please check if segmentation masks are placed correctly:" + "\n\t".join(problem_list),
+                f"reference. Please check if segmentation masks are placed correctly:\n\t" + "\n\t".join(problem_list),
                 UserWarning
             )
 
