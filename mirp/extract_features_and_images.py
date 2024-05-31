@@ -580,6 +580,10 @@ def _generate_feature_and_image_extraction_workflows(
 ) -> Generator[StandardWorkflow, None, None]:
 
     for image_file in image_list:
+
+        # Check for potentially problematic stuff.
+        image_file.check_associated_masks()
+
         for current_settings in settings:
 
             if not current_settings.feature_extr.has_any_feature_family() and (

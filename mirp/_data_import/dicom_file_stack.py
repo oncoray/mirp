@@ -246,6 +246,10 @@ class ImageDicomFileStack(ImageFileStack):
 
         return metadata
 
+    def check_associated_masks(self):
+        if self.associated_masks is None:
+            return
+
 
 class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):
 

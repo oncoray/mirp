@@ -836,6 +836,9 @@ class ImageFile(BaseImage):
     def describe_self(self):
         return f"{self._get_export_attributes()}"
 
+    def check_associated_masks(self):
+        return 
+
 
 class MaskFile(ImageFile):
 
