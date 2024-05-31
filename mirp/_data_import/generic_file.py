@@ -857,29 +857,33 @@ class ImageFile(BaseImage):
 
         problem_list = []
         # Mismatch in grid dimension
-        if not np.array_equal(self.image_dimension, mask.image_dimension):
-            problem_list += [
-                f"different dimensions: \n\t\timage: {self.image_dimension}\n\t\tmask: {mask.image_dimension}"
-            ]
+        if isinstance(self.image_dimension, tuple) and isinstance(mask.image_dimension, tuple):
+            if not np.array_equal(self.image_dimension, mask.image_dimension):
+                problem_list += [
+                    f"different dimensions: \n\t\timage: {self.image_dimension}\n\t\tmask: {mask.image_dimension}"
+                ]
 
         # Mismatch in origin
-        if not np.allclose(self.image_origin, mask.image_origin):
-            problem_list += [
-                f"different origin: \n\t\timage: {self.image_origin}\n\t\tmask: {mask.image_origin}"
-            ]
+        if isinstance(self.image_origin, tuple) and isinstance(mask.image_origin, tuple):
+            if not np.allclose(self.image_origin, mask.image_origin):
+                problem_list += [
+                    f"different origin: \n\t\timage: {self.image_origin}\n\t\tmask: {mask.image_origin}"
+                ]
 
         # Mismatch in spacing
-        if not np.allclose(self.image_spacing, mask.image_spacing):
-            problem_list += [
-                f"different spacing: \n\t\timage: {self.image_spacing}\n\t\tmask: {mask.image_spacing}"
-            ]
+        if isinstance(self.image_spacing, tuple) and isinstance(mask.image_spacing, tuple):
+            if not np.allclose(self.image_spacing, mask.image_spacing):
+                problem_list += [
+                    f"different spacing: \n\t\timage: {self.image_spacing}\n\t\tmask: {mask.image_spacing}"
+                ]
 
         # Mismatch in orientation
-        if not np.allclose(self.image_orientation, mask.image_orientation):
-            problem_list += [
-                f"different orientation: \n\t\timage: {np.ravel(self.image_orientation)}\n\t\tmask: "
-                f"{np.ravel(mask.image_orientation)}"
-            ]
+        if isinstance(self.image_orientation, np.ndarray) and isinstance(mask.image_orientation, np.ndarray):
+            if not np.allclose(self.image_orientation, mask.image_orientation):
+                problem_list += [
+                    f"different orientation: \n\t\timage: {np.ravel(self.image_orientation)}\n\t\tmask: "
+                    f"{np.ravel(mask.image_orientation)}"
+                ]
 
         if len(problem_list) > 0:
             warnings.warn(
