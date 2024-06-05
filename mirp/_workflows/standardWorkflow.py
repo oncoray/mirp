@@ -673,12 +673,12 @@ class StandardWorkflow(BaseWorkflow):
             "image_voxel_size_z": _from_dict(image_metadata, "image_spacing", ii=0),
             "image_noise_level": _from_dict(image_metadata, "noise_level"),
             "image_noise_iteration_id": _from_dict(image_metadata, "noise_id"),
-            "image_rotation_angle": _from_dict(image_metadata, "rotation"),
-            "image_translation_x": _from_dict(image_metadata, "translation", ii=2),
-            "image_translation_y": _from_dict(image_metadata, "translation", ii=1),
-            "image_translation_z": _from_dict(image_metadata, "translation", ii=0),
+            "image_rotation_angle": _from_dict(image_metadata, "rotation", default=0.0),
+            "image_translation_x": _from_dict(image_metadata, "translation", ii=2, default=0.0),
+            "image_translation_y": _from_dict(image_metadata, "translation", ii=1, default=0.0),
+            "image_translation_z": _from_dict(image_metadata, "translation", ii=0, default=0.0),
             "image_mask_randomise_id": _from_dict(mask_metadata, "mask_randomisation_id"),
-            "image_mask_adapt_size": _from_dict(mask_metadata, "mask_alteration_size")
+            "image_mask_adapt_size": _from_dict(mask_metadata, "mask_alteration_size", default=0.0)
         }
 
         return pd.DataFrame(feature_set_details, index=[0])
