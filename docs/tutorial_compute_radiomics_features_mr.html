@@ -4,10 +4,10 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial: Computing radiomics features &mdash; mirp 2.2.2 documentation</title>
+  <title>Tutorial: Computing radiomics features &mdash; mirp 2.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
 
   
   <!--[if lt IE 9]>
@@ -16,7 +16,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=219dea72"></script>
+        <script src="_static/documentation_options.js?v=85e56e6b"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -317,7 +317,7 @@ relative to the patient directory (<code class="docutils literal notranslate"><s
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-24 11:24:55,664         Initialising image extraction using mr images for STS_003.
+INFO    : MainProcess    2024-06-05 11:55:22,262         Initialising image extraction using mr images for STS_003.
 </pre></div></div>
 </div>
 <p>By default, <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> will export dictionaries containing image and mask data (as <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>) and associated metadata. That way <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> can be used to read and process images as part of an external workflow. The default output can be visualised using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> and other tools. Here we use <code class="docutils literal notranslate"><span class="pre">image_export_format=&quot;native&quot;</span></code> to export images and masks in the native MIRP format. The output of <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> is a list of images and masks, with one entry per image
@@ -515,9 +515,9 @@ dataset. We only assess a single image here, which means that <code class="docut
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-24 11:24:57,113         Initialising feature computation using mr images for STS_001.
-INFO    : MainProcess    2024-04-24 11:25:10,524         Initialising feature computation using mr images for STS_002.
-INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature computation using mr images for STS_003.
+INFO    : MainProcess    2024-06-05 11:55:23,768         Initialising feature computation using mr images for STS_001.
+INFO    : MainProcess    2024-06-05 11:55:36,474         Initialising feature computation using mr images for STS_002.
+INFO    : MainProcess    2024-06-05 11:55:46,159         Initialising feature computation using mr images for STS_003.
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -544,15 +544,15 @@ INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature co
     <tr style="text-align: right;">
       <th></th>
       <th>sample_name</th>
-      <th>image_settings_id</th>
+      <th>image_file_name</th>
+      <th>image_directory</th>
+      <th>image_study_date</th>
+      <th>image_study_description</th>
+      <th>image_series_description</th>
+      <th>image_series_instance_uid</th>
       <th>image_modality</th>
-      <th>image_voxel_size_x</th>
-      <th>image_voxel_size_y</th>
-      <th>image_voxel_size_z</th>
-      <th>image_noise_level</th>
-      <th>image_noise_iteration_id</th>
-      <th>image_rotation_angle</th>
-      <th>image_translation_x</th>
+      <th>image_pet_suv_type</th>
+      <th>image_mask_label</th>
       <th>...</th>
       <th>ngl_hdhge_d1_a0.0_2d_fbn_n16</th>
       <th>ngl_glnu_d1_a0.0_2d_fbn_n16</th>
@@ -570,15 +570,15 @@ INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature co
     <tr>
       <th>0</th>
       <td>STS_001</td>
-      <td></td>
+      <td>None</td>
+      <td>sts_images\STS_001\mr_t1\image</td>
+      <td>20000903</td>
+      <td>^THIGH</td>
+      <td>AXIAL SE T1 - RESEARCH</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.236909650266...</td>
       <td>mr</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>5.2</td>
-      <td>0.0</td>
-      <td>NaN</td>
-      <td>0.0</td>
-      <td>0.0</td>
+      <td>None</td>
+      <td>GTV_Mass</td>
       <td>...</td>
       <td>649.904779</td>
       <td>685.643163</td>
@@ -594,15 +594,15 @@ INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature co
     <tr>
       <th>0</th>
       <td>STS_002</td>
-      <td></td>
+      <td>None</td>
+      <td>sts_images\STS_002\mr_t1\image</td>
+      <td>20060103</td>
+      <td>L-SPINE</td>
+      <td>AXT1</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.103003228939...</td>
       <td>mr</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>7.0</td>
-      <td>0.0</td>
-      <td>NaN</td>
-      <td>0.0</td>
-      <td>0.0</td>
+      <td>None</td>
+      <td>GTV_Mass</td>
       <td>...</td>
       <td>731.317187</td>
       <td>232.044296</td>
@@ -618,15 +618,15 @@ INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature co
     <tr>
       <th>0</th>
       <td>STS_003</td>
-      <td></td>
+      <td>None</td>
+      <td>sts_images\STS_003\mr_t1\image</td>
+      <td>20050330</td>
+      <td>MRI PELVIS C- C</td>
+      <td>AX T1</td>
+      <td>1.3.6.1.4.1.14519.5.2.1.5168.1900.900154069973...</td>
       <td>mr</td>
-      <td>1.0</td>
-      <td>1.0</td>
-      <td>7.0</td>
-      <td>0.0</td>
-      <td>NaN</td>
-      <td>0.0</td>
-      <td>0.0</td>
+      <td>None</td>
+      <td>GTV_Mass</td>
       <td>...</td>
       <td>608.689328</td>
       <td>472.701740</td>
@@ -641,7 +641,7 @@ INFO    : MainProcess    2024-04-24 11:25:19,984         Initialising feature co
     </tr>
   </tbody>
 </table>
-<p>3 rows × 192 columns</p>
+<p>3 rows × 203 columns</p>
 </div></div>
 </div>
 <p>This results in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that has a row per image and mask. The first several columns contain parameters related to that image and mask, and how these were processed. After these, feature values are shown. These can be used for, e.g., machine learning using <a class="reference external" href="https://scikit-learn.org/stable/">scikit-learn</a> or <a class="reference external" href="https://cran.r-project.org/web/packages/familiar/index.html">familiar</a>.</p>

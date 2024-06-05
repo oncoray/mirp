@@ -4,6 +4,7 @@ import pandas as pd
 from typing import Any
 
 from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.generic_file import MaskFile
 from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
@@ -230,12 +231,42 @@ class ImageDicomFileStack(ImageFileStack):
             "position_x": image_position_x
         }).sort_values(by=["position_z", "position_y", "position_x"], ignore_index=True)
 
+    def set_object_metadata(self):
+        """
+        Updates the object metadata that is passed to native image and mask classes in to_object. In this case,
+        object metadata is copied from the underlying slices.
+        """
+        self.image_file_objects[0].set_object_metadata()
+        self.object_metadata = self.image_file_objects[0].object_metadata
+        self.object_metadata.pop("file_name", None)
+
     def export_metadata(self) -> None | dict[str, Any]:
         metadata = super().export_metadata()
         additional_metadata = self.image_file_objects[0].export_metadata(only_self=True)
         metadata.update(additional_metadata)
 
         return metadata
+
+    def check_associated_masks(self):
+
+        if self.associated_masks is None:
+            return
+
+        for mask in self.associated_masks:
+            self._check_associated_mask_image_data(mask=mask)
+
+    def _check_associated_mask_image_data(self, mask: MaskFile):
+        """
+        Check
+
+        """
+        from mirp._data_import.dicom_file import MaskDicomFile
+
+        # Skip if the mask is a DICOM file.
+        if isinstance(mask, MaskDicomFile):
+            return
+
+        super()._check_associated_mask_image_data(mask=mask)
 
 
 class MaskDicomFileStack(ImageDicomFileStack, MaskFileStack):

@@ -3,10 +3,9 @@ import logging
 import sys
 import warnings
 
-from typing import Generator
+from typing import Generator, Any
 
 import pandas as pd
-import numpy as np
 
 from mirp.settings.generic import SettingsClass
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
@@ -632,24 +631,57 @@ class StandardWorkflow(BaseWorkflow):
             mask: BaseMask
     ) -> pd.DataFrame:
 
-        return pd.DataFrame({
-            "sample_name": image.sample_name,
-            "image_settings_id": self.settings_name if self.settings_name is not None else np.nan,
-            "image_modality": image.modality,
-            "image_voxel_size_x": image.image_spacing[2],
-            "image_voxel_size_y": image.image_spacing[1],
-            "image_voxel_size_z": image.image_spacing[0],
-            "image_noise_level": image.noise_level if image.noise_level is not None else 0.0,
-            "image_noise_iteration_id": image.noise_iteration_id if image.noise_iteration_id is not None else np.nan,
-            "image_rotation_angle": image.rotation_angle if image.rotation_angle is not None else 0.0,
-            "image_translation_x": image.translation[2] if image.translation is not None else 0.0,
-            "image_translation_y": image.translation[1] if image.translation is not None else 0.0,
-            "image_translation_z": image.translation[0] if image.translation is not None else 0.0,
-            "image_mask_name": mask.roi_name,
-            "image_mask_randomise_id": mask.roi.slic_randomisation_id if mask.roi.slic_randomisation_id is not None
-            else np.nan,
-            "image_mask_adapt_size": mask.roi.alteration_size if mask.roi.alteration_size is not None else 0.0
-        }, index=[0])
+        def _from_dict(
+                x: dict[str, str],
+                key: str,
+                default: Any = None,
+                ii: None | int = None
+        ):
+            value = x[key] if key in x else default
+            if value is not None and ii is not None:
+                value = value[ii]
+
+            if value is not None and isinstance(value, str) and value == "":
+                value = default
+
+            return value
+
+        image_metadata = image.get_export_attributes()
+        mask_metadata = mask.get_export_attributes()
+
+        # The name of the current settings configuration derives from the workflow, not image or mask.
+        settings_name = _from_dict({"settings_name": self.settings_name}, "settings_name")
+
+        feature_set_details = {
+            "sample_name": _from_dict(image_metadata, "sample_name"),
+            "image_file_name": _from_dict(image_metadata, "file_name"),
+            "image_directory": _from_dict(image_metadata, "dir_path"),
+            "image_study_date": _from_dict(image_metadata, "study_date"),
+            "image_study_description": _from_dict(image_metadata, "study_description"),
+            "image_series_description": _from_dict(image_metadata, "series_description"),
+            "image_series_instance_uid": _from_dict(image_metadata, "series_instance_uid"),
+            "image_modality": _from_dict(image_metadata, "modality", "generic"),
+            "image_pet_suv_type": _from_dict(image_metadata, "suv_type"),
+            "image_mask_label": _from_dict(mask_metadata, "roi_name"),
+            "image_mask_file_name": _from_dict(mask_metadata, "file_name"),
+            "image_mask_directory": _from_dict(mask_metadata, "dir_path"),
+            "image_mask_series_description": _from_dict(mask_metadata, "series_description"),
+            "image_mask_series_instance_uid": _from_dict(mask_metadata, "series_instance_uid"),
+            "image_settings_id": settings_name,
+            "image_voxel_size_x": _from_dict(image_metadata, "image_spacing", ii=2),
+            "image_voxel_size_y": _from_dict(image_metadata, "image_spacing", ii=1),
+            "image_voxel_size_z": _from_dict(image_metadata, "image_spacing", ii=0),
+            "image_noise_level": _from_dict(image_metadata, "noise_level"),
+            "image_noise_iteration_id": _from_dict(image_metadata, "noise_id"),
+            "image_rotation_angle": _from_dict(image_metadata, "rotation", default=0.0),
+            "image_translation_x": _from_dict(image_metadata, "translation", ii=2, default=0.0),
+            "image_translation_y": _from_dict(image_metadata, "translation", ii=1, default=0.0),
+            "image_translation_z": _from_dict(image_metadata, "translation", ii=0, default=0.0),
+            "image_mask_randomise_id": _from_dict(mask_metadata, "mask_randomisation_id"),
+            "image_mask_adapt_size": _from_dict(mask_metadata, "mask_alteration_size", default=0.0)
+        }
+
+        return pd.DataFrame(feature_set_details, index=[0])
 
     def deep_learning_conversion(
         self,

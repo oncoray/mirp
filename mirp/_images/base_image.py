@@ -13,6 +13,7 @@ class BaseImage:
             image_orientation: None | np.ndarray = None,
             image_spacing: None | tuple[float, ...] = None,
             image_dimensions: None | tuple[int, ...] = None,
+            metadata: None | dict[str, str] = None,
             **kwargs
     ):
         # Make cooperative
@@ -31,6 +32,21 @@ class BaseImage:
 
         # Set sample name.
         self.sample_name = sample_name
+
+        # Set metadata. Entries with empty values (None or "") are removed from the metadata dict to avoid
+        # polluting the dictionary with unset entries.
+        if isinstance(metadata, dict) and len(metadata) > 0:
+            metadata = copy.deepcopy(metadata)
+            remove_keys = [key for key, value in metadata.items() if value is None or value == ""]
+            for current_key in remove_keys:
+                metadata.pop(current_key, None)
+
+            if len(metadata) > 0:
+                self.object_metadata = metadata
+            else:
+                self.object_metadata = dict()
+        else:
+            self.object_metadata = dict()
 
     def is_isotropic(self, by_slice: bool) -> bool:
         if by_slice:

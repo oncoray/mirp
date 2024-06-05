@@ -86,11 +86,14 @@ class ImageDicomFilePT(ImageDicomFile):
             conversion_possible = False
             bqml_factor = 1.0
 
-        # Get SUV conversion factor.
+        # Get SUV conversion factor and update the object_metadata attribute.
         if conversion_possible:
             suv_factor = self._get_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+            self.object_metadata.update(dict([("suv_type", pet_suv_conversion)]))
+
         else:
             suv_factor = 1.0
+            self.object_metadata.update(dict([("suv_type", "none")]))
 
         # Update image_data
         image_data *= decay_factor * bqml_factor * suv_factor

@@ -4,10 +4,10 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial: Applying image filters &mdash; mirp 2.2.2 documentation</title>
+  <title>Tutorial: Applying image filters &mdash; mirp 2.2.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
 
   
   <!--[if lt IE 9]>
@@ -16,7 +16,7 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=219dea72"></script>
+        <script src="_static/documentation_options.js?v=85e56e6b"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -239,7 +239,7 @@
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-24 11:26:22,645         Initialising image extraction using ct images for 1.
+INFO    : MainProcess    2024-06-05 11:52:36,662         Initialising image extraction using ct images for 1.
 </pre></div></div>
 </div>
 <p>By default, <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> will export dictionaries containing image and mask data (as <code class="docutils literal notranslate"><span class="pre">numpy.ndarray</span></code>) and associated metadata. That way <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> can be used to read and process images as part of an external workflow. The default output can be visualised using <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> and other tools. Here we use <code class="docutils literal notranslate"><span class="pre">image_export_format=&quot;native&quot;</span></code> to export images and masks in the native MIRP format. The output of <code class="docutils literal notranslate"><span class="pre">extract_images</span></code> is a list of images and masks, with one entry per image
@@ -383,7 +383,7 @@ dataset. We only assess a single image here, which means that <code class="docut
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-24 11:26:24,360         Initialising image extraction using ct images for 1.
+INFO    : MainProcess    2024-06-05 11:52:38,720         Initialising image extraction using ct images for 1.
 </pre></div></div>
 </div>
 <p>Now we can first plot the base image. The base image is always part of the export. Because we resampled the image slices from 3.0 to 1.0 mm, the number of slices increased compared to the original image.</p>
@@ -514,7 +514,7 @@ INFO    : MainProcess    2024-04-24 11:26:24,360         Initialising image extr
 <p>For the base image, we need to define parameters related to intensity discretisation for computing histogram-based and texture features. Since a CT image consists of Hounsfield units (HU), which are typically calibrated, we will use a <em>fixed bin size</em> algorithm (<code class="docutils literal notranslate"><span class="pre">base_discretisation_method=&quot;fixed_bin_size&quot;</span></code>) with a bin size of 20 HU (<code class="docutils literal notranslate"><span class="pre">base_discretisation_bin_size=20.0</span></code>). This method requires setting the lowest intensity of the first bin. By default, MIRP uses -1000 HU (corresponding to air).
 However, this is not always the most useful setting. Here, we will instead specify a soft-tissue window (<code class="docutils literal notranslate"><span class="pre">resegmentation_intensity_range=[-180.0,</span> <span class="pre">200.0]</span></code>), which sets the lowest intensity of the first bin to -180 HU.</p>
 <div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -540,13 +540,89 @@ However, this is not always the most useful setting. Here, we will instead speci
 </pre></div>
 </div>
 </div>
-<div class="nboutput nblast docutils container">
+<div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-INFO    : MainProcess    2024-04-24 11:26:40,460         Initialising feature computation using ct images for 1.
+INFO    : MainProcess    2024-06-05 11:52:54,562         Initialising feature computation using ct images for 1.
 </pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sample_name</th>
+      <th>image_file_name</th>
+      <th>image_directory</th>
+      <th>image_study_date</th>
+      <th>image_study_description</th>
+      <th>image_series_description</th>
+      <th>image_series_instance_uid</th>
+      <th>image_modality</th>
+      <th>image_pet_suv_type</th>
+      <th>image_mask_label</th>
+      <th>...</th>
+      <th>wavelet_simoncelli_level_3_stat_max</th>
+      <th>wavelet_simoncelli_level_3_stat_iqr</th>
+      <th>wavelet_simoncelli_level_3_stat_range</th>
+      <th>wavelet_simoncelli_level_3_stat_mad</th>
+      <th>wavelet_simoncelli_level_3_stat_rmad</th>
+      <th>wavelet_simoncelli_level_3_stat_medad</th>
+      <th>wavelet_simoncelli_level_3_stat_cov</th>
+      <th>wavelet_simoncelli_level_3_stat_qcod</th>
+      <th>wavelet_simoncelli_level_3_stat_energy</th>
+      <th>wavelet_simoncelli_level_3_stat_rms</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>None</td>
+      <td>chest_ct\image</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>1.3.6.1.4.1.9590.100.1.2.296658988911737913102...</td>
+      <td>ct</td>
+      <td>None</td>
+      <td>GTV-1</td>
+      <td>...</td>
+      <td>531.404254</td>
+      <td>77.65685</td>
+      <td>863.020984</td>
+      <td>61.349115</td>
+      <td>35.8172</td>
+      <td>58.114405</td>
+      <td>3.115791</td>
+      <td>2.045865</td>
+      <td>2.349373e+09</td>
+      <td>88.482671</td>
+    </tr>
+  </tbody>
+</table>
+<p>1 rows × 311 columns</p>
+</div></div>
 </div>
 <p>This results in a <code class="docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code> that has a row per image and mask. The first several columns contain parameters related to that image and mask, and how these were processed. The features computed from filtered images are appended after the features from the base image. These features can be used for, e.g., machine learning using <a class="reference external" href="https://scikit-learn.org/stable/">scikit-learn</a> or <a class="reference external" href="https://cran.r-project.org/web/packages/familiar/index.html">familiar</a>.</p>
 </section>

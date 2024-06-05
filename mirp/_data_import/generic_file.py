@@ -5,11 +5,16 @@ import itertools
 import os
 import os.path
 import re
+import sys
 import warnings
 
 import numpy as np
 
 from typing import Any
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
@@ -79,6 +84,9 @@ class ImageFile(BaseImage):
         self.file_name = file_name
         self.dir_path = dir_path
         self.associated_masks = None
+
+        # Object metadata that will be exported when converted to native format.
+        self.object_metadata: dict[str, str] = dict()
 
     def is_stackable(self, stack_images: str):
         raise NotImplementedError(
@@ -773,6 +781,7 @@ class ImageFile(BaseImage):
         self.complete()
         self.stack_slices()
         self.update_image_data()
+        self.set_object_metadata()
 
         return GenericImage(
             sample_name=self.sample_name,
@@ -781,8 +790,28 @@ class ImageFile(BaseImage):
             image_spacing=self.image_spacing,
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
-            image_dimensions=self.image_dimension
+            image_dimensions=self.image_dimension,
+            metadata=self.object_metadata
         )
+
+    def set_object_metadata(self):
+        """
+        Updates the object metadata that is passed to native image and mask classes in to_object.
+        """
+        attributes = []
+        # Add file name to object metadata.
+        if self.file_name is not None:
+            attributes += [("file_name", self.file_name)]
+
+        # Add directory to object metadata.
+        if self.dir_path is not None:
+            attributes += [("dir_path", self.dir_path)]
+
+        # Add file type to object metadata.
+        if self.file_type is not None:
+            attributes += [("file_type", self.file_type)]
+
+        self.object_metadata.update(dict(attributes))
 
     def export_metadata(self, **kwargs) -> None | dict[str, Any]:
         # Get general attributes.
@@ -815,6 +844,53 @@ class ImageFile(BaseImage):
 
     def describe_self(self):
         return f"{self._get_export_attributes()}"
+
+    def check_associated_masks(self):
+        if self.associated_masks is None:
+            return
+
+        for mask in self.associated_masks:
+            self._check_associated_mask_image_data(mask=mask)
+
+    def _check_associated_mask_image_data(self, mask: Self):
+        """Check whether image and mask plausibly share the same frame of reference."""
+
+        problem_list = []
+        # Mismatch in grid dimension
+        if isinstance(self.image_dimension, tuple) and isinstance(mask.image_dimension, tuple):
+            if not np.array_equal(self.image_dimension, mask.image_dimension):
+                problem_list += [
+                    f"different dimensions: \n\t\timage: {self.image_dimension}\n\t\tmask: {mask.image_dimension}"
+                ]
+
+        # Mismatch in origin
+        if isinstance(self.image_origin, tuple) and isinstance(mask.image_origin, tuple):
+            if not np.allclose(self.image_origin, mask.image_origin):
+                problem_list += [
+                    f"different origin: \n\t\timage: {self.image_origin}\n\t\tmask: {mask.image_origin}"
+                ]
+
+        # Mismatch in spacing
+        if isinstance(self.image_spacing, tuple) and isinstance(mask.image_spacing, tuple):
+            if not np.allclose(self.image_spacing, mask.image_spacing):
+                problem_list += [
+                    f"different spacing: \n\t\timage: {self.image_spacing}\n\t\tmask: {mask.image_spacing}"
+                ]
+
+        # Mismatch in orientation
+        if isinstance(self.image_orientation, np.ndarray) and isinstance(mask.image_orientation, np.ndarray):
+            if not np.allclose(self.image_orientation, mask.image_orientation):
+                problem_list += [
+                    f"different orientation: \n\t\timage: {np.ravel(self.image_orientation)}\n\t\tmask: "
+                    f"{np.ravel(mask.image_orientation)}"
+                ]
+
+        if len(problem_list) > 0:
+            warnings.warn(
+                f"Image {self.describe_self()} and mask {mask.describe_self()} may not have the same frame of "
+                f"reference. Please check if segmentation masks are placed correctly:\n\t" + "\n\t".join(problem_list),
+                UserWarning
+            )
 
 
 class MaskFile(ImageFile):
@@ -1009,6 +1085,7 @@ class MaskFile(ImageFile):
         self.complete()
         self.stack_slices()
         self.update_image_data()
+        self.set_object_metadata()
         self.check_mask(raise_error=True)
 
         mask_list = []
@@ -1052,7 +1129,8 @@ class MaskFile(ImageFile):
                     image_spacing=self.image_spacing,
                     image_origin=self.image_origin,
                     image_orientation=self.image_orientation,
-                    image_dimensions=self.image_dimension
+                    image_dimensions=self.image_dimension,
+                    metadata=self.object_metadata
                 )
             ]
 
@@ -1174,5 +1252,6 @@ class MaskFullImage(MaskFile):
             image_spacing=image.image_spacing,
             image_origin=image.image_origin,
             image_orientation=image.image_orientation,
-            image_dimensions=image.image_dimension
+            image_dimensions=image.image_dimension,
+            metadata=self.object_metadata
         )]
