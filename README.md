@@ -2,9 +2,9 @@
 
 # Medical Image Radiomics Processor
 
-Medical Image Radiomics Processor (MIRP) is a python package for medical image analysis that is compliant with the 
-reference standards of the Image Biomarker Standardisation Initiative (IBSI). MIRP focuses on radiomics applications 
-and supports computation of features for conventional radiomics and image processing for deep-learning applications.
+MIRP is a python package for quantitative analysis of medical images. It focuses on processing images for integration
+with radiomics workflows. These workflows either use quantitative features computed using MIRP, or directly use MIRP
+to process images as input for neural networks and other deep learning models.
 
 ## Documentation and tutorials
 
