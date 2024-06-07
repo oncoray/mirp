@@ -6,9 +6,24 @@ MIRP is a python package for quantitative analysis of medical images. It focuses
 with radiomics workflows. These workflows either use quantitative features computed using MIRP, or directly use MIRP
 to process images as input for neural networks and other deep learning models.
 
-## Documentation and tutorials
+MIRP offers the following main functionality:
 
-Documentation and tutorials can be found here: https://oncoray.github.io/mirp/
+- [Extract and collect metadata](https://oncoray.github.io/mirp/image_metadata.html) from medical images.
+- [Find and collect labels or names](https://oncoray.github.io/mirp/mask_labels.html) of regions of interest from image 
+  segmentations.
+- [Compute quantitative features](https://oncoray.github.io/mirp/quantitative_image_analysis.html) from regions of interest in medical images.
+- [Process images for deep learning](https://oncoray.github.io/mirp/deep_learning.html).
+
+## Tutorials
+
+We currently offer the following tutorials:
+
+- [Computing quantitative features from MR images](https://oncoray.github.io/mirp/tutorial_compute_radiomics_features_mr.html)
+- [Applying filters to images](https://oncoray.github.io/mirp/tutorial_apply_image_filter.html)
+
+## Documentation
+
+Documentation can be found here: https://oncoray.github.io/mirp/
 
 ## Supported Python and OS
 
