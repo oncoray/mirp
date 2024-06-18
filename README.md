@@ -1,5 +1,11 @@
 <img src="https://raw.githubusercontent.com/oncoray/mirp/master/icon/mirp.svg" align="right" width="120"/>
 
+![GitHub License](https://img.shields.io/github/license/oncoray/mirp)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/mirp)
+[![PyPI - Version](https://img.shields.io/pypi/v/mirp)](https://pypi.org/project/mirp/)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/oncoray/mirp/auto-test-dependencies_timed.yml)
+[![JOSS](https://joss.theoj.org/papers/165c85b1ecad891550a21b12c8b2e577/status.svg)](https://joss.theoj.org/papers/165c85b1ecad891550a21b12c8b2e577)
+
 # Medical Image Radiomics Processor
 
 MIRP is a python package for quantitative analysis of medical images. It focuses on processing images for integration
