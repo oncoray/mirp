@@ -75,22 +75,41 @@ class InteractivePlot:  # pragma: no cover
 
         # Create mask.
         if show_mask:
-            # Define color map. The custom color map goes from transparent black to semi-transparent green and is
-            # used as an overlay.
+            from importlib_metadata import version
+            from packaging.version import Version
 
-            # Create map and register
-            plt.register_cmap(
-                cmap=LinearSegmentedColormap(
-                    "mask_cm",
-                    {
-                        'red': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
-                        'green': ((0.0, 0.0, 0.0), (1.0, 0.6, 0.6)),
-                        'blue': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
-                        'alpha': ((0.0, 0.0, 0.0), (1.0, 0.4, 0.4))
-                    }
-                ),
-                override_builtin=True
-            )
+            # Define color map. The custom color map goes from transparent black to semi-transparent green and is
+            # used as an overlay. Note that register_cmap is deprecated in version 3.9.0 of matplotlib
+            if Version(version("matplotlib")) >= Version("3.9.0"):
+                import matplotlib
+
+                matplotlib.colormaps.register(
+                    cmap=LinearSegmentedColormap(
+                        "mask_cm",
+                        {
+                            'red': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                            'green': ((0.0, 0.0, 0.0), (1.0, 0.6, 0.6)),
+                            'blue': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                            'alpha': ((0.0, 0.0, 0.0), (1.0, 0.4, 0.4))
+                        }
+                    ),
+                    force=True
+                )
+
+            else:
+                # Create map and register
+                plt.register_cmap(
+                    cmap=LinearSegmentedColormap(
+                        "mask_cm",
+                        {
+                            'red': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                            'green': ((0.0, 0.0, 0.0), (1.0, 0.6, 0.6)),
+                            'blue': ((0.0, 0.0, 0.0), (1.0, 0.0, 0.0)),
+                            'alpha': ((0.0, 0.0, 0.0), (1.0, 0.4, 0.4))
+                        }
+                    ),
+                    override_builtin=True
+                )
 
             self.mask_layer = self.axes.imshow(
                 self.mask_data[self.slice_index, :, :],

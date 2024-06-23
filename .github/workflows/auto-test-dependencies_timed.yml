@@ -3,7 +3,7 @@
 
 # Automated tests are run at 6:30 UTC on the first and fifteenth day of each month.
 
-name: Run automated tests on multiple platforms to detect dependency issues
+name: build-check
 
 on:
   workflow_dispatch:

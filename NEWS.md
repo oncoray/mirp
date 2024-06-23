@@ -1,3 +1,9 @@
+# Version 2.2.4
+
+## Fixes
+
+- Masks can now be plotted in images without causing an error when using `matplotlib` version 3.9.0 or later.
+
 # Version 2.2.3
 
 ## Minor changes
@@ -7,7 +13,7 @@
 
 - MIRP now checks whether there are potential problems between the frames of reference of image and mask files.
 
-# Fixes
+## Fixes
 
 - Fixed an error that occurs when attempting to create a deep copy `ImageITKFile` objects.
 

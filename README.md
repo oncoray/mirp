@@ -1,14 +1,35 @@
 <img src="https://raw.githubusercontent.com/oncoray/mirp/master/icon/mirp.svg" align="right" width="120"/>
 
+![GitHub License](https://img.shields.io/github/license/oncoray/mirp)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/mirp)
+[![PyPI - Version](https://img.shields.io/pypi/v/mirp)](https://pypi.org/project/mirp/)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/oncoray/mirp/auto-test-dependencies_timed.yml)
+[![JOSS](https://joss.theoj.org/papers/165c85b1ecad891550a21b12c8b2e577/status.svg)](https://joss.theoj.org/papers/165c85b1ecad891550a21b12c8b2e577)
+
 # Medical Image Radiomics Processor
 
-Medical Image Radiomics Processor (MIRP) is a python package for medical image analysis that is compliant with the 
-reference standards of the Image Biomarker Standardisation Initiative (IBSI). MIRP focuses on radiomics applications 
-and supports computation of features for conventional radiomics and image processing for deep-learning applications.
+MIRP is a python package for quantitative analysis of medical images. It focuses on processing images for integration
+with radiomics workflows. These workflows either use quantitative features computed using MIRP, or directly use MIRP
+to process images as input for neural networks and other deep learning models.
 
-## Documentation and tutorials
+MIRP offers the following main functionality:
 
-Documentation and tutorials can be found here: https://oncoray.github.io/mirp/
+- [Extract and collect metadata](https://oncoray.github.io/mirp/image_metadata.html) from medical images.
+- [Find and collect labels or names](https://oncoray.github.io/mirp/mask_labels.html) of regions of interest from image 
+  segmentations.
+- [Compute quantitative features](https://oncoray.github.io/mirp/quantitative_image_analysis.html) from regions of interest in medical images.
+- [Process images for deep learning](https://oncoray.github.io/mirp/deep_learning.html).
+
+## Tutorials
+
+We currently offer the following tutorials:
+
+- [Computing quantitative features from MR images](https://oncoray.github.io/mirp/tutorial_compute_radiomics_features_mr.html)
+- [Applying filters to images](https://oncoray.github.io/mirp/tutorial_apply_image_filter.html)
+
+## Documentation
+
+Documentation can be found here: https://oncoray.github.io/mirp/
 
 ## Supported Python and OS
 
