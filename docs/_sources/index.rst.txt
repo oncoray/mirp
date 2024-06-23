@@ -20,7 +20,7 @@ MIRP
 .. toctree::
    :hidden:
    :maxdepth: 1
-   :caption: Deep Dive
+   :caption: Documentation and API
 
    image_mask_import
    configuration
