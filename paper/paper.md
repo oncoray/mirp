@@ -41,8 +41,8 @@ radiomics analyses of others.
 # Statement of need
 
 Lack of standardised radiomics software is one of the reasons for poor translation of radiomics tools to the clinic.
-The Image Biomarker Standardisation Initiative (IBSI) has created reference standards for radiomics software: 1. a 
-reference standard for basic image processing and feature extraction steps [@Zwanenburg2020-go]; and 2. a reference 
+The Image Biomarker Standardisation Initiative (IBSI) created two reference standards for radiomics software: firstly, a 
+reference standard for basic image processing and feature extraction steps [@Zwanenburg2020-go]; and secondly a reference 
 standard for image filters [@Whybra2024-yb]. There is currently a lack of fully IBSI-compliant radiomics 
 packages in Python, which is important for the radiomics field because Python is used to interface with machine learning
 and deep learning packages such as `scikit-learn` and `pytorch`. `mirp` is intended to fill this gap. It provides a 
@@ -53,7 +53,7 @@ image processing and feature extraction for machine learning-based radiomics.
 one hand, and to externally reproduce and validate results of other researchers. It was originally created in 2016 and 
 regularly updated to conform with the IBSI reference standards and to improve usability. Previous versions of `mirp`
 were used by e.g. @Leger2017-si, @Zwanenburg2019-jg, @Shahzadi2022-wk and @Bettinelli2022-ml. Recently, `mirp` was used 
-as a radiomics engine for the `RadTract` Python package [@Neher2024-ze]. The latest major version (2) provides major
+as a radiomics engine for the `RadTract` Python package [@Neher2024-ze]. Updates in the recent major release series provide major
 improvements in user experience with a unified API, better documentation, and easier installation using `pip`.
 
 `mirp` follows an end-to-end design principle and abstracts away intermediate steps for the user. In this sense it 
