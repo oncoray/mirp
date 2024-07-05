@@ -1,3 +1,7 @@
+from mirp._images.generic_image import GenericImage
+from mirp._masks.base_mask import BaseMask
+
+
 class Feature(object):
 
     def __init__(self, **kwargs):
@@ -9,3 +13,8 @@ class Feature(object):
         # Even though most features are IBSI-compliant, set value to False to avoid surprises in the future.
         self.ibsi_compliant: None | bool = False
 
+    def clear_cache(self):
+        pass
+
+    def compute(self, image: GenericImage, mask: BaseMask):
+        raise NotImplementedError("compute method should be implemented in subclasses.")
