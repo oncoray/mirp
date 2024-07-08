@@ -37,7 +37,7 @@ class MatrixRLM(DirectionalMatrix):
             image_dimension: tuple[int, int, int] | None = None,
             **kwargs
     ):
-        # Check if the df_img actually exists
+        # Check if data actually exists
         if data is None:
             return
 
@@ -266,11 +266,43 @@ class FeatureRLMSRE(FeatureRLM):
         return np.sum(matrix.rj.rj / matrix.rj.j ** 2.0) / matrix.n_s
 
 
+class FeatureRLMLRE(FeatureRLM):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - long runs emphasis"
+        self.abbr_name = "rlm_lre"
+        self.ibsi_id = "W4KF"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rj.rj * matrix.rj.j ** 2.0) / matrix.n_s
+
+
+class FeatureRLMLGRE(FeatureRLM):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - low grey level run emphasis"
+        self.abbr_name = "rlm_lgre"
+        self.ibsi_id = "V3SW"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.ri.ri ** 2.0) / matrix.n_s
+
+
 def get_rlm_class_dict() -> dict[str, FeatureRLM]:
     class_dict = {
         "rlm_sre": FeatureRLMSRE,
-        "rlm_lre": 2,
-        "rlm_lgre": 3,
+        "rlm_lre": FeatureRLMLRE,
+        "rlm_lgre": FeatureRLMLGRE,
         "rlm_hgre": 4,
         "rlm_srlge": 5,
         "rlm_srhge": 6,
