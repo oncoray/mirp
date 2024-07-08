@@ -41,7 +41,12 @@ class Matrix(object):
     def is_empty(self):
         return self.matrix is None or len(self.matrix) == 0
 
-    def compute(self, image: GenericImage, mask: BaseMask, **kwargs):
+    def compute(
+            self,
+            data: pd.DataFrame,
+            image_dimension: tuple[int, int, int] | None = None,
+            **kwargs
+    ):
         raise NotImplementedError("Implement in subclasses.")
 
     def set_values_from_matrix(self):
@@ -74,8 +79,8 @@ class Matrix(object):
             matrix_list: list[Self],
             prototype,
             **kwargs
-    ) -> list[Self]:
-
+    ) -> list[Self]
+    
         if self.spatial_method == "2d":
             # Average features over slices: maintain original 2D texture matrices.
             return [matrix for matrix in matrix_list if not matrix.is_empty()]
@@ -102,14 +107,21 @@ class Matrix(object):
                 **kwargs
             )]
 
-        else:
-            raise ValueError(
-                f"One of  \"2d\", \"2.5d\" or \"3d\" is expected as spatial method. Found: {self.spatial_method}."
-            )
-
     @staticmethod
     def _get_grouping_columns() -> list[str, ...]:
         raise NotImplementedError("Implement in subclasses.")
+
+    @staticmethod
+    def coord_to_index(x, y, z, dims):
+        # Translate coordinates to indices
+        index = x + y * dims[2] + z * dims[2] * dims[1]
+
+        # Mark invalid transitions
+        index[np.logical_or(x < 0, x >= dims[2])] = -99999
+        index[np.logical_or(y < 0, y >= dims[1])] = -99999
+        index[np.logical_or(z < 0, z >= dims[0])] = -99999
+
+        return index
 
     @staticmethod
     def _generate_neighbour_direction(
@@ -165,6 +177,11 @@ class Matrix(object):
             if flag:
                 yield tuple(nbrs[:, ii].flatten())
 
+    def _spatial_method_error(self):
+        raise ValueError(
+            f"One of  \"2d\", \"2.5d\" or \"3d\" is expected as spatial method. Found: {self.spatial_method}."
+        )
+
 
 class DirectionalMatrix(Matrix):
 
@@ -212,7 +229,97 @@ class DirectionalMatrix(Matrix):
                 )
 
         else:
-            raise ValueError(
-                f"One of  \"2d_average\", \"2d_slice_merge\", \"2.5d_direction_merge\", \"2.5d_volume_merge\", "
-                f"\"3d_average\" or \"3d_volume_merge\" is expected as spatial method. Found: {self.spatial_method}."
-            )
+            self._spatial_method_error()
+
+    def merge(
+            self,
+            matrix_list: list[Self],
+            prototype,
+            **kwargs
+    ) -> list[Self]:
+
+        # Remove empty matrices.
+        matrix_list = [matrix for matrix in matrix_list if not matrix.is_empty()]
+        if len(matrix_list) == 0:
+            return []
+
+        if self.spatial_method in ["2d_average", "3d_average"]:
+            # Average features over directions: maintain original directional texture matrices.
+            return matrix_list
+
+        elif self.spatial_method == "2d_slice_merge":
+            # Merge directional matrices within each slice.
+            out_matrix_list = []
+
+            # Identify slice ids and iterate over unique slice identifiers.
+            slice_ids = [matrix.slice_id for matrix in matrix_list]
+            for slice_id in np.unique(slice_ids):
+                slice_matrix_list = [matrix for matrix in matrix_list if matrix.slice_id == slice_id]
+                collected_matrices = [matrix.matrix for matrix in slice_matrix_list]
+                n_voxels = np.sum([matrix.n_voxels for matrix in slice_matrix_list])
+
+                merged_matrix = pd.concat(collected_matrices, axis=0)
+                merged_matrix = merged_matrix.groupby(by=self._get_grouping_columns()).sum().reset_index()
+
+                out_matrix_list += [prototype(
+                    spatial_method=self.spatial_method,
+                    matrix=merged_matrix,
+                    n_voxels=n_voxels,
+                    **kwargs
+                )]
+
+            return out_matrix_list
+
+        elif self.spatial_method == "2.5d_direction_merge":
+            # Merge directional matrices for each direction.
+            out_matrix_list = []
+
+            # Identify direction ids and iterate over unique direction identifiers.
+            direction_ids = [matrix.direction_id for matrix in matrix_list]
+            for direction_id in np.unique(direction_ids):
+                direction_matrix_list = [matrix for matrix in matrix_list if matrix.direction_id == direction_id]
+                collected_matrices = [matrix.matrix for matrix in direction_matrix_list]
+                n_voxels = np.sum([matrix.n_voxels for matrix in direction_matrix_list])
+
+                merged_matrix = pd.concat(collected_matrices, axis=0)
+                merged_matrix = merged_matrix.groupby(by=self._get_grouping_columns()).sum().reset_index()
+
+                out_matrix_list += [prototype(
+                    spatial_method=self.spatial_method,
+                    matrix=merged_matrix,
+                    n_voxels=n_voxels,
+                    **kwargs
+                )]
+
+            return out_matrix_list
+
+        elif self.spatial_method in ["2.5d_volume_merge", "3d_volume_merge"]:
+            # Merge 2D or 3D texture matrices into a single matrix.
+
+            # Remove all empty matrices.
+            updated_matrix_list = [matrix for matrix in matrix_list if not matrix.is_empty()]
+            if len(updated_matrix_list) == 0:
+                return []
+
+            collected_matrices = [matrix.matrix for matrix in updated_matrix_list]
+            n_voxels = np.sum([matrix.n_voxels for matrix in updated_matrix_list])
+
+            # Merge collected matrices.
+            merged_matrix = pd.concat(collected_matrices, axis=0)
+            merged_matrix = merged_matrix.groupby(by=self._get_grouping_columns()).sum().reset_index()
+
+            return [prototype(
+                spatial_method=self.spatial_method,
+                matrix=merged_matrix,
+                n_voxels=n_voxels,
+                **kwargs
+            )]
+
+        else:
+            self._spatial_method_error()
+
+    def _spatial_method_error(self):
+        raise ValueError(
+            f"One of  \"2d_average\", \"2d_slice_merge\", \"2.5d_direction_merge\", \"2.5d_volume_merge\", "
+            f"\"3d_average\" or \"3d_volume_merge\" is expected as spatial method. Found: {self.spatial_method}."
+        )
