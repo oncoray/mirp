@@ -171,7 +171,7 @@ class MaskImage(GenericImage):
             distance: float | None = None,
             voxel_distance: float | None = None
     ):
-        from mirp._featuresets.utilities import rep
+        from mirp._features.utilities import rep
         import scipy.ndimage as ndi
 
         # Skip if the mask does not exist

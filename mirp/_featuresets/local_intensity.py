@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import scipy.ndimage as ndi
 
-from mirp._featuresets.utilities import rep
+from mirp._features.utilities import rep
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 

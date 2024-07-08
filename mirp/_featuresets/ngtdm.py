@@ -3,7 +3,8 @@ import copy
 import numpy as np
 import pandas as pd
 
-from mirp._featuresets.utilities import get_neighbour_directions, is_list_all_none, coord2Index, get_intensity_value, rep
+from mirp._featuresets.utilities import get_neighbour_directions, is_list_all_none, coord2Index, get_intensity_value
+from mirp._features.utilities import rep
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
