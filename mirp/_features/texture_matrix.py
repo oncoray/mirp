@@ -79,8 +79,8 @@ class Matrix(object):
             matrix_list: list[Self],
             prototype,
             **kwargs
-    ) -> list[Self]
-    
+    ) -> list[Self]:
+
         if self.spatial_method == "2d":
             # Average features over slices: maintain original 2D texture matrices.
             return [matrix for matrix in matrix_list if not matrix.is_empty()]
