@@ -1,13 +1,10 @@
 from typing import Any, Generator
 from functools import cache
 
-from mirp._image_processing.discretise_image import discretise_image
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._features.base_feature import Feature
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
-from mirp._image_processing.cropping import crop
-
 
 def get_discretisation_parameters(settings: FeatureExtractionSettingsClass) -> Generator[dict[str, Any], None, None]:
     for discretisation_method in settings.discretisation_method:
@@ -57,6 +54,9 @@ class HistogramDerivedFeature(Feature):
             bin_number: int | None,
             cropping_distance: float | None
     ) -> tuple[GenericImage, BaseMask]:
+        from mirp._image_processing.cropping import crop
+        from mirp._image_processing.discretise_image import discretise_image
+
         if cropping_distance is not None:
             image, mask = crop(
                 image=image,

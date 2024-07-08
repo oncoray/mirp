@@ -12,8 +12,18 @@ from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 
 class MatrixRLM(DirectionalMatrix):
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def compute(self, image: GenericImage, mask: BaseMask, **kwargs):
+        ...
+
+    def set_values_from_matrix(self):
+        ...
+
+    @staticmethod
+    def _get_grouping_columns():
+        return ["i", "r"]
 
 
 class FeatureRLM(HistogramDerivedFeature):
@@ -60,7 +70,25 @@ class FeatureRLM(HistogramDerivedFeature):
             mask: BaseMask,
             spatial_method: str
     ) -> list[MatrixRLM]:
-        pass
+        # Instantiate a helper copy of the current class to be able to use class methods without tying the cache to the
+        # instance of the original object from which this method is called.
+        matrix_instance = MatrixRLM(
+            spatial_method=spatial_method
+        )
+
+        # Compute the required matrices.
+        matrix_list = [
+            matrix.compute(image=image, mask=mask)
+            for matrix in matrix_instance.generate(prototype=MatrixRLM, n_slices=image.image_dimension[0])
+        ]
+
+        # Merge according to the spatial method.
+        matrix_list = matrix_instance.merge(matrix_list, prototype=MatrixRLM)
+
+        # Compute additional values from the individual matrices.
+        matrix_list = [matrix.set_values_from_matrix() for matrix in matrix_list]
+
+        return matrix_list
 
     def clear_cache(self):
         super().clear_cache()
