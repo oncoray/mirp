@@ -66,10 +66,9 @@ class FeatureRLM(FeatureTexture):
         )
 
         # Compute the required matrices.
-        matrix_list = [
-            matrix.compute(data=data, image_dimenion=image.image_dimension)
-            for matrix in matrix_instance.generate(prototype=MatrixRLM, n_slices=image.image_dimension[0])
-        ]
+        matrix_list = matrix_instance.generate(prototype=MatrixRLM, n_slices=image.image_dimension[0])
+        for matrix in matrix_list:
+            matrix.compute(data=data, image_dimension=image.image_dimension)
 
         # Merge according to the spatial method.
         matrix_list = matrix_instance.merge(matrix_list, prototype=MatrixRLM)

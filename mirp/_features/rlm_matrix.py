@@ -127,7 +127,7 @@ class MatrixRLM(DirectionalMatrix):
         # Generate matrix
         matrix = pd.DataFrame({
             "i": intensities[rle_start],
-            "r": rle_end - rle_start + 1
+            "j": rle_end - rle_start + 1
         })
         matrix = matrix.loc[~np.isnan(matrix.i), :]
         matrix = matrix.groupby(by=["i", "j"]).size().reset_index(name="rij")

@@ -66,7 +66,7 @@ class HistogramDerivedFeature(Feature):
                 in_place=False
             )
 
-        image = discretise_image(
+        image, mask = discretise_image(
             image=image,
             mask=mask,
             discretisation_method=discretisation_method,
