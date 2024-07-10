@@ -422,7 +422,7 @@ class StandardWorkflow(BaseWorkflow):
             image: GenericImage,
             mask: BaseMask
     ) -> Generator[pd.DataFrame, None, None]:
-        from mirp._features.feature_generator import generate_features
+        from mirp._features.feature_generator import generate_features, feature_to_table
 
         # Check which feature settings to use.
         if isinstance(image, TransformedImage):
@@ -440,13 +440,15 @@ class StandardWorkflow(BaseWorkflow):
 
         # Get and compute features.
         features = list(generate_features(settings=feature_settings))
-        features = [feature.compute(image=image, mask=mask) for feature in features]
+        for feature in features:
+            feature.compute(image=image, mask=mask)
 
         # Clear cache to prevent memory leaks.
         for feature in features:
             feature.clear_cache()
 
         # Convert to table.
+        yield feature_to_table(features)
 
 
     def _depr_compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
