@@ -6,19 +6,18 @@ import numpy as np
 from mirp._features.rlm_matrix import MatrixRLM
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
-from mirp._features.histogram import HistogramDerivedFeature, get_discretisation_parameters
+from mirp._features.histogram import get_discretisation_parameters
+from mirp._features.texture_features import FeatureTexture
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 
 
-class FeatureRLM(HistogramDerivedFeature):
+class FeatureRLM(FeatureTexture):
 
     def __init__(
             self,
-            spatial_method: str,
             **kwargs
     ):
         super().__init__(**kwargs)
-        self.spatial_method = spatial_method.lower()
 
         # Perform close crop for RLM.
         self.cropping_distance = 0.0
@@ -95,6 +94,14 @@ class FeatureRLM(HistogramDerivedFeature):
     @staticmethod
     def _compute(matrix: MatrixRLM):
         raise NotImplementedError("Implement _compute for feature-specific computation.")
+
+    def create_table_name(self):
+        table_elements = (
+                self._get_base_table_name_element()
+                + self._get_spatial_table_name_element()
+                + self._get_discretisation_table_name_element()
+        )
+        self.table_name = "_".join(table_elements)
 
 
 class FeatureRLMSRE(FeatureRLM):
@@ -364,7 +371,7 @@ def get_rlm_class_dict() -> dict[str, FeatureRLM]:
 
 def generate_rlm_features(
         settings: FeatureExtractionSettingsClass,
-        features: None | list[str]
+        features: None | list[str] = None
 ) -> Generator[FeatureRLM, None, None]:
     class_dict = get_rlm_class_dict()
     rlm_features = set(class_dict.keys())

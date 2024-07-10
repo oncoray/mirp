@@ -6,6 +6,7 @@ from mirp._features.base_feature import Feature
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 
+
 def get_discretisation_parameters(settings: FeatureExtractionSettingsClass) -> Generator[dict[str, Any], None, None]:
     for discretisation_method in settings.discretisation_method:
         if discretisation_method in ["fixed_bin_size", "fixed_bin_size_pyradiomics"]:
@@ -79,3 +80,22 @@ class HistogramDerivedFeature(Feature):
     def clear_cache(self):
         super().clear_cache()
         self.discretise_image.cache_clear()
+
+    def _get_discretisation_table_name_element(self) -> list[str]:
+        table_elements = []
+        if self.discretisation_method is not None:
+            if self.discretisation_method == "none":
+                pass
+            elif self.discretisation_method == "fixed_bin_number":
+                table_elements += ["fbn"]
+                table_elements += ["n" + str(self.bin_number)]
+            elif self.discretisation_method == "fixed_bin_size":
+                table_elements += ["fbs"]
+                table_elements += ["w" + str(self.bin_width)]
+            elif self.discretisation_method == "fixed_bin_size_pyradiomics":
+                table_elements += ["fbsp"]
+                table_elements += ["w" + str(self.bin_width)]
+            else:
+                raise ValueError(f"Unknown discretisation method: {self.discretisation_method}")
+
+        return table_elements

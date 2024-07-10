@@ -417,7 +417,39 @@ class StandardWorkflow(BaseWorkflow):
         elif self.export_images:
             return image_list, mask_list
 
-    def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
+    def _compute_radiomics_features(
+            self,
+            image: GenericImage,
+            mask: BaseMask
+    ) -> Generator[pd.DataFrame, None, None]:
+        from mirp._features.feature_generator import generate_features
+
+        # Check which feature settings to use.
+        if isinstance(image, TransformedImage):
+            feature_settings = self.settings.img_transform.feature_settings
+        elif isinstance(image, GenericImage):
+            feature_settings = self.settings.feature_extr
+        else:
+            raise TypeError(
+                f"image is not a TransformedImage, GenericImage or a subclass thereof. Found: {type(image)}"
+            )
+
+        # Skip if no feature families are specified.
+        if not feature_settings.has_any_feature_family():
+            return
+
+        # Get and compute features.
+        features = list(generate_features(settings=feature_settings))
+        features = [feature.compute(image=image, mask=mask) for feature in features]
+
+        # Clear cache to prevent memory leaks.
+        for feature in features:
+            feature.clear_cache()
+
+        # Convert to table.
+
+
+    def _depr_compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
         from mirp._featuresets.local_intensity import get_local_intensity_features
         from mirp._featuresets.statistics import get_intensity_statistics_features
         from mirp._featuresets.intensity_volume_histogram import get_intensity_volume_histogram_features
