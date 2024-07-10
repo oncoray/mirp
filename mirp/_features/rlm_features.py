@@ -98,7 +98,6 @@ class FeatureRLM(HistogramDerivedFeature):
 
 
 class FeatureRLMSRE(FeatureRLM):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "RLM - short runs emphasis"
@@ -114,7 +113,6 @@ class FeatureRLMSRE(FeatureRLM):
 
 
 class FeatureRLMLRE(FeatureRLM):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "RLM - long runs emphasis"
@@ -130,7 +128,6 @@ class FeatureRLMLRE(FeatureRLM):
 
 
 class FeatureRLMLGRE(FeatureRLM):
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "RLM - low grey level run emphasis"
@@ -142,7 +139,204 @@ class FeatureRLMLGRE(FeatureRLM):
     def _compute(matrix: MatrixRLM) -> float:
         if matrix.is_empty():
             return np.nan
+        return np.sum(matrix.ri.ri / matrix.ri.i ** 2.0) / matrix.n_s
+
+
+class FeatureRLMHGRE(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - high grey level run emphasis"
+        self.abbr_name = "rlm_hgre"
+        self.ibsi_id = "G3QZ"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.ri.ri * matrix.ri.i ** 2.0) / matrix.n_s
+
+
+class FeatureRLMSRLGE(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - short run low grey level emphasis"
+        self.abbr_name = "rlm_srlge"
+        self.ibsi_id = "HTZT"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rij.rij / (matrix.rij.i * matrix.rij.j) ** 2.0) / matrix.n_s
+
+
+class FeatureRLMSRHGE(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - short run high grey level emphasis"
+        self.abbr_name = "rlm_srhge"
+        self.ibsi_id = "GD3A"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rij.rij * matrix.rij.i ** 2.0 / matrix.rij.j ** 2.0) / matrix.n_s
+
+
+class FeatureRLMLRLGE(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - long run low grey level emphasis"
+        self.abbr_name = "rlm_lrlge"
+        self.ibsi_id = "IVPO"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rij.rij * matrix.rij.j ** 2.0 / matrix.rij.i ** 2.0) / matrix.n_s
+
+
+class FeatureRLMLRHGE(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - long run high grey level emphasis"
+        self.abbr_name = "rlm_lrhge"
+        self.ibsi_id = "3KUM"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rij.rij * matrix.rij.i ** 2.0 * matrix.rij.j ** 2.0) / matrix.n_s
+
+
+class FeatureRLMGLNU(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - grey level non-uniformity"
+        self.abbr_name = "rlm_glnu"
+        self.ibsi_id = "R5YN"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
         return np.sum(matrix.ri.ri ** 2.0) / matrix.n_s
+
+
+class FeatureRLMGLNUNorm(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - normalised grey level non-uniformity"
+        self.abbr_name = "rlm_glnu_norm"
+        self.ibsi_id = "OVBL"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.ri.ri ** 2.0) / matrix.n_s ** 2.0
+
+
+class FeatureRLMRLNU(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - run length non-uniformity)"
+        self.abbr_name = "rlm_rlnu"
+        self.ibsi_id = "W92Y"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rj.rj ** 2.0) / matrix.n_s
+
+
+class FeatureRLMRLNUNorm(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - normalised run length non-uniformity"
+        self.abbr_name = "rlm_rlnu_norm"
+        self.ibsi_id = "IC23"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.rj.rj ** 2.0) / matrix.n_s ** 2.0
+
+
+class FeatureRLMRPerc(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - run percentage"
+        self.abbr_name = "rlm_r_perc"
+        self.ibsi_id = "9ZK5"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return 1.0 * matrix.n_s / matrix.n_voxels
+
+
+class FeatureRLMGLVar(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - grey level variance"
+        self.abbr_name = "rlm_gl_var"
+        self.ibsi_id = "8CE5"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        mu = np.sum(matrix.rij.rij * matrix.rij.i) / matrix.n_s
+        return np.sum((matrix.rij.i - mu) ** 2.0 * matrix.rij.rij) / matrix.n_s
+
+
+class FeatureRLMRLVar(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - run length variance"
+        self.abbr_name = "rlm_rl_var"
+        self.ibsi_id = "SXLW"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        mu = np.sum(matrix.rij.rij * matrix.rij.j) / matrix.n_s
+        return np.sum((matrix.rij.j - mu) ** 2.0 * matrix.rij.rij) / matrix.n_s
+
+
+class FeatureRLMRLEntr(FeatureRLM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "RLM - run entropy"
+        self.abbr_name = "rlm_rl_entr"
+        self.ibsi_id = "HJ9O"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixRLM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return - np.sum(matrix.rij.rij * np.log2(matrix.rij.rij / matrix.n_s)) / matrix.n_s
 
 
 def get_rlm_class_dict() -> dict[str, FeatureRLM]:
@@ -150,19 +344,19 @@ def get_rlm_class_dict() -> dict[str, FeatureRLM]:
         "rlm_sre": FeatureRLMSRE,
         "rlm_lre": FeatureRLMLRE,
         "rlm_lgre": FeatureRLMLGRE,
-        "rlm_hgre": 4,
-        "rlm_srlge": 5,
-        "rlm_srhge": 6,
-        "rlm_lrlge": 7,
-        "rlm_lrhge": 8,
-        "rlm_glnu": 9,
-        "rlm_glnu_norm": 10,
-        "rlm_rlnu": 11,
-        "rlm_rlnu_norm": 12,
-        "rlm_r_perc": 13,
-        "rlm_gl_var": 14,
-        "rlm_rl_var": 15,
-        "rlm_rl_entr": 16
+        "rlm_hgre": FeatureRLMHGRE,
+        "rlm_srlge": FeatureRLMSRLGE,
+        "rlm_srhge": FeatureRLMSRHGE,
+        "rlm_lrlge": FeatureRLMLRLGE,
+        "rlm_lrhge": FeatureRLMLRHGE,
+        "rlm_glnu": FeatureRLMGLNU,
+        "rlm_glnu_norm": FeatureRLMGLNUNorm,
+        "rlm_rlnu": FeatureRLMRLNU,
+        "rlm_rlnu_norm": FeatureRLMRLNUNorm,
+        "rlm_r_perc": FeatureRLMRPerc,
+        "rlm_gl_var": FeatureRLMGLVar,
+        "rlm_rl_var": FeatureRLMRLVar,
+        "rlm_rl_entr": FeatureRLMRLEntr
     }
 
     return class_dict
