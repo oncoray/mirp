@@ -66,7 +66,7 @@ class FeatureRLM(FeatureTexture):
         )
 
         # Compute the required matrices.
-        matrix_list = matrix_instance.generate(prototype=MatrixRLM, n_slices=image.image_dimension[0])
+        matrix_list = list(matrix_instance.generate(prototype=MatrixRLM, n_slices=image.image_dimension[0]))
         for matrix in matrix_list:
             matrix.compute(data=data, image_dimension=image.image_dimension)
 
@@ -74,8 +74,8 @@ class FeatureRLM(FeatureTexture):
         matrix_list = matrix_instance.merge(matrix_list, prototype=MatrixRLM)
 
         # Compute additional values from the individual matrices.
-        matrix_list = [matrix.set_values_from_matrix() for matrix in matrix_list]
-
+        for matrix in matrix_list:
+            matrix.set_values_from_matrix()
         return matrix_list
 
     def clear_cache(self):
