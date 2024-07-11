@@ -24,4 +24,4 @@ def feature_to_table(features: list[Feature]) -> pd.DataFrame | None:
     for feature in features:
         feature.create_table_name()
 
-    return pd.DataFrame(dict([(feature.table_name , feature.value) for feature in features]))
+    return pd.DataFrame(dict([(feature.table_name , [feature.value]) for feature in features]))
