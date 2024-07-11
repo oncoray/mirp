@@ -75,6 +75,8 @@ class HistogramDerivedFeature(Feature):
             in_place=False
         )
 
+        print(f"Cached discretised image for: {discretisation_method}")
+
         return image, mask
 
     def clear_cache(self):
