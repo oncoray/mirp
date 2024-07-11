@@ -450,7 +450,6 @@ class StandardWorkflow(BaseWorkflow):
         # Convert to table.
         yield feature_to_table(features)
 
-
     def _depr_compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
         from mirp._featuresets.local_intensity import get_local_intensity_features
         from mirp._featuresets.statistics import get_intensity_statistics_features

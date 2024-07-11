@@ -373,7 +373,7 @@ def generate_rlm_features(
         features: None | list[str] = None
 ) -> Generator[FeatureRLM, None, None]:
     class_dict = get_rlm_class_dict()
-    rlm_features = set(class_dict.keys())
+    rlm_features = list(class_dict.keys())
 
     # Populate features if available.
     if features is None and settings.has_glrlm_family():
@@ -384,11 +384,11 @@ def generate_rlm_features(
         return
 
     # Select only RLM-features, and return if none are present.
-    features = set(features).intersection(rlm_features)
+    features = [feature for feature in features if feature in rlm_features]
     if len(features) == 0:
         return
 
-    # Features are parametrised by the choice of discretisation parameters and spatial methods..
+    # Features are parametrised by the choice of discretisation parameters and spatial methods.
     for discretisation_parameters in get_discretisation_parameters(
         settings=settings
     ):
