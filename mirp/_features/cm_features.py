@@ -115,24 +115,39 @@ class FeatureCM(FeatureTexture):
         self.table_name = "_".join(table_elements)
 
 
-class FeatureCMSomething(FeatureCM):
+class FeatureCMJointMax(FeatureCM):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "CM - "
-        self.abbr_name = ""
-        self.ibsi_id = ""
+        self.name = "CM - joint maximum"
+        self.abbr_name = "cm_joint_max"
+        self.ibsi_id = "GYBY"
         self.ibsi_compliant = True
 
     @staticmethod
     def _compute(matrix: MatrixCM) -> float:
         if matrix.is_empty():
             return np.nan
-        return
+        return np.max(matrix.pij.pij)
+
+
+class FeatureCMJointAverage(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - joint average"
+        self.abbr_name = "cm_joint_avg"
+        self.ibsi_id = "60VM"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return matrix.mu
 
 
 def get_cm_class_dict() -> dict[str, FeatureCM]:
     class_dict = {
-        "cm_joint_max": 1,
+        "cm_joint_max": FeatureCMJointMax,
         "cm_joint_avg": 1,
         "cm_joint_var": 1,
         "cm_joint_entr": 1,

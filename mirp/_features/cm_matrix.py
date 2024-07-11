@@ -33,6 +33,9 @@ class MatrixCM(DirectionalMatrix):
         # Number of intensities bins (grey levels)
         self.n_g: int | None = None
 
+        # Mean co-occurrence weighted intensity
+        self.mu: float | None = None
+
     def compute(
             self,
             data: pd.DataFrame | None,
@@ -129,6 +132,9 @@ class MatrixCM(DirectionalMatrix):
 
         # Number of grey levels
         self.n_g = intensity_range[1] - intensity_range[0] + 1
+
+        # Mean co-occurrence weighted intensity
+        self.mu = np.sum(self.pij.i * self.pij.pij)
 
     @staticmethod
     def _get_grouping_columns():
