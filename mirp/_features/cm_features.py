@@ -85,7 +85,7 @@ class FeatureCM(FeatureTexture):
 
         # Compute additional values from the individual matrices.
         for matrix in matrix_list:
-            matrix.set_values_from_matrix()
+            matrix.set_values_from_matrix(intensity_range=mask.intensity_range)
         print(f"CM Matrix being cached for: {spatial_method}.")
         return matrix_list
 
@@ -145,16 +145,107 @@ class FeatureCMJointAverage(FeatureCM):
         return matrix.mu
 
 
+class FeatureCMJointVariance(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - joint variance"
+        self.abbr_name = "cm_joint_var"
+        self.ibsi_id = "UR99"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum((matrix.pij.i - matrix.mu) ** 2.0 * matrix.pij.pij)
+
+
+class FeatureCMJointEntropy(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - joint entropy"
+        self.abbr_name = "cm_joint_entr"
+        self.ibsi_id = "TU9B"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return -np.sum(matrix.pij.pij * np.log2(matrix.pij.pij))
+
+
+class FeatureCMDifferenceAveraga(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - difference average"
+        self.abbr_name = "cm_diff_avg"
+        self.ibsi_id = "TF7R"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.pimj.k * matrix.pimj.pimj)
+
+
+class FeatureCMDifferenceVariance(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - difference variance"
+        self.abbr_name = "cm_diff_var"
+        self.ibsi_id = "D3YU"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        mu = np.sum(matrix.pimj.k * matrix.pimj.pimj)
+        return np.sum((matrix.pimj.k - mu) ** 2.0 * matrix.pimj.pimj)
+
+
+class FeatureCMDifferenceEntropy(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - difference entropy"
+        self.abbr_name = "cm_diff_entr"
+        self.ibsi_id = "NTRS"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return -np.sum(matrix.pimj.pimj * np.log2(matrix.pimj.pimj))
+
+
+class FeatureCMSumAverage(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - sum average"
+        self.abbr_name = "cm_sum_avg"
+        self.ibsi_id = "ZGXS"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.pipj.k * matrix.pipj.pipj)
+
+
 def get_cm_class_dict() -> dict[str, FeatureCM]:
     class_dict = {
         "cm_joint_max": FeatureCMJointMax,
-        "cm_joint_avg": 1,
-        "cm_joint_var": 1,
-        "cm_joint_entr": 1,
-        "cm_diff_avg": 1,
-        "cm_diff_var": 1,
-        "cm_diff_entr": 1,
-        "cm_sum_avg": 1,
+        "cm_joint_avg": FeatureCMJointAverage,
+        "cm_joint_var": FeatureCMJointVariance,
+        "cm_joint_entr": FeatureCMJointEntropy,
+        "cm_diff_avg": FeatureCMDifferenceAveraga,
+        "cm_diff_var": FeatureCMDifferenceVariance,
+        "cm_diff_entr": FeatureCMDifferenceEntropy,
+        "cm_sum_avg": FeatureCMSumAverage,
         "cm_sum_var": 1,
         "cm_sum_entr": 1,
         "cm_energy": 1,
