@@ -148,7 +148,7 @@ class Matrix(object):
             # Manhattan distance
             index = np.logical_or(index, np.sum(np.abs(nbrs), axis=0) <= d)
         elif metric.lower() in ["euclidian", "l2", "l_2"]:
-            # Eucldian distance
+            # Euclidian distance
             index = np.logical_or(index, np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis=0)) <= d)
         elif metric in ["chebyshev", "linf", "l_inf"]:
             # Chebyshev distance
@@ -172,6 +172,23 @@ class Matrix(object):
         for ii, flag in enumerate(index):
             if flag:
                 yield tuple(nbrs[:, ii].flatten())
+
+    @staticmethod
+    def _lookup_intensity(x, index, replace_invalid = "nan"):
+        # Initialise placeholder
+        read_x = np.zeros(np.shape(x))
+
+        # Read variables for valid indices
+        read_x[index >= 0] = x[index[index >= 0]]
+
+        if replace_invalid == "nan":
+            # Set variables for invalid indices to nan
+            read_x[index < 0] = np.nan
+
+            # Set variables for invalid initial indices to nan
+            read_x[np.isnan(x)] = np.nan
+
+        return read_x
 
     def _spatial_method_error(self):
         raise ValueError(
