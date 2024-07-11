@@ -135,7 +135,7 @@ class MatrixRLM(DirectionalMatrix):
         # Add matrix to object
         self.matrix = matrix
 
-    def set_values_from_matrix(self):
+    def set_values_from_matrix(self, **kwargs):
         if self.is_empty():
             return
 

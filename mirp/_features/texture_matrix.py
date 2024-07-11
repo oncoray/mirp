@@ -45,7 +45,7 @@ class Matrix(object):
     ):
         raise NotImplementedError("Implement in subclasses.")
 
-    def set_values_from_matrix(self):
+    def set_values_from_matrix(self, **kwargs):
         raise NotImplementedError("Implement in subclasses.")
 
     def generate(self, prototype, n_slices: int, **kwargs) -> Generator[Self, None, None]:
