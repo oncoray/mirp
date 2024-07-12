@@ -2,8 +2,11 @@ import copy
 
 import numpy as np
 import pandas as pd
+import skimage.measure
 
 from mirp._features.texture_matrix import Matrix
+from mirp._images.generic_image import GenericImage
+from mirp._masks.base_mask import BaseMask
 
 
 class MatrixSZM(Matrix):
@@ -26,111 +29,70 @@ class MatrixSZM(Matrix):
 
     def compute(
             self,
-            data: pd.DataFrame | None,
-            image_dimension: tuple[int, int, int] | None = None,
+            image: GenericImage | None = None,
+            mask: BaseMask | None = None,
             **kwargs
     ):
+        from mirp.utilities.utilities import real_ndim
+
+        if image is None:
+            raise ValueError(
+                "image cannot be None, but may not have been provided in the calling function."
+            )
+        if mask is None:
+            raise ValueError(
+                "mask cannot be None, but may not have been provided in the calling function."
+            )
+
         # Check if data actually exists
-        if data is None:
+        if image.is_empty() or mask.roi_intensity.is_empty_mask():
             return
 
-        # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLRLM.
-        if not np.any(data.roi_int_mask):
-            return
+        # Define neighbour directions
+        if self.spatial_method == "3d":
+            connectivity = 3
+            image = copy.deepcopy(image.get_voxel_grid())
+            mask = copy.deepcopy(mask.roi_intensity.get_voxel_grid())
 
-        # Create local copies of the image table
-        if self.spatial_method in ["3d_average", "3d_volume_merge"]:
-            data = copy.deepcopy(data)
-
-        elif self.spatial_method in ["2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge"]:
-            data = copy.deepcopy(data[data.z == self.slice_id])
-            data["index_id"] = np.arange(0, len(data))
-            data["z"] = 0
-            data = data.reset_index(drop=True)
-
+        elif self.spatial_method in ["2d", "2.5d"]:
+            connectivity = 2
+            image = image.get_voxel_grid()[self.slice_id, :, :]
+            mask = mask.roi_intensity.get_voxel_grid()[self.slice_id, :, :]
         else:
+            connectivity = -1  # Does nothing, because _spatial_method_error throws an error.
             self._spatial_method_error()
 
-        # Set grey level of voxels outside ROI to NaN
-        data.loc[data.roi_int_mask == False, "g"] = np.nan
+        # Check dimensionality and update connectivity if necessary.
+        connectivity = min([connectivity, real_ndim(image)])
 
-        # Set the number of voxels
-        self.n_voxels = np.sum(data.roi_int_mask.values)
+        # Set voxels outside roi to 0.0
+        image[~mask] = 0.0
 
-        # Determine update index number for direction
-        if ((
-                self.direction[2]
-                + self.direction[1] * image_dimension[2]
-                + self.direction[0] * image_dimension[2] * image_dimension[1]
-        ) >= 0):
-            direction = self.direction
-        else:
-            direction = tuple(-x for x in self.direction)
+        # Count the number of voxels within the roi
+        self.n_voxels = np.sum(mask)
 
-        # Step size
-        index_update = (
-                direction[2]
-                + direction[1] * image_dimension[2]
-                + direction[0] * image_dimension[2] * image_dimension[1]
+        # Label all connected voxels with the same label.
+        labelled_image = skimage.measure.label(
+            label_image=image,
+            background=0.0,
+            connectivity=connectivity
         )
 
-        # Generate information concerning segments
-        n_segments = index_update  # Number of segments
-
-        # Check if the number of segments is greater than one
-        if n_segments == 0:
-            return
-
-        # Nominal segment length
-        segment_length = (len(data) - 1) // index_update + 1
-
-        # Initial segment length for transitions (nominal length - 1)
-        trans_segment_length = np.tile([segment_length - 1], reps=n_segments)
-
-        # Number of full segments
-        full_len_trans = n_segments - n_segments * segment_length + len(data)
-
-        # Update full segments
-        trans_segment_length[0:full_len_trans] += 1
-
-        # Create transition vector
-        trans_vec = (
-                np.tile(
-                    np.arange(start=0, stop=len(data), step=index_update),
-                    reps=index_update
-                )
-                + np.repeat(
-                    np.arange(start=0, stop=n_segments),
-                    repeats=segment_length
-                )
-            )
-        trans_vec = trans_vec[trans_vec < len(data)]
-
-        # Determine valid transitions
-        to_index = self.coord_to_index(
-            x=data.x.values + direction[2],
-            y=data.y.values + direction[1],
-            z=data.z.values + direction[0],
-            dims=image_dimension
-        )
-
-        # Determine which transitions are valid
-        end_ind = np.nonzero(to_index[trans_vec] < 0)[0]  # Find transitions that form an endpoint.
-
-        # Get an interspersed array of intensities. Runs are broken up by np.nan
-        intensities = np.insert(data.g.values[trans_vec], end_ind + 1, np.nan)
-
-        # Determine run length start and end indices
-        rle_end = np.array(np.append(np.where(intensities[1:] != intensities[:-1]), len(intensities) - 1))
-        rle_start = np.cumsum(np.append(0, np.diff(np.append(-1, rle_end))))[:-1]
-
-        # Generate matrix
-        matrix = pd.DataFrame({
-            "i": intensities[rle_start],
-            "j": rle_end - rle_start + 1
+        # Generate data frame
+        df_szm = pd.DataFrame({
+            "g": np.ravel(image),
+            "label_id": np.ravel(labelled_image),
+            "in_roi": np.ravel(mask)
         })
-        matrix = matrix.loc[~np.isnan(matrix.i), :]
-        matrix = matrix.groupby(by=["i", "j"]).size().reset_index(name="rij")
+
+        # Remove all non-roi entries and count occurrence of combinations of volume id and grey level
+        df_szm = df_szm[df_szm.in_roi].groupby(by=["g", "label_id"]).size().reset_index(name="zone_size")
+
+        # Count the number of co-occurring sizes and grey values
+        matrix = df_szm.groupby(by=["g", "zone_size"]).size().reset_index(name="n")
+
+        # Rename columns
+        matrix.columns = ["i", "s", "n"]
 
         # Add matrix to object
         self.matrix = matrix

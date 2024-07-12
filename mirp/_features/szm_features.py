@@ -53,12 +53,6 @@ class FeatureSZM(FeatureTexture):
             mask: BaseMask,
             spatial_method: str
     ) -> list[MatrixSZM]:
-        # Represent image and mask as a dataframe.
-        data = mask.as_pandas_dataframe(
-            image=image,
-            intensity_mask=True
-        )
-
         # Instantiate a helper copy of the current class to be able to use class methods without tying the cache to the
         # instance of the original object from which this method is called.
         matrix_instance = MatrixSZM(
@@ -68,7 +62,7 @@ class FeatureSZM(FeatureTexture):
         # Compute the required matrices.
         matrix_list = list(matrix_instance.generate(prototype=MatrixSZM, n_slices=image.image_dimension[0]))
         for matrix in matrix_list:
-            matrix.compute(data=data, image_dimension=image.image_dimension)
+            matrix.compute(image=image, mask=mask)
 
         # Merge according to the spatial method.
         matrix_list = matrix_instance.merge(matrix_list, prototype=MatrixSZM)
