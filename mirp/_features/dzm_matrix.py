@@ -9,26 +9,27 @@ from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 
 
-class MatrixSZM(Matrix):
+class MatrixDZM(Matrix):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         # Placeholders for derivative values computed using set_values_from_matrix
-        # Size zone matrix
-        self.sij: pd.DataFrame | None = None
+        # Distance zone matrix
+        self.dij: pd.DataFrame | None = None
 
         # Marginal sum over grey levels
-        self.si: pd.DataFrame | None = None
+        self.di: pd.DataFrame | None = None
 
-        # Marginal sum over zone sizes
-        self.sj: pd.DataFrame | None = None
+        # Marginal sum over distances
+        self.dj: pd.DataFrame | None = None
 
-        # Number of zones
+        # Number of distance zones
         self.n_s: int | None = None
 
     def compute(
             self,
+            data: pd.DataFrame | None = None,
             image: GenericImage | None = None,
             mask: BaseMask | None = None,
             **kwargs
@@ -53,11 +54,14 @@ class MatrixSZM(Matrix):
             connectivity = 3
             image = copy.deepcopy(image.get_voxel_grid())
             mask = copy.deepcopy(mask.roi_intensity.get_voxel_grid())
+            data = copy.deepcopy(data)
 
         elif self.spatial_method in ["2d", "2.5d"]:
             connectivity = 2
             image = image.get_voxel_grid()[self.slice_id, :, :]
             mask = mask.roi_intensity.get_voxel_grid()[self.slice_id, :, :]
+            data = copy.deepcopy(data[data.z == self.slice_id])
+
         else:
             connectivity = -1  # Does nothing, because _spatial_method_error throws an error.
             self._spatial_method_error()
@@ -78,21 +82,18 @@ class MatrixSZM(Matrix):
             connectivity=connectivity
         )
 
-        # Generate data frame
-        data = pd.DataFrame({
-            "g": np.ravel(image),
-            "label_id": np.ravel(labelled_image),
-            "in_roi": np.ravel(mask)
-        })
+        data["label_id"] = np.ravel(labelled_image)
 
-        # Remove all non-roi entries and count occurrence of combinations of volume id and grey level
-        data = data[data.in_roi].groupby(by=["g", "label_id"]).size().reset_index(name="zone_size")
+        # Select minimum group distance for unique groups
+        data = data[data.roi_int_mask].groupby(by=["g", "label_id"])["border_distance"].min().reset_index().rename(
+            columns={"border_distance": "d"}
+        )
 
-        # Count the number of co-occurring sizes and grey values
-        matrix = data.groupby(by=["g", "zone_size"]).size().reset_index(name="n")
+        # Count occurrence of grey level and distance
+        matrix = data.groupby(by=["g", "d"]).size().reset_index(name="dij")
 
         # Rename columns
-        matrix.columns = ["i", "j", "sij"]
+        matrix.columns = ["i", "j", "dij"]
 
         # Add matrix to object
         self.matrix = matrix
@@ -102,16 +103,16 @@ class MatrixSZM(Matrix):
             return
 
         # Copy of matrix
-        self.sij = copy.deepcopy(self.matrix)
+        self.dij = copy.deepcopy(self.matrix)
 
         # Sum over grey levels
-        self.si = self.sij.groupby(by="i")["sij"].sum().reset_index().rename(columns={"sij": "si"})
+        self.di = self.dij.groupby(by="i")["dij"].sum().reset_index().rename(columns={"dij": "di"})
 
-        # Sum over zone sizes
-        self.sj = self.sij.groupby(by="j")["sij"].sum().reset_index().rename(columns={"sij": "sj"})
+        # Sum over distances
+        self.dj = self.dij.groupby(by="j")["dij"].sum().reset_index().rename(columns={"dij": "dj"})
 
-        # Number of zones
-        self.n_s = np.sum(self.sij.sij)  # Number of size zones
+        # Number of distance zones
+        self.n_s = np.sum(self.dij.dij)
 
     @staticmethod
     def _get_grouping_columns():

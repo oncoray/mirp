@@ -5,6 +5,7 @@ import pandas as pd
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._features.base_feature import Feature
 from mirp._features.cm_features import generate_cm_features
+from mirp._features.dzm_features import generate_dzm_features
 from mirp._features.rlm_features import generate_rlm_features
 from mirp._features.szm_features import generate_szm_features
 
@@ -22,6 +23,9 @@ def generate_features(
 
     # Size zone matrix features.
     yield from generate_szm_features(settings=settings, features=features)
+
+    # Distance zone matrix features.
+    yield from generate_dzm_features(settings=settings, features=features)
 
 
 def feature_to_table(features: list[Feature]) -> pd.DataFrame | None:
