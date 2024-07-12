@@ -36,6 +36,9 @@ class MatrixCM(DirectionalMatrix):
         # Mean co-occurrence weighted intensity
         self.mu: float | None = None
 
+        # Marginal co-occurrence weighted intensity mean
+        self.mu_marg: float | None = None
+
     def compute(
             self,
             data: pd.DataFrame | None,
@@ -135,6 +138,9 @@ class MatrixCM(DirectionalMatrix):
 
         # Mean co-occurrence weighted intensity
         self.mu = np.sum(self.pij.i * self.pij.pij)
+
+        # Marginal co-occurrence weighted intensity mean
+        self.mu_marg = np.sum(self.pi.i * self.pi.pi)
 
     @staticmethod
     def _get_grouping_columns():
