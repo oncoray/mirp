@@ -98,26 +98,266 @@ class FeatureSZM(FeatureTexture):
         self.table_name = "_".join(table_elements)
 
 
+class FeatureSZMSmallZoneEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - small zone emphasis"
+        self.abbr_name = "szm_sze"
+        self.ibsi_id = "5QRC"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sj.sj / matrix.sj.j ** 2.0) / matrix.n_s
+
+
+class FeatureSZMLargeZoneEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - large zone emphasis"
+        self.abbr_name = "szm_lze"
+        self.ibsi_id = "48P8"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sj.sj * matrix.sj.j ** 2.0) / matrix.n_s
+
+
+class FeatureSZMLowGreyLevelZoneEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - low grey level zone emphasis"
+        self.abbr_name = "szm_lgze"
+        self.ibsi_id = "XMSY"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.si.si / matrix.si.i ** 2.0) / matrix.n_s
+
+
+class FeatureSZMHighGreyLevelZoneEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - high grey level zone emphasis "
+        self.abbr_name = "szm_hgze"
+        self.ibsi_id = "5GN9"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return  np.sum(matrix.si.si * matrix.si.i ** 2.0) / matrix.n_s
+
+
+class FeatureSZMSmallZoneLowGreyLevelEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - small zone low grey level emphasis"
+        self.abbr_name = "szm_szlge"
+        self.ibsi_id = "5RAI"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sij.sij / (matrix.sij.i * matrix.sij.j) ** 2.0) / matrix.n_s
+
+
+class FeatureSZMSmallZoneHighGreyLevelEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - small zone high grey level emphasis"
+        self.abbr_name = "szm_szhge"
+        self.ibsi_id = "HW1V"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sij.sij * matrix.sij.i ** 2.0 / matrix.sij.j ** 2.0) / matrix.n_s
+
+
+class FeatureSZMLargeZoneLowGreyLevelEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - large zone low grey level emphasis"
+        self.abbr_name = "szm_lzlge"
+        self.ibsi_id = "YH51"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sij.sij * matrix.sij.j ** 2.0 / matrix.sij.i ** 2.0) / matrix.n_s
+
+
+class FeatureSZMLargeZoneHighGreyLevelEmphasis(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - large zone high grey level emphasis"
+        self.abbr_name = "szm_lzhge"
+        self.ibsi_id = "J17V"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sij.sij * matrix.sij.i ** 2.0 * matrix.sij.j ** 2.0) / matrix.n_s
+
+
+class FeatureSZMGreyLevelNonUniformity(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - grey level non-uniformity"
+        self.abbr_name = "szm_glnu"
+        self.ibsi_id = "JNSA"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.si.si ** 2.0) / matrix.n_s
+
+
+class FeatureSZMNormalisedGreyLevelNonUniformity(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - normalised grey level non-uniformity"
+        self.abbr_name = "szm_glnu_norm"
+        self.ibsi_id = "Y1RO"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.si.si ** 2.0) / matrix.n_s ** 2.0
+
+
+class FeatureSZMZoneSizeNonUniformity(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - zone size non-uniformity"
+        self.abbr_name = "szm_zsnu"
+        self.ibsi_id = "4JP3"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sj.sj ** 2.0) / matrix.n_s
+
+
+class FeatureSZMNormalisedZoneSizeNonUniformity(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - Normalised zone size non-uniformity"
+        self.abbr_name = "szm_zsnu_norm"
+        self.ibsi_id = "VB3A"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return np.sum(matrix.sj.sj ** 2.0) / matrix.n_s ** 2.0
+
+
+class FeatureSZMZonePercentage(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - zone percentage"
+        self.abbr_name = "szm_z_perc"
+        self.ibsi_id = "P30P"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return matrix.n_s / matrix.n_voxels
+
+
+class FeatureSZMGreyLevelVariance(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - grey level variance"
+        self.abbr_name = "szm_gl_var"
+        self.ibsi_id = "BYLV"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        mu = np.sum(matrix.sij.sij * matrix.sij.i) / matrix.n_s
+        return np.sum((matrix.sij.i - mu) ** 2.0 * matrix.sij.sij) / matrix.n_s
+
+
+class FeatureSZMZoneSizeVariance(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - zone size variance"
+        self.abbr_name = "szm_zs_var"
+        self.ibsi_id = "3NSA"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        mu = np.sum(matrix.sij.sij * matrix.sij.j) / matrix.n_s
+        return np.sum((matrix.sij.j - mu) ** 2.0 * matrix.sij.sij) / matrix.n_s
+
+
+class FeatureSZMZoneSizeEntropy(FeatureSZM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "SZM - zone size entropy"
+        self.abbr_name = "szm_zs_entr"
+        self.ibsi_id = "GU8N"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(matrix: MatrixSZM) -> float:
+        if matrix.is_empty():
+            return np.nan
+        return -np.sum(matrix.sij.sij * np.log2(matrix.sij.sij / matrix.n_s)) / matrix.n_s
 
 
 def get_szm_class_dict() -> dict[str, FeatureSZM]:
     class_dict = {
-        "szm_sze": 1,
-        "szm_lze": 1,
-        "szm_lgze": 1,
-        "szm_hgze": 1,
-        "szm_szlge": 1,
-        "szm_szhge": 1,
-        "szm_lzlge": 1,
-        "szm_lzhge": 1,
-        "szm_glnu": 1,
-        "szm_glnu_norm": 1,
-        "szm_zsnu": 1,
-        "szm_zsnu_norm": 1,
-        "szm_z_perc": 1,
-        "szm_gl_var": 1,
-        "szm_zs_var": 1,
-        "szm_zs_entr": 1
+        "szm_sze": FeatureSZMSmallZoneEmphasis,
+        "szm_lze": FeatureSZMLargeZoneEmphasis,
+        "szm_lgze": FeatureSZMLowGreyLevelZoneEmphasis,
+        "szm_hgze": FeatureSZMHighGreyLevelZoneEmphasis,
+        "szm_szlge": FeatureSZMSmallZoneLowGreyLevelEmphasis,
+        "szm_szhge": FeatureSZMSmallZoneHighGreyLevelEmphasis,
+        "szm_lzlge": FeatureSZMLargeZoneLowGreyLevelEmphasis,
+        "szm_lzhge": FeatureSZMLargeZoneHighGreyLevelEmphasis,
+        "szm_glnu": FeatureSZMGreyLevelNonUniformity,
+        "szm_glnu_norm": FeatureSZMNormalisedGreyLevelNonUniformity,
+        "szm_zsnu": FeatureSZMZoneSizeNonUniformity,
+        "szm_zsnu_norm": FeatureSZMNormalisedZoneSizeNonUniformity,
+        "szm_z_perc": FeatureSZMZonePercentage,
+        "szm_gl_var": FeatureSZMGreyLevelVariance,
+        "szm_zs_var": FeatureSZMZoneSizeVariance,
+        "szm_zs_entr": FeatureSZMZoneSizeEntropy
     }
 
     return class_dict
