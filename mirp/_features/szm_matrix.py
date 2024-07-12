@@ -15,16 +15,16 @@ class MatrixSZM(Matrix):
         super().__init__(**kwargs)
 
         # Placeholders for derivative values computed using set_values_from_matrix
-        # Run-length matrix
-        self.rij: pd.DataFrame | None = None
+        # Size zone matrix
+        self.sij: pd.DataFrame | None = None
 
         # Marginal sum over grey levels
-        self.ri: pd.DataFrame | None = None
+        self.si: pd.DataFrame | None = None
 
-        # Marginal sum over run lengths
-        self.rj: pd.DataFrame | None = None
+        # Marginal sum over zone sizes
+        self.sj: pd.DataFrame | None = None
 
-        # Number of runs
+        # Number of zones
         self.n_s: int | None = None
 
     def compute(
@@ -92,7 +92,7 @@ class MatrixSZM(Matrix):
         matrix = df_szm.groupby(by=["g", "zone_size"]).size().reset_index(name="n")
 
         # Rename columns
-        matrix.columns = ["i", "s", "n"]
+        matrix.columns = ["i", "j", "sij"]
 
         # Add matrix to object
         self.matrix = matrix
@@ -102,16 +102,16 @@ class MatrixSZM(Matrix):
             return
 
         # Copy of matrix
-        self.rij = copy.deepcopy(self.matrix)
+        self.sij = copy.deepcopy(self.matrix)
 
         # Sum over grey levels
-        self.ri = self.matrix.groupby(by="i")["rij"].sum().reset_index().rename(columns={"rij": "ri"})
+        self.si = self.sij.groupby(by="i")["sij"].sum().reset_index().rename(columns={"sij": "si"})
 
-        # Sum over run lengths
-        self.rj = self.matrix.groupby(by="j")["rij"].sum().reset_index().rename(columns={"rij": "rj"})
+        # Sum over zone sizes
+        self.sj = self.sij.groupby(by="j")["sij"].sum().reset_index().rename(columns={"sij": "sj"})
 
-        # Constant definitions
-        self.n_s = np.sum(self.matrix.rij) * 1.0  # Number of runs
+        # Number of zones
+        self.n_s = np.sum(self.sij.sij)  # Number of size zones
 
     @staticmethod
     def _get_grouping_columns():
