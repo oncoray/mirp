@@ -21,7 +21,7 @@ class FeatureCM(FeatureTexture):
         super().__init__(**kwargs)
 
         # Lookup distance (in voxels)
-        self.distance = distance
+        self.distance = int(distance)
 
         # Features are always computed from symmetric co-occurrence matrices.
         self.symmetric_matrix = True
@@ -76,12 +76,12 @@ class FeatureCM(FeatureTexture):
         )
 
         # Compute the required matrices.
-        matrix_list = list(matrix_instance.generate(prototype=MatrixCM, n_slices=image.image_dimension[0]))
+        matrix_list = list(matrix_instance.generate(prototype=MatrixCM, n_slices=image.image_dimension[0], distance=distance))
         for matrix in matrix_list:
             matrix.compute(data=data, image_dimension=image.image_dimension)
 
         # Merge according to the spatial method.
-        matrix_list = matrix_instance.merge(matrix_list, prototype=MatrixCM)
+        matrix_list = matrix_instance.merge(matrix_list, prototype=MatrixCM, distance=distance)
 
         # Compute additional values from the individual matrices.
         for matrix in matrix_list:
@@ -108,7 +108,7 @@ class FeatureCM(FeatureTexture):
     def create_table_name(self):
         table_elements = (
                 self._get_base_table_name_element()
-                + ["d" + str(np.round(self.distance, 1))]
+                + ["d" + str(self.distance)]
                 + self._get_spatial_table_name_element()
                 + self._get_discretisation_table_name_element()
         )
@@ -301,7 +301,7 @@ class FeatureCMDissimilarity(FeatureCM):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "CM - dissimilarity"
-        self.abbr_name = "cm_dissimilarity`"
+        self.abbr_name = "cm_dissimilarity"
         self.ibsi_id = "8S9J"
         self.ibsi_compliant = True
 

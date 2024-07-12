@@ -12,7 +12,7 @@ class MatrixCM(DirectionalMatrix):
         super().__init__(**kwargs)
 
         # Set distance
-        self.distance = distance
+        self.distance = int(distance)
 
         # Placeholders for derivative values computed using set_values_from_matrix
         # Co-occurrence matrix, expressed as probabilities.

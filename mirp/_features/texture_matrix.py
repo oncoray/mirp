@@ -174,7 +174,7 @@ class Matrix(object):
                 yield tuple(nbrs[:, ii].flatten())
 
     @staticmethod
-    def _lookup_intensity(x, index, replace_invalid = "nan"):
+    def _lookup_intensity(x, index, replace_invalid="nan"):
         # Initialise placeholder
         read_x = np.zeros(np.shape(x))
 
