@@ -26,7 +26,7 @@ class MatrixRLM(DirectionalMatrix):
 
     def compute(
             self,
-            data: pd.DataFrame | None,
+            data: pd.DataFrame | None = None,
             image_dimension: tuple[int, int, int] | None = None,
             **kwargs
     ):
@@ -37,6 +37,9 @@ class MatrixRLM(DirectionalMatrix):
         # Check if the roi contains any masked voxels. If this is not the case, don't construct the GLRLM.
         if not np.any(data.roi_int_mask):
             return
+
+        if image_dimension is None:
+            raise ValueError("image_dimension cannot be None, but may not have been provided in the calling function.")
 
         # Create local copies of the image table
         if self.spatial_method in ["3d_average", "3d_volume_merge"]:

@@ -10,6 +10,9 @@ else:
     from typing_extensions import Self
 from typing import Generator
 
+from mirp._images.generic_image import GenericImage
+from mirp._masks.base_mask import BaseMask
+
 
 class Matrix(object):
     def __init__(
@@ -39,7 +42,9 @@ class Matrix(object):
 
     def compute(
             self,
-            data: pd.DataFrame,
+            data: pd.DataFrame | None = None,
+            image: GenericImage | None = None,
+            mask: BaseMask | None = None,
             image_dimension: tuple[int, int, int] | None = None,
             **kwargs
     ):
