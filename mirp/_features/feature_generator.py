@@ -8,6 +8,7 @@ from mirp._features.cm_features import generate_cm_features
 from mirp._features.dzm_features import generate_dzm_features
 from mirp._features.rlm_features import generate_rlm_features
 from mirp._features.szm_features import generate_szm_features
+from mirp._features.ngt_features import generate_ngtdm_features
 
 
 def generate_features(
@@ -26,6 +27,9 @@ def generate_features(
 
     # Distance zone matrix features.
     yield from generate_dzm_features(settings=settings, features=features)
+
+    # Neighbourhood grey tone difference matrix features.
+    yield from generate_ngtdm_features(settings=settings, features=features)
 
 
 def feature_to_table(features: list[Feature]) -> pd.DataFrame | None:
