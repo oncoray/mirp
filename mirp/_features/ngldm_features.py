@@ -422,7 +422,7 @@ def generate_ngldm_features(
     ngldm_features = list(class_dict.keys())
 
     # Populate features if available.
-    if features is None and settings.has_glcm_family():
+    if features is None and settings.has_ngldm_family():
         features = ngldm_features
 
     # Terminate early if no features are set, and none are required.
