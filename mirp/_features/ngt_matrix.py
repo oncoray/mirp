@@ -136,13 +136,23 @@ class MatrixNGTDM(Matrix):
         self.pi["pi"] = self.pi.n / np.sum(self.pi.n)
 
         # Number of grey levels.
-        self.n_g = intensity_range[1] - intensity_range[0] + 1
+        self.n_g = int(intensity_range[1] - intensity_range[0] + 1)
 
         # Number of valid grey levels.
         self.n_p = len(self.pi)
 
+        # Cartesian representation of neighbourhood occurrence.
+        pi = copy.deepcopy(self.pi).drop(columns="n").rename(columns={"s": "si"})
+        pj = copy.deepcopy(self.pi).drop(columns="n").rename(columns={"i": "j", "s": "sj", "pi": "pj"})
+        pij = pd.DataFrame({
+            "i": np.repeat(self.pi.i.values, self.n_p),
+            "j": np.tile(self.pi.i.values, self.n_p)
+        })
+        pij = pd.merge(pij, pj, on="j")
+        self.pij = pd.merge(pij, pi, on="i")
+
         # Neighbourhood occurrence with missing intensity levels.
-        levels = np.arange(start=0, stop=self.n_g) + 1.0
+        levels = np.arange(start=0, stop=self.n_g) + 1
         missing_levels = levels[np.logical_not(np.isin(levels, self.pi.i))]
         n_missing = len(missing_levels)
         if n_missing > 0:
@@ -158,15 +168,6 @@ class MatrixNGTDM(Matrix):
                 ignore_index=True
             )
 
-        # Compose occurrence correspondence table
-        self.pij = copy.deepcopy(self.pi)
-        self.pij = self.pij.rename(columns={"s": "si"})
-        self.pij = self.pij.iloc[rep(np.arange(start=0, stop=self.n_g), each=self.n_g).astype(int), :]
-        self.pij["j"] = rep(self.pi.i, each=1, times=self.n_g)
-        self.pij["pj"] = rep(self.pi.pi, each=1, times=self.n_g)
-        self.pij["sj"] = rep(self.pi.s, each=1, times=self.n_g)
-        self.pij = self.pij.loc[(self.pij.pi > 0) & (self.pij.pj > 0), :].reset_index()
-
     @staticmethod
     def _get_grouping_columns():
-        return ["i", "s"]
+        return ["i"]
