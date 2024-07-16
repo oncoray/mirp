@@ -3,7 +3,7 @@ from typing import Generator
 
 import numpy as np
 
-from mirp._features.ngt_matrix import MatrixNGTDM
+from mirp._features.ngtdm_matrix import MatrixNGTDM
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 from mirp._features.histogram import get_discretisation_parameters
