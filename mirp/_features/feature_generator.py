@@ -4,6 +4,7 @@ import pandas as pd
 
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._features.base_feature import Feature
+from mirp._features.ih_features import generate_ih_features
 from mirp._features.cm_features import generate_cm_features
 from mirp._features.dzm_features import generate_dzm_features
 from mirp._features.rlm_features import generate_rlm_features
@@ -16,6 +17,9 @@ def generate_features(
         settings: FeatureExtractionSettingsClass,
         features: None | list[str] = None
 ) -> Generator[Feature, None, None]:
+
+    # Intensity histogram features
+    yield from generate_ih_features(settings=settings, features=features)
 
     # Co-occurrence matrix features.
     yield from generate_cm_features(settings=settings, features=features)
