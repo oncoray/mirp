@@ -163,8 +163,8 @@ class FeatureStatMedian(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - median"
-        self.abbr_name = "ih_median"
-        self.ibsi_id = "WIFQ"
+        self.abbr_name = "stat_median"
+        self.ibsi_id = "Y12H"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -176,8 +176,8 @@ class FeatureStatMinimum(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - minimum"
-        self.abbr_name = "ih_min"
-        self.ibsi_id = "1PR8"
+        self.abbr_name = "stat_min"
+        self.ibsi_id = "1GSF"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -196,28 +196,18 @@ class FeatureStatPercentile(FeatureStat):
         # Set IBSI identifier. Only the 10th and 90th percentile are explicitly identified.
         ibsi_id = ""
         if percentile == 10.0:
-            ibsi_id = "GPMT"
+            ibsi_id = "QG58"
         elif percentile == 90.0:
-            ibsi_id = "OZ0C"
+            ibsi_id = "8DWT"
         self.ibsi_id = ibsi_id
 
         if percentile.is_integer():
             self.name = f"Statistics - {int(percentile)}th percentile"
-            self.abbr_name = "ih_p" + str(int(percentile))
+            self.abbr_name = "stat_p" + str(int(percentile))
 
         self.ibsi_compliant = True
 
     def compute(self, image: GenericImage, mask: BaseMask):
-        # Discretise images.
-        image, mask = self.discretise_image(
-            image=image,
-            mask=mask,
-            discretisation_method=self.discretisation_method,
-            bin_width=self.bin_width,
-            bin_number=self.bin_number,
-            cropping_distance=self.cropping_distance
-        )
-
         # Get data.
         data = self._get_data(image=image, mask=mask)
 
@@ -232,8 +222,8 @@ class FeatureStatMaximum(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - maximum"
-        self.abbr_name = "ih_max"
-        self.ibsi_id = "3NCY"
+        self.abbr_name = "stat_max"
+        self.ibsi_id = "84IY"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -241,26 +231,12 @@ class FeatureStatMaximum(FeatureStat):
         return np.max(data.image)
 
 
-class FeatureStatMode(FeatureStat):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.name = "Statistics - mode"
-        self.abbr_name = "ih_mode"
-        self.ibsi_id = "AMMC"
-        self.ibsi_compliant = True
-
-    @staticmethod
-    def _compute(data: DataStatistics) -> float:
-        mode_g = data.histogram.loc[data.histogram.n == np.max(data.histogram.n)].g.values
-        return mode_g[np.argmin(np.abs(mode_g - data.mu))]
-
-
 class FeatureStatInterQuartileRange(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - interquartile range"
-        self.abbr_name = "ih_iqr"
-        self.ibsi_id = "WR0O"
+        self.abbr_name = "stat_iqr"
+        self.ibsi_id = "SALO"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -272,8 +248,8 @@ class FeatureStatRange(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - range"
-        self.abbr_name = "ih_range"
-        self.ibsi_id = "5Z3W"
+        self.abbr_name = "stat_range"
+        self.ibsi_id = "2OJQ"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -285,8 +261,8 @@ class FeatureStatMeanAbsoluteDeviation(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - mean absolute deviation"
-        self.abbr_name = "ih_mad"
-        self.ibsi_id = "D2ZX"
+        self.abbr_name = "stat_mad"
+        self.ibsi_id = "4FUA"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -298,8 +274,8 @@ class FeatureStatRobustMeanAbsoluteDeviation(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - robust mean absolute deviation"
-        self.abbr_name = "ih_rmad"
-        self.ibsi_id = "WRZB"
+        self.abbr_name = "stat_rmad"
+        self.ibsi_id = "1128"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -315,8 +291,8 @@ class FeatureStatMedianAbsoluteDeviation(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - median absolute deviation"
-        self.abbr_name = "ih_medad"
-        self.ibsi_id = "4RNL"
+        self.abbr_name = "stat_medad"
+        self.ibsi_id = "N72L"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -328,8 +304,8 @@ class FeatureStatCoefficientOfVariation(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - coefficient of variation"
-        self.abbr_name = "ih_cov"
-        self.ibsi_id = "CWYJ"
+        self.abbr_name = "stat_cov"
+        self.ibsi_id = "7TET"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -343,8 +319,8 @@ class FeatureStatQuartileCoefficientOfDispersion(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - quartile coefficient of dispersion"
-        self.abbr_name = "ih_qcod"
-        self.ibsi_id = "SLWD"
+        self.abbr_name = "stat_qcod"
+        self.ibsi_id = "9S40"
         self.ibsi_compliant = True
 
     @staticmethod
@@ -355,64 +331,58 @@ class FeatureStatQuartileCoefficientOfDispersion(FeatureStat):
         )
 
 
-class FeatureStatEntropy(FeatureStat):
+class FeatureStatEnergy(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "Statistics - entropy"
-        self.abbr_name = "ih_entropy"
-        self.ibsi_id = "TLU2"
+        self.name = "Statistics - energy"
+        self.abbr_name = "stat_energy"
+        self.ibsi_id = "N8CA"
         self.ibsi_compliant = True
 
     @staticmethod
     def _compute(data: DataStatistics) -> float:
-        return -np.sum(data.histogram.p[data.histogram.p > 0.0] * np.log2(data.histogram.p[data.histogram.p > 0.0]))
+        return np.sum(data.image ** 2.0)
 
 
-class FeatureStatUniformity(FeatureStat):
+class FeatureStatRootMeanSquare(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "Statistics - uniformity"
-        self.abbr_name = "ih_uniformity"
-        self.ibsi_id = "BJ5W"
+        self.name = "Statistics - "
+        self.abbr_name = "stat_rms"
+        self.ibsi_id = "5ZWQ"
         self.ibsi_compliant = True
 
     @staticmethod
     def _compute(data: DataStatistics) -> float:
-        return np.sum(data.histogram.p ** 2.0)
-
+        return  np.sqrt(np.sum(data.image ** 2.0) / data.n_voxels)
 
 
 
 def get_statistics_class_dict() -> dict[str, FeatureStat]:
     class_dict = {
-        "ih_mean": FeatureStatMean,
-        "ih_var": FeatureStatVariance,
-        "ih_skew": FeatureStatSkewness,
-        "ih_kurt": FeatureStatKurtosis,
-        "ih_median": FeatureStatMedian,
-        "ih_min": FeatureStatMinimum,
-        "ih_p": FeatureStatPercentile,
-        "ih_max": FeatureStatMaximum,
-        "ih_mode": FeatureStatMode,
-        "ih_iqr": FeatureStatInterQuartileRange,
-        "ih_range": FeatureStatRange,
-        "ih_mad": FeatureStatMeanAbsoluteDeviation,
-        "ih_rmad": FeatureStatRobustMeanAbsoluteDeviation,
-        "ih_medad": FeatureStatMedianAbsoluteDeviation,
-        "ih_cov": FeatureStatCoefficientOfVariation,
-        "ih_qcod": FeatureStatQuartileCoefficientOfDispersion,
-        "ih_entropy": FeatureStatEntropy,
-        "ih_uniformity": FeatureStatUniformity,
-        "ih_max_grad": FeatureStatMaximumHistogramGradient,
-        "ih_max_grad_g": FeatureStatMaximumHistogramGradientGreyLevel,
-        "ih_min_grad": FeatureStatMinimumHistogramGradient,
-        "ih_min_grad_g": FeatureStatMinimumHistogramGradientGreyLevel
+        "stat_mean": FeatureStatMean,
+        "stat_var": FeatureStatVariance,
+        "stat_skew": FeatureStatSkewness,
+        "stat_kurt": FeatureStatKurtosis,
+        "stat_median": FeatureStatMedian,
+        "stat_min": FeatureStatMinimum,
+        "stat_p": FeatureStatPercentile,
+        "stat_max": FeatureStatMaximum,
+        "stat_iqr": FeatureStatInterQuartileRange,
+        "stat_range": FeatureStatRange,
+        "stat_mad": FeatureStatMeanAbsoluteDeviation,
+        "stat_rmad": FeatureStatRobustMeanAbsoluteDeviation,
+        "stat_medad": FeatureStatMedianAbsoluteDeviation,
+        "stat_cov": FeatureStatCoefficientOfVariation,
+        "stat_qcod": FeatureStatQuartileCoefficientOfDispersion,
+        "stat_energy": FeatureStatEnergy,
+        "stat_rms": FeatureStatRootMeanSquare
     }
 
     return class_dict
 
 
-def get_statistics_class_dict(
+def generate_stat_features(
         settings: FeatureExtractionSettingsClass,
         features: None | list[str] = None
 ) -> Generator[FeatureStat, None, None]:
@@ -427,7 +397,7 @@ def get_statistics_class_dict(
     if features is None:
         return
 
-    # Select only DZM-features, and return if none are present.
+    # Select only statistical features, and return if none are present.
     features = [feature for feature in features if feature in stat_features]
     if len(features) == 0:
         return
@@ -436,7 +406,7 @@ def get_statistics_class_dict(
     percentiles = [10.0, 90.0]
 
     for feature in features:
-        if feature == "ih_p":
+        if feature == "stat_p":
             for percentile in percentiles:
                 yield class_dict[feature](
                     percentile=percentile
