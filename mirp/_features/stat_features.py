@@ -357,7 +357,6 @@ class FeatureStatRootMeanSquare(FeatureStat):
         return  np.sqrt(np.sum(data.image ** 2.0) / data.n_voxels)
 
 
-
 def get_statistics_class_dict() -> dict[str, FeatureStat]:
     class_dict = {
         "stat_mean": FeatureStatMean,
