@@ -78,7 +78,7 @@ arrays as a generic fallback option, and has specific routines for handling comp
 emission tomography (PET), magnetic resonance imaging (MRI) and radiotherapy dose maps. It supports both 
 radiotherapy structure sets (RTSTRUCT) and segmentation (SEG) files as DICOM-based masks.
 
-In conclusion, `mirp` offers a much-needed solution for standardized radiomics. With its user-friendly Python 
+In conclusion, `mirp` offers a much-needed solution for standardised radiomics. With its user-friendly Python 
 interface, researchers can conduct radiomics analyses and, crucially, reproduce and validate the work of others, 
 bringing us one step closer to harnessing the full potential of medical imaging in improving patient care.
 
