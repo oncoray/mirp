@@ -198,8 +198,8 @@ For advanced users and developers, the following changes are relevant:
 - MIRP now uses the `ray` package for parallel processing.
 
 # Citation info
-A publication for MIRP is forthcoming. For now, please cite the following work:
-```Zwanenburg A, Leger S, Agolli L, Pilz K, Troost EG, Richter C, Löck S. Assessing robustness of radiomic features by image perturbation. Scientific reports. 2019 Jan 24;9(1):614.```
+MIRP has been published in *Journal of Open Source Software*:
+```Zwanenburg A, Löck S. MIRP: A Python package for standardised radiomics. J Open Source Softw. 2024;9: 6413. doi:10.21105/joss.06413```
 
 # Contributing
 If you have ideas for improving MIRP, please read the short [contribution guide](./CONTRIBUTING.md).
