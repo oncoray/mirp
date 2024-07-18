@@ -1,0 +1,32 @@
+cff-version: "1.2.0"
+authors:
+- family-names: Zwanenburg
+  given-names: Alex
+  orcid: "https://orcid.org/0000-0002-0342-9545"
+- family-names: Löck
+  given-names: Steffen
+  orcid: "https://orcid.org/0000-0002-7017-3738"
+doi: 10.5281/zenodo.12493595
+message: If you use this software, please cite our article in the
+  Journal of Open Source Software.
+preferred-citation:
+  authors:
+  - family-names: Zwanenburg
+    given-names: Alex
+    orcid: "https://orcid.org/0000-0002-0342-9545"
+  - family-names: Löck
+    given-names: Steffen
+    orcid: "https://orcid.org/0000-0002-7017-3738"
+  date-published: 2024-07-17
+  doi: 10.21105/joss.06413
+  issn: 2475-9066
+  issue: 99
+  journal: Journal of Open Source Software
+  publisher:
+    name: Open Journals
+  start: 6413
+  title: "MIRP: A Python package for standardised radiomics"
+  type: article
+  url: "https://joss.theoj.org/papers/10.21105/joss.06413"
+  volume: 9
+title: "MIRP: A Python package for standardised radiomics"
