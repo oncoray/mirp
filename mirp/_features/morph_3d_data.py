@@ -46,7 +46,7 @@ class Data3DMesh(object):
         if image.is_empty() or mask.roi_morphology.is_empty_mask():
             return
 
-        from skimage.measure import marching_cubes
+        from skimage.measure import marching_cubes, mesh_surface_area
 
         # Image spacing
         self.spacing = image.image_spacing
@@ -90,7 +90,7 @@ class Data3DMesh(object):
         ))
 
         # noinspection PyUnreachableCode
-        self.area = np.sum(np.sum(np.cross(vert_a, vert_b) ** 2.0, axis=1) ** 0.5) / 2.0
+        self.area = mesh_surface_area(verts=vertices, faces=faces)
 
     def is_empty(self):
         return self.volume is None
@@ -529,6 +529,88 @@ class Data3DPrincipleComponents(Data3DMesh):
             area_appr = 4.0 * np.pi * self.semi_axes[2] * self.semi_axes[1] * legval(x=leg_x, c=leg_coeff)
 
         return area_appr
+
+
+class Data3DMinimumEnvelopingEllipsoid(Data3DConvexHull, Data3DPrincipleComponents):
+
+    def __init__(self):
+        super().__init__()
+
+    def compute_semi_axes(self, tolerance: float = 10E-4):
+        if self.is_empty() or self.is_singular():
+            return
+
+        import numpy.linalg as npla
+
+        # Cast to np.matrix
+        mat_p = copy.deepcopy(self.convex_hull_vertices)
+        mat_p = np.transpose(mat_p)
+
+        # Dimension of the point set
+        ndim = np.shape(mat_p)[0]
+
+        # Number of points in the point set
+        npoint = np.shape(mat_p)[1]
+
+        # Add a row of 1s to the ndim x npoint matrix input_pos - so mat_q is (ndim+1) x npoint now.
+        mat_q = np.append(mat_p, np.ones(shape=(1, npoint)), axis=0)
+
+        # Initialise settings for Khachiyan algorithm
+        iter_count = 1
+        err = 1.0
+
+        # Initial u vector
+        vec_u = 1.0 * np.ones(shape=npoint) / npoint
+
+        # Khachiyan algorithm
+        while err > tolerance:
+            # Matrix multiplication:
+            # np.diag(u) : if u is a vector, places the elements of u
+            # in the diagonal of an NxN matrix of zeros
+            mat_x = np.matmul(mat_q, np.matmul(np.diag(vec_u), np.transpose(mat_q)))
+
+            # npla.inv(mat_x) returns the matrix inverse of mat_x
+            # np.diag(mat_M) when mat_M is a matrix returns the diagonal vector of mat_M
+            vec_m = np.diag(np.matmul(np.transpose(mat_q), np.matmul(npla.inv(mat_x), mat_q)))
+
+            # Find the value and location of the maximum element in the vector M
+            max_m = np.max(vec_m)
+            ind_j = np.argmax(vec_m)
+
+            # Calculate the step size for the ascent
+            step_size = (max_m - ndim - 1.0) / ((ndim + 1.0) * (max_m - 1.0))
+
+            # Calculate the vector vec_new_u:
+            # Take the vector vec_u, and multiply all the elements in it by (1-step_size)
+            vec_new_u = vec_u * (1.0 - step_size)
+
+            # Increment the jth element of new_u by step_size
+            vec_new_u[ind_j] += step_size
+
+            # Store the error by taking finding the square root of the SSD between new_u and u. The SSD or sum-of-square
+            # differences, takes two vectors of the same size, creates a new vector by finding the difference between
+            # corresponding elements, squaring each difference and adding them all together.
+            err = npla.norm(vec_new_u - vec_u)
+
+            # Increment iter_count and replace vec_u
+            iter_count += 1
+            vec_u = vec_new_u
+
+        # Put the elements of the vector u into the diagonal of a matrix
+        # U with the rest of the elements as 0
+        mat_u = np.diag(vec_u)
+
+        # Compute the A-matrix
+        mat_a = (1.0 / ndim) * npla.inv(
+            np.matmul(mat_p, np.matmul(mat_u, np.transpose(mat_p)))
+            - np.matmul(np.matmul(mat_p, vec_u), np.transpose(np.matmul(mat_p, vec_u)))
+        )
+
+        # Perform singular value decomposition
+        s = npla.svd(mat_a, compute_uv=False)
+
+        # The semi-axis lengths are the inverse square root of the singular values
+        self.semi_axes = tuple(np.sort(1.0 / np.sqrt(s)))
 
 
 class Data3DSpatial(Data3DMesh):

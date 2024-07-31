@@ -5,7 +5,7 @@ import numpy as np
 
 from mirp._features.morph_3d_data import (
     Data3DMesh, Data3DConvexHull, Data3DAxisAlignedBoundingBox, Data3DOrientedMinimumBoundingBox,
-    Data3DPrincipleComponents, Data3DSpatial
+    Data3DPrincipleComponents, Data3DSpatial, Data3DMinimumEnvelopingEllipsoid
 )
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
@@ -81,7 +81,7 @@ class Feature3DConvexHull(Feature3DMesh):
             mask: BaseMask
     ) -> Data3DConvexHull:
         # Get parent_data from cache.
-        parent_data = super()._get_data(image=image, mask=mask)
+        parent_data = Feature3DMesh._get_data(image=image, mask=mask)
 
         # Instantiate child using parent attributes.
         data = Data3DConvexHull()
@@ -119,7 +119,7 @@ class Feature3DAxisAlignedBoundingBox(Feature3DConvexHull):
             mask: BaseMask
     ) -> Data3DAxisAlignedBoundingBox:
         # Get parent_data from cache.
-        parent_data = super()._get_data(image=image, mask=mask)
+        parent_data = Feature3DConvexHull._get_data(image=image, mask=mask)
 
         # Instantiate child using parent attributes.
         data = Data3DAxisAlignedBoundingBox()
@@ -157,7 +157,7 @@ class Feature3DOrientedMinimumBoundingBox(Feature3DConvexHull):
             mask: BaseMask
     ) -> Data3DOrientedMinimumBoundingBox:
         # Get parent_data from cache.
-        parent_data = super()._get_data(image=image, mask=mask)
+        parent_data = Feature3DConvexHull._get_data(image=image, mask=mask)
 
         # Instantiate child using parent attributes.
         data = Data3DOrientedMinimumBoundingBox()
@@ -195,7 +195,7 @@ class Feature3DPCA(Feature3DMesh):
             mask: BaseMask
     ) -> Data3DPrincipleComponents:
         # Get parent_data from cache.
-        parent_data = super()._get_data(image=image, mask=mask)
+        parent_data = Feature3DMesh._get_data(image=image, mask=mask)
 
         # Instantiate child using parent attributes.
         data = Data3DPrincipleComponents()
@@ -225,6 +225,53 @@ class Feature3DPCA(Feature3DMesh):
         raise NotImplementedError("Implement _compute for feature-specific computation.")
 
 
+class Feature3DMinimumEnvelopingEllipsoid(Feature3DConvexHull):
+    def __init__(
+            self,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
+
+    @staticmethod
+    @cache
+    def _get_data(
+            image: GenericImage,
+            mask: BaseMask
+    ) -> Data3DMinimumEnvelopingEllipsoid:
+        # Get parent_data from cache. Ignore the
+        parent_data = Feature3DConvexHull._get_data(image=image, mask=mask)
+
+        # Instantiate child using parent attributes.
+        data = Data3DMinimumEnvelopingEllipsoid()
+        data.__dict__.update(parent_data.__dict__)
+
+        # Compute semi-axes for the minimum enveloping ellipsoid.
+        data.compute_semi_axes()
+
+        return data
+
+    def compute(self, image: GenericImage, mask: BaseMask):
+        # Get data.
+        data = self._get_data(image=image, mask=mask)
+
+        # Compute feature value.
+        if data.is_empty() or data.is_singular() or data.semi_axes is None:
+            self.value = np.nan
+        else:
+            self.value = self._compute(data=data, image=image, mask=mask)
+
+    @staticmethod
+    def _compute(
+            data: Data3DMinimumEnvelopingEllipsoid,
+            image: GenericImage | None = None,
+            mask: BaseMask | None = None
+    ):
+        raise NotImplementedError("Implement _compute for feature-specific computation.")
+
 
 class Feature3DSpatial(Feature3DMesh):
     def __init__(
@@ -245,7 +292,7 @@ class Feature3DSpatial(Feature3DMesh):
             allow_approximation: bool
     ) -> Data3DSpatial:
         # Get parent_data from cache.
-        parent_data = super()._get_data(image=image, mask=mask)
+        parent_data = Feature3DMesh._get_data(image=image, mask=mask)
 
         # Instantiate child using parent attributes.
         data = Data3DSpatial()
@@ -265,7 +312,7 @@ class Feature3DSpatial(Feature3DMesh):
         data = self._get_data(image=image, mask=mask, allow_approximation=self.allow_approximation)
 
         # Compute feature value.
-        if data.is_empty() or data.is_singular() or data.semi_axes is None:
+        if data.is_empty() or data.is_singular():
             self.value = np.nan
         else:
             self.value = self._compute(data=data, image=image, mask=mask)
@@ -627,6 +674,36 @@ class Feature3DMorphApproximateEnclosingEllipsoidAreaDensity(Feature3DPCA):
         return data.area / data.get_ellipsoid_surface_area(n_degree=20)
 
 
+class Feature3DMorphMinimumEnvelopingEllipsoidVolumeDensity(Feature3DMinimumEnvelopingEllipsoid):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Morphology (3D) - minimum volume enclosing ellipsoid volume density"
+        self.abbr_name = "morph_vol_dens_mvee"
+        self.ibsi_id = "SWZ1"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: Data3DMinimumEnvelopingEllipsoid, **kwargs) -> float:
+        if np.any(data.semi_axes == 0.0):
+            return np.nan
+        return 3.0 * data.volume / (4.0 * np.pi * np.prod(data.semi_axes))
+
+
+class Feature3DMorphMinimumEnvelopingEllipsoidAreaDensity(Feature3DMinimumEnvelopingEllipsoid):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Morphology (3D) - minimum volume enclosing ellipsoid area density"
+        self.abbr_name = "morph_area_dens_mvee"
+        self.ibsi_id = "BRI8"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: Data3DMinimumEnvelopingEllipsoid, **kwargs) -> float:
+        if np.any(data.semi_axes == 0.0):
+            return np.nan
+        return data.area / data.get_ellipsoid_surface_area(n_degree=20)
+
+
 class Feature3DMorphMoranIndex(Feature3DSpatial):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -682,8 +759,8 @@ def get_morphology_3d_class_dict() -> dict[str, Feature3DMorph]:
         "morph_geary_c": Feature3DMorphGearyMeasure,
         "morph_vol_dens_ombb": Feature3DMorphOrientedMinimumBoundingBoxVolumeDensity,
         "morph_area_dens_ombb": Feature3DMorphOrientedMinimumBoundingBoxAreaDensity,
-        "morph_vol_dens_mvee": 1,
-        "morph_area_dens_mvee": 1
+        "morph_vol_dens_mvee": Feature3DMorphMinimumEnvelopingEllipsoidVolumeDensity,
+        "morph_area_dens_mvee": Feature3DMorphMinimumEnvelopingEllipsoidAreaDensity
     }
 
     return class_dict
