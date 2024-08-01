@@ -46,6 +46,10 @@ class DataLocalIntensity(object):
         else:
             self._direct_compute(image=image, mask=mask)
 
+        if not self.is_empty():
+            # Shrink to contain only voxels within the intensity mask.
+            self.data = self.data.loc[self.data.in_roi == True, :]
+
     def _filter_compute(self, image: GenericImage, mask: BaseMask):
         # Determine distance
         distance = (3.0 / (4.0 * np.pi)) ** (1.0 / 3.0) * 10.0
@@ -199,10 +203,36 @@ class FeatureLocalIntensity(Feature):
         self.table_name = "_".join(table_elements)
 
 
+class FeatureLocalIntensityLocalPeak(FeatureLocalIntensity):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Local intensity - local peak"
+        self.abbr_name = "loc_peak_loc"
+        self.ibsi_id = "VJGA"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(data: DataLocalIntensity) -> float:
+        return np.max(data.data.loc[data.data.g == np.max(data.data.g), "g_loc"])
+
+
+class FeatureLocalIntensityGlobalPeak(FeatureLocalIntensity):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Local intensity - global peak"
+        self.abbr_name = "loc_peak_glob"
+        self.ibsi_id = "0F91"
+        self.ibsi_compliant = True
+
+    @staticmethod
+    def _compute(data: DataLocalIntensity) -> float:
+        return np.max(data.data.g_loc)
+
+
 def get_local_intensity_class_dict() -> dict[str, FeatureLocalIntensity]:
     class_dict = {
-        "loc_peak_loc": 1,
-        "loc_peak_glob": 1,
+        "loc_peak_loc": FeatureLocalIntensityLocalPeak,
+        "loc_peak_glob": FeatureLocalIntensityGlobalPeak,
     }
 
     return class_dict
