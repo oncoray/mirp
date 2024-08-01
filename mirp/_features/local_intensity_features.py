@@ -232,7 +232,7 @@ class FeatureLocalIntensityGlobalPeak(FeatureLocalIntensity):
 def get_local_intensity_class_dict() -> dict[str, FeatureLocalIntensity]:
     class_dict = {
         "loc_peak_loc": FeatureLocalIntensityLocalPeak,
-        "loc_peak_glob": FeatureLocalIntensityGlobalPeak,
+        "loc_peak_glob": FeatureLocalIntensityGlobalPeak
     }
 
     return class_dict
