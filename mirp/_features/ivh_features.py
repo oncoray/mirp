@@ -21,6 +21,9 @@ class DataIntensityVolumeHistogram(object):
         # Number of voxels
         self.n_voxels: int | None = None
 
+        # Maximum intensity
+        self.max_intensity: float | int | None = None
+
     def compute(self, image: GenericImage, mask: BaseMask):
         # Skip processing if input image and/or roi are missing
         if image is None:
@@ -39,7 +42,8 @@ class DataIntensityVolumeHistogram(object):
         # Set number of voxels.
         self.n_voxels = np.sum(mask.roi_intensity.get_voxel_grid())
 
-
+        # Set maximum intensity.
+        self.max_intensity = ...
 
 
 class FeatureIntensityVolumeHistogram(Feature):
@@ -75,8 +79,7 @@ class FeatureIntensityVolumeHistogram(Feature):
         else:
             self.value = self._compute(data=data)
 
-    @staticmethod
-    def _compute(data: DataIntensityVolumeHistogram):
+    def _compute(self, data: DataIntensityVolumeHistogram):
         raise NotImplementedError("Implement _compute for feature-specific computation.")
 
     def create_table_name(self):
@@ -84,8 +87,152 @@ class FeatureIntensityVolumeHistogram(Feature):
         self.table_name = "_".join(table_elements)
 
 
+class FeatureIVHVolumeFractionAtIntensity(FeatureIntensityVolumeHistogram):
+    def __init__(self, percentile: float, **kwargs):
+        # This class allows for passing percentile values.
+        super().__init__(**kwargs)
+
+        # Set percentile
+        self.percentile = percentile
+
+        # Set IBSI identifier. Only the 10th and 90th percentile are explicitly identified.
+        ibsi_id = ""
+        if percentile == 10.0:
+            ibsi_id = "NK6P"
+        elif percentile == 90.0:
+            ibsi_id = "4279"
+        self.ibsi_id = ibsi_id
+
+        if percentile.is_integer():
+            self.name = f"IVH - volume fraction at {int(percentile)}% intensity"
+            self.abbr_name = f"ivh_v{int(percentile)}"
+        else:
+            self.name = f"IVH - volume fraction at {percentile}% intensity"
+            self.abbr_name = f"ivh_v{percentile}"
+
+        self.ibsi_compliant = True
+
+    def _compute(self, data: DataIntensityVolumeHistogram):
+        return data.data.loc[data.data.gamma >= self.percentile / 100.0, :].nu.max()
+
+
+class FeatureIVHIntensityAtVolumeFraction(FeatureIntensityVolumeHistogram):
+    def __init__(self, percentile: float, **kwargs):
+        # This class allows for passing percentile values.
+        super().__init__(**kwargs)
+
+        # Set percentile
+        self.percentile = percentile
+
+        # Set IBSI identifier. Only the 10th and 90th percentile are explicitly identified.
+        ibsi_id = ""
+        if percentile == 10.0:
+            ibsi_id = "PWN1"
+        elif percentile == 90.0:
+            ibsi_id = "BOHI"
+        self.ibsi_id = ibsi_id
+
+        if percentile.is_integer():
+            self.name = f"IVH - intensity at {int(percentile)}% volume"
+            self.abbr_name = f"ivh_i{int(percentile)}"
+        else:
+            self.name = f"IVH - intensity at {percentile}% volume"
+            self.abbr_name = f"ivh_i{percentile}"
+
+        self.ibsi_compliant = True
+
+    def _compute(self, data: DataIntensityVolumeHistogram):
+        x = data.data.loc[data.data.nu <= self.percentile / 100.0, :].g.min()
+        if np.isnan(x):
+            x = data.max_intensity
+
+        return x
+
+
+class FeatureIVHVolumeFractionDifference(FeatureIntensityVolumeHistogram):
+    def __init__(self, percentile: tuple[float, float], **kwargs):
+        # This class allows for passing percentile values.
+        super().__init__(**kwargs)
+
+        # Set percentile
+        self.percentile = percentile
+
+        # Set IBSI identifier. Only the 10th and 90th percentile are explicitly identified.
+        ibsi_id = ""
+        if percentile[0] == 10.0 and percentile[1] == 90.0:
+            ibsi_id = "WITY"
+        self.ibsi_id = ibsi_id
+
+        if all(x.is_integer() for x in percentile):
+            self.name = f"IVH - difference in volume fraction between {int(percentile[0])}% and {int(percentile[1])}% intensity"
+            self.abbr_name = f"ivh_diff_v{int(percentile[0])}_v{int(percentile[1])}"
+        else:
+            self.name = f"IVH - difference in volume fraction between {percentile[0]}% and {percentile[1]}% intensity"
+            self.abbr_name = f"ivh_diff_v{percentile[0]}_v{percentile[1]}"
+
+        self.ibsi_compliant = True
+
+    def _compute(self, data: DataIntensityVolumeHistogram):
+        return (
+                data.data.loc[data.data.gamma >= self.percentile[0] / 100.0, :].nu.max()
+                - data.data.loc[data.data.gamma >= self.percentile[1] / 100.0, :].nu.max()
+        )
+
+
+class FeatureIVHIntensityDifference(FeatureIntensityVolumeHistogram):
+    def __init__(self, percentile: tuple[float, float], **kwargs):
+        # This class allows for passing percentile values.
+        super().__init__(**kwargs)
+
+        # Set percentile
+        self.percentile = percentile
+
+        # Set IBSI identifier. Only the 10th and 90th percentile are explicitly identified.
+        ibsi_id = ""
+        if percentile[0] == 10.0 and percentile[1] == 90.0:
+            ibsi_id = "JXJA"
+        self.ibsi_id = ibsi_id
+
+        if all(x.is_integer() for x in percentile):
+            self.name = f"IVH - difference in intensity between {int(percentile[0])}% and {int(percentile[1])}% volume"
+            self.abbr_name = f"ivh_diff_i{int(percentile[0])}_i{int(percentile[1])}"
+        else:
+            self.name = f"IVH - difference in intensity between {percentile[0]}% and {percentile[1]}% volume"
+            self.abbr_name = f"ivh_diff_i{percentile[0]}_i{percentile[1]}"
+
+        self.ibsi_compliant = True
+
+    def _compute(self, data: DataIntensityVolumeHistogram):
+        x_0 = data.data.loc[data.data.nu <= self.percentile[0] / 100.0, :].g.min()
+        if np.isnan(x_0):
+            x_0 = data.max_intensity
+
+        x_1 = data.data.loc[data.data.nu <= self.percentile[1] / 100.0, :].g.min()
+        if np.isnan(x_1):
+            x_1 = data.max_intensity
+
+        return x_0 - x_1
+
+
+class FeatureIVHAreaUnderCurve(FeatureIntensityVolumeHistogram):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "IVH - area under IVH curve"
+        self.abbr_name = "ivh_auc"
+        self.ibsi_id = "9CMM"
+        self.ibsi_compliant = False
+
+    def _compute(self, data: DataIntensityVolumeHistogram):
+        return np.trapz(y=data.data.nu, x=data.data.gamma)
+
+
 def get_intensity_volume_histogram_class_dict() -> dict[str, FeatureIntensityVolumeHistogram]:
     class_dict = {
+        "ivh_v": FeatureIVHVolumeFractionAtIntensity,
+        "ivh_i": FeatureIVHIntensityAtVolumeFraction,
+        "ivh_diff_v": FeatureIVHVolumeFractionDifference,
+        "ivh_diff_i": FeatureIVHIntensityDifference,
+        "ivh_auc": FeatureIVHAreaUnderCurve
     }
 
     return class_dict
@@ -112,11 +259,29 @@ def generate_local_intensity_features(
         return
 
     # Set default percentiles.
-    percentiles = [10.0, 90.0]
+    intensity_percentiles = [10.0, 25.0, 50.0, 75.0, 90.0]
+    volume_percentiles = [10.0, 25.0, 50.0, 75.0, 90.0]
+    intensity_difference_range = [(10.0, 90.0), (25.0, 75.0)]
+    volume_difference_range = [(10.0, 90.0), (25.0, 75.0)]
 
     for feature in features:
-        if feature == "stat_p":
-            for percentile in percentiles:
+        if feature == "ivh_v":
+            for percentile in volume_percentiles:
+                yield class_dict[feature](
+                    percentile=percentile
+                )
+        elif feature == "ivh_i":
+            for percentile in intensity_percentiles:
+                yield class_dict[feature](
+                    percentile=percentile
+                )
+        elif feature == "ivh_diff_v":
+            for percentile in volume_difference_range:
+                yield class_dict[feature](
+                    percentile=percentile
+                )
+        elif feature == "ivh_diff_i":
+            for percentile in intensity_difference_range:
                 yield class_dict[feature](
                     percentile=percentile
                 )

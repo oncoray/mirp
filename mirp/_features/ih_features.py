@@ -257,8 +257,10 @@ class FeatureIHPercentile(FeatureIH):
 
         if percentile.is_integer():
             self.name = f"IH - {int(percentile)}th percentile"
-            self.abbr_name = "ih_p" + str(int(percentile))
-
+            self.abbr_name = f"ih_p{int(percentile)}"
+        else:
+            self.name = f"IH - {percentile}th percentile"
+            self.abbr_name = f"ih_p{percentile}"
         self.ibsi_compliant = True
 
     def compute(self, image: GenericImage, mask: BaseMask):

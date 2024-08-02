@@ -203,7 +203,10 @@ class FeatureStatPercentile(FeatureStat):
 
         if percentile.is_integer():
             self.name = f"Statistics - {int(percentile)}th percentile"
-            self.abbr_name = "stat_p" + str(int(percentile))
+            self.abbr_name = f"stat_p{int(percentile)}"
+        else:
+            self.name = self.name = f"Statistics - {percentile}th percentile"
+            self.abbr_name = f"stat_p{percentile}"
 
         self.ibsi_compliant = True
 
