@@ -3,7 +3,6 @@ from typing import Generator
 
 import numpy as np
 import pandas as pd
-import scipy.ndimage as ndi
 
 
 from mirp._images.generic_image import GenericImage
