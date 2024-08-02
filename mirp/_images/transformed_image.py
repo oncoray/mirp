@@ -12,6 +12,10 @@ class TransformedImage(GenericImage):
     ):
         super().__init__(**kwargs)
 
+    @staticmethod
+    def get_default_ivh_discretisation_method():
+        return "fixed_bin_number"
+
 
 class GaborTransformedImage(TransformedImage):
     def __init__(

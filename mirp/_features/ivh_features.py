@@ -8,7 +8,7 @@ import scipy.ndimage as ndi
 
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
-from mirp._features.base_feature import Feature
+from mirp._features.histogram import HistogramDerivedFeature
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 
 
@@ -22,9 +22,16 @@ class DataIntensityVolumeHistogram(object):
         self.n_voxels: int | None = None
 
         # Maximum intensity
-        self.max_intensity: float | int | None = None
+        self.next_max_intensity: float | int | None = None
 
-    def compute(self, image: GenericImage, mask: BaseMask):
+    def compute(
+            self,
+            image: GenericImage,
+            mask: BaseMask,
+            discretisation_method: str,
+            bin_number: int | None = None,
+            bin_size: float | None = None
+    ):
         # Skip processing if input image and/or roi are missing
         if image is None:
             raise ValueError(
@@ -39,14 +46,148 @@ class DataIntensityVolumeHistogram(object):
         if image.is_empty() or mask.roi_intensity.is_empty_mask():
             return
 
+        # Convert image volume to table.
+        data = mask.as_pandas_dataframe(image=image, intensity_mask=True)
+        data = data[data.roi_int_mask == True]
+
         # Set number of voxels.
-        self.n_voxels = np.sum(mask.roi_intensity.get_voxel_grid())
+        self.n_voxels = len(data)
 
-        # Set maximum intensity.
-        self.max_intensity = ...
+        # Set intensity range
+        if mask.intensity_range is None:
+            intensity_range = np.array([np.nan, np.nan])
+        else:
+            intensity_range = np.array(mask.intensity_range).astype(float)
+
+        if np.isnan(intensity_range[0]):
+            intensity_range[0] = float(np.min(data.g))
+        if np.isnan(intensity_range[1]):
+            intensity_range[1] = float(np.max(data.g))
+
+        # Determine the discretisation method.
+        if discretisation_method == "none":
+            discretisation_method = image.get_default_ivh_discretisation_method()
+
+        # Set bin_number, if required.
+        if discretisation_method == "fixed_bin_number" and bin_number is None:
+            bin_number = image.get_default_ivh_bin_number()
+            if bin_number is None:
+                raise ValueError("IVH bin number should be provided.")
+
+        # Set bin_size, if required.
+        if discretisation_method == "fixed_bin_size":
+            bin_size = image.get_default_ivh_bin_size()
+            if bin_size is None:
+                raise ValueError("IVH bin size should be provided.")
+
+        if discretisation_method == "none":
+            # No transformation.
+
+            # Set number of bins. The number of bins is equal to the number of grey levels present.
+            bin_number = intensity_range[1] - intensity_range[0] + 1.0
+
+            # Create histogram by grouping by intensity level and counting bin size
+            data = data.groupby(by="g").size().reset_index(name="n")
+
+            # Append empty grey levels to histogram
+            levels = np.arange(start=intensity_range[0], stop=intensity_range[1] + 1)
+            missing_levels = levels[np.logical_not(np.isin(levels, data.g))]
+            n_missing = len(missing_levels)
+            if n_missing > 0:
+                data = pd.concat([
+                    data,
+                    pd.DataFrame({"g": missing_levels, "n": np.zeros(n_missing)})
+                ], ignore_index=True)
+
+            # Set maximum intensity.
+            self.next_max_intensity = intensity_range[1] + 1.0
+
+        elif discretisation_method == "fixed_bin_size":
+            # Fixed bin size/width calculations
+
+            # Get the number of bins
+            bin_number = np.ceil((intensity_range[1] - intensity_range[0]) / bin_size) + 1.0
+
+            # Bin voxels
+            data.g = np.floor((data.g - intensity_range[0]) / (bin_size * 1.0)) + 1.0
+
+            # Set voxels with grey level lower than 0.0 to 1.0. This may occur with non-mask voxels
+            # and voxels with the minimum intensity
+            data.loc[data["g"] <= 0.0, "g"] = 1.0
+
+            # Create histogram by grouping by intensity level and counting bin size
+            data = data.groupby(by="g").size().reset_index(name="n")
+
+            # Append empty grey levels to histogram
+            levels = np.arange(start=1, stop=int(bin_number) + 1)
+            missing_levels = levels[np.logical_not(np.isin(levels, data.g))]
+            n_missing = len(missing_levels)
+            if n_missing > 0:
+                data = pd.concat([
+                    data,
+                    pd.DataFrame({"g": missing_levels, "n": np.zeros(n_missing)})
+                ], ignore_index=True)
+
+            # Replace g by the bin centers
+            data.loc[:, "g"] = intensity_range[0] + (data["g"] - 0.5) * bin_size * 1.0
+
+            # Update intensity range
+            intensity_range[0] = np.min(data.g)
+            intensity_range[1] = np.max(data.g)
+
+            # Set maximum intensity.
+            self.next_max_intensity = intensity_range[1] + bin_size
+
+        elif discretisation_method == "fixed_bin_number":
+            # Calculation for all other image types
+
+            data.loc[:, "g"] = np.floor(
+                bin_number * (data["g"] - intensity_range[0]) / (intensity_range[1] - intensity_range[0])) + 1.0
+
+            # Update values at the boundaries
+            data.loc[data["g"] <= 0.0, "g"] = 1.0
+            data.loc[data["g"] >= bin_number * 1.0, "g"] = bin_number * 1.0
+
+            # Create histogram by grouping by intensity level and counting bin size
+            data = data.groupby(by="g").size().reset_index(name="n")
+
+            # Append empty grey levels to histogram
+            levels = np.arange(start=1, stop=bin_number + 1)
+            missing_levels = levels[np.logical_not(np.isin(levels, data.g))]
+            n_missing = len(missing_levels)
+            if n_missing > 0:
+                data = pd.concat([
+                    data,
+                    pd.DataFrame({"g": missing_levels, "n": np.zeros(n_missing)})
+                ], ignore_index=True)
+
+            # Update grey level range
+            intensity_range[0] = 1.0
+            intensity_range[1] = bin_number
+
+            # Set maximum intensity.
+            self.next_max_intensity = bin_number + 1.0
+
+        else:
+            raise ValueError(f"{discretisation_method} is not a valid IVH discretisation method.")
+
+        # Order histogram table by increasing grey level
+        data = data.sort_values(by="g")
+
+        # Calculate intensity fraction
+        data["gamma"] = (data.g - intensity_range[0]) / (intensity_range[1] - intensity_range[0])
+
+        # Calculate volume fraction
+        data["nu"] = 1.0 - (np.cumsum(np.append([0], data.n))[0:int(bin_number)]) * 1.0 / (self.n_voxels * 1.0)
+
+        # Set data.
+        self.data = data
+
+    def is_empty(self):
+        return self.data is None or len(self.data) == 0
 
 
-class FeatureIntensityVolumeHistogram(Feature):
+class FeatureIntensityVolumeHistogram(HistogramDerivedFeature):
 
     def __init__(
             self,
@@ -62,16 +203,31 @@ class FeatureIntensityVolumeHistogram(Feature):
     @cache
     def _get_data(
             image: GenericImage,
-            mask: BaseMask
+            mask: BaseMask,
+            discretisation_method: str,
+            bin_number: int | None = None,
+            bin_size: float | None = None
     ) -> DataIntensityVolumeHistogram:
         data = DataIntensityVolumeHistogram()
-        data.compute(image=image, mask=mask)
+        data.compute(
+            image=image,
+            mask=mask,
+            discretisation_method=discretisation_method,
+            bin_number=bin_number,
+            bin_size=bin_size
+        )
 
         return data
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Get data.
-        data = self._get_data(image=image, mask=mask)
+        data = self._get_data(
+            image=image,
+            mask=mask,
+            discretisation_method=self.discretisation_method,
+            bin_number=self.bin_number,
+            bin_size=self.bin_width
+        )
 
         # Compute feature value.
         if data.is_empty():
@@ -144,7 +300,7 @@ class FeatureIVHIntensityAtVolumeFraction(FeatureIntensityVolumeHistogram):
     def _compute(self, data: DataIntensityVolumeHistogram):
         x = data.data.loc[data.data.nu <= self.percentile / 100.0, :].g.min()
         if np.isnan(x):
-            x = data.max_intensity
+            x = data.next_max_intensity
 
         return x
 
@@ -205,11 +361,11 @@ class FeatureIVHIntensityDifference(FeatureIntensityVolumeHistogram):
     def _compute(self, data: DataIntensityVolumeHistogram):
         x_0 = data.data.loc[data.data.nu <= self.percentile[0] / 100.0, :].g.min()
         if np.isnan(x_0):
-            x_0 = data.max_intensity
+            x_0 = data.next_max_intensity
 
         x_1 = data.data.loc[data.data.nu <= self.percentile[1] / 100.0, :].g.min()
         if np.isnan(x_1):
-            x_1 = data.max_intensity
+            x_1 = data.next_max_intensity
 
         return x_0 - x_1
 
@@ -238,7 +394,7 @@ def get_intensity_volume_histogram_class_dict() -> dict[str, FeatureIntensityVol
     return class_dict
 
 
-def generate_local_intensity_features(
+def generate_ivh_features(
         settings: FeatureExtractionSettingsClass,
         features: None | list[str] = None
 ) -> Generator[FeatureIntensityVolumeHistogram, None, None]:
@@ -264,26 +420,36 @@ def generate_local_intensity_features(
     intensity_difference_range = [(10.0, 90.0), (25.0, 75.0)]
     volume_difference_range = [(10.0, 90.0), (25.0, 75.0)]
 
+    discretisation_parameters = {
+        "discretisation_method": settings.ivh_discretisation_method,
+        "bin_width": settings.ivh_discretisation_bin_width,
+        "bin_number": settings.ivh_discretisation_n_bins
+    }
+
     for feature in features:
         if feature == "ivh_v":
             for percentile in volume_percentiles:
                 yield class_dict[feature](
-                    percentile=percentile
+                    percentile=percentile,
+                    **discretisation_parameters
                 )
         elif feature == "ivh_i":
             for percentile in intensity_percentiles:
                 yield class_dict[feature](
-                    percentile=percentile
+                    percentile=percentile,
+                    **discretisation_parameters
                 )
         elif feature == "ivh_diff_v":
             for percentile in volume_difference_range:
                 yield class_dict[feature](
-                    percentile=percentile
+                    percentile=percentile,
+                    **discretisation_parameters
                 )
         elif feature == "ivh_diff_i":
             for percentile in intensity_difference_range:
                 yield class_dict[feature](
-                    percentile=percentile
+                    percentile=percentile,
+                    **discretisation_parameters
                 )
         else:
-            yield class_dict[feature]()
+            yield class_dict[feature](**discretisation_parameters)

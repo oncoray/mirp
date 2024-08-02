@@ -16,6 +16,14 @@ class PETImage(GenericImage):
     def get_default_lowest_intensity():
         return 0.0
 
+    @staticmethod
+    def get_default_ivh_discretisation_method():
+        return "fixed_bin_size"
+
+    @staticmethod
+    def get_default_ivh_bin_size():
+        return 0.10
+
     def update_image_data(self):
         if self.image_data is None:
             return

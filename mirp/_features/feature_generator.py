@@ -6,6 +6,7 @@ from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._features.base_feature import Feature
 from mirp._features.morph_3d_features import generate_morph_3d_features
 from mirp._features.local_intensity_features import generate_local_intensity_features
+from mirp._features.ivh_features import generate_ivh_features
 from mirp._features.stat_features import generate_stat_features
 from mirp._features.ih_features import generate_ih_features
 from mirp._features.cm_features import generate_cm_features
@@ -26,6 +27,9 @@ def generate_features(
 
     # Local intensity features
     yield from generate_local_intensity_features(settings=settings, features=features)
+
+    # Intensity-volume histogram
+    yield from generate_ivh_features(settings=settings, features=features)
 
     # Statistical features
     yield from generate_stat_features(settings=settings, features=features)

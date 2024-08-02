@@ -96,6 +96,7 @@ def test_ibsi_1_digital_phantom():
         export_features=True,
         image=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "image", "phantom.nii.gz"),
         mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_digital_phantom", "nifti", "mask", "mask.nii.gz"),
+        image_modality="ct",
         settings=settings
     )
 

@@ -12,6 +12,14 @@ class CTImage(GenericImage):
     def get_default_lowest_intensity():
         return -1000.0
 
+    @staticmethod
+    def get_default_ivh_discretisation_method():
+        return "none"
+
+    @staticmethod
+    def get_default_ivh_bin_size():
+        return 1.0
+
     def update_image_data(self):
         if self.image_data is None:
             return

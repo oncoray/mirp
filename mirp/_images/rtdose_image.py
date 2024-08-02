@@ -12,6 +12,14 @@ class RTDoseImage(GenericImage):
     def get_default_lowest_intensity():
         return 0.0
 
+    @staticmethod
+    def get_default_ivh_discretisation_method():
+        return "fixed_bin_size"
+
+    @staticmethod
+    def get_default_ivh_bin_size():
+        return 0.20
+
     def normalise_intensities(
             self,
             normalisation_method: None | str = "none",

@@ -212,6 +212,18 @@ class GenericImage(BaseImage):
     def get_default_upper_intensity():
         return None
 
+    @staticmethod
+    def get_default_ivh_discretisation_method():
+        return "fixed_bin_number"
+
+    @staticmethod
+    def get_default_ivh_bin_number():
+        return 1000
+
+    @staticmethod
+    def get_default_ivh_bin_size():
+        return None
+
     def interpolate(
             self,
             by_slice: None | bool = None,
