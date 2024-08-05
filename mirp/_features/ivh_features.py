@@ -198,6 +198,11 @@ class FeatureIntensityVolumeHistogram(HistogramDerivedFeature):
         super().clear_cache()
         self._get_data.cache_clear()
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "IVH"
+        })
+
     @staticmethod
     @cache
     def _get_data(

@@ -22,6 +22,11 @@ class FeatureRLM(FeatureTexture):
         # Perform close crop for RLM.
         self.cropping_distance = 0.0
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "RLM"
+        })
+
     def get_matrix(
             self,
             image: GenericImage,

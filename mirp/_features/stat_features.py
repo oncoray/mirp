@@ -69,6 +69,11 @@ class FeatureStat(Feature):
     ):
         super().__init__(**kwargs)
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "statistical"
+        })
+
     def clear_cache(self):
         super().clear_cache()
         self._get_data.cache_clear()

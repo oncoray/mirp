@@ -22,6 +22,11 @@ class FeatureDZM(FeatureTexture):
         # Perform close crop for DZM.
         self.cropping_distance = 0.0
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "DZM"
+        })
+
     def get_matrix(
             self,
             image: GenericImage,

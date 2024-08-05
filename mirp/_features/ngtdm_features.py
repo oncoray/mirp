@@ -22,6 +22,11 @@ class FeatureNGTDM(FeatureTexture):
         # Perform close crop for NGTDM.
         self.cropping_distance = 0.0
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "NGTDM"
+        })
+
     def get_matrix(
             self,
             image: GenericImage,

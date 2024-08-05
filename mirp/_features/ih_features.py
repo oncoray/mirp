@@ -110,6 +110,11 @@ class FeatureIH(HistogramDerivedFeature):
         # Perform close crop for intensity histograms.
         self.cropping_distance = 0.0
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "IH"
+        })
+
     def clear_cache(self):
         super().clear_cache()
         self._get_data.cache_clear()

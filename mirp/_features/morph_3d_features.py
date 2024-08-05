@@ -19,6 +19,11 @@ class Feature3DMorph(Feature):
         super().__init__(**kwargs)
         self.allow_approximation = allow_approximation
 
+    def _data_key(self):
+        return super()._data_key().update({
+            "class": "morph_3d"
+        })
+
     def create_table_name(self):
         table_elements = self._get_base_table_name_element()
         self.table_name = "_".join(table_elements)
