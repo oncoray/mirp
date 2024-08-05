@@ -1,4 +1,4 @@
-from functools import cache
+from functools import lru_cache
 from typing import Generator
 
 import numpy as np
@@ -67,7 +67,7 @@ class FeatureNGLDM(FeatureTexture):
         return matrix_list
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_matrix(
             image: GenericImage,
             mask: BaseMask,

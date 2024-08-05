@@ -1,5 +1,5 @@
 from typing import Any, Generator
-from functools import cache
+from functools import lru_cache
 
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._features.base_feature import Feature
@@ -46,7 +46,7 @@ class HistogramDerivedFeature(Feature):
         self.cropping_distance = cropping_distance
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def discretise_image(
             image: GenericImage,
             mask: BaseMask,

@@ -1,4 +1,4 @@
-from functools import cache
+from functools import lru_cache
 from typing import Generator
 
 import numpy as np
@@ -42,7 +42,7 @@ class Feature3DMesh(Feature3DMorph):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
@@ -80,7 +80,7 @@ class Feature3DConvexHull(Feature3DMesh):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
@@ -118,7 +118,7 @@ class Feature3DAxisAlignedBoundingBox(Feature3DConvexHull):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
@@ -156,7 +156,7 @@ class Feature3DOrientedMinimumBoundingBox(Feature3DConvexHull):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
@@ -194,7 +194,7 @@ class Feature3DPCA(Feature3DMesh):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
@@ -242,7 +242,7 @@ class Feature3DMinimumEnvelopingEllipsoid(Feature3DConvexHull):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
@@ -290,7 +290,7 @@ class Feature3DSpatial(Feature3DMesh):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask,
