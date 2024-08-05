@@ -83,6 +83,11 @@ class HistogramDerivedFeature(Feature):
         super().clear_cache()
         self.discretise_image.cache_clear()
 
+    def update_ibsi_compliance(self):
+        if self.discretisation_method == "fixed_bin_size_pyradiomics":
+            # pyradiomics with fixed bin size is explicitly not IBSI-compliant.
+            self.ibsi_compliant = False
+
     def _get_discretisation_table_name_element(self) -> list[str]:
         table_elements = []
         if self.discretisation_method is not None:

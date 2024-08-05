@@ -23,5 +23,8 @@ class Feature(object):
     def create_table_name(self):
         self.table_name = "_".join(self._get_base_table_name_element())
 
+    def update_ibsi_compliance(self):
+        pass
+
     def _get_base_table_name_element(self) -> list[str | None]:
         return [self.abbr_name]
