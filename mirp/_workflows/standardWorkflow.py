@@ -454,8 +454,8 @@ class StandardWorkflow(BaseWorkflow):
         for feature in features:
             feature.clear_cache()
 
-        # Convert to table.
-        yield feature_to_table(features)
+        # Convert to table and add image descriptors.
+        yield image.parse_feature_names(feature_to_table(features))
 
     def _get_feature_set_details(
             self,
