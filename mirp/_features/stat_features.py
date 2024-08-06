@@ -1,4 +1,4 @@
-from functools import cache
+from functools import lru_cache
 from typing import Generator
 
 import numpy as np
@@ -79,7 +79,7 @@ class FeatureStat(Feature):
         self._get_data.cache_clear()
 
     @staticmethod
-    @cache
+    @lru_cache(maxsize=1)
     def _get_data(
             image: GenericImage,
             mask: BaseMask
