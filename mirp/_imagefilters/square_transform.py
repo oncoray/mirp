@@ -16,6 +16,9 @@ class SquareTransformFilter(GenericFilter):
             name=name
         )
 
+        # Square transform filters are not IBSI-compliant.
+        self.ibsi_compliant: bool = False
+
     def generate_object(self):
         yield copy.deepcopy(self)
 
@@ -25,6 +28,7 @@ class SquareTransformFilter(GenericFilter):
             image_data=None,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map

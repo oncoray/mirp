@@ -62,6 +62,9 @@ class GenericImage(BaseImage):
         # Slice identifiers.
         self.slice_id: None | int = None
 
+        # Image underwent IBSI compliant processing (default True: it is easier to identify exceptions).
+        self.ibsi_compliant = True
+
     def copy(self, drop_image=False) -> Self:
         image = copy.deepcopy(self)
 
@@ -98,6 +101,7 @@ class GenericImage(BaseImage):
         self.discretisation_method = template.discretisation_method
         self.discretisation_bin_number = template.discretisation_bin_number
         self.discretisation_bin_width = template.discretisation_bin_width
+        self.ibsi_compliant = template.ibsi_compliant
 
     def promote(self):
         from mirp._images.ct_image import CTImage

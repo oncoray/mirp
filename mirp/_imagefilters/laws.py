@@ -16,6 +16,9 @@ class LawsFilter(GenericFilter):
             name=name
         )
 
+        self.ibsi_compliant = True
+        self.ibsi_id = "JTXT"
+
         # Normalise kernel and energy filters? This is true by default (see IBSI).
         self.kernel_normalise = True
         self.energy_normalise = True
@@ -76,6 +79,7 @@ class LawsFilter(GenericFilter):
             riesz_sigma_parameter=None,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map

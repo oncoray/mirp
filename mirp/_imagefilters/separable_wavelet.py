@@ -17,6 +17,9 @@ class SeparableWaveletFilter(GenericFilter):
             name=name
         )
 
+        self.ibsi_compliant = True
+        self.ibsi_id = "25BO"
+
         # Set wavelet family
         self.wavelet_family: str | list[str] = settings.img_transform.separable_wavelet_families
 
@@ -80,6 +83,7 @@ class SeparableWaveletFilter(GenericFilter):
             riesz_sigma_parameter=None,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map

@@ -16,6 +16,9 @@ class GaussianFilter(GenericFilter):
             name=name
         )
 
+        self.ibsi_compliant = True
+        self.ibsi_id = "8BC3"
+
         self.sigma = settings.img_transform.gaussian_sigma
         self.sigma_cutoff = settings.img_transform.gaussian_sigma_truncate
         self.mode = settings.img_transform.gaussian_boundary_condition
@@ -30,6 +33,9 @@ class GaussianFilter(GenericFilter):
             if settings.img_transform.has_steered_riesz_filter(x=name):
                 self.riesz_steered = True
                 self.riesz_sigma = settings.img_transform.riesz_filter_tensor_sigma
+
+            # Riesz transformed filters are not IBSI-compliant
+            self.ibsi_compliant = False
 
     def generate_object(self):
         # Generator for transformation objects.
@@ -71,6 +77,7 @@ class GaussianFilter(GenericFilter):
             riesz_sigma_parameter=self.riesz_sigma,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map
