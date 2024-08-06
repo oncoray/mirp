@@ -41,8 +41,6 @@ class Feature3DMesh(Feature3DMorph):
         data = Data3DMesh()
         data.compute(image=image, mask=mask)
 
-        print(f"3D morphological mesh data being cached.")
-
         return data
 
     def clear_local_cache(self, other):
@@ -102,8 +100,6 @@ class Feature3DConvexHull(Feature3DMesh):
         # Compute convex hull vertices.
         data.compute_convex_hull()
 
-        print("3D morphological convex hull data being cached.")
-
         return data
 
     @staticmethod
@@ -137,8 +133,6 @@ class Feature3DAxisAlignedBoundingBox(Feature3DConvexHull):
 
         # Compute bounding box volume and area.
         data.compute_bounding_box()
-
-        print("3D morphological Axis Aligned Bounding Box data being cached.")
 
         return data
 
@@ -186,8 +180,6 @@ class Feature3DOrientedMinimumBoundingBox(Feature3DConvexHull):
         # Compute bounding box volume and area.
         data.compute_bounding_box()
 
-        print("3D oriented minimum bounding box being cached.")
-
         return data
 
     def clear_cache(self):
@@ -233,8 +225,6 @@ class Feature3DPCA(Feature3DMesh):
 
         # Compute semi-axes using principle component analysis.
         data.compute_semi_axes()
-
-        print("3D morphological pca being cached.")
 
         return data
 
@@ -289,8 +279,6 @@ class Feature3DMinimumEnvelopingEllipsoid(Feature3DConvexHull):
 
         # Compute semi-axes for the minimum enveloping ellipsoid.
         data.compute_semi_axes()
-
-        print("3D Minimum Enveloping Ellipsoid being cached.")
 
         return data
 
@@ -352,8 +340,6 @@ class Feature3DSpatial(Feature3DMesh):
             mask=mask,
             allow_approximation=allow_approximation
         )
-
-        print("3D spatial data being cached.")
 
         return data
 

@@ -78,7 +78,7 @@ class FeatureDZM(FeatureTexture):
         # Compute additional values from the individual matrices.
         for matrix in matrix_list:
             matrix.set_values_from_matrix()
-        print(f"DZM Matrix being cached for: {spatial_method}.")
+
         return matrix_list
 
     def clear_local_cache(self, other):
