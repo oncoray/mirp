@@ -74,7 +74,7 @@ class DataIntensityVolumeHistogram(object):
                 raise ValueError("IVH bin number should be provided.")
 
         # Set bin_size, if required.
-        if discretisation_method == "fixed_bin_size":
+        if discretisation_method == "fixed_bin_size" and bin_size is None:
             bin_size = image.get_default_ivh_bin_size()
             if bin_size is None:
                 raise ValueError("IVH bin size should be provided.")
@@ -139,6 +139,10 @@ class DataIntensityVolumeHistogram(object):
 
         elif discretisation_method == "fixed_bin_number":
             # Calculation for all other image types
+
+            # For FBN, the intensity range is always determined by the intensity range in the image.
+            intensity_range[0] = np.min(data.g)
+            intensity_range[1] = np.max(data.g)
 
             data.loc[:, "g"] = np.floor(
                 bin_number * (data["g"] - intensity_range[0]) / (intensity_range[1] - intensity_range[0])) + 1.0
