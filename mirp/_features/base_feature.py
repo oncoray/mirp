@@ -12,7 +12,7 @@ class Feature(object):
         self.table_name: None | str = None
 
         # Even though most features are IBSI-compliant, set value to False to avoid surprises in the future.
-        self.ibsi_compliant: None | bool = False
+        self.ibsi_compliant: bool = False
 
     def clear_cache(self):
         pass
