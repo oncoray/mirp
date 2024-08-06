@@ -88,13 +88,6 @@ class HistogramDerivedFeature(Feature):
             # pyradiomics with fixed bin size is explicitly not IBSI-compliant.
             self.ibsi_compliant = False
 
-    def _data_key(self):
-        return super()._data_key().update(dict({
-            "discretisation_method": self.discretisation_method,
-            "bin_number": self.bin_number,
-            "bin_width": self.bin_width
-        }))
-
     def _get_discretisation_table_name_element(self) -> list[str]:
         table_elements = []
         if self.discretisation_method is not None:

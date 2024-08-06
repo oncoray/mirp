@@ -26,8 +26,5 @@ class Feature(object):
     def update_ibsi_compliance(self):
         pass
 
-    def _data_key(self):
-        return dict()
-
     def _get_base_table_name_element(self) -> list[str | None]:
         return [self.abbr_name]

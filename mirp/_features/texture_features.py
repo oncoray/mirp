@@ -26,8 +26,3 @@ class FeatureTexture(HistogramDerivedFeature):
             table_elements = [self.spatial_method]
 
         return table_elements
-
-    def _data_key(self):
-        return super()._data_key().update({
-            "spatial_method": self.spatial_method
-        })

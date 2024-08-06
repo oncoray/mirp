@@ -169,11 +169,6 @@ class FeatureLocalIntensity(Feature):
     ):
         super().__init__(**kwargs)
 
-    def _data_key(self):
-        return super()._data_key().update({
-            "class": "local_intensity"
-        })
-
     def clear_cache(self):
         super().clear_cache()
         self._get_data.cache_clear()
