@@ -29,5 +29,12 @@ class Feature(object):
     def update_ibsi_compliance(self):
         pass
 
+    def is_ibsi_compliant(self, image: GenericImage) -> bool:
+        # Update IBSI compliance based on attributes.
+        self.update_ibsi_compliance()
+
+        # Feature is compliant if it is compliant, and is derived from a image processed in an IBSI-compliant manner.
+        return self.ibsi_compliant and image.ibsi_compliant
+
     def _get_base_table_name_element(self) -> list[str | None]:
         return [self.abbr_name]

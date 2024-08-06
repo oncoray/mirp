@@ -444,7 +444,7 @@ class StandardWorkflow(BaseWorkflow):
         for feature in features:
             # Check that both the feature is IBSI compliant and the input image is processed in an IBSI-compliant
             # manner.
-            if (feature.ibsi_compliant and image.ibsi_compliant) or not feature_settings.ibsi_compliant:
+            if feature.is_ibsi_compliant(image=image) or not feature_settings.ibsi_compliant:
                 feature.compute(image=image, mask=mask)
             if previous_feature is not None:
                 previous_feature.clear_local_cache(other=feature)
@@ -456,7 +456,6 @@ class StandardWorkflow(BaseWorkflow):
 
         # Convert to table.
         yield feature_to_table(features)
-
 
     def _get_feature_set_details(
             self,
