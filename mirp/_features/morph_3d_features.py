@@ -334,7 +334,7 @@ class Feature3DSpatial(Feature3DMesh):
 
     @staticmethod
     @lru_cache(maxsize=1)
-    def _get_data(
+    def _get_spatial_data(
             image: GenericImage,
             mask: BaseMask,
             allow_approximation: bool
@@ -361,15 +361,15 @@ class Feature3DSpatial(Feature3DMesh):
         if not isinstance(other, Feature3DMesh):
             Feature3DMesh._get_data.cache_clear()
         if not isinstance(other, Feature3DSpatial):
-            self._get_data.cache_clear()
+            self._get_spatial_data.cache_clear()
 
     def clear_cache(self):
         super().clear_cache()
-        self._get_data.cache_clear()
+        self._get_spatial_data.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Get data.
-        data = self._get_data(image=image, mask=mask, allow_approximation=self.allow_approximation)
+        data = self._get_spatial_data(image=image, mask=mask, allow_approximation=self.allow_approximation)
 
         # Compute feature value.
         if data.is_empty() or data.is_singular():
