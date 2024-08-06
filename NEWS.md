@@ -1,3 +1,18 @@
+# Version 2.3.0
+
+# Major changes
+
+- The proper ancient feature computation code running in the background of MIRP has been completely refactored. We 
+  moved from a functional backend where all features were computed per feature family to a more flexible 
+  object-oriented approach. Although this change is not visible at the user-end, it offers several new possibilities:
+  - Single features can now be computed. In addition, for some features (e.g. percentile statistics), a flexible 
+    percentile value could be passed.
+  - Creation of feature maps.
+  - Output of features and their metadata to machine-readable formats, instead of just tabular data.
+  
+  **Important**: Though the *name* of features in the tabular exports has not changed, their *ordering* may have. 
+  Avoid using column position when processing or analysing feature data.  
+  
 # Version 2.2.4
 
 ## Fixes
