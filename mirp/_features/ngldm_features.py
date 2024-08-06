@@ -115,6 +115,14 @@ class FeatureNGLDM(FeatureTexture):
         self._get_matrix.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
+        # Skip processing if input image and/or roi are missing
+        if image is None or mask is None:
+            return None
+
+        # Check if data actually exists
+        if image.is_empty() or mask.roi_intensity.is_empty_mask():
+            return
+
         # Compute or retrieve matrices from cache.
         matrices = self.get_matrix(image=image, mask=mask)
 

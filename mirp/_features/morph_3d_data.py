@@ -33,14 +33,8 @@ class Data3DMesh(object):
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Skip processing if input image and/or roi are missing
-        if image is None:
-            raise ValueError(
-                "image cannot be None, but may not have been provided in the calling function."
-            )
-        if mask is None:
-            raise ValueError(
-                "mask cannot be None, but may not have been provided in the calling function."
-            )
+        if image is None or mask is None:
+            return
 
         # Check if data actually exists
         if image.is_empty() or mask.roi_morphology.is_empty_mask():

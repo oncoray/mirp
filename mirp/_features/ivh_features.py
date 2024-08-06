@@ -32,14 +32,8 @@ class DataIntensityVolumeHistogram(object):
             bin_size: float | None = None
     ):
         # Skip processing if input image and/or roi are missing
-        if image is None:
-            raise ValueError(
-                "image cannot be None, but may not have been provided in the calling function."
-            )
-        if mask is None:
-            raise ValueError(
-                "mask cannot be None, but may not have been provided in the calling function."
-            )
+        if image is None or mask is None:
+            return
 
         # Check if data actually exists
         if image.is_empty() or mask.roi_intensity.is_empty_mask():

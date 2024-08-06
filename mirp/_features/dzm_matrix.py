@@ -36,19 +36,6 @@ class MatrixDZM(Matrix):
     ):
         from mirp.utilities.utilities import real_ndim
 
-        if image is None:
-            raise ValueError(
-                "image cannot be None, but may not have been provided in the calling function."
-            )
-        if mask is None:
-            raise ValueError(
-                "mask cannot be None, but may not have been provided in the calling function."
-            )
-
-        # Check if data actually exists
-        if image.is_empty() or mask.roi_intensity.is_empty_mask():
-            return
-
         # Define neighbour directions
         if self.spatial_method == "3d":
             connectivity = 3
