@@ -442,7 +442,10 @@ class StandardWorkflow(BaseWorkflow):
         features = list(generate_features(settings=feature_settings))
         previous_feature = None
         for feature in features:
-            feature.compute(image=image, mask=mask)
+            # Check that both the feature is IBSI compliant and the input image is processed in an IBSI-compliant
+            # manner.
+            if (feature.ibsi_compliant and image.ibsi_compliant) or not feature_settings.ibsi_compliant:
+                feature.compute(image=image, mask=mask)
             if previous_feature is not None:
                 previous_feature.clear_local_cache(other=feature)
             previous_feature = feature
