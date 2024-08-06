@@ -440,10 +440,14 @@ class StandardWorkflow(BaseWorkflow):
 
         # Get and compute features.
         features = list(generate_features(settings=feature_settings))
+        previous_feature = None
         for feature in features:
             feature.compute(image=image, mask=mask)
+            if previous_feature is not None:
+                previous_feature.clear_local_cache(other=feature)
+            previous_feature = feature
 
-        # Clear cache to prevent memory leaks.
+        # Make a final pass to empty cache to prevent memory leaks.
         for feature in features:
             feature.clear_cache()
 

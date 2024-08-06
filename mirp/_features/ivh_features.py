@@ -194,10 +194,6 @@ class FeatureIntensityVolumeHistogram(HistogramDerivedFeature):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -217,6 +213,14 @@ class FeatureIntensityVolumeHistogram(HistogramDerivedFeature):
         )
 
         return data
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, FeatureIntensityVolumeHistogram):
+            self._get_data.cache_clear()
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Get data.

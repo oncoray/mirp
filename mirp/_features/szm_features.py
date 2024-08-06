@@ -73,6 +73,10 @@ class FeatureSZM(FeatureTexture):
         print(f"SZM Matrix being cached for: {spatial_method}.")
         return matrix_list
 
+    def clear_local_cache(self, other):
+        if not isinstance(other, FeatureSZM):
+            self._get_matrix.cache_clear()
+
     def clear_cache(self):
         super().clear_cache()
         self._get_matrix.cache_clear()

@@ -110,10 +110,6 @@ class FeatureIH(HistogramDerivedFeature):
         # Perform close crop for intensity histograms.
         self.cropping_distance = 0.0
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -124,6 +120,14 @@ class FeatureIH(HistogramDerivedFeature):
         data.compute(image=image, mask=mask)
 
         return data
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, FeatureIH):
+            self._get_data.cache_clear()
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Discretise images.

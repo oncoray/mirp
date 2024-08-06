@@ -32,10 +32,6 @@ class Feature3DMesh(Feature3DMorph):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -45,7 +41,17 @@ class Feature3DMesh(Feature3DMorph):
         data = Data3DMesh()
         data.compute(image=image, mask=mask)
 
+        print(f"3D morphological mesh data being cached.")
+
         return data
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            self._get_data.cache_clear()
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
 
     @staticmethod
     def _compute(data: Data3DMesh, image: GenericImage | None = None, mask: BaseMask | None = None):
@@ -70,6 +76,12 @@ class Feature3DConvexHull(Feature3DMesh):
     ):
         super().__init__(**kwargs)
 
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            Feature3DMesh._get_data.cache_clear()
+        if not isinstance(other, Feature3DConvexHull):
+            self._get_data.cache_clear()
+
     def clear_cache(self):
         super().clear_cache()
         self._get_data.cache_clear()
@@ -90,6 +102,8 @@ class Feature3DConvexHull(Feature3DMesh):
         # Compute convex hull vertices.
         data.compute_convex_hull()
 
+        print("3D morphological convex hull data being cached.")
+
         return data
 
     @staticmethod
@@ -108,10 +122,6 @@ class Feature3DAxisAlignedBoundingBox(Feature3DConvexHull):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -128,7 +138,21 @@ class Feature3DAxisAlignedBoundingBox(Feature3DConvexHull):
         # Compute bounding box volume and area.
         data.compute_bounding_box()
 
+        print("3D morphological Axis Aligned Bounding Box data being cached.")
+
         return data
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            Feature3DMesh._get_data.cache_clear()
+        if not isinstance(other, Feature3DConvexHull):
+            Feature3DConvexHull._get_data.cache_clear()
+        if not isinstance(other, Feature3DAxisAlignedBoundingBox):
+            self._get_data.cache_clear()
 
     @staticmethod
     def _compute(
@@ -146,10 +170,6 @@ class Feature3DOrientedMinimumBoundingBox(Feature3DConvexHull):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -166,7 +186,21 @@ class Feature3DOrientedMinimumBoundingBox(Feature3DConvexHull):
         # Compute bounding box volume and area.
         data.compute_bounding_box()
 
+        print("3D oriented minimum bounding box being cached.")
+
         return data
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            Feature3DMesh._get_data.cache_clear()
+        if not isinstance(other, Feature3DConvexHull):
+            Feature3DConvexHull._get_data.cache_clear()
+        if not isinstance(other, Feature3DOrientedMinimumBoundingBox):
+            self._get_data.cache_clear()
 
     @staticmethod
     def _compute(
@@ -184,10 +218,6 @@ class Feature3DPCA(Feature3DMesh):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -204,7 +234,19 @@ class Feature3DPCA(Feature3DMesh):
         # Compute semi-axes using principle component analysis.
         data.compute_semi_axes()
 
+        print("3D morphological pca being cached.")
+
         return data
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            Feature3DMesh._get_data.cache_clear()
+        if not isinstance(other, Feature3DPCA):
+            self._get_data.cache_clear()
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Get data.
@@ -232,10 +274,6 @@ class Feature3DMinimumEnvelopingEllipsoid(Feature3DConvexHull):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -252,7 +290,21 @@ class Feature3DMinimumEnvelopingEllipsoid(Feature3DConvexHull):
         # Compute semi-axes for the minimum enveloping ellipsoid.
         data.compute_semi_axes()
 
+        print("3D Minimum Enveloping Ellipsoid being cached.")
+
         return data
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            Feature3DMesh._get_data.cache_clear()
+        if not isinstance(other, Feature3DConvexHull):
+            Feature3DConvexHull._get_data.cache_clear()
+        if not isinstance(other, Feature3DMinimumEnvelopingEllipsoid):
+            self._get_data.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Get data.
@@ -280,10 +332,6 @@ class Feature3DSpatial(Feature3DMesh):
     ):
         super().__init__(**kwargs)
 
-    def clear_cache(self):
-        super().clear_cache()
-        self._get_data.cache_clear()
-
     @staticmethod
     @lru_cache(maxsize=1)
     def _get_data(
@@ -305,7 +353,19 @@ class Feature3DSpatial(Feature3DMesh):
             allow_approximation=allow_approximation
         )
 
+        print("3D spatial data being cached.")
+
         return data
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DMesh):
+            Feature3DMesh._get_data.cache_clear()
+        if not isinstance(other, Feature3DSpatial):
+            self._get_data.cache_clear()
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
 
     def compute(self, image: GenericImage, mask: BaseMask):
         # Get data.
@@ -742,25 +802,25 @@ def get_morphology_3d_class_dict() -> dict[str, Feature3DMorph]:
         "morph_sphericity": Feature3DMorphSphericity,
         "morph_asphericity": Feature3DMorphAsphericity,
         "morph_com": Feature3DMorphCentreOfMassShift,
+        "morph_integ_int": Feature3DMorphIntegratedIntensity,
         "morph_diam": Feature3DMorphMaximum3DDiameter,
+        "morph_vol_dens_conv_hull": Feature3DMorphConvexHullVolumeDensity,
+        "morph_area_dens_conv_hull": Feature3DMorphConvexHullAreaDensity,
+        "morph_vol_dens_aabb": Feature3DMorphAxisAlignedBoundingBoxVolumeDensity,
+        "morph_area_dens_aabb": Feature3DMorphAxisAlignedBoundingBoxAreaDensity,
+        "morph_vol_dens_ombb": Feature3DMorphOrientedMinimumBoundingBoxVolumeDensity,
+        "morph_area_dens_ombb": Feature3DMorphOrientedMinimumBoundingBoxAreaDensity,
+        "morph_vol_dens_mvee": Feature3DMorphMinimumEnvelopingEllipsoidVolumeDensity,
+        "morph_area_dens_mvee": Feature3DMorphMinimumEnvelopingEllipsoidAreaDensity,
         "morph_pca_maj_axis": Feature3DMorphMajorAxisLength,
         "morph_pca_min_axis": Feature3DMorphMinorAxisLength,
         "morph_pca_least_axis": Feature3DMorphShortestAxisLength,
         "morph_pca_elongation": Feature3DMorphElongation,
         "morph_pca_flatness": Feature3DMorphFlatness,
-        "morph_vol_dens_aabb": Feature3DMorphAxisAlignedBoundingBoxVolumeDensity,
-        "morph_area_dens_aabb": Feature3DMorphAxisAlignedBoundingBoxAreaDensity,
         "morph_vol_dens_aee": Feature3DMorphApproximateEnclosingEllipsoidVolumeDensity,
         "morph_area_dens_aee": Feature3DMorphApproximateEnclosingEllipsoidAreaDensity,
-        "morph_vol_dens_conv_hull": Feature3DMorphConvexHullVolumeDensity,
-        "morph_area_dens_conv_hull": Feature3DMorphConvexHullAreaDensity,
-        "morph_integ_int": Feature3DMorphIntegratedIntensity,
         "morph_moran_i": Feature3DMorphMoranIndex,
-        "morph_geary_c": Feature3DMorphGearyMeasure,
-        "morph_vol_dens_ombb": Feature3DMorphOrientedMinimumBoundingBoxVolumeDensity,
-        "morph_area_dens_ombb": Feature3DMorphOrientedMinimumBoundingBoxAreaDensity,
-        "morph_vol_dens_mvee": Feature3DMorphMinimumEnvelopingEllipsoidVolumeDensity,
-        "morph_area_dens_mvee": Feature3DMorphMinimumEnvelopingEllipsoidAreaDensity
+        "morph_geary_c": Feature3DMorphGearyMeasure
     }
 
     return class_dict

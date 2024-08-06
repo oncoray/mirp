@@ -17,6 +17,9 @@ class Feature(object):
     def clear_cache(self):
         pass
 
+    def clear_local_cache(self, other):
+        pass
+
     def compute(self, image: GenericImage, mask: BaseMask):
         raise NotImplementedError("compute method should be implemented in subclasses.")
 
