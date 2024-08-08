@@ -1,0 +1,1 @@
+The imaging dataset consists of a PET and CT series for subject QIN-HEADNECK-01-0139 from the TCIA QIN-HEADNECK collection. This data set contains 11 lesions. This allows to test that the implementation can handle more than one segment.

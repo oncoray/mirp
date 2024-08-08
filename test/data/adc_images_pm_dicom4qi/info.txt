@@ -1,0 +1,9 @@
+See https://dicom4qi.readthedocs.io/en/latest/instructions/pm/
+
+Dataset 1
+
+This is a dataset encoding the Apparent Diffusion Coefficient (ADC) map produced by a GE scanner as a DICOM Parametric map object. The original ADC map available here was saved as an object of MR modality by the scanner software. This dataset encodes integer-valued pixels, and the ADC units are micrometers per squared second (as noted in the object).
+
+Dataset 2
+
+This dataset encodes the same ADC map as the first dataset, but in meters per squared second units. The result is an object where each pixel value is less than one. The goal of this object is to test rendering of the true floating point pixel values.
