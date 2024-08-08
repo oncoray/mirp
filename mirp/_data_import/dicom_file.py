@@ -73,6 +73,11 @@ class ImageDicomFile(ImageFile):
 
     def _check_modality(self, raise_error: bool) -> bool:
         dicom_modality = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0060), tag_type="str")
+
+        # Check for ADC images
+        if self._check_is_mr_adc():
+            dicom_modality = "adc"
+
         support_modalities = supported_image_modalities(self.modality)
         if dicom_modality.lower() not in support_modalities:
             if raise_error:
@@ -134,6 +139,7 @@ class ImageDicomFile(ImageFile):
         # Import locally to prevent circular references.
         from mirp._data_import.dicom_file_ct import ImageDicomFileCT
         from mirp._data_import.dicom_file_mr import ImageDicomFileMR
+        from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADC
         from mirp._data_import.dicom_file_pet import ImageDicomFilePT
         from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
 
@@ -144,12 +150,17 @@ class ImageDicomFile(ImageFile):
         if modality is None:
             raise TypeError(f"Modality attribute could not be obtained from DICOM file. [{self.describe_self()}]")
 
+        if self._check_is_mr_adc():
+            modality = "adc"
+
         if modality == "ct":
             file_class = ImageDicomFileCT
         elif modality == "pt":
             file_class = ImageDicomFilePT
         elif modality == "mr":
             file_class = ImageDicomFileMR
+        elif modality == "adc":
+            file_class = ImageDicomFileMRADC
         elif modality == "rtdose":
             file_class = ImageDicomFileRTDose
         else:
@@ -161,7 +172,7 @@ class ImageDicomFile(ImageFile):
             dir_path=self.dir_path,
             sample_name=self.sample_name,
             file_name=self.file_name,
-            image_modality=self.modality,
+            image_modality=modality,
             image_name=self.image_name,
             image_file_type=self.file_type,
             image_data=self.image_data,
@@ -465,6 +476,17 @@ class ImageDicomFile(ImageFile):
 
         # Update object_metadata
         self.object_metadata.update(dict(metadata))
+
+    def _check_is_mr_adc(self):
+        # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
+        # and otherwise through the diffusion b-value in (0018,9087).
+        image_type = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0008), tag_type="str")
+        if image_type is not None and any(x.lower() == "adc" for x in image_type):
+            return True
+        elif get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x9087), tag_type="float"):
+            return True
+
+        return False
 
     @staticmethod
     def _get_limited_metadata_tags():

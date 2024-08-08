@@ -28,6 +28,9 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
     elif modality in ["mr", "mri"]:
         return ["mr"]
 
+    elif modality in ["adc"]:
+        return ["adc"]
+
     elif modality in ["rtdose"]:
         return ["rtdose"]
 
@@ -42,7 +45,7 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
 
 
 def stacking_dicom_image_modalities() -> list[str]:
-    return ["ct", "pt", "mr"]
+    return ["ct", "pt", "mr", "adc"]
 
 
 def supported_mask_modalities(modality: None | str = None) -> list[str]:
