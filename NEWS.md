@@ -1,6 +1,6 @@
 # Version 2.3.0
 
-# Major changes
+## Major changes
 
 - The proper ancient feature computation code running in the background of MIRP has been completely refactored. We 
   moved from a functional backend where all features were computed per feature family to a more flexible 

@@ -12,7 +12,6 @@ from mirp._masks.base_mask import BaseMask
 class MaskDicomFileSEG(MaskDicomFile):
 
     def __init__(self, **kwargs):
-
         super().__init__(**kwargs)
 
     def is_stackable(self, stack_images: str):

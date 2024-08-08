@@ -14,38 +14,8 @@ from mirp._data_import.utilities import supported_image_modalities, stacking_dic
 
 
 class ImageDicomFile(ImageFile):
-    def __init__(
-            self,
-            file_path: None | str = None,
-            dir_path: None | str = None,
-            sample_name: None | str | list[str] = None,
-            file_name: None | str = None,
-            image_name: None | str = None,
-            image_modality: None | str = None,
-            image_file_type: None | str = None,
-            image_data: None | np.ndarray = None,
-            image_origin: None | tuple[float, ...] = None,
-            image_orientation: None | np.ndarray = None,
-            image_spacing: None | tuple[float, ...] = None,
-            image_dimensions: None | tuple[int, ...] = None,
-            **kwargs
-    ):
-
-        super().__init__(
-            file_path=file_path,
-            dir_path=dir_path,
-            sample_name=sample_name,
-            file_name=file_name,
-            image_name=image_name,
-            image_modality=image_modality,
-            image_file_type=image_file_type,
-            image_data=image_data,
-            image_origin=image_origin,
-            image_orientation=image_orientation,
-            image_spacing=image_spacing,
-            image_dimensions=image_dimensions,
-            **kwargs
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         # These are set using the 'complete' method.
         self.series_instance_uid: None | str = None
@@ -500,6 +470,7 @@ class ImageDicomFile(ImageFile):
     def _get_limited_metadata_tags():
         # Limited tags are read to populate basic
         return [
+            (0x0008, 0x0008),  # image type
             (0x0008, 0x0018),  # SOP instance UID
             (0x0008, 0x0060),  # modality
             (0x0008, 0x1030),  # study description
@@ -507,6 +478,7 @@ class ImageDicomFile(ImageFile):
             (0x0010, 0x0010),  # patient name
             (0x0010, 0x0020),  # patient id
             (0x0018, 0x0050),  # slice thickness
+            (0x0018, 0x9087),  # diffusion b-value
             (0x0020, 0x000E),  # series instance UID
             (0x0020, 0x0010),  # study id
             (0x0020, 0x0032),  # origin

@@ -6,37 +6,8 @@ from mirp._data_import.utilities import get_pydicom_meta_tag
 
 
 class ImageDicomFileCT(ImageDicomFile):
-    def __init__(
-            self,
-            file_path: None | str = None,
-            dir_path: None | str = None,
-            sample_name: None | str | list[str] = None,
-            file_name: None | str = None,
-            image_name: None | str = None,
-            image_modality: None | str = None,
-            image_file_type: None | str = None,
-            image_data: None | np.ndarray = None,
-            image_origin: None | tuple[float, float, float] = None,
-            image_orientation: None | np.ndarray = None,
-            image_spacing: None | tuple[float, float, float] = None,
-            image_dimensions: None | tuple[int, int, int] = None,
-            **kwargs
-    ):
-
-        super().__init__(
-            file_path=file_path,
-            dir_path=dir_path,
-            sample_name=sample_name,
-            file_name=file_name,
-            image_name=image_name,
-            image_modality=image_modality,
-            image_file_type=image_file_type,
-            image_data=image_data,
-            image_origin=image_origin,
-            image_orientation=image_orientation,
-            image_spacing=image_spacing,
-            image_dimensions=image_dimensions
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def is_stackable(self, stack_images: str):
         return True
