@@ -15,6 +15,21 @@ def test_basic_adc_mr_feature_extraction():
         write_images=False,
         export_images=True,
         image_export_format="native",
+        image=os.path.join(CURRENT_DIR, "data", "adc_images_pm_dicom4qi", "data_1", "image.dcm"),
+        base_feature_families="statistics"
+    )
+
+    feature_data = data[0][0]
+    image = data[0][1][0]
+
+
+
+    data = extract_features_and_images(
+        write_features=False,
+        export_features=True,
+        write_images=False,
+        export_images=True,
+        image_export_format="native",
         image=os.path.join(CURRENT_DIR, "data", "adc_images_mr", "SCAN_001", "adc_image"),
         base_feature_families="statistics"
     )

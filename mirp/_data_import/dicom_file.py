@@ -10,7 +10,7 @@ from warnings import warn
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
-    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time
+    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time, has_pydicom_meta_tag
 
 
 class ImageDicomFile(ImageFile):
@@ -142,6 +142,7 @@ class ImageDicomFile(ImageFile):
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADC
         from mirp._data_import.dicom_file_pet import ImageDicomFilePT
         from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
+        from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 
         # Load metadata so that the modality tag can be read.
         self.load_metadata(limited=True)
@@ -166,6 +167,10 @@ class ImageDicomFile(ImageFile):
         else:
             # This will return a base class, which will fail to pass the modality check.
             return None
+
+        if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9299)) or \
+                has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9230)):
+            file_class = ImageDicomMultiFrame
 
         image = file_class(
             file_path=self.file_path,
@@ -480,7 +485,7 @@ class ImageDicomFile(ImageFile):
     def _check_is_mr_adc(self):
         # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
         # and otherwise through the diffusion b-value in (0018,9087).
-        image_type = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0008), tag_type="str")
+        image_type = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0008), tag_type="mult_str")
         if image_type is not None and any(x.lower() == "adc" for x in image_type):
             return True
         elif get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x9087), tag_type="float"):
@@ -510,7 +515,9 @@ class ImageDicomFile(ImageFile):
             (0x0028, 0x0010),  # pixel rows
             (0x0028, 0x0011),  # pixel columns
             (0x0028, 0x0030),  # pixel spacing
-            (0x3004, 0x000C)  # grid frame offset vector
+            (0x3004, 0x000C),  # grid frame offset vector
+            (0x5200, 0x9299),  # shared functional groups sequence
+            (0x5200, 0x9230)   # per-frame functional groups sequence
         ]
 
     def _get_acquisition_start_time(self) -> datetime.datetime:
