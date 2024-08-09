@@ -44,6 +44,24 @@ class ImageDicomFileMR(ImageDicomFile):
         if manufacturer is not None:
             dcm_meta_data += [("manufacturer", manufacturer)]
 
+        # Receive coil name
+        receive_coil = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x1250),
+            tag_type="str"
+        )
+        if receive_coil is not None:
+            dcm_meta_data += [("receive_coil_name", receive_coil)]
+
+        # Transmit coil name
+        transmit_coil = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x1251),
+            tag_type="str"
+        )
+        if transmit_coil is not None:
+            dcm_meta_data += [("transmit_coil_name", transmit_coil)]
+
         # Magnetic field strength
         magnetic_field_strength = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
@@ -106,6 +124,15 @@ class ImageDicomFileMR(ImageDicomFile):
         )
         if acquisition_type is not None:
             dcm_meta_data += [("acquisition_type", acquisition_type)]
+
+        # Parallel acquisition technique
+        parallel_acquisition_technique = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9078),
+            tag_type="str"
+        )
+        if parallel_acquisition_technique is not None:
+            dcm_meta_data += [("parallel_acquisition_technique", parallel_acquisition_technique)]
 
         # Repetition time
         repetition_time = get_pydicom_meta_tag(

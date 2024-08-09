@@ -18,6 +18,15 @@ class ImageDicomFileMRADC(ImageDicomFileMR):
 
         dcm_meta_data = []
 
+        # Diffusion b-value
+        b_value = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9087),
+            tag_type="float"
+        )
+        if b_value is not None:
+            dcm_meta_data += [("diffusion_b_value", b_value)]
+
         metadata.update(dict(dcm_meta_data))
         return metadata
     

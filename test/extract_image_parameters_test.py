@@ -67,6 +67,12 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 3
 
+    # Read a single ADC image.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "adc_images_mr", "SCAN_001", "adc_image"),
+    )
+    assert len(image_parameters) == 1
+
     # Read multiple DICOM images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
