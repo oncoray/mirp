@@ -465,6 +465,7 @@ def get_pydicom_meta_tag(
         tag: tuple[hex, hex],
         tag_type: None | str = None,
         default: Any = None,
+        macro_dcm_seq: None | tuple[hex, hex] = None,
         test_tag: bool = False
 ) -> Any:
     """
@@ -483,6 +484,9 @@ def get_pydicom_meta_tag(
 
     default: any, optional, default: None
         Default value to be used in absence of any value from the DICOM metadata.
+
+    macro_dcm_seq: tuple of hex
+        Hexadecimal value for the macro sequence within shared or per-frame functional groups.
 
     test_tag: bool, optional, default: False
         Determine whether a tag exists.

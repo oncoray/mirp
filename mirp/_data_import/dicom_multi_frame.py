@@ -6,32 +6,25 @@ class ImageDicomMultiFrame(ImageDicomFile):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def create(self):
+        # This method is called from ImageDicomFile.create amd dispatches to modality-specific multi-frame objects.
+        ...
+
     def is_stackable(self, stack_images: str):
+        # Multi-frame images might be actually be stackable (concatenated), but ignore that for now.
         return False
 
     def _complete_image_origin(self, force=False):
-        raise NotImplementedError(
-            f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
-            f"implementation for subclasses."
-        )
+        ...
 
     def _complete_image_orientation(self, force=False):
-        raise NotImplementedError(
-            f"DEV: There is (intentionally) no generic implementation of _complete_sample_orientation. Please specify "
-            f"implementation for subclasses."
-        )
+        ...
 
     def _complete_image_spacing(self, force=False):
-        raise NotImplementedError(
-            f"DEV: There is (intentionally) no generic implementation of _complete_sample_spacing. Please specify "
-            f"implementation for subclasses."
-        )
+        ...
 
     def _complete_image_dimensions(self, force=False):
-        raise NotImplementedError(
-            f"DEV: There is (intentionally) no generic implementation of _complete_sample_dimensions. Please specify "
-            f"implementation for subclasses."
-        )
+        ...
 
 
 class ImageDicomMultiFrameSingle(ImageFile):

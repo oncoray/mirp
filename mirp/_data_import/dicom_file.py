@@ -191,6 +191,10 @@ class ImageDicomFile(ImageFile):
         image.image_metadata = self.image_metadata
         image.is_limited_metadata = self.is_limited_metadata
 
+        # Multi-frame images need additional work.
+        if isinstance(image, ImageDicomMultiFrame):
+            image = image.create()
+
         return image
 
     def complete(self, remove_metadata=False, force=False):
