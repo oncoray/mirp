@@ -114,6 +114,82 @@ class ImageDicomMultiFrame(ImageDicomFile):
 
             self.image_dimension = dimensions
 
+    def load_data(self, **kwargs):
+        if self.image_data is not None:
+            return self.image_data
+
+        if self.file_path is not None and not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The image file could not be found at the expected location: {self.file_path}. [{self.describe_self()}]"
+            )
+
+        if self.file_path is None:
+            raise ValueError(f"A path to a file was expected, but not present. [{self.describe_self()}]")
+
+        # Load metadata.
+        self.load_metadata(include_image=True)
+        image_data = self.image_metadata.pixel_array.astype(np.float32)
+
+        # Determine number of frames
+        n_frames = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0008), tag_type="int")
+
+        # Determine rescale intercept.
+        rescale_intercept = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0028, 0x1052),
+            tag_type="float",
+            macro_dcm_seq=(0x0028, 0x9145)
+        )
+        if rescale_intercept is None and n_frames is not None:
+            rescale_intercept = [
+                get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x0028, 0x1052),
+                    tag_type="float",
+                    macro_dcm_seq=(0x0028, 0x9145),
+                    frame_id=frame_id
+                )
+                for frame_id in np.arange(self.image_dimension[0])
+            ]
+        if rescale_intercept is None:
+            rescale_intercept = 0.0
+
+        # Determine rescale slope.
+        rescale_slope = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0028, 0x1053),
+            tag_type="float",
+            macro_dcm_seq=(0x0028, 0x9145)
+        )
+        if rescale_slope is None and n_frames is not None:
+            rescale_slope = [
+                get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x0028, 0x1052),
+                    tag_type="float",
+                    macro_dcm_seq=(0x0028, 0x9145),
+                    frame_id=frame_id
+                )
+                for frame_id in np.arange(self.image_dimension[0])
+            ]
+        if rescale_slope is None:
+            rescale_slope = 1.0
+
+        # Apply slope and intercept.
+        if isinstance(rescale_slope, list):
+            for ii, b in enumerate(rescale_slope):
+                image_data[ii, :, :] = b * image_data[ii, :, :]
+        else:
+            image_data *= rescale_slope
+
+        if isinstance(rescale_intercept, list):
+            for ii, a in enumerate(rescale_intercept):
+                image_data[ii, :, :] = image_data[ii, :, :] + a
+        else:
+            image_data += rescale_intercept
+
+        self.image_data = image_data
+
 
 class ImageDicomMultiFrameSingle(ImageFile):
     def __init__(self, **kwargs):
