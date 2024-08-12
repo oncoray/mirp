@@ -305,7 +305,13 @@ class ImageDicomFile(ImageFile):
             # Load relevant metadata.
             self.load_metadata(limited=True)
 
-            origin = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0020, 0x0032), tag_type="mult_float")[::-1]
+            origin = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0020, 0x0032),
+                tag_type="mult_float",
+                macro_dcm_seq=(0x0020, 0x9113),
+                frame_id=frame_id
+            )[::-1]
             self.image_origin = tuple(origin)
 
     def _complete_image_orientation(self, force=False, frame_id=None):
@@ -320,7 +326,9 @@ class ImageDicomFile(ImageFile):
             orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
-                tag_type="mult_float"
+                tag_type="mult_float",
+                macro_dcm_seq=(0x0020, 0x9116),
+                frame_id=frame_id
             )
 
             # First compute z-orientation.
@@ -337,14 +345,36 @@ class ImageDicomFile(ImageFile):
             self.load_metadata(limited=True)
 
             # Get pixel-spacing.
-            spacing = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0030), tag_type="mult_float")
+            spacing = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0028, 0x0030),
+                tag_type="mult_float",
+                macro_dcm_seq=(0x0028, 0x9110),
+                frame_id=frame_id
+            )
 
-            # Get slice thickness.
+            # First try to get spacing between slices.
             z_spacing = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
-                tag=(0x0018, 0x0050),
+                tag=(0x0018, 0x0088),
                 tag_type="float",
-                default=1.0)
+                macro_dcm_seq=(0x0028, 0x9110),
+                frame_id=frame_id
+            )
+
+            # If spacing between slices is not set, get slice thickness.
+            if z_spacing is None:
+                z_spacing = get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x0018, 0x0050),
+                    tag_type="float",
+                    macro_dcm_seq=(0x0028, 0x9110),
+                    frame_id=frame_id
+                )
+
+            # If slice thickness is not set, use a default value.
+            if z_spacing is None:
+                z_spacing = 1.0
             spacing += [z_spacing]
 
             self.image_spacing = tuple(spacing[::-1])
