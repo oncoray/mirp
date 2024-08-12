@@ -14,13 +14,13 @@ class ImageDicomMultiFrame(ImageDicomFile):
         # Multi-frame images might be actually be stackable (concatenated), but ignore that for now.
         return False
 
-    def _complete_image_origin(self, force=False):
+    def _complete_image_origin(self, force=False, frame_id=None):
         ...
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id=None):
         ...
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id=None):
         ...
 
     def _complete_image_dimensions(self, force=False):

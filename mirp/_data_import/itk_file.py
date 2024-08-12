@@ -54,7 +54,7 @@ class ImageITKFile(ImageFile):
 
         return image_copy
 
-    def _complete_image_origin(self, force=False):
+    def _complete_image_origin(self, force=False, frame_id=None):
         if self.image_origin is None:
             self.load_metadata()
 
@@ -69,7 +69,7 @@ class ImageITKFile(ImageFile):
             # Set origin.
             self.image_origin = tuple(origin)
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id=None):
         if self.image_orientation is None:
             self.load_metadata()
 
@@ -83,7 +83,7 @@ class ImageITKFile(ImageFile):
 
             self.image_orientation = np.reshape(np.ravel(np.array(orientation))[::-1], [n_dimensions, n_dimensions])
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id=None):
         if self.image_spacing is None:
             self.load_metadata()
 

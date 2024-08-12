@@ -18,7 +18,7 @@ class ImageDicomFileRTDose(ImageDicomFile):
     def create(self):
         return self
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id=None):
         if self.image_orientation is None:
             # Load relevant metadata.
             self.load_metadata(limited=True)
@@ -34,7 +34,7 @@ class ImageDicomFileRTDose(ImageDicomFile):
             orientation += list(np.cross(orientation[0:3], orientation[3:6]))
             self.image_orientation = np.reshape(orientation[::-1], [3, 3], order="F")
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id=None):
         if self.image_spacing is None:
 
             # Load relevant metadata.

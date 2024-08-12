@@ -114,14 +114,14 @@ class ImageFileStack(ImageFile):
             self.image_file_objects[0]._complete_modality()
             self.modality = self.image_file_objects[0].modality
 
-    def _complete_image_origin(self, force=False):
+    def _complete_image_origin(self, force=False, frame_id=None):
         # Image origin and other image-related aspects are set using the complete method of subclasses.
         pass
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id=None):
         pass
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id=None):
         pass
 
     def _complete_image_dimensions(self, force=False):
