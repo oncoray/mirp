@@ -184,10 +184,6 @@ class ImageDicomFile(ImageFile):
         image.update_from_template(template=self)
         image.modality = modality
 
-        # Set metadata of image.
-        image.image_metadata = self.image_metadata
-        image.is_limited_metadata = self.is_limited_metadata
-
         # Multi-frame images need additional work.
         if isinstance(image, ImageDicomMultiFrame):
             image = image.create()

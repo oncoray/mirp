@@ -73,6 +73,12 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 1
 
+    # Read a single ADC image from multi-frame dicom.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "adc_images_pm_dicom4qi", "data_1", "image.dcm"),
+    )
+    assert len(image_parameters) == 1
+
     # Read multiple DICOM images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
