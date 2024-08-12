@@ -332,6 +332,7 @@ class ImageDicomFile(ImageFile):
             )
 
             # First compute z-orientation.
+            # noinspection PyUnreachableCode
             orientation += list(np.cross(orientation[0:3], orientation[3:6]))
             self.image_orientation = np.reshape(orientation[::-1], [3, 3], order="F")
 
@@ -573,7 +574,7 @@ class ImageDicomFile(ImageFile):
             (0x0028, 0x0011),  # pixel columns
             (0x0028, 0x0030),  # pixel spacing
             (0x3004, 0x000C),  # grid frame offset vector
-            (0x5200, 0x9299),  # shared functional groups sequence
+            (0x5200, 0x9229),  # shared functional groups sequence
             (0x5200, 0x9230)   # per-frame functional groups sequence
         ]
 
