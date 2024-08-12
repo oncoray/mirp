@@ -542,11 +542,42 @@ class ImageDicomFile(ImageFile):
 
     def _check_is_mr_adc(self):
         # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
-        # and otherwise through the diffusion b-value in (0018,9087).
-        image_type = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x0008), tag_type="mult_str")
+        # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be
+        # DIFFUSION].
+        image_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0008),
+            tag_type="mult_str"
+        )
+        frame_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x9007),
+            tag_type="mult_str",
+            macro_dcm_seq=(0x0018, 0x9226),
+            frame_id=0
+        )
+        alt_frame_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x9007),
+            tag_type="mult_str",
+            macro_dcm_seq=(0x0040, 0x9092),
+            frame_id=0
+        )
+        acquisition_contrast = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x9209),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9226),
+            frame_id=0
+        )
+
         if image_type is not None and any(x.lower() == "adc" for x in image_type):
             return True
-        elif get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x9087), tag_type="float"):
+        elif frame_type is not None and any(x.lower() == "adc" for x in frame_type):
+            return True
+        elif alt_frame_type is not None and any(x.lower() == "adc" for x in alt_frame_type):
+            return True
+        elif acquisition_contrast is not None and acquisition_contrast.lower() == "adc":
             return True
 
         return False
