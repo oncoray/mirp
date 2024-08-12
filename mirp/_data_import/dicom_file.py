@@ -1,12 +1,18 @@
+import sys
 import datetime
 import os.path
 import hashlib
 import numpy as np
 
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 from typing import Any
 
 from pydicom import dcmread
 from warnings import warn
+from copy import deepcopy
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
@@ -172,20 +178,11 @@ class ImageDicomFile(ImageFile):
                 has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9230)):
             file_class = ImageDicomMultiFrame
 
-        image = file_class(
-            file_path=self.file_path,
-            dir_path=self.dir_path,
-            sample_name=self.sample_name,
-            file_name=self.file_name,
-            image_modality=modality,
-            image_name=self.image_name,
-            image_file_type=self.file_type,
-            image_data=self.image_data,
-            image_origin=self.image_origin,
-            image_orientation=self.image_orientation,
-            image_spacing=self.image_spacing,
-            image_dimensions=self.image_dimension,
-        )
+        # Instantiate subclass, and update using current object.
+        # Modality is updated here to reflect the choices made above.
+        image = file_class()
+        image.update_from_template(template=self)
+        image.modality = modality
 
         # Set metadata of image.
         image.image_metadata = self.image_metadata
@@ -196,6 +193,32 @@ class ImageDicomFile(ImageFile):
             image = image.create()
 
         return image
+
+    def update_from_template(self, template: Self):
+        if not isinstance(template, ImageDicomFile):
+            raise TypeError(
+                f"The new class object should inherit from an ImageDicomFile object. Found: {type(template)}"
+            )
+
+        # Attributes from the template Image Dicom File.
+        self.file_path = deepcopy(template.file_path)
+        self.dir_path = deepcopy(template.dir_path)
+        self.sample_name = deepcopy(template.sample_name)
+        self.file_name = deepcopy(template.file_name)
+        self.modality = deepcopy(template.modality)
+        self.image_name = deepcopy(template.image_name)
+        self.file_type = deepcopy(template.file_type)
+        self.image_data = deepcopy(template.image_data)
+        self.image_origin = deepcopy(template.image_origin)
+        self.image_orientation = deepcopy(template.image_orientation)
+        self.image_spacing = deepcopy(template.image_spacing)
+        self.image_dimension = deepcopy(template.image_dimension)
+        self.frame_of_reference_uid = deepcopy(template.frame_of_reference_uid)
+        self.image_metadata = deepcopy(template.image_metadata)
+        self.is_limited_metadata = deepcopy(template.is_limited_metadata)
+        self.series_instance_uid = deepcopy(template.series_instance_uid)
+        self.sop_instance_uid = deepcopy(template.sop_instance_uid)
+        self.associated_masks = template.associated_masks
 
     def complete(self, remove_metadata=False, force=False):
 
