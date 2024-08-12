@@ -200,7 +200,7 @@ class ImageDicomFile(ImageFile):
                 f"The new class object should inherit from an ImageDicomFile object. Found: {type(template)}"
             )
 
-        # Attributes from the template Image Dicom File.
+        # Attributes from the template Image Dicom File. Note that image_data and image_metadata are shallow copies.
         self.file_path = deepcopy(template.file_path)
         self.dir_path = deepcopy(template.dir_path)
         self.sample_name = deepcopy(template.sample_name)
@@ -208,13 +208,13 @@ class ImageDicomFile(ImageFile):
         self.modality = deepcopy(template.modality)
         self.image_name = deepcopy(template.image_name)
         self.file_type = deepcopy(template.file_type)
-        self.image_data = deepcopy(template.image_data)
+        self.image_data = template.image_data
         self.image_origin = deepcopy(template.image_origin)
         self.image_orientation = deepcopy(template.image_orientation)
         self.image_spacing = deepcopy(template.image_spacing)
         self.image_dimension = deepcopy(template.image_dimension)
         self.frame_of_reference_uid = deepcopy(template.frame_of_reference_uid)
-        self.image_metadata = deepcopy(template.image_metadata)
+        self.image_metadata = template.image_metadata
         self.is_limited_metadata = deepcopy(template.is_limited_metadata)
         self.series_instance_uid = deepcopy(template.series_instance_uid)
         self.sop_instance_uid = deepcopy(template.sop_instance_uid)
