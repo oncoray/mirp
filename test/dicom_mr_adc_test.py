@@ -8,7 +8,7 @@ CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_basic_adc_mr_feature_extraction():
-
+    # Multi-frame ADC image
     data = extract_features_and_images(
         write_features=False,
         export_features=True,
@@ -22,7 +22,11 @@ def test_basic_adc_mr_feature_extraction():
     feature_data = data[0][0]
     image = data[0][1][0]
 
+    assert len(feature_data) == 1
+    assert 4000.0 < feature_data["stat_max"].values[0] < 4200.0
+    assert feature_data["stat_min"].values[0] == 0.0
 
+    assert isinstance(image, MRADCImage)
 
     data = extract_features_and_images(
         write_features=False,
