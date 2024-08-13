@@ -105,9 +105,6 @@ The current implementation of internal image representations is sufficient. It i
 implement objects for new image modalities, for which existing classes such as `CTImage` and `PETImage` can be used as
 templates.
 
-Some objects may receive additional attributes to represent relevant metadata on the value representations, e.g. the
-type of SUV conversion used to create a `PETImage`.
-
 In addition, all internal image representations are volumetric. They contain a merged stack of image slices. However,
 in rare occasions, the original input data may contain image slices that are not equidistant, i.e. with variable slice
 spacing. It is safer to handle DICOM imaging, prior to resampling (`interpolation` in

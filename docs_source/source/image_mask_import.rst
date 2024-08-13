@@ -248,6 +248,8 @@ On occasion, input should be more selective. This can be done by specifying addi
 
     * Magnetic resonance imaging (MRI): ``"mri"`` or ``"mr"``
 
+    * Apparent diffusion coefficient MR map: ``"ADC"``
+
     * Radiotherapy dose (RTDOSE): ``"rtdose"``
 
     Images from other modalities are currently not fully supported, and a default ``"generic"`` image modality will
