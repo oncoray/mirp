@@ -13,18 +13,16 @@ class ImageDicomMultiFrame(ImageDicomFile):
     def create(self):
         # This method is called from ImageDicomFile.create amd dispatches to modality-specific multi-frame objects.
         from mirp._data_import.dicom_file_ct import ImageDicomFileCTMultiFrame
+        from mirp._data_import.dicom_file_pet import ImageDicomFilePTMultiFrame
         from mirp._data_import.dicom_file_mr import ImageDicomFileMRMultiFrame
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADCMultiFrame
 
         if self.modality == "ct":
             file_class = ImageDicomFileCTMultiFrame
-
         elif self.modality == "pt":
-            # file_class = ImageDicomFilePTMultiFrame
-            ...
+            file_class = ImageDicomFilePTMultiFrame
         elif self.modality == "mr":
             file_class = ImageDicomFileMRMultiFrame
-
         elif self.modality == "adc":
             file_class = ImageDicomFileMRADCMultiFrame
 

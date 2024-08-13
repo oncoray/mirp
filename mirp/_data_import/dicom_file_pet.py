@@ -4,6 +4,7 @@ import datetime
 from typing import Any
 
 from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 from mirp._data_import.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
 
 
@@ -202,52 +203,45 @@ class ImageDicomFilePT(ImageDicomFile):
         if kernel is not None:
             dcm_meta_data += [("kernel", kernel)]
 
-        # Read reconstruction sequence (0018,9749)
-        if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x9749), tag_type=None, test_tag=True):
-            # Reconstruction type (0018,9749)(0018,9756)
-            recon_type = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9756),
-                tag_type="str"
-            )
-            if recon_type is not None:
-                dcm_meta_data += [("reconstruction_type", recon_type)]
+        # Reconstruction type
+        recon_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9756),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if recon_type is not None:
+            dcm_meta_data += [("reconstruction_type", recon_type)]
 
-            # Reconstruction algorithm (0018,9749)(0018,9315)
-            recon_algorithm = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9315),
-                tag_type="str"
-            )
-            if reconstruction_method is not None:
-                dcm_meta_data += [("reconstruction_algorithm", recon_algorithm)]
+        # Reconstruction algorithm
+        recon_algorithm = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9315),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if reconstruction_method is not None:
+            dcm_meta_data += [("reconstruction_algorithm", recon_algorithm)]
 
-            # Is an iterative method? (0018,9749)(0018,9769)
-            is_iterative = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9769),
-                tag_type="str"
-            )
-            if is_iterative is not None:
-                dcm_meta_data += [("iterative_method", is_iterative)]
+        # Number of iterations
+        n_iterations = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9739),
+            tag_type="int",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if n_iterations is not None:
+            dcm_meta_data += [("n_iterations", n_iterations)]
 
-            # Number of iterations (0018,9749)(0018,9739)
-            n_iterations = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9739),
-                tag_type="int"
-            )
-            if n_iterations is not None:
-                dcm_meta_data += [("n_iterations", n_iterations)]
-
-            # Number of subsets (0018,9749)(0018,9740)
-            n_subsets = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9740),
-                tag_type="int"
-            )
-            if n_subsets is not None:
-                dcm_meta_data += [("n_subsets", n_subsets)]
+        # Number of subsets
+        n_subsets = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0],
+            tag=(0x0018, 0x9740),
+            tag_type="int",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if n_subsets is not None:
+            dcm_meta_data += [("n_subsets", n_subsets)]
 
         # Frame duration (converted from milliseconds to seconds)
         frame_duration = get_pydicom_meta_tag(
@@ -829,3 +823,8 @@ class ImageDicomFilePT(ImageDicomFile):
                 raise ValueError("unreachable code")
 
             return norm_factor * 1000.0 / administered_dose
+
+
+class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
