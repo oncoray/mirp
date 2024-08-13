@@ -1,5 +1,6 @@
 from typing import Any
 from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
 
@@ -57,16 +58,28 @@ class ImageDicomFileCT(ImageDicomFile):
         kernel = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0018, 0x1210),
-            tag_type="str"
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9314)
         )
         if kernel is not None:
             dcm_meta_data += [("kernel", kernel)]
+
+        # Reconstruction algorithm
+        reconstruction_algorithm = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9315),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9314)
+        )
+        if reconstruction_algorithm is not None:
+            dcm_meta_data += [("reconstruction_algorithm", reconstruction_algorithm)]
 
         # Peak kilo voltage output
         kvp = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0018, 0x0060),
-            tag_type="float"
+            tag_type="float",
+            macro_dcm_seq=(0x0018, 0x9325)
         )
         if kvp is not None:
             dcm_meta_data += [("kvp", kvp)]
@@ -107,5 +120,20 @@ class ImageDicomFileCT(ImageDicomFile):
         if contrast_agent is not None:
             dcm_meta_data += [("contrast_agent", contrast_agent)]
 
+        # Contrast/bolus agent phase
+        contrast_agent_phase = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9344),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9341)
+        )
+        if contrast_agent_phase is not None:
+            dcm_meta_data += [("contrast_agent_phase", contrast_agent_phase)]
+
         metadata.update(dict(dcm_meta_data))
         return metadata
+
+
+class ImageDicomFileCTMultiFrame(ImageDicomMultiFrame, ImageDicomFileCT):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

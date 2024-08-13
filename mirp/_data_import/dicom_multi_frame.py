@@ -12,24 +12,25 @@ class ImageDicomMultiFrame(ImageDicomFile):
 
     def create(self):
         # This method is called from ImageDicomFile.create amd dispatches to modality-specific multi-frame objects.
+        from mirp._data_import.dicom_file_ct import ImageDicomFileCTMultiFrame
+        from mirp._data_import.dicom_file_mr import ImageDicomFileMRMultiFrame
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADCMultiFrame
 
         if self.modality == "ct":
-            # file_class = ImageDicomFileCTMultiFrame
-            ...
+            file_class = ImageDicomFileCTMultiFrame
+
         elif self.modality == "pt":
             # file_class = ImageDicomFilePTMultiFrame
             ...
         elif self.modality == "mr":
-            # file_class = ImageDicomFileMRMultiFrame
-            ...
+            file_class = ImageDicomFileMRMultiFrame
+
         elif self.modality == "adc":
             file_class = ImageDicomFileMRADCMultiFrame
-        elif self.modality == "rtdose":
-            # file_class = ImageDicomFileRTDoseMultiFrame
-            ...
+
         else:
-            # This will return a base class, which will fail to pass the modality check.
+            # Multi-frame is not implemented for the following modalities:
+            # - RT Dose: lack of DICOM module for RT Dose with multi-frame data.
             raise NotImplementedError(
                 f"Multi-frame DICOM not implemented for {self.modality} modality. Contact the devs."
             )
