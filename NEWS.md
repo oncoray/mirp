@@ -11,7 +11,9 @@
   - Output of features and their metadata to machine-readable formats, instead of just tabular data.
   
   **Important**: Though the *name* of features in the tabular exports has not changed, their *ordering* may have. 
-  Avoid using column position when processing or analysing feature data.  
+  Avoid using column position when processing or analysing feature data.
+
+- Apparent diffusion coefficient (ADC) maps and multi-frame DICOM objects in general are now supported. 
   
 # Version 2.2.4
 
