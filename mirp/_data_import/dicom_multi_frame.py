@@ -217,8 +217,3 @@ class ImageDicomMultiFrame(ImageDicomFile):
             image_data += rescale_intercept
 
         self.image_data = image_data
-
-
-class ImageDicomMultiFrameSingle(ImageFile):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
