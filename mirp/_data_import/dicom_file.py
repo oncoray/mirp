@@ -148,6 +148,7 @@ class ImageDicomFile(ImageFile):
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADC
         from mirp._data_import.dicom_file_pet import ImageDicomFilePT
         from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
+        from mirp._data_import.dicom_file_dx import ImageDicomFileDX
         from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 
         # Load metadata so that the modality tag can be read.
@@ -170,6 +171,8 @@ class ImageDicomFile(ImageFile):
             file_class = ImageDicomFileMRADC
         elif modality == "rtdose":
             file_class = ImageDicomFileRTDose
+        elif modality == "dx":
+            file_class = ImageDicomFileDX
         else:
             # This will return a base class, which will fail to pass the modality check.
             return None

@@ -34,6 +34,15 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
     elif modality in ["rtdose"]:
         return ["rtdose"]
 
+    elif modality in ["cr", "computed_radiography"]:
+        return ["cr"]
+
+    elif modality in ["dx", "digital_xray"]:
+        return ["dx"]
+
+    elif modality in ["mg", "mammography", "digital_mammography"]:
+        return ["mg"]
+
     elif modality == "generic":
         return ["generic"]
 
