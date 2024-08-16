@@ -106,6 +106,32 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 3
 
+    # Read a single digital mammography xray image.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "digital_mammography", "data_1", "image")
+    )
+    assert len(image_parameters) == 1
+
+    # Read multiple digital mammography xray image.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "digital_mammography"),
+        image_sub_folder="image"
+    )
+    assert len(image_parameters) == 2
+
+    # Read a single computed radiography image.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "computed_radiography", "A042105", "image")
+    )
+    assert len(image_parameters) == 1
+
+    # Read multiple compute radiography images.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "computed_radiography"),
+        image_sub_folder="image"
+    )
+    assert len(image_parameters) == 2
+
 
 def test_extract_image_parameters_dicom_to_file(tmp_path):
 
