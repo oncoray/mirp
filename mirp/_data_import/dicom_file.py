@@ -545,6 +545,38 @@ class ImageDicomFile(ImageFile):
         # Update object_metadata
         self.object_metadata.update(dict(metadata))
 
+    def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
+        if not self_only:
+            metadata = super().export_metadata()
+        else:
+            metadata = {}
+
+        self.load_metadata()
+
+        dcm_meta_data = []
+
+        # Scanner type
+        scanner_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x1090),
+            tag_type="str"
+        )
+        if scanner_type is not None:
+            dcm_meta_data += [("scanner_type", scanner_type)]
+
+        # Scanner manufacturer
+        manufacturer = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0070),
+            tag_type="str"
+        )
+        if manufacturer is not None:
+            dcm_meta_data += [("manufacturer", manufacturer)]
+
+        metadata.update(dict(dcm_meta_data))
+
+        return metadata
+
     def _check_is_mr_adc(self):
         # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
         # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be

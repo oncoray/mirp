@@ -1,6 +1,8 @@
 import os.path
 import numpy as np
 
+from typing import Any
+
 from mirp._data_import.generic_file import ImageFile
 from mirp._data_import.dicom_file import ImageDicomFile
 from mirp._data_import.utilities import get_pydicom_meta_tag
@@ -76,3 +78,54 @@ class ImageDicomPlanarImage(ImageDicomFile):
         # Rescaling and intercept are not required for x-ray images. However, since the pixel data is 2D, we need to
         # add a dimension.
         self.image_data = np.expand_dims(image_data, axis=0)
+
+    def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
+        if not self_only:
+            metadata = super().export_metadata()
+        else:
+            metadata = {}
+
+        self.load_metadata()
+
+        dcm_meta_data = []
+
+        # Peak kilo voltage output
+        kvp = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x0060),
+            tag_type="float",
+            macro_dcm_seq=(0x0018, 0x9325)
+        )
+        if kvp is not None:
+            dcm_meta_data += [("kvp", kvp)]
+
+        # Tube current in mA
+        tube_current = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x1151),
+            tag_type="float"
+        )
+        if tube_current is not None:
+            dcm_meta_data += [("tube_current", tube_current)]
+
+        # Exposure time in milliseconds
+        exposure_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x1150),
+            tag_type="float"
+        )
+        if exposure_time is not None:
+            dcm_meta_data += [("exposure_time", exposure_time)]
+
+        # Radiation exposure in mAs
+        exposure = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x1152),
+            tag_type="float"
+        )
+        if exposure is not None:
+            dcm_meta_data += [("exposure", exposure_time)]
+
+        metadata.update(dict(dcm_meta_data))
+
+        return metadata

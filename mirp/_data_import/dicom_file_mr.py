@@ -27,24 +27,6 @@ class ImageDicomFileMR(ImageDicomFile):
 
         dcm_meta_data = []
 
-        # Scanner type
-        scanner_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x1090),
-            tag_type="str"
-        )
-        if scanner_type is not None:
-            dcm_meta_data += [("scanner_type", scanner_type)]
-
-        # Scanner manufacturer
-        manufacturer = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0070),
-            tag_type="str"
-        )
-        if manufacturer is not None:
-            dcm_meta_data += [("manufacturer", manufacturer)]
-
         # Receive coil name
         receive_coil = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
@@ -113,15 +95,6 @@ class ImageDicomFileMR(ImageDicomFile):
         )
         if magnetic_field_strength is not None:
             dcm_meta_data += [("magnetic_field_strength", magnetic_field_strength)]
-
-        # Image type
-        image_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0008),
-            tag_type="str"
-        )
-        if image_type is not None:
-            dcm_meta_data += [("image_type", image_type)]
 
         # Scanning sequence
         scanning_sequence = get_pydicom_meta_tag(

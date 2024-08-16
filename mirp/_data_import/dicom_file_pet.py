@@ -83,33 +83,6 @@ class ImageDicomFilePT(ImageDicomFile):
 
         dcm_meta_data = []
 
-        # Scanner type
-        scanner_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x1090),
-            tag_type="str"
-        )
-        if scanner_type is not None:
-            dcm_meta_data += [("scanner_type", scanner_type)]
-
-        # Scanner manufacturer
-        manufacturer = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0070),
-            tag_type="str"
-        )
-        if manufacturer is not None:
-            dcm_meta_data += [("manufacturer", manufacturer)]
-
-        # Image type
-        image_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0008),
-            tag_type="str"
-        )
-        if image_type is not None:
-            dcm_meta_data += [("image_type", image_type)]
-
         # Time of flight information (0018,9755)
         time_of_flight = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
@@ -235,7 +208,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         # Number of subsets
         n_subsets = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata[0],
+            dcm_seq=self.image_metadata,
             tag=(0x0018, 0x9740),
             tag_type="int",
             macro_dcm_seq=(0x0018, 0x9749)

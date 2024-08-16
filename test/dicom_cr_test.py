@@ -29,7 +29,7 @@ def test_basic_cr_feature_extraction():
     assert isinstance(mask, BaseMask)
 
 
-def test_dx_image_methods():
+def test_cr_image_methods():
     image, mask = extract_images(
         image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "computed_radiography", "A042105", "image"),
         image_export_format="native"

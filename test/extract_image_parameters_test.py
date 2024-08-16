@@ -28,6 +28,7 @@ def test_extract_image_parameters_default():
 
 @pytest.mark.ci
 def test_extract_image_parameters_dicom():
+
     # Read a single CT image.
     image_parameters = extract_image_parameters(
         os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image")
@@ -91,6 +92,19 @@ def test_extract_image_parameters_dicom():
         image=os.path.join(CURRENT_DIR, "data", "rtdose_images", "Pancreas-CT-CB_001", "rtdose")
     )
     assert len(image_parameters) == 1
+
+    # Read a single digital xray image.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "digital_xray", "MSB-02381", "image")
+    )
+    assert len(image_parameters) == 1
+
+    # Read multiple digital xray images.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "planar_imaging", "digital_xray"),
+        image_sub_folder="image"
+    )
+    assert len(image_parameters) == 3
 
 
 def test_extract_image_parameters_dicom_to_file(tmp_path):
