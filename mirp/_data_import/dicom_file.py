@@ -573,6 +573,24 @@ class ImageDicomFile(ImageFile):
         if manufacturer is not None:
             dcm_meta_data += [("manufacturer", manufacturer)]
 
+        # Image type
+        image_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0008),
+            tag_type="str"
+        )
+        if image_type is not None:
+            dcm_meta_data += [("image_type", image_type)]
+
+        # Patient orientation
+        patient_orientation = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0020, 0x0020),
+            tag_type="str"
+        )
+        if patient_orientation is not None:
+            dcm_meta_data += [("patient_orientation", patient_orientation)]
+
         metadata.update(dict(dcm_meta_data))
 
         return metadata
