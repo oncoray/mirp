@@ -248,9 +248,15 @@ On occasion, input should be more selective. This can be done by specifying addi
 
     * Magnetic resonance imaging (MRI): ``"mri"`` or ``"mr"``
 
-    * Apparent diffusion coefficient MR map: ``"ADC"``
+    * Apparent diffusion coefficient MR map: ``"adc"``
 
     * Radiotherapy dose (RTDOSE): ``"rtdose"``
+
+    * Computed radiography (CR): ``"cr"`` or ``"computed_radiography"``
+
+    * Digital x-ray (DX): ``"dx"`` or ``"digital_xray"``
+
+    * Digital mammography (MG): ``"mg"``, ``"mammography"`` or ``"digital_mammography"``
 
     Images from other modalities are currently not fully supported, and a default ``"generic"`` image modality will
     be assigned.

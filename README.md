@@ -44,13 +44,13 @@ MIRP currently supports the following Python versions and operating systems:
 
 MIRP currently supports the following image modalities:
 
-| File format | File type | Supported modality             |
-|-------------|-----------|--------------------------------|
-| DICOM       | image     | CT, MR (incl. ADC), PT, RTDOSE |
-| DICOM       | mask      | RTSTRUCT, SEG                  |
-| NIfTI       | any       | any                            |
-| NRRD        | any       | any                            |
-| numpy       | any       | any                            |
+| File format | File type | Supported modality                         |
+|-------------|-----------|--------------------------------------------|
+| DICOM       | image     | CT, MR (incl. ADC), PT, RTDOSE, CR, DX, MG |
+| DICOM       | mask      | RTSTRUCT, SEG                              |
+| NIfTI       | any       | any                                        |
+| NRRD        | any       | any                                        |
+| numpy       | any       | any                                        |
 
 NIfTI, NRRD, and numpy files support any kind of (single-channel) image. MIRP cannot process RGB or 4D images.
 
