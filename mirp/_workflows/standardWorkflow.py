@@ -8,13 +8,12 @@ from typing import Generator, Any
 import pandas as pd
 
 from mirp.settings.generic import SettingsClass
-from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._workflows.baseWorkflow import BaseWorkflow
 from mirp._data_import.read_data import read_image_and_masks
 from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import TransformedImage
 from mirp._masks.base_mask import BaseMask
-from mirp._image_processing.cropping import crop, crop_image_to_size
+from mirp._image_processing.cropping import crop_image_to_size
 
 
 class StandardWorkflow(BaseWorkflow):
@@ -106,7 +105,7 @@ class StandardWorkflow(BaseWorkflow):
             return
 
         # Set 2D or 3D processing.
-        image.separate_slices = self.settings.general.by_slice
+        image.update_separate_slices(self.settings.general.by_slice)
 
         # Extract diagnostic features from initial image and rois
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
@@ -198,7 +197,7 @@ class StandardWorkflow(BaseWorkflow):
             alteration_size=self.settings.perturbation.roi_adapt_size,
             alteration_method=self.settings.perturbation.roi_adapt_type,
             max_erosion=self.settings.perturbation.max_volume_erosion,
-            by_slice=self.settings.general.by_slice
+            by_slice=image.separate_slices
         )
 
         # Update roi using SLIC
@@ -207,7 +206,7 @@ class StandardWorkflow(BaseWorkflow):
                 image=image,
                 masks=masks,
                 repetitions=self.settings.perturbation.roi_random_rep,
-                by_slice=self.settings.general.by_slice
+                by_slice=image.separate_slices
             )
 
         # Extract boundaries and tumour bulk
@@ -215,7 +214,7 @@ class StandardWorkflow(BaseWorkflow):
             masks=masks,
             boundary_sizes=self.settings.perturbation.roi_boundary_size,
             max_erosion=self.settings.perturbation.max_volume_erosion,
-            by_slice=self.settings.general.by_slice
+            by_slice=image.separate_slices
         )
 
         # Resegmentise masks.
