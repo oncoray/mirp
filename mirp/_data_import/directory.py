@@ -4,7 +4,7 @@ import copy
 
 from itertools import chain
 from mirp._data_import.utilities import supported_file_types, dir_structure_contains_directory, match_file_name, \
-    isolate_sample_name
+    isolate_sample_name, lookup_modality
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.generic_file_stack import ImageFileStack, MaskFileStack
 
@@ -208,6 +208,20 @@ class ImageDirectory:
                 raise ValueError(
                     f"The {self.image_directory} directory (and its subdirectories did not contain all the "
                     f"{self.object_type}s with the required sample names. Missing: {', '.join(missing_sample_names)}"
+                )
+
+        if self.modality is not None:
+            # Only check images where a modality is present. If all are absent, don't filter on modality,
+            if any(current_image.modality is not None for current_image in self.image_files):
+                self.image_files = [
+                    current_image for current_image in self.image_files
+                    if current_image.modality in lookup_modality(self.modality)
+                ]
+
+            if len(self.image_files) == 0:
+                raise ValueError(
+                    f"The {self.image_directory} directory (and its subdirectories did not contain all the "
+                    f"{self.object_type}s with the required sample names. Missing: {', '.join(self.modality)}"
                 )
 
         # Try to stack.

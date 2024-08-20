@@ -9,6 +9,18 @@ import numpy as np
 import pydicom
 from pydicom import FileDataset, Dataset, datadict
 from pydicom.tag import Tag
+def lookup_modality(modality: None | str) -> list[str]:
+    modalities = []
+    try:
+        modalities += supported_mask_modalities(modality=modality)
+    except ValueError:
+        pass
+    try:
+        modalities += supported_image_modalities(modality=modality)
+    except ValueError:
+        pass
+
+    return modalities
 
 
 def supported_image_modalities(modality: None | str = None) -> list[str]:
@@ -17,7 +29,7 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
         modality = modality.lower()
 
     if modality is None:
-        return ["ct", "pt", "mr", "rtdose", "generic"]
+        return ["ct", "pt", "mr", "rtdose", "cr", "dx", "mg", "generic"]
 
     elif modality == "ct":
         return ["ct"]
