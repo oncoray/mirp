@@ -11,12 +11,9 @@ from mirp._imagefilters.utilities import pool_voxel_grids
 
 class LaplacianOfGaussianFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
 
         self.ibsi_compliant = True
         self.ibsi_id = "L6PA"
@@ -129,7 +126,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
 
-        if self.by_slice:
+        if self.separate_slices:
             # Set the number of dimensions.
             d = 2.0
 
@@ -167,7 +164,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         # Compute the weights of the filter.
         filter_weights = np.multiply(scale_factor, np.exp(width_factor))
 
-        if self.by_slice:
+        if self.separate_slices:
             # Set filter weights and create a filter.
             log_filter = FilterSet2D(
                 filter_weights,

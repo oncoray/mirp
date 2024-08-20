@@ -10,12 +10,9 @@ from mirp._imagefilters.utilities import pool_voxel_grids, SeparableFilterSet
 
 class SeparableWaveletFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
 
         self.ibsi_compliant = True
         self.ibsi_id = "25BO"

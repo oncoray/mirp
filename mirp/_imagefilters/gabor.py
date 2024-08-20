@@ -10,12 +10,9 @@ from mirp.settings.generic import SettingsClass
 
 class GaborFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
         self.ibsi_compliant = True
         self.ibsi_id = "Q88H"
 
@@ -61,7 +58,7 @@ class GaborFilter(GenericFilter):
             self.ibsi_compliant = False
 
         # Set the axis orthogonal to the plane in which the Gabor kernel is applied.
-        if self.by_slice or not self.rotation_invariance:
+        if self.separate_slices or not self.rotation_invariance:
             self.stack_axis: int | list[int] = [0]
         else:
             self.stack_axis: int | list[int] = [0, 1, 2]
