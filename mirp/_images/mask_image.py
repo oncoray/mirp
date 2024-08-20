@@ -417,8 +417,7 @@ class MaskImage(GenericImage):
             image: GenericImage,
             boundary: float = 25.0,
             repetitions: int = 1,
-            intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan]),
-            by_slice: bool = False
+            intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
     ):
         """Use SLIC to randomise the roi based on supervoxels"""
         from scipy.ndimage import binary_closing
@@ -437,9 +436,6 @@ class MaskImage(GenericImage):
         if self.is_empty_mask():
             return None
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
         # Crop image and mask to accelerate segmentation process.
         cropped_image, cropped_mask = crop(
             image=image,
@@ -447,7 +443,6 @@ class MaskImage(GenericImage):
             boundary=boundary,
             xy_only=False,
             z_only=False,
-            by_slice=by_slice,
             in_place=False
         )
 

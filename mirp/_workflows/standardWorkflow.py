@@ -188,7 +188,11 @@ class StandardWorkflow(BaseWorkflow):
 
         # Crop slice stack
         if self.settings.perturbation.crop_around_roi:
-            image, masks = crop(image=image, masks=masks, boundary=self.settings.perturbation.crop_distance)
+            image, masks = crop(
+                image=image,
+                masks=masks,
+                boundary=self.settings.perturbation.crop_distance
+            )
 
         # Adapt roi sizes by dilation and erosion.
         masks = alter_mask(
@@ -203,8 +207,7 @@ class StandardWorkflow(BaseWorkflow):
             masks = randomise_mask(
                 image=image,
                 masks=masks,
-                repetitions=self.settings.perturbation.roi_random_rep,
-                by_slice=image.separate_slices
+                repetitions=self.settings.perturbation.roi_random_rep
             )
 
         # Extract boundaries and tumour bulk
