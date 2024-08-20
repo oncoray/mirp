@@ -214,8 +214,7 @@ class StandardWorkflow(BaseWorkflow):
         masks = split_masks(
             masks=masks,
             boundary_sizes=self.settings.perturbation.roi_boundary_size,
-            max_erosion=self.settings.perturbation.max_volume_erosion,
-            by_slice=image.separate_slices
+            max_erosion=self.settings.perturbation.max_volume_erosion
         )
 
         # Resegmentise masks.
