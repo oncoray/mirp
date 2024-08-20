@@ -949,7 +949,7 @@ class GenericImage(BaseImage):
 
         return self
 
-    def decimate(self, by_slice: bool):
+    def decimate(self):
         """
         Decimates image by removing every second element
         :param by_slice: Whether the analysis is conducted in 2D or 3D.
@@ -960,15 +960,12 @@ class GenericImage(BaseImage):
         if self.is_empty():
             return
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
         # Get the voxel grid
         image_data = self.get_voxel_grid()
         image_spacing = np.array(self.image_spacing)
 
         # Update the voxel grid
-        if by_slice:
+        if self.separate_slices:
             # Drop every second pixel
             image_data = image_data[:, slice(None, None, 2), slice(None, None, 2)]
             self.image_spacing = tuple(image_spacing[[1, 2]] * 2.0)
@@ -989,7 +986,8 @@ class GenericImage(BaseImage):
             ind_ext_y=None,
             ind_ext_x=None,
             xy_only=False,
-            z_only=False):
+            z_only=False
+    ):
         """Crop image to the provided map extent."""
 
         # Skip for missing images

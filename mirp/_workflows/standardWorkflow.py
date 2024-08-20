@@ -109,9 +109,6 @@ class StandardWorkflow(BaseWorkflow):
         for mask in masks:
             mask.update_separate_slices(image.separate_slices)
 
-        # Extract diagnostic features from initial image and rois
-        # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
-
         # Create a tissue mask
         if self.settings.post_process.bias_field_correction or \
                 not self.settings.post_process.intensity_normalisation == "none":

@@ -322,18 +322,18 @@ class BaseMask:
             if self.roi_morphology is None:
                 self.roi_morphology = self.roi.copy()
 
-    def decimate(self, by_slice):
+    def decimate(self):
         """
         Decimates the roi mask.
         :param by_slice: boolean, 2D (True) or 3D (False)
         :return:
         """
         if self.roi is not None:
-            self.roi.decimate(by_slice=by_slice)
+            self.roi.decimate()
         if self.roi_intensity is not None:
-            self.roi_intensity.decimate(by_slice=by_slice)
+            self.roi_intensity.decimate()
         if self.roi_morphology is not None:
-            self.roi_morphology.decimate(by_slice=by_slice)
+            self.roi_morphology.decimate()
 
     def crop(
             self,
