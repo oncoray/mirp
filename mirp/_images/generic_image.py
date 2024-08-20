@@ -952,8 +952,6 @@ class GenericImage(BaseImage):
     def decimate(self):
         """
         Decimates image by removing every second element
-        :param by_slice: Whether the analysis is conducted in 2D or 3D.
-        :return:
         """
 
         # Skip for missing images

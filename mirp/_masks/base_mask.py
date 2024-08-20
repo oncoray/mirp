@@ -325,8 +325,6 @@ class BaseMask:
     def decimate(self):
         """
         Decimates the roi mask.
-        :param by_slice: boolean, 2D (True) or 3D (False)
-        :return:
         """
         if self.roi is not None:
             self.roi.decimate()
@@ -457,7 +455,6 @@ class BaseMask:
 
     def dilate(
             self,
-            by_slice: bool,
             distance: None | float = None,
             voxel_distance: None | float = None
     ):
@@ -466,7 +463,6 @@ class BaseMask:
             return
 
         self.roi.dilate(
-            by_slice=by_slice,
             distance=distance,
             voxel_distance=voxel_distance
         )
