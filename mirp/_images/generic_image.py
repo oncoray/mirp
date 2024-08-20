@@ -243,7 +243,6 @@ class GenericImage(BaseImage):
 
     def interpolate(
             self,
-            by_slice: None | bool = None,
             interpolate: None | bool = None,
             new_spacing: None | tuple[float, ...] = None,
             translation: None | float | tuple[float, ...] = (0.0, 0.0, 0.0),
@@ -254,15 +253,10 @@ class GenericImage(BaseImage):
             settings: None | SettingsClass = None
     ):
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
-        if (by_slice is None or interpolate is None or spline_order is None or anti_aliasing is
+        if (self.separate_slices is None or interpolate is None or spline_order is None or anti_aliasing is
                 None or anti_aliasing_smoothing_beta is None) and settings is None:
             raise ValueError("None of the parameters for interpolation can be set.")
 
-        if by_slice is None:
-            by_slice = settings.general.by_slice
         if interpolate is None:
             interpolate = settings.img_interpolate.interpolate
         if new_spacing is None and settings is not None:
@@ -292,7 +286,7 @@ class GenericImage(BaseImage):
             # Use original spacing.
             new_spacing = self.image_spacing
 
-        elif by_slice:
+        elif self.separate_slices:
             # Use provided spacing, in 2D. Spacing for interpolation across slices is set to the original spacing in
             # case interpolation is only conducted within the slice.
             new_spacing = list(new_spacing)
@@ -310,13 +304,12 @@ class GenericImage(BaseImage):
             if translation[ii] is None:
                 translation[ii] = 0.0
 
-        if by_slice:
+        if self.separate_slices:
             translation[0] = 0.0
 
         translation: tuple[float, float, float] = tuple(translation)
 
         return self._interpolate(
-            by_slice=by_slice,
             interpolate=interpolate,
             new_spacing=tuple(new_spacing),
             translation=translation,
@@ -332,7 +325,6 @@ class GenericImage(BaseImage):
 
     def _interpolate(
             self,
-            by_slice: bool,
             interpolate: bool,
             new_spacing: tuple[float, ...],
             translation: tuple[float, ...],
@@ -348,9 +340,6 @@ class GenericImage(BaseImage):
         # Skip for missing images.
         if self.is_empty() is None:
             return
-
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
 
         # Translate tuples to np.array
         new_spacing = np.array(new_spacing).astype(float)
@@ -381,7 +370,7 @@ class GenericImage(BaseImage):
                     sample_spacing=new_spacing,
                     param_beta=anti_aliasing_smoothing_beta,
                     mode="nearest",
-                    by_slice=by_slice
+                    separate_slices=self.separate_slices
                 )
             )
 
@@ -562,7 +551,7 @@ class GenericImage(BaseImage):
                     sample_spacing=np.array(image.image_spacing),
                     param_beta=anti_aliasing_smoothing_beta,
                     mode="nearest",
-                    by_slice=False
+                    separate_slices=False
                 )
             )
 

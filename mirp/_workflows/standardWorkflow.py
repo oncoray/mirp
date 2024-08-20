@@ -150,7 +150,6 @@ class StandardWorkflow(BaseWorkflow):
 
         # Translate, rotate and interpolate image
         image.interpolate(
-            by_slice=self.settings.general.by_slice,
             interpolate=self.settings.img_interpolate.interpolate,
             new_spacing=self.new_image_spacing if self.new_image_spacing is not None else image.image_spacing,
             translation=self.translation if self.translation is not None else (0.0, 0.0, 0.0),
