@@ -21,7 +21,6 @@ class GenericImage(BaseImage):
     def __init__(
             self,
             image_data: None | np.ndarray,
-            separate_slices: None | bool = None,
             translation: None | tuple[float, ...] = None,
             rotation_angle: None | float = None,
             noise_iteration_id: None | int = None,
@@ -40,9 +39,6 @@ class GenericImage(BaseImage):
         # otherwise we may end up changing objects by reference, which is not the expected behaviour.
         self.image_data = None
         self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
-
-        # Determines whether slices in the stack should be treated separately.
-        self.separate_slices = separate_slices
 
         # Perturbation-related settings that are set during interpolate.
         self.translation = translation

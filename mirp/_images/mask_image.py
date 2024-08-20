@@ -167,7 +167,6 @@ class MaskImage(GenericImage):
 
     def dilate(
             self,
-            by_slice: bool,
             distance: float | None = None,
             voxel_distance: float | None = None
     ):
@@ -182,17 +181,14 @@ class MaskImage(GenericImage):
         if voxel_distance is None and distance is None:
             return
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
         # Check whether voxel are isotropic.
-        if not self.is_isotropic(by_slice=by_slice):
+        if not self.is_isotropic():
             warnings.warn(
                 "Non-uniform voxel spacing was detected. Mask dilation requires uniform voxel spacing.", UserWarning
             )
 
         # Set spacing
-        if by_slice:
+        if self.separate_slices:
             spacing = np.array(self.image_spacing)[[1, 2]]
         else:
             spacing = np.array(self.image_spacing)
@@ -237,7 +233,7 @@ class MaskImage(GenericImage):
             np.sum(np.multiply(df_base.loc[:, ("z", "y", "x")].values, self.image_spacing) ** 2.0, axis=1))
 
         # Identify elements in range.
-        if by_slice:
+        if self.separate_slices:
             df_base["in_range"] = np.logical_and(df_base.dist <= distance, df_base.z == 0)
         else:
             df_base["in_range"] = df_base.dist <= distance
@@ -265,7 +261,6 @@ class MaskImage(GenericImage):
 
     def erode(
             self,
-            by_slice: bool,
             max_eroded_volume_fraction: float = 0.8,
             distance: float | None = None,
             voxel_distance: float | None = None
@@ -280,24 +275,21 @@ class MaskImage(GenericImage):
         if voxel_distance is None and distance is None:
             return
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
         # Check whether voxel are isotropic.
-        if not self.is_isotropic(by_slice=by_slice):
+        if not self.is_isotropic():
             warnings.warn(
                 "Non-uniform voxel spacing was detected. Mask erosion requires uniform voxel spacing.", UserWarning
             )
 
         # Set spacing.
-        if by_slice:
+        if self.separate_slices:
             spacing = np.array(self.image_spacing)[[1, 2]]
         else:
             spacing = np.array(self.image_spacing)
 
         # Set geometrical structure. For 2D, the structures in different slices are set to 0.
         geom_struct = ndi.generate_binary_structure(3, 1)
-        if by_slice:
+        if self.separate_slices:
             geom_struct[(0, 2), :, :] = False
 
         # Set number of erosion steps.
@@ -347,7 +339,6 @@ class MaskImage(GenericImage):
 
     def fractional_volume_change(
             self,
-            by_slice: bool,
             fractional_change: float | None = None
     ):
         import scipy.ndimage as ndi
@@ -359,11 +350,8 @@ class MaskImage(GenericImage):
         if fractional_change is None or np.around(fractional_change, 6) == 0.0:
             return
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
         # Check whether voxel are isotropic.
-        if not self.is_isotropic(by_slice=by_slice):
+        if not self.is_isotropic():
             warnings.warn(
                 "Non-uniform voxel spacing was detected. Mask erosion requires uniform voxel spacing.", UserWarning
             )
@@ -377,7 +365,7 @@ class MaskImage(GenericImage):
 
         # Set geometrical structure. For 2D, the structures in different slices are set to 0.
         geom_struct = ndi.generate_binary_structure(3, 1)
-        if by_slice:
+        if self.separate_slices:
             geom_struct[(0, 2), :, :] = False
 
         # Determine original volume

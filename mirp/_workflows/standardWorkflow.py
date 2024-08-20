@@ -106,6 +106,8 @@ class StandardWorkflow(BaseWorkflow):
 
         # Set 2D or 3D processing.
         image.update_separate_slices(self.settings.general.by_slice)
+        for mask in masks:
+            mask.update_separate_slices(image.separate_slices)
 
         # Extract diagnostic features from initial image and rois
         # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
@@ -188,15 +190,12 @@ class StandardWorkflow(BaseWorkflow):
         if self.settings.perturbation.crop_around_roi:
             image, masks = crop(image=image, masks=masks, boundary=self.settings.perturbation.crop_distance)
 
-        # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
-
         # Adapt roi sizes by dilation and erosion.
         masks = alter_mask(
             masks=masks,
             alteration_size=self.settings.perturbation.roi_adapt_size,
             alteration_method=self.settings.perturbation.roi_adapt_type,
-            max_erosion=self.settings.perturbation.max_volume_erosion,
-            by_slice=image.separate_slices
+            max_erosion=self.settings.perturbation.max_volume_erosion
         )
 
         # Update roi using SLIC
