@@ -347,7 +347,7 @@ def ray_line_intersect(
     edge_ray = - ray_dir
 
     # Calculate determinant - if close to 0, lines are parallel and will not intersect
-    det = np.cross(edge_ray, edge_line)
+    det = edge_ray[0] * edge_line[1] - edge_ray[1] * edge_line[0]
     if (det > -epsilon) and (det < epsilon):
         return np.nan
 
@@ -355,8 +355,8 @@ def ray_line_intersect(
     inv_det = 1.0 / det
 
     # Calculate determinant
-    a11 = np.cross(r_vert_1, r_vert_2)
-    a21 = np.cross(vert_1, vert_2)
+    a11 = r_vert_1[0] * r_vert_2[1] - r_vert_1[1] * r_vert_2[0]
+    a21 = vert_1[0] * vert_2[1] - vert_1[1] * vert_2[0]
 
     # Solve for x
     a12 = edge_ray[0]

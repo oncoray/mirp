@@ -16,6 +16,10 @@
 - Apparent diffusion coefficient (ADC) maps and multi-frame DICOM objects in general are now supported.
 - Planar imaging, i.e. computed radiography, digital X-ray and digital mammography DICOM files are now supported.
   
+## Fixes
+
+- Internal use of `numpy.cross` no longer produces deprecation warnings. 
+
 # Version 2.2.4
 
 ## Fixes
