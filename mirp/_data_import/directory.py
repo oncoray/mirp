@@ -206,7 +206,7 @@ class ImageDirectory:
                 set(current_image.sample_name for current_image in self.image_files))
             if len(missing_sample_names) > 0:
                 raise ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories did not contain all the "
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain all the "
                     f"{self.object_type}s with the required sample names. Missing: {', '.join(missing_sample_names)}"
                 )
 
@@ -220,8 +220,8 @@ class ImageDirectory:
 
             if len(self.image_files) == 0:
                 raise ValueError(
-                    f"The {self.image_directory} directory (and its subdirectories did not contain all the "
-                    f"{self.object_type}s with the required sample names. Missing: {', '.join(self.modality)}"
+                    f"The {self.image_directory} directory (and its subdirectories) did not contain any "
+                    f"{self.object_type}s with the required modality ({self.modality})."
                 )
 
         # Try to stack.
