@@ -64,7 +64,7 @@ Supported image and mask modalities
      - Supported modality
    * - DICOM
      - image
-     - CT, MR (incl. ADC), PT, RTDOSE, CR, DX, MG
+     - CT, MR (incl. ADC, DCE), PT, RTDOSE, CR, DX, MG
    * - DICOM
      - mask
      - RTSTRUCT, SEG

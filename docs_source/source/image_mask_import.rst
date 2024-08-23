@@ -250,6 +250,8 @@ On occasion, input should be more selective. This can be done by specifying addi
 
     * Apparent diffusion coefficient MR map: ``"adc"``
 
+    * Diffusion contrast-enhanced MR map: ``"dce"``
+
     * Radiotherapy dose (RTDOSE): ``"rtdose"``
 
     * Computed radiography (CR): ``"cr"`` or ``"computed_radiography"``

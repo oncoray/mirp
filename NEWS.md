@@ -13,7 +13,8 @@
   **Important**: Though the *name* of features in the tabular exports has not changed, their *ordering* may have. 
   Avoid using column position when processing or analysing feature data.
 
-- Apparent diffusion coefficient (ADC) maps and multi-frame DICOM objects in general are now supported.
+- Apparent diffusion coefficient (ADC) maps, diffusion contrast-enhanced (DCE) MRI and multi-frame DICOM objects in 
+  general are now supported.
 - Planar imaging, i.e. computed radiography, digital X-ray and digital mammography DICOM files are now supported.
   
 ## Fixes
