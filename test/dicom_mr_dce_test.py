@@ -30,28 +30,25 @@ def test_basic_dce_mr_feature_extraction():
     assert isinstance(image, MRDCEImage)
 
 
-def test_adc_mr_image_methods():
+def test_dce_mr_image_methods():
     image, mask = extract_images(
-        image=os.path.join(CURRENT_DIR, "data", "adc_images_mr", "SCAN_001", "adc_image"),
+        image=os.path.join(CURRENT_DIR, "data", "dce_images_mr", "UCSF-BR-06", "image_dce_pe1"),
         image_export_format="native"
     )[0]
-    image: MRADCImage = image[0]
-    assert isinstance(image, MRADCImage)
+    image: MRDCEImage = image[0]
+    assert isinstance(image, MRDCEImage)
 
     # Normalisation test.
     test_image = image.normalise_intensities(
         normalisation_method="standardisation",
         saturation_range=(-3.0, 3.0)
     )
-    assert isinstance(image, MRADCImage)
-    assert not isinstance(test_image, MRADCImage)
+    assert isinstance(image, MRDCEImage)
+    assert not isinstance(test_image, MRDCEImage)
     assert isinstance(test_image, GenericImage)
 
     # Scaling test.
     test_image = image.scale_intensities(scale=2.0)
-    assert isinstance(image, MRADCImage)
-    assert not isinstance(test_image, MRADCImage)
+    assert isinstance(image, MRDCEImage)
+    assert not isinstance(test_image, MRDCEImage)
     assert isinstance(test_image, GenericImage)
-
-    # Lowest intensity.
-    assert image.get_default_lowest_intensity() == 0.0
