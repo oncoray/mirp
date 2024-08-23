@@ -1,7 +1,6 @@
 import os.path
 import numpy as np
 
-from mirp._data_import.generic_file import ImageFile
 from mirp._data_import.dicom_file import ImageDicomFile
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
@@ -16,6 +15,7 @@ class ImageDicomMultiFrame(ImageDicomFile):
         from mirp._data_import.dicom_file_pet import ImageDicomFilePTMultiFrame
         from mirp._data_import.dicom_file_mr import ImageDicomFileMRMultiFrame
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADCMultiFrame
+        from mirp._data_import.dicom_file_mr_dce import ImageDicomFileMRDCEMultiFrame
 
         if self.modality == "ct":
             file_class = ImageDicomFileCTMultiFrame
@@ -25,6 +25,8 @@ class ImageDicomMultiFrame(ImageDicomFile):
             file_class = ImageDicomFileMRMultiFrame
         elif self.modality == "adc":
             file_class = ImageDicomFileMRADCMultiFrame
+        elif self.modality == "dce":
+            file_class = ImageDicomFileMRDCEMultiFrame
 
         else:
             # Multi-frame is not implemented for the following modalities:

@@ -83,6 +83,8 @@ class ImageDicomFile(ImageFile):
         # Check for ADC images
         if self._check_is_mr_adc():
             dicom_modality = "adc"
+        if self._check_is_mr_dce():
+            dicom_modality = "dce"
 
         support_modalities = supported_image_modalities(self.modality)
         if dicom_modality.lower() not in support_modalities:
@@ -146,6 +148,7 @@ class ImageDicomFile(ImageFile):
         from mirp._data_import.dicom_file_ct import ImageDicomFileCT
         from mirp._data_import.dicom_file_mr import ImageDicomFileMR
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADC
+        from mirp._data_import.dicom_file_mr_dce import ImageDicomFileMRDCE
         from mirp._data_import.dicom_file_pet import ImageDicomFilePT
         from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
         from mirp._data_import.dicom_file_cr import ImageDicomFileCR
@@ -160,8 +163,10 @@ class ImageDicomFile(ImageFile):
         if modality is None:
             raise TypeError(f"Modality attribute could not be obtained from DICOM file. [{self.describe_self()}]")
 
-        if self._check_is_mr_adc():
+        if modality == "mr" and self._check_is_mr_adc():
             modality = "adc"
+        if modality == "mr" and self._check_is_mr_dce():
+            modality = "dce"
 
         if modality == "ct":
             file_class = ImageDicomFileCT
@@ -171,6 +176,8 @@ class ImageDicomFile(ImageFile):
             file_class = ImageDicomFileMR
         elif modality == "adc":
             file_class = ImageDicomFileMRADC
+        elif modality == "dce":
+            file_class = ImageDicomFileMRDCE
         elif modality == "rtdose":
             file_class = ImageDicomFileRTDose
         elif modality == "cr":
@@ -633,6 +640,48 @@ class ImageDicomFile(ImageFile):
         elif alt_frame_type is not None and any(x.lower() == "adc" for x in alt_frame_type):
             return True
         elif acquisition_contrast is not None and acquisition_contrast.lower() == "adc":
+            return True
+
+        return False
+
+    def _check_is_mr_dce(self):
+        # Check for DCE images. DCE can sometimes by identified the DCE value in the Image Type (0008,0008) tag,
+        # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be
+        # DIFFUSION].
+        image_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0008),
+            tag_type="mult_str"
+        )
+        frame_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x9007),
+            tag_type="mult_str",
+            macro_dcm_seq=(0x0018, 0x9226),
+            frame_id=0
+        )
+        alt_frame_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x9007),
+            tag_type="mult_str",
+            macro_dcm_seq=(0x0040, 0x9092),
+            frame_id=0
+        )
+        acquisition_contrast = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x9209),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9226),
+            frame_id=0
+        )
+
+        if image_type is not None and any(x.lower() == "dce" for x in image_type):
+            return True
+        elif frame_type is not None and any(x.lower() == "dce" for x in frame_type):
+            return True
+        elif alt_frame_type is not None and any(x.lower() == "dce" for x in alt_frame_type):
+            return True
+        elif acquisition_contrast is not None and acquisition_contrast.lower() == "dce":
             return True
 
         return False
