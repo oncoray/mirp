@@ -80,6 +80,12 @@ def test_extract_image_parameters_dicom():
     )
     assert len(image_parameters) == 1
 
+    # Read a single DCE image.
+    image_parameters = extract_image_parameters(
+        image=os.path.join(CURRENT_DIR, "data", "dce_images_mr", "UCSF-BR-06", "image_dce_pe1")
+    )
+    assert len(image_parameters) == 1
+
     # Read multiple DICOM images.
     image_parameters = extract_image_parameters(
         image=os.path.join(CURRENT_DIR, "data", "sts_images"),
