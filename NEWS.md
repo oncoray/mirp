@@ -16,6 +16,8 @@
 - Apparent diffusion coefficient (ADC) maps, diffusion contrast-enhanced (DCE) MRI and multi-frame DICOM objects in 
   general are now supported.
 - Planar imaging, i.e. computed radiography, digital X-ray and digital mammography DICOM files are now supported.
+- Python version 3.12 is now supported thanks to recent updates by the maintainers of `ray` and `itk`.
+  This means that `mirp` now supports Python version 3.10 and later.
   
 ## Fixes
 

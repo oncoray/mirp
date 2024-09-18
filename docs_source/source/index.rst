@@ -99,4 +99,8 @@ Supported Python versions and operating systems
      - ✅
      - ✅
      - ✅
+   * - 3.12
+     - ✅
+     - ✅
+     - ✅
 
