@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial: Applying image filters &mdash; mirp 2.2.4 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+  <title>Tutorial: Applying image filters &mdash; mirp 2.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
   <!--[if lt IE 9]>
@@ -16,8 +16,8 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=4e6cfea6"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/documentation_options.js?v=c3c8ae58"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -122,18 +122,18 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-<span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">ZipFile</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from urllib.request import urlopen
+from io import BytesIO
+from zipfile import ZipFile
 
-<span class="n">url</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;https://github.com/oncoray/mirp/raw/598293f7afb179b525b49f9b8300a9914fbdebd4/data/tutorial_radiomics_chest_ct_data.zip&quot;</span>
+url = r&quot;https://github.com/oncoray/mirp/raw/598293f7afb179b525b49f9b8300a9914fbdebd4/data/tutorial_radiomics_chest_ct_data.zip&quot;
 
-<span class="c1"># Specify location where the data is stored.</span>
-<span class="n">save_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+# Specify location where the data is stored.
+save_dir = &quot;.&quot;
 
-<span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_url_pointer</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">zip_url_pointer</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span> <span class="k">as</span> <span class="n">example_data</span><span class="p">:</span>
-        <span class="n">example_data</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+with urlopen(url) as zip_url_pointer:
+    with ZipFile(BytesIO(zip_url_pointer.read())) as example_data:
+        example_data.extractall(save_dir)
 </pre></div>
 </div>
 </div>
@@ -156,12 +156,12 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_mask_labels</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+from mirp import extract_mask_labels
 
-<span class="n">extract_mask_labels</span><span class="p">(</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
-<span class="p">)</span>
+extract_mask_labels(
+    mask=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;mask&quot;, &quot;DCM_RS_00060.dcm&quot;),
+)
 </pre></div>
 </div>
 </div>
@@ -223,14 +223,14 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from mirp import extract_images
 
-<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
-    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV-1&quot;</span><span class="p">,</span>
-    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span>
-<span class="p">)</span>
+images = extract_images(
+    image=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;image&quot;),
+    mask=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;mask&quot;, &quot;DCM_RS_00060.dcm&quot;),
+    roi_name=&quot;GTV-1&quot;,
+    image_export_format=&quot;native&quot;
+)
 </pre></div>
 </div>
 </div>
@@ -248,8 +248,8 @@ dataset. We only assess a single image here, which means that <code class="docut
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slice_id</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image, mask = images[0]
+image[0].show(mask=mask[0], slice_id=25)
 </pre></div>
 </div>
 </div>
@@ -270,11 +270,11 @@ dataset. We only assess a single image here, which means that <code class="docut
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_image_parameters</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from mirp import extract_image_parameters
 
-<span class="n">extract_image_parameters</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
-<span class="p">)</span>
+extract_image_parameters(
+    image=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;image&quot;)
+)
 </pre></div>
 </div>
 </div>
@@ -360,21 +360,21 @@ dataset. We only assess a single image here, which means that <code class="docut
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from mirp import extract_images
 
-<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
-    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV-1&quot;</span><span class="p">,</span>
-    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span><span class="p">,</span>
-    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">filter_kernels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">],</span>
-    <span class="n">mean_filter_kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
-    <span class="n">nonseparable_wavelet_families</span><span class="o">=</span><span class="s2">&quot;simoncelli&quot;</span><span class="p">,</span>
-    <span class="n">nonseparable_wavelet_decomposition_level</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-<span class="p">)</span>
-<span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+images = extract_images(
+    image=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;image&quot;),
+    mask=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;mask&quot;, &quot;DCM_RS_00060.dcm&quot;),
+    roi_name=&quot;GTV-1&quot;,
+    image_export_format=&quot;native&quot;,
+    new_spacing=1.0,
+    filter_kernels=[&quot;mean&quot;, &quot;laplacian_of_gaussian&quot;, &quot;nonseparable_wavelet&quot;],
+    mean_filter_kernel_size=5,
+    laplacian_of_gaussian_sigma=[1.0, 3.0],
+    nonseparable_wavelet_families=&quot;simoncelli&quot;,
+    nonseparable_wavelet_decomposition_level=[1, 2, 3]
+)
+image, mask = images[0]
 </pre></div>
 </div>
 </div>
@@ -391,7 +391,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[0].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -409,7 +409,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[1].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -428,7 +428,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[2].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -444,7 +444,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[3].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -463,7 +463,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[4].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -479,7 +479,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[5].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -495,7 +495,7 @@ INFO    : MainProcess    2024-06-18 08:26:22,640         Initialising image extr
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">slice_id</span><span class="o">=</span><span class="mi">75</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image[6].show(slice_id=75)
 </pre></div>
 </div>
 </div>
@@ -517,26 +517,26 @@ However, this is not always the most useful setting. Here, we will instead speci
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+from mirp import extract_features
 
-<span class="n">features</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;chest_ct&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">,</span> <span class="s2">&quot;DCM_RS_00060.dcm&quot;</span><span class="p">),</span>
-    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV-1&quot;</span><span class="p">,</span>
-    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span><span class="p">,</span>
-    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">resegmentation_intensity_range</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mf">180.0</span><span class="p">,</span> <span class="mf">200.0</span><span class="p">],</span>
-    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_size&quot;</span><span class="p">,</span>
-    <span class="n">base_discretisation_bin_width</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
-    <span class="n">filter_kernels</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">],</span>
-    <span class="n">mean_filter_kernel_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-    <span class="n">laplacian_of_gaussian_sigma</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
-    <span class="n">nonseparable_wavelet_families</span><span class="o">=</span><span class="s2">&quot;simoncelli&quot;</span><span class="p">,</span>
-    <span class="n">nonseparable_wavelet_decomposition_level</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span>
-<span class="p">)</span>
+features = extract_features(
+    image=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;image&quot;),
+    mask=os.path.join(save_dir, &quot;chest_ct&quot;, &quot;mask&quot;, &quot;DCM_RS_00060.dcm&quot;),
+    roi_name=&quot;GTV-1&quot;,
+    image_export_format=&quot;native&quot;,
+    new_spacing=1.0,
+    resegmentation_intensity_range=[-180.0, 200.0],
+    base_discretisation_method=&quot;fixed_bin_size&quot;,
+    base_discretisation_bin_width=20.0,
+    filter_kernels=[&quot;mean&quot;, &quot;laplacian_of_gaussian&quot;, &quot;nonseparable_wavelet&quot;],
+    mean_filter_kernel_size=5,
+    laplacian_of_gaussian_sigma=[1.0, 3.0],
+    nonseparable_wavelet_families=&quot;simoncelli&quot;,
+    nonseparable_wavelet_decomposition_level=[1, 2, 3]
+)
 
-<span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+pd.concat(features)
 </pre></div>
 </div>
 </div>

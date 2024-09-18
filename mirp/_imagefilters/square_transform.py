@@ -9,12 +9,12 @@ from mirp.settings.generic import SettingsClass
 
 class SquareTransformFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
+
+        # Square transform filters are not IBSI-compliant.
+        self.ibsi_compliant: bool = False
 
     def generate_object(self):
         yield copy.deepcopy(self)
@@ -25,6 +25,7 @@ class SquareTransformFilter(GenericFilter):
             image_data=None,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map

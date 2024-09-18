@@ -4,41 +4,13 @@ import datetime
 from typing import Any
 
 from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 from mirp._data_import.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
 
 
 class ImageDicomFilePT(ImageDicomFile):
-    def __init__(
-            self,
-            file_path: None | str = None,
-            dir_path: None | str = None,
-            sample_name: None | str | list[str] = None,
-            file_name: None | str = None,
-            image_name: None | str = None,
-            image_modality: None | str = None,
-            image_file_type: None | str = None,
-            image_data: None | np.ndarray = None,
-            image_origin: None | tuple[float, float, float] = None,
-            image_orientation: None | np.ndarray = None,
-            image_spacing: None | tuple[float, float, float] = None,
-            image_dimensions: None | tuple[int, int, int] = None,
-            **kwargs
-    ):
-
-        super().__init__(
-            file_path=file_path,
-            dir_path=dir_path,
-            sample_name=sample_name,
-            file_name=file_name,
-            image_name=image_name,
-            image_modality=image_modality,
-            image_file_type=image_file_type,
-            image_data=image_data,
-            image_origin=image_origin,
-            image_orientation=image_orientation,
-            image_spacing=image_spacing,
-            image_dimensions=image_dimensions
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def is_stackable(self, stack_images: str):
         return True
@@ -110,33 +82,6 @@ class ImageDicomFilePT(ImageDicomFile):
         self.load_metadata()
 
         dcm_meta_data = []
-
-        # Scanner type
-        scanner_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x1090),
-            tag_type="str"
-        )
-        if scanner_type is not None:
-            dcm_meta_data += [("scanner_type", scanner_type)]
-
-        # Scanner manufacturer
-        manufacturer = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0070),
-            tag_type="str"
-        )
-        if manufacturer is not None:
-            dcm_meta_data += [("manufacturer", manufacturer)]
-
-        # Image type
-        image_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0008),
-            tag_type="str"
-        )
-        if image_type is not None:
-            dcm_meta_data += [("image_type", image_type)]
 
         # Time of flight information (0018,9755)
         time_of_flight = get_pydicom_meta_tag(
@@ -231,52 +176,45 @@ class ImageDicomFilePT(ImageDicomFile):
         if kernel is not None:
             dcm_meta_data += [("kernel", kernel)]
 
-        # Read reconstruction sequence (0018,9749)
-        if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x9749), tag_type=None, test_tag=True):
-            # Reconstruction type (0018,9749)(0018,9756)
-            recon_type = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9756),
-                tag_type="str"
-            )
-            if recon_type is not None:
-                dcm_meta_data += [("reconstruction_type", recon_type)]
+        # Reconstruction type
+        recon_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9756),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if recon_type is not None:
+            dcm_meta_data += [("reconstruction_type", recon_type)]
 
-            # Reconstruction algorithm (0018,9749)(0018,9315)
-            recon_algorithm = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9315),
-                tag_type="str"
-            )
-            if reconstruction_method is not None:
-                dcm_meta_data += [("reconstruction_algorithm", recon_algorithm)]
+        # Reconstruction algorithm
+        recon_algorithm = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9315),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if reconstruction_method is not None:
+            dcm_meta_data += [("reconstruction_algorithm", recon_algorithm)]
 
-            # Is an iterative method? (0018,9749)(0018,9769)
-            is_iterative = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9769),
-                tag_type="str"
-            )
-            if is_iterative is not None:
-                dcm_meta_data += [("iterative_method", is_iterative)]
+        # Number of iterations
+        n_iterations = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9739),
+            tag_type="int",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if n_iterations is not None:
+            dcm_meta_data += [("n_iterations", n_iterations)]
 
-            # Number of iterations (0018,9749)(0018,9739)
-            n_iterations = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9739),
-                tag_type="int"
-            )
-            if n_iterations is not None:
-                dcm_meta_data += [("n_iterations", n_iterations)]
-
-            # Number of subsets (0018,9749)(0018,9740)
-            n_subsets = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0018, 0x9749][0],
-                tag=(0x0018, 0x9740),
-                tag_type="int"
-            )
-            if n_subsets is not None:
-                dcm_meta_data += [("n_subsets", n_subsets)]
+        # Number of subsets
+        n_subsets = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9740),
+            tag_type="int",
+            macro_dcm_seq=(0x0018, 0x9749)
+        )
+        if n_subsets is not None:
+            dcm_meta_data += [("n_subsets", n_subsets)]
 
         # Frame duration (converted from milliseconds to seconds)
         frame_duration = get_pydicom_meta_tag(
@@ -858,3 +796,8 @@ class ImageDicomFilePT(ImageDicomFile):
                 raise ValueError("unreachable code")
 
             return norm_factor * 1000.0 / administered_dose
+
+
+class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

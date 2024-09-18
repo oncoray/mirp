@@ -1,3 +1,28 @@
+# Version 2.3.0
+
+## Major changes
+
+- The proper ancient feature computation code running in the background of MIRP has been completely refactored. We 
+  moved from a functional backend where all features were computed per feature family to a more flexible 
+  object-oriented approach. Although this change is not visible at the user-end, it offers several new possibilities:
+  - Single features can now be computed. In addition, for some features (e.g. percentile statistics), a flexible 
+    percentile value could be passed.
+  - Creation of feature maps.
+  - Output of features and their metadata to machine-readable formats, instead of just tabular data.
+  
+  **Important**: Though the *name* of features in the tabular exports has not changed, their *ordering* may have. 
+  Avoid using column position when processing or analysing feature data.
+
+- Apparent diffusion coefficient (ADC) maps, diffusion contrast-enhanced (DCE) MRI and multi-frame DICOM objects in 
+  general are now supported.
+- Planar imaging, i.e. computed radiography, digital X-ray and digital mammography DICOM files are now supported.
+- Python version 3.12 is now supported thanks to recent updates by the maintainers of `ray` and `itk`.
+  This means that `mirp` now supports Python version 3.10 and later.
+  
+## Fixes
+
+- Internal use of `numpy.cross` no longer produces deprecation warnings. 
+
 # Version 2.2.4
 
 ## Fixes

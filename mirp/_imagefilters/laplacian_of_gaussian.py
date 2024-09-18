@@ -11,12 +11,12 @@ from mirp._imagefilters.utilities import pool_voxel_grids
 
 class LaplacianOfGaussianFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.ibsi_compliant = True
+        self.ibsi_id = "L6PA"
 
         self.sigma: float | list[float] = settings.img_transform.log_sigma
         self.sigma_cutoff = settings.img_transform.log_sigma_truncate
@@ -33,6 +33,9 @@ class LaplacianOfGaussianFilter(GenericFilter):
             if settings.img_transform.has_steered_riesz_filter(x=name):
                 self.riesz_steered = True
                 self.riesz_sigma = settings.img_transform.riesz_filter_tensor_sigma
+
+            # Riesz transformed filters are not IBSI-compliant
+            self.ibsi_compliant = False
 
     def generate_object(self, allow_pooling: bool = True):
         # Generator for transformation objects.
@@ -79,6 +82,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
             riesz_sigma_parameter=self.riesz_sigma,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map
@@ -122,7 +126,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
 
-        if self.by_slice:
+        if self.separate_slices:
             # Set the number of dimensions.
             d = 2.0
 
@@ -160,7 +164,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         # Compute the weights of the filter.
         filter_weights = np.multiply(scale_factor, np.exp(width_factor))
 
-        if self.by_slice:
+        if self.separate_slices:
             # Set filter weights and create a filter.
             log_filter = FilterSet2D(
                 filter_weights,

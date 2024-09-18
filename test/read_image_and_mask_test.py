@@ -9,6 +9,7 @@ from mirp._masks.base_mask import BaseMask
 from mirp._images.ct_image import CTImage
 from mirp._images.pet_image import PETImage
 from mirp._images.mr_image import MRImage
+from mirp._images.mr_adc_image import MRADCImage
 
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -409,6 +410,17 @@ def test_read_dicom_image_and_mask_modality_specific():
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_MR_T1"
+
+    # Read ADC multi-frame image -- note that we don't have a mask for this dataset.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "adc_images_pm_dicom4qi", "data_1", "image.dcm")
+    )
+
+    image, roi_list = read_image_and_masks(image_list[0])
+    assert isinstance(image, MRADCImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "full_image_mask"
 
 
 @pytest.mark.ci

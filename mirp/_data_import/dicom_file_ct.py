@@ -1,42 +1,12 @@
-import numpy as np
-
 from typing import Any
 from mirp._data_import.dicom_file import ImageDicomFile
+from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
 
 class ImageDicomFileCT(ImageDicomFile):
-    def __init__(
-            self,
-            file_path: None | str = None,
-            dir_path: None | str = None,
-            sample_name: None | str | list[str] = None,
-            file_name: None | str = None,
-            image_name: None | str = None,
-            image_modality: None | str = None,
-            image_file_type: None | str = None,
-            image_data: None | np.ndarray = None,
-            image_origin: None | tuple[float, float, float] = None,
-            image_orientation: None | np.ndarray = None,
-            image_spacing: None | tuple[float, float, float] = None,
-            image_dimensions: None | tuple[int, int, int] = None,
-            **kwargs
-    ):
-
-        super().__init__(
-            file_path=file_path,
-            dir_path=dir_path,
-            sample_name=sample_name,
-            file_name=file_name,
-            image_name=image_name,
-            image_modality=image_modality,
-            image_file_type=image_file_type,
-            image_data=image_data,
-            image_origin=image_origin,
-            image_orientation=image_orientation,
-            image_spacing=image_spacing,
-            image_dimensions=image_dimensions
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def is_stackable(self, stack_images: str):
         return True
@@ -57,47 +27,32 @@ class ImageDicomFileCT(ImageDicomFile):
 
         dcm_meta_data = []
 
-        # Scanner type
-        scanner_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x1090),
-            tag_type="str"
-        )
-        if scanner_type is not None:
-            dcm_meta_data += [("scanner_type", scanner_type)]
-
-        # Scanner manufacturer
-        manufacturer = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0070),
-            tag_type="str"
-        )
-        if manufacturer is not None:
-            dcm_meta_data += [("manufacturer", manufacturer)]
-
-        # Image type
-        image_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0008),
-            tag_type="str"
-        )
-        if image_type is not None:
-            dcm_meta_data += [("image_type", image_type)]
-
         # Convolution kernel
         kernel = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0018, 0x1210),
-            tag_type="str"
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9314)
         )
         if kernel is not None:
             dcm_meta_data += [("kernel", kernel)]
+
+        # Reconstruction algorithm
+        reconstruction_algorithm = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9315),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9314)
+        )
+        if reconstruction_algorithm is not None:
+            dcm_meta_data += [("reconstruction_algorithm", reconstruction_algorithm)]
 
         # Peak kilo voltage output
         kvp = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0018, 0x0060),
-            tag_type="float"
+            tag_type="float",
+            macro_dcm_seq=(0x0018, 0x9325)
         )
         if kvp is not None:
             dcm_meta_data += [("kvp", kvp)]
@@ -138,5 +93,20 @@ class ImageDicomFileCT(ImageDicomFile):
         if contrast_agent is not None:
             dcm_meta_data += [("contrast_agent", contrast_agent)]
 
+        # Contrast/bolus agent phase
+        contrast_agent_phase = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9344),
+            tag_type="str",
+            macro_dcm_seq=(0x0018, 0x9341)
+        )
+        if contrast_agent_phase is not None:
+            dcm_meta_data += [("contrast_agent_phase", contrast_agent_phase)]
+
         metadata.update(dict(dcm_meta_data))
         return metadata
+
+
+class ImageDicomFileCTMultiFrame(ImageDicomMultiFrame, ImageDicomFileCT):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)

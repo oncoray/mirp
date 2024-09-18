@@ -8,13 +8,12 @@ from typing import Generator, Any
 import pandas as pd
 
 from mirp.settings.generic import SettingsClass
-from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 from mirp._workflows.baseWorkflow import BaseWorkflow
 from mirp._data_import.read_data import read_image_and_masks
 from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import TransformedImage
 from mirp._masks.base_mask import BaseMask
-from mirp._image_processing.cropping import crop, crop_image_to_size
+from mirp._image_processing.cropping import crop_image_to_size
 
 
 class StandardWorkflow(BaseWorkflow):
@@ -106,10 +105,9 @@ class StandardWorkflow(BaseWorkflow):
             return
 
         # Set 2D or 3D processing.
-        image.separate_slices = self.settings.general.by_slice
-
-        # Extract diagnostic features from initial image and rois
-        # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="init")
+        image.update_separate_slices(self.settings.general.by_slice)
+        for mask in masks:
+            mask.update_separate_slices(image.separate_slices)
 
         # Create a tissue mask
         if self.settings.post_process.bias_field_correction or \
@@ -151,7 +149,6 @@ class StandardWorkflow(BaseWorkflow):
 
         # Translate, rotate and interpolate image
         image.interpolate(
-            by_slice=self.settings.general.by_slice,
             interpolate=self.settings.img_interpolate.interpolate,
             new_spacing=self.new_image_spacing if self.new_image_spacing is not None else image.image_spacing,
             translation=self.translation if self.translation is not None else (0.0, 0.0, 0.0),
@@ -188,17 +185,18 @@ class StandardWorkflow(BaseWorkflow):
 
         # Crop slice stack
         if self.settings.perturbation.crop_around_roi:
-            image, masks = crop(image=image, masks=masks, boundary=self.settings.perturbation.crop_distance)
-
-        # self.extract_diagnostic_features(img_obj=img_obj, roi_list=roi_list, append_str="interp")
+            image, masks = crop(
+                image=image,
+                masks=masks,
+                boundary=self.settings.perturbation.crop_distance
+            )
 
         # Adapt roi sizes by dilation and erosion.
         masks = alter_mask(
             masks=masks,
             alteration_size=self.settings.perturbation.roi_adapt_size,
             alteration_method=self.settings.perturbation.roi_adapt_type,
-            max_erosion=self.settings.perturbation.max_volume_erosion,
-            by_slice=self.settings.general.by_slice
+            max_erosion=self.settings.perturbation.max_volume_erosion
         )
 
         # Update roi using SLIC
@@ -206,16 +204,14 @@ class StandardWorkflow(BaseWorkflow):
             masks = randomise_mask(
                 image=image,
                 masks=masks,
-                repetitions=self.settings.perturbation.roi_random_rep,
-                by_slice=self.settings.general.by_slice
+                repetitions=self.settings.perturbation.roi_random_rep
             )
 
         # Extract boundaries and tumour bulk
         masks = split_masks(
             masks=masks,
             boundary_sizes=self.settings.perturbation.roi_boundary_size,
-            max_erosion=self.settings.perturbation.max_volume_erosion,
-            by_slice=self.settings.general.by_slice
+            max_erosion=self.settings.perturbation.max_volume_erosion
         )
 
         # Resegmentise masks.
@@ -250,57 +246,57 @@ class StandardWorkflow(BaseWorkflow):
             if self.settings.img_transform.has_separable_wavelet_filter(x=current_filter):
                 # Separable wavelet filters
                 from mirp._imagefilters.separable_wavelet import SeparableWaveletFilter
-                filter_obj = SeparableWaveletFilter(settings=self.settings, name=current_filter)
+                filter_obj = SeparableWaveletFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_nonseparable_wavelet_filter(x=current_filter):
                 # Non-separable wavelet filters
                 from mirp._imagefilters.nonseparable_wavelet import NonseparableWaveletFilter
-                filter_obj = NonseparableWaveletFilter(settings=self.settings, name=current_filter)
+                filter_obj = NonseparableWaveletFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_gaussian_filter(x=current_filter):
                 # Gaussian filters
                 from mirp._imagefilters.gaussian import GaussianFilter
-                filter_obj = GaussianFilter(settings=self.settings, name=current_filter)
+                filter_obj = GaussianFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_laplacian_of_gaussian_filter(x=current_filter):
                 # Laplacian of Gaussian filters
                 from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianFilter
-                filter_obj = LaplacianOfGaussianFilter(settings=self.settings, name=current_filter)
+                filter_obj = LaplacianOfGaussianFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_laws_filter(x=current_filter):
                 # Laws' kernels
                 from mirp._imagefilters.laws import LawsFilter
-                filter_obj = LawsFilter(settings=self.settings, name=current_filter)
+                filter_obj = LawsFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_gabor_filter(x=current_filter):
                 # Gabor kernels
                 from mirp._imagefilters.gabor import GaborFilter
-                filter_obj = GaborFilter(settings=self.settings, name=current_filter)
+                filter_obj = GaborFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_mean_filter(x=current_filter):
                 # Mean / uniform filter
                 from mirp._imagefilters.mean import MeanFilter
-                filter_obj = MeanFilter(settings=self.settings, name=current_filter)
+                filter_obj = MeanFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_square_transform_filter(x=current_filter):
                 # Square transform filter
                 from mirp._imagefilters.square_transform import SquareTransformFilter
-                filter_obj = SquareTransformFilter(settings=self.settings, name=current_filter)
+                filter_obj = SquareTransformFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_square_root_transform_filter(x=current_filter):
                 # Square root transform filter
                 from mirp._imagefilters.square_root_transform import SquareRootTransformFilter
-                filter_obj = SquareRootTransformFilter(settings=self.settings, name=current_filter)
+                filter_obj = SquareRootTransformFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_logarithm_transform_filter(x=current_filter):
                 # Logarithm transform filter
                 from mirp._imagefilters.log_transform import LogarithmTransformFilter
-                filter_obj = LogarithmTransformFilter(settings=self.settings, name=current_filter)
+                filter_obj = LogarithmTransformFilter(image=image, settings=self.settings, name=current_filter)
 
             elif self.settings.img_transform.has_exponential_transform_filter(x=current_filter):
                 # Exponential transform filter
                 from mirp._imagefilters.exponential_transform import ExponentialTransformFilter
-                filter_obj = ExponentialTransformFilter(settings=self.settings, name=current_filter)
+                filter_obj = ExponentialTransformFilter(image=image, settings=self.settings, name=current_filter)
 
             else:
                 raise ValueError(
@@ -417,213 +413,45 @@ class StandardWorkflow(BaseWorkflow):
         elif self.export_images:
             return image_list, mask_list
 
-    def _compute_radiomics_features(self, image: GenericImage, mask: BaseMask) -> Generator[pd.DataFrame, None, None]:
-        from mirp._featuresets.local_intensity import get_local_intensity_features
-        from mirp._featuresets.statistics import get_intensity_statistics_features
-        from mirp._featuresets.intensity_volume_histogram import get_intensity_volume_histogram_features
-        from mirp._featuresets.morphology_3d import get_volumetric_morphological_features
-        from mirp._featuresets.intensity_histogram import get_intensity_histogram_features
-        from mirp._featuresets.cm import get_cm_features
-        from mirp._featuresets.rlm import get_rlm_features
-        from mirp._featuresets.szm import get_szm_features
-        from mirp._featuresets.dzm import get_dzm_features
-        from mirp._featuresets.ngtdm import get_ngtdm_features
-        from mirp._featuresets.ngldm import get_ngldm_features
+    def _compute_radiomics_features(
+            self,
+            image: GenericImage,
+            mask: BaseMask
+    ) -> Generator[pd.DataFrame, None, None]:
+        from mirp._features.feature_generator import generate_features, feature_to_table
 
+        # Check which feature settings to use.
         if isinstance(image, TransformedImage):
             feature_settings = self.settings.img_transform.feature_settings
         elif isinstance(image, GenericImage):
             feature_settings = self.settings.feature_extr
         else:
             raise TypeError(
-                f"image is not a TransformedImage, GenericImage or a subclass thereof. Found: {type(image)}")
+                f"image is not a TransformedImage, GenericImage or a subclass thereof. Found: {type(image)}"
+            )
 
         # Skip if no feature families are specified.
         if not feature_settings.has_any_feature_family():
             return
 
-        # Local mapping features ---------------------------------------------------------------------------------------
-        cropped_image, cropped_mask = crop(
-            image=image,
-            masks=mask,
-            boundary=10.0,
-            in_place=False
-        )
+        # Get and compute features.
+        features = list(generate_features(settings=feature_settings))
+        previous_feature = None
+        for feature in features:
+            # Check that both the feature is IBSI compliant and the input image is processed in an IBSI-compliant
+            # manner.
+            if feature.is_ibsi_compliant(image=image) or not feature_settings.ibsi_compliant:
+                feature.compute(image=image, mask=mask)
+            if previous_feature is not None:
+                previous_feature.clear_local_cache(other=feature)
+            previous_feature = feature
 
-        if feature_settings.has_local_intensity_family():
-            feature_set = get_local_intensity_features(
-                image=cropped_image,
-                mask=cropped_mask
-            )
-            feature_set = cropped_image.parse_feature_names(feature_set)
-            yield feature_set
+        # Make a final pass to empty cache to prevent memory leaks.
+        for feature in features:
+            feature.clear_cache()
 
-        # Normal image features ----------------------------------------------------------------------------------------
-        cropped_image, cropped_mask = crop(
-            image=image,
-            masks=mask,
-            boundary=0.0,
-            in_place=False
-        )
-        # Decode voxel grid.
-        cropped_mask.decode_voxel_grid()
-
-        # Extract statistical features.
-        if feature_settings.has_stats_family():
-            feature_set = get_intensity_statistics_features(
-                image=cropped_image,
-                mask=cropped_mask
-            )
-            feature_set = cropped_image.parse_feature_names(feature_set)
-            yield feature_set
-
-        # Extract intensity-volume histogram features.
-        if feature_settings.has_ivh_family():
-            feature_set = get_intensity_volume_histogram_features(
-                image=cropped_image,
-                mask=cropped_mask,
-                settings=feature_settings
-            )
-            feature_set = cropped_image.parse_feature_names(feature_set)
-            yield feature_set
-
-        # Extract morphological features.
-        if feature_settings.has_morphology_family():
-            feature_set = get_volumetric_morphological_features(
-                image=cropped_image,
-                mask=cropped_mask,
-                settings=feature_settings
-            )
-            feature_set = cropped_image.parse_feature_names(feature_set)
-            yield feature_set
-
-        # Discrete image features --------------------------------------------------------------------------------------
-        if not feature_settings.has_discretised_family():
-            return
-
-        for discrete_image, discrete_mask in self._discretise_image(
-                image=image,
-                mask=mask,
-                settings=feature_settings
-        ):
-            if discrete_image is None or discrete_mask is None:
-                continue
-
-            # Decode voxel grid.
-            discrete_mask.decode_voxel_grid()
-
-            # Intensity histogram.
-            if feature_settings.has_ih_family():
-                feature_set = get_intensity_histogram_features(
-                    image=discrete_image,
-                    mask=discrete_mask
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-            # Grey level co-occurrence matrix (GLCM).
-            if feature_settings.has_glcm_family():
-                feature_set = get_cm_features(
-                    image=discrete_image,
-                    mask=discrete_mask,
-                    settings=feature_settings
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-            # Grey level run length matrix (GLRLM).
-            if feature_settings.has_glrlm_family():
-                feature_set = get_rlm_features(
-                    image=discrete_image,
-                    mask=discrete_mask,
-                    settings=feature_settings
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-            # Grey level size zone matrix (GLSZM).
-            if feature_settings.has_glszm_family():
-                feature_set = get_szm_features(
-                    image=discrete_image,
-                    mask=discrete_mask,
-                    settings=feature_settings
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-            # Grey level distance zone matrix (GLDZM).
-            if feature_settings.has_gldzm_family():
-                feature_set = get_dzm_features(
-                    image=discrete_image,
-                    mask=discrete_mask,
-                    settings=feature_settings
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-            # Neighbourhood grey tone difference matrix (NGTDM).
-            if feature_settings.has_ngtdm_family():
-                feature_set = get_ngtdm_features(
-                    image=discrete_image,
-                    mask=discrete_mask,
-                    settings=feature_settings
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-            # Neighbouring grey level dependence matrix (NGLDM).
-            if feature_settings.has_ngldm_family():
-                feature_set = get_ngldm_features(
-                    image=discrete_image,
-                    mask=discrete_mask,
-                    settings=feature_settings
-                )
-                feature_set = discrete_image.parse_feature_names(feature_set)
-                yield feature_set
-
-    def _discretise_image(
-            self,
-            image: GenericImage,
-            mask: BaseMask,
-            settings: None | SettingsClass | FeatureExtractionSettingsClass = None
-    ) -> tuple[GenericImage, BaseMask]:
-        from mirp._image_processing.discretise_image import discretise_image
-
-        if settings is None:
-            settings = self.settings
-        if isinstance(settings, SettingsClass) and isinstance(image, TransformedImage):
-            settings = settings.img_transform.feature_settings
-        elif isinstance(settings, SettingsClass) and isinstance(image, GenericImage):
-            settings = settings.feature_extr
-
-        for discretisation_method in settings.discretisation_method:
-            if discretisation_method in ["fixed_bin_size", "fixed_bin_size_pyradiomics"]:
-                bin_width = settings.discretisation_bin_width
-                for current_bin_width in bin_width:
-                    yield discretise_image(
-                        image=image,
-                        mask=mask,
-                        discretisation_method=discretisation_method,
-                        bin_width=current_bin_width,
-                        in_place=False
-                    )
-            elif discretisation_method in ["fixed_bin_number"]:
-                bin_number = settings.discretisation_n_bins
-                for current_bin_number in bin_number:
-                    yield discretise_image(
-                        image=image,
-                        mask=mask,
-                        discretisation_method=discretisation_method,
-                        bin_number=current_bin_number,
-                        in_place=False
-                    )
-            else:
-                yield discretise_image(
-                    image=image,
-                    mask=mask,
-                    discretisation_method=discretisation_method,
-                    in_place=False
-                )
+        # Convert to table and add image descriptors.
+        yield image.parse_feature_names(feature_to_table(features))
 
     def _get_feature_set_details(
             self,

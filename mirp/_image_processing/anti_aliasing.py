@@ -7,7 +7,7 @@ def gaussian_preprocess_filter(
         sample_spacing=None,
         param_beta=0.98,
         mode="nearest",
-        by_slice=False
+        separate_slices=False
 ):
 
     from scipy.ndimage import gaussian_filter
@@ -28,7 +28,7 @@ def gaussian_preprocess_filter(
     # map_spacing[map_spacing<=1.0] = 0.0
 
     # Don't filter along slices if calculations are to occur within the slice only
-    if by_slice:
+    if separate_slices:
         map_spacing[0] = 0.0
 
     # Calculate sigma

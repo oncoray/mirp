@@ -21,7 +21,6 @@ class GenericImage(BaseImage):
     def __init__(
             self,
             image_data: None | np.ndarray,
-            separate_slices: None | bool = None,
             translation: None | tuple[float, ...] = None,
             rotation_angle: None | float = None,
             noise_iteration_id: None | int = None,
@@ -41,9 +40,6 @@ class GenericImage(BaseImage):
         self.image_data = None
         self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
 
-        # Determines whether slices in the stack should be treated separately.
-        self.separate_slices = separate_slices
-
         # Perturbation-related settings that are set during interpolate.
         self.translation = translation
         self.rotation_angle = rotation_angle
@@ -61,6 +57,9 @@ class GenericImage(BaseImage):
 
         # Slice identifiers.
         self.slice_id: None | int = None
+
+        # Image underwent IBSI compliant processing (default True: it is easier to identify exceptions).
+        self.ibsi_compliant = True
 
     def copy(self, drop_image=False) -> Self:
         image = copy.deepcopy(self)
@@ -98,12 +97,16 @@ class GenericImage(BaseImage):
         self.discretisation_method = template.discretisation_method
         self.discretisation_bin_number = template.discretisation_bin_number
         self.discretisation_bin_width = template.discretisation_bin_width
+        self.ibsi_compliant = template.ibsi_compliant
 
     def promote(self):
         from mirp._images.ct_image import CTImage
         from mirp._images.pet_image import PETImage
         from mirp._images.mr_image import MRImage
+        from mirp._images.mr_adc_image import MRADCImage
+        from mirp._images.mr_dce_image import MRDCEImage
         from mirp._images.rtdose_image import RTDoseImage
+        from mirp._images.digital_xray_image import DXImage, CRImage, MGImage
 
         if self.modality == "ct":
             image = CTImage(image_data=self.image_data)
@@ -111,8 +114,18 @@ class GenericImage(BaseImage):
             image = PETImage(image_data=self.image_data)
         elif self.modality in ["mr", "mri"]:
             image = MRImage(image_data=self.image_data)
+        elif self.modality in ["adc"]:
+            image = MRADCImage(image_data=self.image_data)
+        elif self.modality in ["dce"]:
+            image = MRDCEImage(image_data=self.image_data)
         elif self.modality in ["rtdose"]:
             image = RTDoseImage(image_data=self.image_data)
+        elif self.modality in ["cr"]:
+            image = CRImage(image_data=self.image_data)
+        elif self.modality in ["dx"]:
+            image = DXImage(image_data=self.image_data)
+        elif self.modality in ["mg"]:
+            image = MGImage(image_data=self.image_data)
         elif self.modality == "generic":
             return self
         else:
@@ -174,6 +187,9 @@ class GenericImage(BaseImage):
     def update_image_data(self):
         pass
 
+    def update_separate_slices(self, x: bool):
+        self.separate_slices = x
+
     def show(self, mask=None, slice_id=None):  # pragma: no cover
         import matplotlib.pyplot as plt
         from mirp._images.utilities import InteractivePlot
@@ -212,9 +228,20 @@ class GenericImage(BaseImage):
     def get_default_upper_intensity():
         return None
 
+    @staticmethod
+    def get_default_ivh_discretisation_method():
+        return "fixed_bin_number"
+
+    @staticmethod
+    def get_default_ivh_bin_number():
+        return 1000
+
+    @staticmethod
+    def get_default_ivh_bin_size():
+        return None
+
     def interpolate(
             self,
-            by_slice: None | bool = None,
             interpolate: None | bool = None,
             new_spacing: None | tuple[float, ...] = None,
             translation: None | float | tuple[float, ...] = (0.0, 0.0, 0.0),
@@ -225,15 +252,10 @@ class GenericImage(BaseImage):
             settings: None | SettingsClass = None
     ):
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
-        if (by_slice is None or interpolate is None or spline_order is None or anti_aliasing is
+        if (self.separate_slices is None or interpolate is None or spline_order is None or anti_aliasing is
                 None or anti_aliasing_smoothing_beta is None) and settings is None:
             raise ValueError("None of the parameters for interpolation can be set.")
 
-        if by_slice is None:
-            by_slice = settings.general.by_slice
         if interpolate is None:
             interpolate = settings.img_interpolate.interpolate
         if new_spacing is None and settings is not None:
@@ -263,7 +285,7 @@ class GenericImage(BaseImage):
             # Use original spacing.
             new_spacing = self.image_spacing
 
-        elif by_slice:
+        elif self.separate_slices:
             # Use provided spacing, in 2D. Spacing for interpolation across slices is set to the original spacing in
             # case interpolation is only conducted within the slice.
             new_spacing = list(new_spacing)
@@ -281,13 +303,12 @@ class GenericImage(BaseImage):
             if translation[ii] is None:
                 translation[ii] = 0.0
 
-        if by_slice:
+        if self.separate_slices:
             translation[0] = 0.0
 
         translation: tuple[float, float, float] = tuple(translation)
 
         return self._interpolate(
-            by_slice=by_slice,
             interpolate=interpolate,
             new_spacing=tuple(new_spacing),
             translation=translation,
@@ -303,7 +324,6 @@ class GenericImage(BaseImage):
 
     def _interpolate(
             self,
-            by_slice: bool,
             interpolate: bool,
             new_spacing: tuple[float, ...],
             translation: tuple[float, ...],
@@ -319,9 +339,6 @@ class GenericImage(BaseImage):
         # Skip for missing images.
         if self.is_empty() is None:
             return
-
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
 
         # Translate tuples to np.array
         new_spacing = np.array(new_spacing).astype(float)
@@ -352,7 +369,7 @@ class GenericImage(BaseImage):
                     sample_spacing=new_spacing,
                     param_beta=anti_aliasing_smoothing_beta,
                     mode="nearest",
-                    by_slice=by_slice
+                    separate_slices=self.separate_slices
                 )
             )
 
@@ -533,7 +550,7 @@ class GenericImage(BaseImage):
                     sample_spacing=np.array(image.image_spacing),
                     param_beta=anti_aliasing_smoothing_beta,
                     mode="nearest",
-                    by_slice=False
+                    separate_slices=False
                 )
             )
 
@@ -935,26 +952,21 @@ class GenericImage(BaseImage):
 
         return self
 
-    def decimate(self, by_slice: bool):
+    def decimate(self):
         """
         Decimates image by removing every second element
-        :param by_slice: Whether the analysis is conducted in 2D or 3D.
-        :return:
         """
 
         # Skip for missing images
         if self.is_empty():
             return
 
-        if self.separate_slices is not None:
-            by_slice = self.separate_slices
-
         # Get the voxel grid
         image_data = self.get_voxel_grid()
         image_spacing = np.array(self.image_spacing)
 
         # Update the voxel grid
-        if by_slice:
+        if self.separate_slices:
             # Drop every second pixel
             image_data = image_data[:, slice(None, None, 2), slice(None, None, 2)]
             self.image_spacing = tuple(image_spacing[[1, 2]] * 2.0)
@@ -975,7 +987,8 @@ class GenericImage(BaseImage):
             ind_ext_y=None,
             ind_ext_x=None,
             xy_only=False,
-            z_only=False):
+            z_only=False
+    ):
         """Crop image to the provided map extent."""
 
         # Skip for missing images

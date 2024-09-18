@@ -10,12 +10,12 @@ from mirp.settings.generic import SettingsClass
 
 class MeanFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.ibsi_compliant = True
+        self.ibsi_id = "S60F"
 
         # Set the filter size
         self.filter_size = settings.img_transform.mean_filter_size
@@ -48,6 +48,7 @@ class MeanFilter(GenericFilter):
             riesz_sigma_parameter=None,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map
@@ -56,7 +57,7 @@ class MeanFilter(GenericFilter):
         filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size
 
         # Create a filter set.
-        if self.by_slice:
+        if self.separate_slices:
             filter_set = SeparableFilterSet(
                 filter_x=filter_kernel,
                 filter_y=filter_kernel

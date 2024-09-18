@@ -9,8 +9,7 @@ def randomise_mask(
         image: GenericImage,
         masks: BaseMask | MaskImage | list[BaseMask],
         boundary: float = 25.0,
-        repetitions: int = 1,
-        by_slice: bool = False
+        repetitions: int = 1
 ):
     image, masks, return_list = standard_image_process_checks(image=image, masks=masks)
     if return_list is None:
@@ -22,8 +21,7 @@ def randomise_mask(
             randomised_masks = mask.randomise_mask(
                 image=image,
                 boundary=boundary,
-                repetitions=repetitions,
-                by_slice=by_slice
+                repetitions=repetitions
             )
 
             for randomised_mask in randomised_masks:
@@ -36,8 +34,7 @@ def randomise_mask(
                 image=image,
                 boundary=boundary,
                 repetitions=repetitions,
-                intensity_range=mask.intensity_range,
-                by_slice=by_slice
+                intensity_range=mask.intensity_range
             )
 
             for randomised_mask in randomised_masks:

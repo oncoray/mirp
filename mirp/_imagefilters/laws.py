@@ -9,12 +9,12 @@ from mirp.settings.generic import SettingsClass
 
 
 class LawsFilter(GenericFilter):
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.ibsi_compliant = True
+        self.ibsi_id = "JTXT"
 
         # Normalise kernel and energy filters? This is true by default (see IBSI).
         self.kernel_normalise = True
@@ -76,6 +76,7 @@ class LawsFilter(GenericFilter):
             riesz_sigma_parameter=None,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map
@@ -132,7 +133,7 @@ class LawsFilter(GenericFilter):
             filter_kernel = np.ones(filter_size, dtype=float)
 
         # Create a filter set.
-        if self.by_slice:
+        if self.separate_slices:
             filter_set = SeparableFilterSet(
                 filter_x=filter_kernel,
                 filter_y=filter_kernel)

@@ -39,6 +39,13 @@ class BaseMask:
         # Set intensity range.
         self.intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
 
+    def update_separate_slices(self, x):
+        self.roi.update_separate_slices(x=x)
+        if self.roi_intensity is not None:
+            self.roi_intensity.update_separate_slices(x=x)
+        if self.roi_morphology is not None:
+            self.roi_morphology.update_separate_slices(x=x)
+
     def get_slices(
             self,
             slice_number: None | int | list[int] = None,
@@ -315,18 +322,16 @@ class BaseMask:
             if self.roi_morphology is None:
                 self.roi_morphology = self.roi.copy()
 
-    def decimate(self, by_slice):
+    def decimate(self):
         """
         Decimates the roi mask.
-        :param by_slice: boolean, 2D (True) or 3D (False)
-        :return:
         """
         if self.roi is not None:
-            self.roi.decimate(by_slice=by_slice)
+            self.roi.decimate()
         if self.roi_intensity is not None:
-            self.roi_intensity.decimate(by_slice=by_slice)
+            self.roi_intensity.decimate()
         if self.roi_morphology is not None:
-            self.roi_morphology.decimate(by_slice=by_slice)
+            self.roi_morphology.decimate()
 
     def crop(
             self,
@@ -450,7 +455,6 @@ class BaseMask:
 
     def dilate(
             self,
-            by_slice: bool,
             distance: None | float = None,
             voxel_distance: None | float = None
     ):
@@ -459,14 +463,12 @@ class BaseMask:
             return
 
         self.roi.dilate(
-            by_slice=by_slice,
             distance=distance,
             voxel_distance=voxel_distance
         )
 
     def erode(
             self,
-            by_slice: bool,
             max_eroded_volume_fraction: float = 0.8,
             distance: None | float = None,
             voxel_distance: None | float = None
@@ -476,7 +478,6 @@ class BaseMask:
             return
 
         self.roi.erode(
-            by_slice=by_slice,
             max_eroded_volume_fraction=max_eroded_volume_fraction,
             distance=distance,
             voxel_distance=voxel_distance
@@ -484,7 +485,6 @@ class BaseMask:
 
     def fractional_volume_change(
             self,
-            by_slice: bool,
             fractional_change: None | float = None
     ):
         # Skip if the mask does not exist
@@ -492,7 +492,6 @@ class BaseMask:
             return
 
         self.roi.fractional_volume_change(
-            by_slice=by_slice,
             fractional_change=fractional_change
         )
 

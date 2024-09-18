@@ -11,12 +11,12 @@ from mirp._imagefilters.generic import GenericFilter
 
 class NonseparableWaveletFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.ibsi_compliant = True
+        self.ibsi_id = "LODD"
 
         # Set wavelet family
         self.wavelet_family: str | list[str] = settings.img_transform.nonseparable_wavelet_families
@@ -34,6 +34,9 @@ class NonseparableWaveletFilter(GenericFilter):
             if settings.img_transform.has_steered_riesz_filter(x=name):
                 self.riesz_steered = True
                 self.riesz_sigma = settings.img_transform.riesz_filter_tensor_sigma
+
+            # Riesz transformed filters are not IBSI-compliant
+            self.ibsi_compliant = False
 
         # Set boundary condition
         self.mode = settings.img_transform.nonseparable_wavelet_boundary_condition
@@ -88,6 +91,7 @@ class NonseparableWaveletFilter(GenericFilter):
             riesz_sigma_parameter=self.riesz_sigma,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map
@@ -149,12 +153,12 @@ class NonseparableWaveletFilter(GenericFilter):
         # Set up filter shape
         if filter_size is not None:
             filter_size = np.array(filter_size)
-            if self.by_slice:
+            if self.separate_slices:
                 filter_shape = (filter_size[1], filter_size[2])
             else:
                 filter_shape = (filter_size[0], filter_size[1], filter_size[2])
         else:
-            if self.by_slice:
+            if self.separate_slices:
                 filter_shape = (filter_size, filter_size)
 
             else:
@@ -199,7 +203,7 @@ class NonseparableWaveletFilter(GenericFilter):
         else:
             raise ValueError(f"The specified wavelet family is not implemented: {self.wavelet_family}")
 
-        if self.by_slice:
+        if self.separate_slices:
             # Create filter set, and assign wavelet filter. Note the ifftshift that is present to go from a centric
             # to quadrant FFT representation.
             filter_set = FilterSet2D(filter_set=fft.ifftshift(wavelet_kernel_f),

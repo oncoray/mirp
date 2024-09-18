@@ -64,7 +64,7 @@ Supported image and mask modalities
      - Supported modality
    * - DICOM
      - image
-     - CT, MR, PT, RTDOSE
+     - CT, MR (incl. ADC, DCE), PT, RTDOSE, CR, DX, MG
    * - DICOM
      - mask
      - RTSTRUCT, SEG
@@ -96,6 +96,10 @@ Supported Python versions and operating systems
      - ✅
      - ✅
    * - 3.11
+     - ✅
+     - ✅
+     - ✅
+   * - 3.12
      - ✅
      - ✅
      - ✅

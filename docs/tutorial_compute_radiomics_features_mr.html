@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tutorial: Computing radiomics features &mdash; mirp 2.2.4 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+  <title>Tutorial: Computing radiomics features &mdash; mirp 2.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
-      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css" />
+      <link rel="stylesheet" type="text/css" href="_static/nbsphinx-code-cells.css?v=2aa19091" />
 
   
   <!--[if lt IE 9]>
@@ -16,8 +16,8 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=4e6cfea6"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/documentation_options.js?v=c3c8ae58"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
         <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
@@ -117,18 +117,18 @@
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">urlopen</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">BytesIO</span>
-<span class="kn">from</span> <span class="nn">zipfile</span> <span class="kn">import</span> <span class="n">ZipFile</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from urllib.request import urlopen
+from io import BytesIO
+from zipfile import ZipFile
 
-<span class="n">url</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;https://github.com/oncoray/mirp/raw/acd0b11521acd07aa9597e8f55d480bc54af4e04/data/tutorial_radiomics_mr_t1_data.zip&quot;</span>
+url = r&quot;https://github.com/oncoray/mirp/raw/acd0b11521acd07aa9597e8f55d480bc54af4e04/data/tutorial_radiomics_mr_t1_data.zip&quot;
 
-<span class="c1"># Specify location where the data is stored.</span>
-<span class="n">save_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+# Specify location where the data is stored.
+save_dir = &quot;.&quot;
 
-<span class="k">with</span> <span class="n">urlopen</span><span class="p">(</span><span class="n">url</span><span class="p">)</span> <span class="k">as</span> <span class="n">zip_url_pointer</span><span class="p">:</span>
-    <span class="k">with</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(</span><span class="n">zip_url_pointer</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span> <span class="k">as</span> <span class="n">example_data</span><span class="p">:</span>
-        <span class="n">example_data</span><span class="o">.</span><span class="n">extractall</span><span class="p">(</span><span class="n">save_dir</span><span class="p">)</span>
+with urlopen(url) as zip_url_pointer:
+    with ZipFile(BytesIO(zip_url_pointer.read())) as example_data:
+        example_data.extractall(save_dir)
 </pre></div>
 </div>
 </div>
@@ -157,13 +157,13 @@ relative to the patient directory (<code class="docutils literal notranslate"><s
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_mask_labels</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+from mirp import extract_mask_labels
 
-<span class="n">extract_mask_labels</span><span class="p">(</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
-    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">)</span>
-<span class="p">)</span>
+extract_mask_labels(
+    mask=os.path.join(save_dir, &quot;sts_images&quot;),
+    mask_sub_folder=os.path.join(&quot;mr_t1&quot;, &quot;mask&quot;)
+)
 </pre></div>
 </div>
 </div>
@@ -301,14 +301,14 @@ relative to the patient directory (<code class="docutils literal notranslate"><s
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_images</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from mirp import extract_images
 
-<span class="n">images</span> <span class="o">=</span> <span class="n">extract_images</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">,</span> <span class="s2">&quot;STS_003&quot;</span><span class="p">,</span> <span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">,</span> <span class="s2">&quot;STS_003&quot;</span><span class="p">,</span> <span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">),</span>
-    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV_Mass&quot;</span><span class="p">,</span>
-    <span class="n">image_export_format</span><span class="o">=</span><span class="s2">&quot;native&quot;</span>
-<span class="p">)</span>
+images = extract_images(
+    image=os.path.join(save_dir, &quot;sts_images&quot;, &quot;STS_003&quot;, &quot;mr_t1&quot;, &quot;image&quot;),
+    mask=os.path.join(save_dir, &quot;sts_images&quot;, &quot;STS_003&quot;, &quot;mr_t1&quot;, &quot;mask&quot;),
+    roi_name=&quot;GTV_Mass&quot;,
+    image_export_format=&quot;native&quot;
+)
 </pre></div>
 </div>
 </div>
@@ -326,8 +326,8 @@ dataset. We only assess a single image here, which means that <code class="docut
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">image</span><span class="p">,</span> <span class="n">mask</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">image</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slice_id</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>image, mask = images[0]
+image[0].show(mask=mask[0], slice_id=10)
 </pre></div>
 </div>
 </div>
@@ -348,12 +348,12 @@ dataset. We only assess a single image here, which means that <code class="docut
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_image_parameters</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from mirp import extract_image_parameters
 
-<span class="n">extract_image_parameters</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
-    <span class="n">image_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">)</span>
-<span class="p">)</span>
+extract_image_parameters(
+    image=os.path.join(save_dir, &quot;sts_images&quot;),
+    image_sub_folder=os.path.join(&quot;mr_t1&quot;, &quot;image&quot;)
+)
 </pre></div>
 </div>
 </div>
@@ -490,23 +490,23 @@ dataset. We only assess a single image here, which means that <code class="docut
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
 </pre></div>
 </div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+from mirp import extract_features
 
-<span class="n">features</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
-    <span class="n">image</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
-    <span class="n">image_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;image&quot;</span><span class="p">),</span>
-    <span class="n">mask</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="s2">&quot;sts_images&quot;</span><span class="p">),</span>
-    <span class="n">mask_sub_folder</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;mr_t1&quot;</span><span class="p">,</span> <span class="s2">&quot;mask&quot;</span><span class="p">),</span>
-    <span class="n">roi_name</span><span class="o">=</span><span class="s2">&quot;GTV_Mass&quot;</span><span class="p">,</span>
-    <span class="n">by_slice</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">intensity_normalisation</span><span class="o">=</span><span class="s2">&quot;standardisation&quot;</span><span class="p">,</span>
-    <span class="n">new_spacing</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-    <span class="n">base_discretisation_method</span><span class="o">=</span><span class="s2">&quot;fixed_bin_number&quot;</span><span class="p">,</span>
-    <span class="n">base_discretisation_n_bins</span><span class="o">=</span><span class="mi">16</span>
-<span class="p">)</span>
+features = extract_features(
+    image=os.path.join(save_dir, &quot;sts_images&quot;),
+    image_sub_folder=os.path.join(&quot;mr_t1&quot;, &quot;image&quot;),
+    mask=os.path.join(save_dir, &quot;sts_images&quot;),
+    mask_sub_folder=os.path.join(&quot;mr_t1&quot;, &quot;mask&quot;),
+    roi_name=&quot;GTV_Mass&quot;,
+    by_slice=True,
+    intensity_normalisation=&quot;standardisation&quot;,
+    new_spacing=1.0,
+    base_discretisation_method=&quot;fixed_bin_number&quot;,
+    base_discretisation_n_bins=16
+)
 
-<span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+pd.concat(features)
 </pre></div>
 </div>
 </div>

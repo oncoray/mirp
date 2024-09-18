@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>General design &mdash; mirp 2.2.4 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=92fd9be5" />
+  <title>General design &mdash; mirp 2.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
@@ -15,8 +15,8 @@
   
         <script src="_static/jquery.js?v=5d32c60e"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=4e6cfea6"></script>
-        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/documentation_options.js?v=c3c8ae58"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -70,20 +70,17 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">General design</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#features">Features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#future-directions">Future directions</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#internal-image-representation">Internal image representation</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#id1">Future directions</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#internal-image-representation">Internal image representation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id2">Future directions</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="#internal-mask-representation">Internal mask representation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">Future directions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Future directions</a></li>
 </ul>
 </li>
 </ul>
@@ -118,7 +115,8 @@
   <section id="general-design">
 <h1>General design<a class="headerlink" href="#general-design" title="Link to this heading"></a></h1>
 <p>The overall design of MIRP is divided into three layers, as shown in the figure below.</p>
-<img alt="_images/mirp_general_design.svg" class="align-left" src="_images/mirp_general_design.svg" /><p>The most visible layer to the user is formed by the functions that are part of the public API. These functions, such as
+<img alt="_images/mirp_general_design.svg" class="align-left" src="_images/mirp_general_design.svg" />
+<p>The most visible layer to the user is formed by the functions that are part of the public API. These functions, such as
 <cite>extract_features</cite> and <cite>extract_mask_labels</cite>, form entry points that revolve around specific tasks.</p>
 <p>The second layer is still public, but rarely directly addressed by users. This layer consists of import routines for
 images and masks, as well as settings. The functions from the first, fully public layer, pass arguments to these
@@ -165,7 +163,7 @@ feature computation.</p></li>
 <p>The bulk of MIRPs functionality is located in private submodules:</p>
 <ul class="simple">
 <li><p><cite>_data_import</cite>: Contains classes for image and mask files and modalities.</p></li>
-<li><p><cite>_featuresets</cite>: Contains functions and classes involved in computing features.</p></li>
+<li><p><cite>_features</cite>: Contains functions and classes involved in computing features.</p></li>
 <li><p><cite>_image_processing</cite>: Contains functions that help process images. Most of these internally use methods associated
 with <cite>GenericImage</cite> (and subclasses) as well as <cite>BaseMask</cite> that are defined in the <cite>_images</cite> and <cite>_masks</cite> submodules
 respectively.</p></li>
@@ -178,32 +176,15 @@ image and mask processing and feature computation.</p></li>
 </section>
 <section id="features">
 <h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
-<p>Feature computation is called from <cite>StandardWorkflow._compute_radiomics_features</cite>. At the moment feature computation is
-mostly functional, and organised by feature family.</p>
-<section id="future-directions">
-<h3>Future directions<a class="headerlink" href="#future-directions" title="Link to this heading"></a></h3>
-<p>Feature computation is currently family-based, i.e. an entire family of features is computed at once. It may be
-preferable to move to a more directive-based approach by treating feature as an object. There are no current direct
-benefits to doing so, and would make feature computation a bit harder to program to avoid doing unnecessary work. For
-example, computation of a grey level co-occurrence matrix feature relies on two prior steps: discretisation and
-computing the GLCM. This would mean that feature objects have to be sorted by discretisation required, and the set of
-parameters.</p>
-<p>A directive-based approach would have at least the following two advantages:</p>
-<ul class="simple">
-<li><p>Features can be exported with metadata, instead of just their values. These metadata could include their IBSI
-identifiers of the features, as well as processing-related metadata that are currently included in the feature name.
-This would make it easier to export structured reports of image data.</p></li>
-<li><p>Features can be defined that are not generated by default, e.g. different intensity-volume histogram features.</p></li>
-</ul>
-</section>
+<p>Feature computation is called from <cite>StandardWorkflow._compute_radiomics_features</cite>.</p>
 </section>
 <section id="filters">
 <h2>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h2>
 <p>All filters are implemented as objects, defined in the <cite>_imagefilters</cite> submodule. The filters themselves are accessed
 in the <cite>StandardWorkflow.transform_images</cite> method, yielding specific transformed image objects (defined in
 <cite>_images.transformed_images</cite>).</p>
-<section id="id1">
-<h3>Future directions<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<section id="future-directions">
+<h3>Future directions<a class="headerlink" href="#future-directions" title="Link to this heading"></a></h3>
 <p>We are generally happy with the current implementation of image filters. It is relatively straightforward to implement new
 filters should there be a need.</p>
 </section>
@@ -221,13 +202,11 @@ override the <cite>get_default_lowest_intensity</cite> method to provide modalit
 comparatively extensive because it contains or overrides methods that act upon masks specifically.
 One notable aspect of <cite>MaskImage</cite> is that the mask data are typically run-length encoded, and only decoded upon use, to
 provide better memory utilisation.</p>
-<section id="id2">
-<h3>Future directions<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<section id="id1">
+<h3>Future directions<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
 <p>The current implementation of internal image representations is sufficient. It is relatively straightforward to
 implement objects for new image modalities, for which existing classes such as <cite>CTImage</cite> and <cite>PETImage</cite> can be used as
 templates.</p>
-<p>Some objects may receive additional attributes to represent relevant metadata on the value representations, e.g. the
-type of SUV conversion used to create a <cite>PETImage</cite>.</p>
 <p>In addition, all internal image representations are volumetric. They contain a merged stack of image slices. However,
 in rare occasions, the original input data may contain image slices that are not equidistant, i.e. with variable slice
 spacing. It is safer to handle DICOM imaging, prior to resampling (<cite>interpolation</cite> in
@@ -240,8 +219,8 @@ spacing. It is safer to handle DICOM imaging, prior to resampling (<cite>interpo
 which are <cite>_images.mask_image.MaskImage</cite>. In fact, each <cite>BaseMask</cite> contains up to three variants of masks, notably the
 original mask, the morphological mask and the intensity mask. Whereas the original mask and morphological mask are
 currently direct</p>
-<section id="id3">
-<h3>Future directions<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<section id="id2">
+<h3>Future directions<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <p>The current implementation of internal image representations is sufficient.</p>
 </section>
 </section>

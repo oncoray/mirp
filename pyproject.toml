@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mirp"
-version = "2.2.4"
+version = "2.3.0"
 description = "A package for standardised processing of medical imaging and computation of quantitative features."
 authors = [
     {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
@@ -15,6 +15,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Image Processing",
@@ -30,8 +31,8 @@ dependencies = [
     "pywavelets>=1.4.0",
     "scikit-image>=0.20.0",
     "scipy>=1.11",
-    "typing-extensions>=4.10; python_version<'3.11'",
-    "ray>=2.10.0; python_version<='3.11'"
+    "ray>=2.34.0",
+    "typing-extensions>=4.10; python_version<'3.11'"
 ]
 
 [project.urls]
@@ -48,9 +49,9 @@ addopts = ["--strict-markers"]
 markers = [
     "ci: marks tests for continuous integration"
 ]
-# filterwarnings = [
-#    "error:the matrix subclass"
-# ]
+#filterwarnings = [
+#   "error:Arrays of 2-dimensional vectors are deprecated"
+#]
 
 [tool.setuptools.packages.find]
 where = ["."]

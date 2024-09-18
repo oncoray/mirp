@@ -12,8 +12,7 @@ def crop(
         boundary: float = 0.0,
         xy_only: bool = False,
         z_only: bool = False,
-        in_place: bool = False,
-        by_slice: bool = False
+        in_place: bool = False
 ) -> tuple[GenericImage, None | BaseMask | MaskImage | list[BaseMask]]:
     """ The function is used to slice a subsection of the image so that further processing is facilitated in terms of
      memory and computational requirements. """
@@ -56,7 +55,7 @@ def crop(
     # Compute boundary and add to bounding box.
     boundary = np.ceil(boundary / np.array(image.image_spacing)).astype(int)
 
-    if not by_slice:
+    if not image.separate_slices:
         bounds_z = [bounds_z[0] - boundary[0], bounds_z[1] + boundary[0]]
     bounds_y = [bounds_y[0] - boundary[1], bounds_y[1] + boundary[1]]
     bounds_x = [bounds_x[0] - boundary[2], bounds_x[1] + boundary[2]]

@@ -118,6 +118,9 @@ def discretise_image(
         # Set bin width.
         image.discretisation_bin_width = bin_width
 
+        # Update IBSI compliance.
+        image.ibsi_compliant = False
+
     else:
         raise ValueError(f"The discretisation_method argument was not recognised. Found: {discretisation_method}")
 

@@ -7,8 +7,7 @@ def alter_mask(
         masks: BaseMask | MaskImage | list[BaseMask],
         alteration_size: None | list[float] = None,
         alteration_method: None | str = None,
-        max_erosion: None | float = 0.8,
-        by_slice: bool = False
+        max_erosion: None | float = 0.8
 ):
     """ Adapt roi size by growing or shrinking the roi """
 
@@ -30,13 +29,11 @@ def alter_mask(
             if alteration_method == "distance" and current_adapt_size < 0.0:
                 if isinstance(new_mask, BaseMask):
                     new_mask.roi.erode(
-                        by_slice=by_slice,
                         max_eroded_volume_fraction=max_erosion,
                         distance=current_adapt_size
                     )
                 elif isinstance(new_mask, MaskImage):
                     new_mask.erode(
-                        by_slice=by_slice,
                         max_eroded_volume_fraction=max_erosion,
                         distance=current_adapt_size
                     )
@@ -44,24 +41,20 @@ def alter_mask(
             elif alteration_method == "distance" and current_adapt_size > 0.0:
                 if isinstance(new_mask, BaseMask):
                     new_mask.roi.dilate(
-                        by_slice=by_slice,
                         distance=current_adapt_size
                     )
                 elif isinstance(new_mask, MaskImage):
                     new_mask.dilate(
-                        by_slice=by_slice,
                         distance=current_adapt_size
                     )
 
             elif alteration_method == "fraction":
                 if isinstance(new_mask, BaseMask):
                     new_mask.roi.fractional_volume_change(
-                        by_slice=by_slice,
                         fractional_change=current_adapt_size
                     )
                 elif isinstance(new_mask, MaskImage):
                     new_mask.fractional_volume_change(
-                        by_slice=by_slice,
                         fractional_change=current_adapt_size
                     )
 

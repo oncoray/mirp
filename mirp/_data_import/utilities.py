@@ -9,6 +9,18 @@ import numpy as np
 import pydicom
 from pydicom import FileDataset, Dataset, datadict
 from pydicom.tag import Tag
+def lookup_modality(modality: None | str) -> list[str]:
+    modalities = []
+    try:
+        modalities += supported_mask_modalities(modality=modality)
+    except ValueError:
+        pass
+    try:
+        modalities += supported_image_modalities(modality=modality)
+    except ValueError:
+        pass
+
+    return modalities
 
 
 def supported_image_modalities(modality: None | str = None) -> list[str]:
@@ -17,7 +29,7 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
         modality = modality.lower()
 
     if modality is None:
-        return ["ct", "pt", "mr", "rtdose", "generic"]
+        return ["ct", "pt", "mr", "rtdose", "cr", "dx", "mg", "generic", "adc", "dce"]
 
     elif modality == "ct":
         return ["ct"]
@@ -28,8 +40,23 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
     elif modality in ["mr", "mri"]:
         return ["mr"]
 
+    elif modality in ["adc"]:
+        return ["adc"]
+
+    elif modality in ["dce"]:
+        return ["dce"]
+
     elif modality in ["rtdose"]:
         return ["rtdose"]
+
+    elif modality in ["cr", "computed_radiography"]:
+        return ["cr"]
+
+    elif modality in ["dx", "digital_xray"]:
+        return ["dx"]
+
+    elif modality in ["mg", "mammography", "digital_mammography"]:
+        return ["mg"]
 
     elif modality == "generic":
         return ["generic"]
@@ -42,7 +69,7 @@ def supported_image_modalities(modality: None | str = None) -> list[str]:
 
 
 def stacking_dicom_image_modalities() -> list[str]:
-    return ["ct", "pt", "mr"]
+    return ["ct", "pt", "mr", "adc", "dce"]
 
 
 def supported_mask_modalities(modality: None | str = None) -> list[str]:
@@ -462,6 +489,8 @@ def get_pydicom_meta_tag(
         tag: tuple[hex, hex],
         tag_type: None | str = None,
         default: Any = None,
+        macro_dcm_seq: None | tuple[hex, hex] = None,
+        frame_id: None | int = None,
         test_tag: bool = False
 ) -> Any:
     """
@@ -481,6 +510,12 @@ def get_pydicom_meta_tag(
     default: any, optional, default: None
         Default value to be used in absence of any value from the DICOM metadata.
 
+    macro_dcm_seq: tuple of hex
+        Hexadecimal value for the macro sequence within shared or per-frame functional groups.
+
+    frame_id: int
+        Index of the frame of interest for tags in per-frame functional groups.
+
     test_tag: bool, optional, default: False
         Determine whether a tag exists.
 
@@ -494,14 +529,60 @@ def get_pydicom_meta_tag(
     # Initialise with default
     tag_value = default
 
-    # Parse raw data
-    try:
-        tag_value = dcm_seq[tag].value
-    except KeyError:
+    while True:
+        # Tags are searched in the following order:
+        # 1. General header
+        # 2. Frame functional group (if frame id is provided).
+        # 3. Shared functional group
+
+        # Tag in general header
+        try:
+            tag_value = dcm_seq[tag].value
+            break
+        except KeyError:
+            pass
+
+        # Tag in frame functional group [0x5200, 0x9230].
+        # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
+        # tags.
+        if frame_id is not None and macro_dcm_seq is not None:
+            try:
+                tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][macro_dcm_seq][0][tag].value
+                break
+            except KeyError:
+                pass
+        # If not found, test whether the tag is found in the general frame functional group instead of the macro
+        # sequence.
+        if frame_id is not None:
+            try:
+                tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][tag].value
+                break
+            except KeyError:
+                pass
+
+        # Tag in shared functional group [0x5200, 0x9229].
+        # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
+        # tags.
+        if macro_dcm_seq is not None:
+            try:
+                tag_value = dcm_seq[(0x5200, 0x9229)][0][macro_dcm_seq][0][tag].value
+                break
+            except KeyError:
+                pass
+        # If not found, test whether the tag is found in the general frame functional group instead of the macro
+        # sequence.
+        try:
+            tag_value = dcm_seq[(0x5200, 0x9229)][0][tag].value
+            break
+        except KeyError:
+            pass
+
+        # If the look-up gets to this point, the tag is absent.
         if test_tag:
             return False
-        else:
-            pass
+
+        # This point in the loop is only reached if the tag could not be found.
+        break
 
     if test_tag:
         return True
@@ -552,10 +633,18 @@ def get_pydicom_meta_tag(
 
 def has_pydicom_meta_tag(
         dcm_seq: FileDataset | Dataset,
-        tag: tuple[hex, hex]
-) -> Any:
+        tag: tuple[hex, hex],
+        macro_dcm_seq: None | tuple[hex, hex] = None,
+        frame_id: None | int = None
+) -> bool:
 
-    return get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=tag, test_tag=True)
+    return get_pydicom_meta_tag(
+        dcm_seq=dcm_seq,
+        tag=tag,
+        macro_dcm_seq=macro_dcm_seq,
+        frame_id=frame_id,
+        test_tag=True
+    )
 
 
 def set_pydicom_meta_tag(

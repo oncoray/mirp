@@ -10,12 +10,11 @@ from mirp.settings.generic import SettingsClass
 
 class GaborFilter(GenericFilter):
 
-    def __init__(self, settings: SettingsClass, name: str):
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
-        super().__init__(
-            settings=settings,
-            name=name
-        )
+        super().__init__(image=image, settings=settings, name=name)
+        self.ibsi_compliant = True
+        self.ibsi_id = "Q88H"
 
         # Sigma parameter that determines filter width.
         self.sigma: None | float | list[float] = settings.img_transform.gabor_sigma
@@ -55,8 +54,11 @@ class GaborFilter(GenericFilter):
                 self.riesz_steered = True
                 self.riesz_sigma = settings.img_transform.riesz_filter_tensor_sigma
 
+            # Riesz transformed filters are not IBSI-compliant
+            self.ibsi_compliant = False
+
         # Set the axis orthogonal to the plane in which the Gabor kernel is applied.
-        if self.by_slice or not self.rotation_invariance:
+        if self.separate_slices or not self.rotation_invariance:
             self.stack_axis: int | list[int] = [0]
         else:
             self.stack_axis: int | list[int] = [0, 1, 2]
@@ -140,6 +142,7 @@ class GaborFilter(GenericFilter):
             riesz_sigma_parameter=self.riesz_sigma,
             template=image
         )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
 
         if image.is_empty():
             return response_map

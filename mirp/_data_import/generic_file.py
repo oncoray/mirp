@@ -653,19 +653,19 @@ class ImageFile(BaseImage):
             else:
                 self.sample_name = None
 
-    def _complete_image_origin(self, force=False):
+    def _complete_image_origin(self, force=False, frame_id: None | int = None):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id: None | int = None):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_orientation. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id: None | int = None):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_spacing. Please specify "
             f"implementation for subclasses."
@@ -924,19 +924,19 @@ class MaskFile(ImageFile):
         if self.modality is None:
             self.modality = "generic_mask"
 
-    def _complete_image_origin(self, force=False):
+    def _complete_image_origin(self, force=False, frame_id=None):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_origin. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id=None):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_orientation. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id=None):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_spacing. Please specify "
             f"implementation for subclasses."

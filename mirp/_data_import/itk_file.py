@@ -7,38 +7,8 @@ from mirp._data_import.generic_file import ImageFile, MaskFile
 
 
 class ImageITKFile(ImageFile):
-    def __init__(
-            self,
-            file_path: None | str = None,
-            dir_path: None | str = None,
-            sample_name: None | str | list[str] = None,
-            file_name: None | str = None,
-            image_name: None | str = None,
-            image_modality: None | str = None,
-            image_file_type: None | str = None,
-            image_data: None | np.ndarray = None,
-            image_origin: None | tuple[float, float, float] = None,
-            image_orientation: None | np.ndarray = None,
-            image_spacing: None | tuple[float, float, float] = None,
-            image_dimensions: None | tuple[int, int, int] = None,
-            **kwargs
-    ):
-
-        super().__init__(
-            file_path=file_path,
-            dir_path=dir_path,
-            sample_name=sample_name,
-            file_name=file_name,
-            image_name=image_name,
-            image_modality=image_modality,
-            image_file_type=image_file_type,
-            image_data=image_data,
-            image_origin=image_origin,
-            image_orientation=image_orientation,
-            image_spacing=image_spacing,
-            image_dimensions=image_dimensions,
-            **kwargs
-        )
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
     def is_stackable(self, stack_images: str) -> bool:
         """
@@ -84,7 +54,7 @@ class ImageITKFile(ImageFile):
 
         return image_copy
 
-    def _complete_image_origin(self, force=False):
+    def _complete_image_origin(self, force=False, frame_id=None):
         if self.image_origin is None:
             self.load_metadata()
 
@@ -99,7 +69,7 @@ class ImageITKFile(ImageFile):
             # Set origin.
             self.image_origin = tuple(origin)
 
-    def _complete_image_orientation(self, force=False):
+    def _complete_image_orientation(self, force=False, frame_id=None):
         if self.image_orientation is None:
             self.load_metadata()
 
@@ -113,7 +83,7 @@ class ImageITKFile(ImageFile):
 
             self.image_orientation = np.reshape(np.ravel(np.array(orientation))[::-1], [n_dimensions, n_dimensions])
 
-    def _complete_image_spacing(self, force=False):
+    def _complete_image_spacing(self, force=False, frame_id=None):
         if self.image_spacing is None:
             self.load_metadata()
 

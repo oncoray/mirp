@@ -610,7 +610,7 @@ def test_failure_multiple_image_and_mask_import():
             image_sub_folder=os.path.join("CT", "dicom", "image"),
             mask_sub_folder=os.path.join("CT", "dicom", "mask")
         )
-    assert "No images were found" in str(exception_info.value)
+    assert "did not contain any images with the required modality" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching mask modality.
@@ -621,7 +621,7 @@ def test_failure_multiple_image_and_mask_import():
             image_sub_folder=os.path.join("CT", "dicom", "image"),
             mask_sub_folder=os.path.join("CT", "dicom", "mask")
         )
-    assert "No masks were found" in str(exception_info.value)
+    assert "did not contain any masks with the required modality" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.
@@ -735,7 +735,7 @@ def test_failure_multiple_image_and_mask_import_data_xml(tmp_path):
         import_image_and_mask(
             image=target_file
         )
-    assert "No images were found" in str(exception_info.value)
+    assert "did not contain any images with the required modality" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # No matching mask modality.
@@ -748,7 +748,7 @@ def test_failure_multiple_image_and_mask_import_data_xml(tmp_path):
         import_image_and_mask(
             image=target_file
         )
-    assert "No masks were found" in str(exception_info.value)
+    assert "did not contain any masks with the required modality" in str(exception_info.value)
 
     # DICOM stack and _masks for all samples, but with incorrect instructions.
     # Wrong image_name.

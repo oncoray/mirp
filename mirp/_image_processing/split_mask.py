@@ -6,8 +6,7 @@ from mirp._masks.base_mask import BaseMask
 def split_masks(
         masks: None | BaseMask | list[BaseMask],
         boundary_sizes: None | list[float] = None,
-        max_erosion: None | float = 0.8,
-        by_slice: bool = False
+        max_erosion: None | float = 0.8
 ):
     if boundary_sizes is None or len(boundary_sizes) == 0 or \
             all(boundary_size == 0.0 for boundary_size in boundary_sizes):
@@ -39,13 +38,14 @@ def split_masks(
             boundary_mask.roi_name += "_boundary_" + str(boundary_size)
 
             bulk_mask.erode(
-                by_slice=by_slice,
                 distance=boundary_size,
                 max_eroded_volume_fraction=max_erosion
             )
 
             boundary_mask.roi.set_voxel_grid(voxel_grid=np.logical_xor(
-                mask.roi.get_voxel_grid(), bulk_mask.roi.get_voxel_grid()))
+                mask.roi.get_voxel_grid(),
+                bulk_mask.roi.get_voxel_grid()
+            ))
 
             if bulk_mask.roi.is_empty_mask() or boundary_mask.roi.is_empty_mask():
                 continue
