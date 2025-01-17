@@ -434,7 +434,7 @@ class ImageTransformationSettingsClass:
 
         if not all(valid_families):
             raise ValueError(
-                f"One or more families in the base_feature_families parameter were not recognised: "
+                f"One or more families in the response_map_feature_families parameter were not recognised: "
                 f"{', '.join([response_map_feature_families[ii] for ii, is_valid in enumerate(valid_families) if not is_valid])}"
             )
 
@@ -459,6 +459,13 @@ class ImageTransformationSettingsClass:
 
         # Set feature settings.
         self.feature_settings: FeatureExtractionSettingsClass = response_map_feature_settings
+
+        # If "all" appears in feature_settings.families: exclude morphological features.
+        if "all" in self.feature_settings.families:
+            self.feature_settings.families = [
+                "local_intensity", "statistics", "intensity_histogram", "intensity_volume_histogram", "glcm", "glrlm",
+                "glszm", "gldzm", "ngtdm", "ngldm"
+            ]
 
         # Check boundary condition.
         self.boundary_condition = boundary_condition

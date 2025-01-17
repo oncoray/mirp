@@ -1,3 +1,11 @@
+# Version 2.3.1
+
+## Fixes
+
+- The error message for invalid feature families for filtered images (response maps) now correctly mentions 
+  `response_map_feature_families`.
+- Setting `response_map_feature_families = "all` now correctly excludes morphological features.
+
 # Version 2.3.0
 
 ## Major changes
