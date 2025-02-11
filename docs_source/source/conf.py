@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('../..'))
 # -- Project information -----------------------------------------------------
 
 project = 'mirp'
-copyright = '2024, Alex Zwanenburg'
+copyright = '2025, Alex Zwanenburg'
 author = 'Alex Zwanenburg'
 
 # The full version, including alpha/beta/rc tags
-release = '2.3.0'
+release = '2.3.1'
 
 
 # -- General configuration ---------------------------------------------------

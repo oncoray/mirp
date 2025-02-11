@@ -1,3 +1,4 @@
+import warnings
 from functools import lru_cache
 from typing import Generator
 
@@ -92,21 +93,29 @@ class DataLocalIntensity(object):
         )
         conv_filter[df_base.z.astype(int), df_base.y.astype(int), df_base.x.astype(int)] = df_base.weight
 
-        # Filter image using mean filter
-        if image.get_default_lowest_intensity() is not None:
-            # Use 0.0 constant for PET data
-            img_avg = ndi.convolve(
-                image.get_voxel_grid(),
-                weights=conv_filter,
-                mode="constant",
-                cval=image.get_default_lowest_intensity()
+        try:
+            # Filter image using mean filter
+            if image.get_default_lowest_intensity() is not None:
+                # Use 0.0 constant for PET data
+                img_avg = ndi.convolve(
+                    image.get_voxel_grid(),
+                    weights=conv_filter,
+                    mode="constant",
+                    cval=image.get_default_lowest_intensity()
+                )
+            else:
+                img_avg = ndi.convolve(
+                    image.get_voxel_grid(),
+                    weights=conv_filter,
+                    mode="nearest"
+                )
+        except MemoryError as err:
+            warnings.warn(
+                f"Unable to compute local intensity features due to Memory error. The image size and "
+                f"resolution may be too small to fit a 1cm³ spherical filter for computing local intensity features.",
+                UserWarning
             )
-        else:
-            img_avg = ndi.convolve(
-                image.get_voxel_grid(),
-                weights=conv_filter,
-                mode="nearest"
-            )
+            return
 
         # Construct data frame for comparison
         self.data = pd.DataFrame({

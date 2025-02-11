@@ -1,3 +1,16 @@
+# Version 2.3.1
+
+## Fixes
+
+- SUV values with decay correction `START` are now computed correctly. The previous code, based on the QIBA 
+  vendor-neutral code, computed the SUV values as if decay correction `NONE` was used. 
+- The error message for invalid feature families for filtered images (response maps) now correctly mentions 
+  `response_map_feature_families`.
+- Setting `response_map_feature_families = "all` now correctly excludes morphological features.
+- Trying to compute local intensity features from imaging with high resolution and low image dimensions no 
+  longer causes a hard crash due to memory errors produced by `scipy.ndimage.convolve`. Instead, these errors are 
+  handled gracefully -- local intensity features are not computed, however.
+
 # Version 2.3.0
 
 ## Major changes

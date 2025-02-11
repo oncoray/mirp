@@ -478,6 +478,8 @@ class ImageDicomFilePT(ImageDicomFile):
                     time_to_acquisition_start.seconds +
                     time_to_acquisition_start.microseconds / 1000000.0
             )
+
+            # Correct for decay during frame in addition to decay between administration and acquisition start.
             decay_factor = (
                 frame_duration * _lambda * np.exp(_lambda * time_to_acquisition_start) /
                 (1.0 - np.exp(-_lambda * frame_duration))
@@ -488,32 +490,15 @@ class ImageDicomFilePT(ImageDicomFile):
             # Additionally correct for decay between administration and acquisition start. Based on QIBA SUV
             # vendorneutral pseudocode.
 
-            # Get frame_reference_time in seconds.
-            frame_reference_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0054, 0x1300),
-                tag_type="float"
-            )
-            if frame_reference_time is None:
-                raise ValueError(f"Frame reference time (0x0054, 0x1300) was missing. [{self.describe_self()}]")
-            frame_reference_time /= 1000.0
-
-            # Time at which the average count rate is found, relative to acquisition start time.
-            time_count_average = 1.0 / _lambda * np.log(
-                _lambda * frame_duration / (1.0 - np.exp(-_lambda * frame_duration))
+            time_to_acquisition_start = acquisition_start_time - tracer_administration_time
+            time_to_acquisition_start = (
+                    time_to_acquisition_start.days * 86400.0 +
+                    time_to_acquisition_start.seconds +
+                    time_to_acquisition_start.microseconds / 1000000.0
             )
 
-            # Set reference start time (this may coincide with the acquisition start time).
-            reference_start_time = acquisition_start_time + datetime.timedelta(
-                seconds=time_count_average - frame_reference_time
-            )
-            time_to_reference_start = reference_start_time - tracer_administration_time
-            time_to_reference_start = (
-                    time_to_reference_start.days * 86400.0 +
-                    time_to_reference_start.seconds +
-                    time_to_reference_start.microseconds / 1000000.0
-            )
-            decay_factor = np.exp(_lambda * time_to_reference_start)
+            # Correct for decay between administration and acquisition start.
+            decay_factor = np.exp(_lambda * time_to_acquisition_start)
 
         else:
             raise ValueError(
