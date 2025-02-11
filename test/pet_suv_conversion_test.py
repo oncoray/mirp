@@ -17,8 +17,8 @@ def test_pet_suv_conversion_none():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 43800.0 < feature_data["stat_max"].values[0] < 43900.0
-    assert 930.0 < feature_data["stat_min"].values[0] < 940.
+    assert 43300.0 < feature_data["stat_max"].values[0] < 43400.0
+    assert 920.0 < feature_data["stat_min"].values[0] < 930.0
 
 
 def test_pet_suv_conversion_body_weight():
@@ -34,7 +34,7 @@ def test_pet_suv_conversion_body_weight():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 8.0 < feature_data["stat_max"].values[0] < 8.05
+    assert 7.9 < feature_data["stat_max"].values[0] < 8.0
     assert 0.15 < feature_data["stat_min"].values[0] < 0.20
 
 
@@ -68,7 +68,7 @@ def test_pet_suv_conversion_lean_body_mass():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 6.0 < feature_data["stat_max"].values[0] < 6.1
+    assert 5.9 < feature_data["stat_max"].values[0] < 6.1
     assert 0.1 < feature_data["stat_min"].values[0] < 0.2
 
 
@@ -85,7 +85,7 @@ def test_pet_suv_conversion_lean_body_mass_bmi():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 5.9 < feature_data["stat_max"].values[0] < 6.0
+    assert 5.8 < feature_data["stat_max"].values[0] < 5.9
     assert 0.1 < feature_data["stat_min"].values[0] < 0.2
 
 
@@ -102,5 +102,5 @@ def test_pet_suv_conversion_ideal_body_weight():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 6.7 < feature_data["stat_max"].values[0] < 6.8
+    assert 6.6 < feature_data["stat_max"].values[0] < 6.7
     assert 0.1 < feature_data["stat_min"].values[0] < 0.2

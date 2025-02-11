@@ -2,6 +2,8 @@
 
 ## Fixes
 
+- SUV values with decay correction `START` are now computed correctly. The previous code, based on the QIBA 
+  vendor-neutral code, computed the SUV values as if decay correction `NONE` was used. 
 - The error message for invalid feature families for filtered images (response maps) now correctly mentions 
   `response_map_feature_families`.
 - Setting `response_map_feature_families = "all` now correctly excludes morphological features.
