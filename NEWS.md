@@ -1,3 +1,10 @@
+# Version 2.3.2
+
+## Fixes
+
+- Background label is now specified as an integer for scikit-image's `measure.label` function.
+- Several fixes to the documentation were made.
+
 # Version 2.3.1
 
 ## Fixes
