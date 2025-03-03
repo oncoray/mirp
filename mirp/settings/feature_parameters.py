@@ -118,7 +118,7 @@ class FeatureExtractionSettingsClass:
           [IBSI:IAZD].
 
         A list of values may be provided to extract features for multiple spatial methods. Default: "2d_slice_merge"
-        (``by_slice = False``) or "3d_volume_merge" (``by_slice = True``).
+        (``by_slice = True``) or "3d_volume_merge" (``by_slice = False``).
 
     glrlm_spatial_method: {"2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"}, optional
         Determines how run length matrices are formed and aggregated. One of the following:
@@ -133,7 +133,7 @@ class FeatureExtractionSettingsClass:
           [IBSI:IAZD].
 
         A list of values may be provided to extract features for multiple spatial methods. Default:
-        "2d_slice_merge" (``by_slice = False``) or "3d_volume_merge" (``by_slice = True``).
+        "2d_slice_merge" (``by_slice = True``) or "3d_volume_merge" (``by_slice = False``).
 
     glszm_spatial_method: {"2d", "2.5d", "3d"}, optional
         Determines how the size zone matrices are formed and aggregated. One of the following:
@@ -143,7 +143,7 @@ class FeatureExtractionSettingsClass:
         * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
 
         A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
-        (``by_slice = False``) or "3d" (``by_slice = True``).
+        (``by_slice = True``) or "3d" (``by_slice = False``).
 
     gldzm_spatial_method: {"2d", "2.5d", "3d"}, optional
         Determines how the distance zone matrices are formed and aggregated. One of the following:
@@ -153,7 +153,7 @@ class FeatureExtractionSettingsClass:
         * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
 
         A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
-        (``by_slice = False``) or "3d" (``by_slice = True``).
+        (``by_slice = True``) or "3d" (``by_slice = False``).
 
     ngtdm_spatial_method: {"2d", "2.5d", "3d"}, optional
         Determines how the neighbourhood grey tone difference matrices are formed and aggregated. One of the
@@ -164,7 +164,7 @@ class FeatureExtractionSettingsClass:
         * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
 
         A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
-        (``by_slice = False``) or "3d" (``by_slice = True``).
+        (``by_slice = True``) or "3d" (``by_slice = False``).
 
     ngldm_distance: float or list of float, optional, default: 1.0
         Distance (in voxels) for NGLDM for determining the neighbourhood. Chebyshev, or checkerboard, distance is
@@ -183,7 +183,7 @@ class FeatureExtractionSettingsClass:
         * "3d": features are computed from a single 3D matrix [IBSI:KOBO].
 
         A list of values may be provided to extract features for multiple spatial methods. Default: "2d"
-        (``by_slice = False``) or "3d" (``by_slice = True``).
+        (``by_slice = True``) or "3d" (``by_slice = False``).
 
     **kwargs: dict, optional
         Unused keyword arguments.
