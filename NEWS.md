@@ -1,8 +1,16 @@
 # Version 2.3.2
 
+## Minor changes
+
+- Improved checks on absent (missing) image transformation parameters where the user is expected to specify one or 
+  more values. This now provides clear errors.
+
 ## Fixes
 
 - Background label is now specified as an integer for scikit-image's `measure.label` function.
+
+## Documentation
+ 
 - Several fixes to the documentation were made.
 
 # Version 2.3.1
