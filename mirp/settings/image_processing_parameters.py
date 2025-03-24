@@ -21,8 +21,12 @@ class ImagePostProcessingClass:
         .. note::
             Bias-field correction can only be applied to MR imaging.
 
-    bias_field_correction_n_fitting_levels: int, optional, default: 1
-        The number of fitting levels for the N4 bias field correction algorithm.
+        .. note::
+            Bias-field correction using the N4 algorithm is computationally expensive, and it may be preferable to
+            perform this correction prior to feeding MR data to MIRP.
+
+    bias_field_correction_n_fitting_levels: int, optional, default: 3
+        The number of fitting levels for the N4 bias field correction algorithm. The default in ITK (1) prevents
 
     bias_field_correction_n_max_iterations: int or list of int, optional, default: 50
         The number of fitting iterations for the N4 bias field algorithm. A single integer, or a list of integers
@@ -118,7 +122,7 @@ class ImagePostProcessingClass:
     def __init__(
             self,
             bias_field_correction: bool = False,
-            bias_field_correction_n_fitting_levels: int = 1,
+            bias_field_correction_n_fitting_levels: int = 3,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
             bias_field_convergence_threshold: float = 0.001,
             pet_suv_conversion: str = "body_weight",

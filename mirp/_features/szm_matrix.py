@@ -61,7 +61,7 @@ class MatrixSZM(Matrix):
         # Label all connected voxels with the same label.
         labelled_image = skimage.measure.label(
             label_image=image,
-            background=0.0,
+            background=0,
             connectivity=connectivity
         )
 

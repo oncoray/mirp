@@ -847,6 +847,14 @@ class ImageTransformationSettingsClass:
         if allow_none:
             valid_pooling_method += ["none"]
 
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One of the following values is expected: "
+                f"{', '.join(valid_pooling_method)}"
+            )
+
+        # Check if x is a valid pooling method.
         if x not in valid_pooling_method:
             raise ValueError(
                 f"The {var_name} parameter expects one of the following values: "
@@ -856,7 +864,15 @@ class ImageTransformationSettingsClass:
 
     @staticmethod
     def check_sigma(x, var_name):
-        # Check sigma is a list.
+
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One or more numerical values > 0.0 "
+                f"are expected."
+            )
+
+        # Ensure that sigma is a list.
         if not isinstance(x, list):
             x = [x]
 
@@ -876,6 +892,12 @@ class ImageTransformationSettingsClass:
     @staticmethod
     def check_truncation(x, var_name):
 
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. A numerical value > 0.0 is expected."
+            )
+
         # Check that the truncation values are floating points.
         if not isinstance(x, float):
             raise TypeError(
@@ -894,6 +916,13 @@ class ImageTransformationSettingsClass:
 
         valid_response = ["modulus", "abs", "magnitude", "angle", "phase", "argument", "real", "imaginary"]
 
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One of the following values is expected: "
+                f"{', '.join(valid_response)}."
+            )
+
         # Check that response is correct.
         if x not in valid_response:
             raise ValueError(
@@ -907,12 +936,22 @@ class ImageTransformationSettingsClass:
         # Import pywavelets.
         import pywt
 
+        # All available kernels from pywavelets.
+        available_kernels = pywt.wavelist(kind="discrete")
+
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One or more of the following values is "
+                f"expected: {', '.join(available_kernels)}."
+            )
+
+        # Ensure that x is a list.
         if not isinstance(x, list):
             x = [x]
 
-        available_kernels = pywt.wavelist(kind="discrete")
+        # Check validity.
         valid_kernel = [kernel.lower() in available_kernels for kernel in x]
-
         if not all(valid_kernel):
             raise ValueError(
                 f"The {var_name} parameter requires wavelet families that match those defined in the "
@@ -924,12 +963,22 @@ class ImageTransformationSettingsClass:
 
     @staticmethod
     def check_nonseparable_wavelet_families(x, var_name):
+
+        available_kernels = ["simoncelli", "shannon"]
+
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One or more of the following values is "
+                f"expected: {', '.join(available_kernels)}."
+            )
+
+        # Ensure that x is a list.
         if not isinstance(x, list):
             x = [x]
 
-        available_kernels = ["simoncelli", "shannon"]
+        # Check validity.
         valid_kernel = [kernel.lower() in available_kernels for kernel in x]
-
         if not all(valid_kernel):
             raise ValueError(
                 f"The {var_name} parameter expects one or more of the following values: "
@@ -941,14 +990,25 @@ class ImageTransformationSettingsClass:
 
     @staticmethod
     def check_decomposition_level(x, var_name):
+
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One or more integer values equal to or greater "
+                f"than 1 are expected."
+            )
+
+        # Ensure that x is a list.
         if not isinstance(x, list):
             x = [x]
 
+        # Check that all values in x are integers.
         if not all(isinstance(xx, int) for xx in x):
             raise TypeError(
                 f"The {var_name} parameter should be one or more integer "
                 f"values of at least 1. Found: one or more values that was not an integer.")
 
+        # Check that all values in x are greater or equal to 1.
         if not all(xx >= 1 for xx in x):
             raise ValueError(
                 f"The {var_name} parameter should be one or more integer "
@@ -959,6 +1019,7 @@ class ImageTransformationSettingsClass:
     def check_separable_wavelet_sets(self, x: None | str | list[str], var_name: str):
         from itertools import product
 
+        # Set default value.
         if x is None:
             if self.by_slice:
                 x = "hh"
@@ -993,7 +1054,7 @@ class ImageTransformationSettingsClass:
         # Return lowercase values.
         return [xx.lower() for xx in x]
 
-    def check_laws_kernels(self, x: str | list[str], var_name: str):
+    def check_laws_kernels(self, x: None | str | list[str], var_name: str):
         from itertools import product
 
         # Set implemented kernels.
@@ -1006,19 +1067,26 @@ class ImageTransformationSettingsClass:
         else:
             possible_combinations = ["".join(combination) for combination in product(kernels, repeat=3)]
 
-        # Create list.
+        # Check if x is provided.
+        if x is None:
+            raise ValueError(
+                f"No value for the {var_name} parameter could be found. One or more of the following values is "
+                f"expected: {', '.join(possible_combinations)}."
+            )
+
+        # Ensure that x is a list.
         if not isinstance(x, list):
             x = [x]
 
         # Check which kernels are valid.
         valid_kernel = [kernel.lower() in possible_combinations for kernel in x]
-
         if not all(valid_kernel):
             raise ValueError(
                 f"The {var_name} parameter requires combinations of Laws kernels. The follow kernels are "
                 f"implemented: {', '.join(kernels)}. Two kernels should be specified for 2D, "
                 f"and three for 3D. Found the following illegal combinations: "
-                f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}")
+                f"{', '.join([kernel for ii, kernel in enumerate(x) if not valid_kernel[ii]])}"
+            )
 
         # Return lowercase values.
         return [xx.lower() for xx in x]

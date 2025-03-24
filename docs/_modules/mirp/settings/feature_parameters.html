@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.feature_parameters &mdash; mirp 2.3.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+  <title>mirp.settings.feature_parameters &mdash; mirp 2.3.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=c3c8ae58"></script>
-        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=5048a02b"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -94,15 +92,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mirp.settings.feature_parameters</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.utilities</span> <span class="kn">import</span> <span class="n">setting_def</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mirp.settings.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">setting_def</span>
 
 
 <div class="viewcode-block" id="FeatureExtractionSettingsClass">
 <a class="viewcode-back" href="../../../configuration.html#mirp.settings.feature_parameters.FeatureExtractionSettingsClass">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">FeatureExtractionSettingsClass</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">FeatureExtractionSettingsClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters related to feature computation. Many are conditional on the type of features that will be computed (</span>
 <span class="sd">    ``base_feature_families``). Features and their parameters are defined `here &lt;https://arxiv.org/abs/1612.07003&gt;`_.</span>
@@ -216,7 +214,7 @@
 <span class="sd">          [IBSI:IAZD].</span>
 
 <span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d_slice_merge&quot;</span>
-<span class="sd">        (``by_slice = False``) or &quot;3d_volume_merge&quot; (``by_slice = True``).</span>
+<span class="sd">        (``by_slice = True``) or &quot;3d_volume_merge&quot; (``by_slice = False``).</span>
 
 <span class="sd">    glrlm_spatial_method: {&quot;2d_average&quot;, &quot;2d_slice_merge&quot;, &quot;2.5d_direction_merge&quot;, &quot;2.5d_volume_merge&quot;, &quot;3d_average&quot;, &quot;3d_volume_merge&quot;}, optional</span>
 <span class="sd">        Determines how run length matrices are formed and aggregated. One of the following:</span>
@@ -231,7 +229,7 @@
 <span class="sd">          [IBSI:IAZD].</span>
 
 <span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default:</span>
-<span class="sd">        &quot;2d_slice_merge&quot; (``by_slice = False``) or &quot;3d_volume_merge&quot; (``by_slice = True``).</span>
+<span class="sd">        &quot;2d_slice_merge&quot; (``by_slice = True``) or &quot;3d_volume_merge&quot; (``by_slice = False``).</span>
 
 <span class="sd">    glszm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
 <span class="sd">        Determines how the size zone matrices are formed and aggregated. One of the following:</span>
@@ -241,7 +239,7 @@
 <span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
 
 <span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
-<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+<span class="sd">        (``by_slice = True``) or &quot;3d&quot; (``by_slice = False``).</span>
 
 <span class="sd">    gldzm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
 <span class="sd">        Determines how the distance zone matrices are formed and aggregated. One of the following:</span>
@@ -251,7 +249,7 @@
 <span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
 
 <span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
-<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+<span class="sd">        (``by_slice = True``) or &quot;3d&quot; (``by_slice = False``).</span>
 
 <span class="sd">    ngtdm_spatial_method: {&quot;2d&quot;, &quot;2.5d&quot;, &quot;3d&quot;}, optional</span>
 <span class="sd">        Determines how the neighbourhood grey tone difference matrices are formed and aggregated. One of the</span>
@@ -262,7 +260,7 @@
 <span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
 
 <span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
-<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+<span class="sd">        (``by_slice = True``) or &quot;3d&quot; (``by_slice = False``).</span>
 
 <span class="sd">    ngldm_distance: float or list of float, optional, default: 1.0</span>
 <span class="sd">        Distance (in voxels) for NGLDM for determining the neighbourhood. Chebyshev, or checkerboard, distance is</span>
@@ -281,13 +279,13 @@
 <span class="sd">        * &quot;3d&quot;: features are computed from a single 3D matrix [IBSI:KOBO].</span>
 
 <span class="sd">        A list of values may be provided to extract features for multiple spatial methods. Default: &quot;2d&quot;</span>
-<span class="sd">        (``by_slice = False``) or &quot;3d&quot; (``by_slice = True``).</span>
+<span class="sd">        (``by_slice = True``) or &quot;3d&quot; (``by_slice = False``).</span>
 
 <span class="sd">    **kwargs: dict, optional</span>
 <span class="sd">        Unused keyword arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">no_approximation</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -582,7 +580,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ngldm_spatial_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">ngldm_spatial_method</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_available_families</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_families</span><span class="p">():</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="s2">&quot;mrp&quot;</span><span class="p">,</span> <span class="s2">&quot;morph&quot;</span><span class="p">,</span> <span class="s2">&quot;morphology&quot;</span><span class="p">,</span> <span class="s2">&quot;morphological&quot;</span><span class="p">,</span> <span class="s2">&quot;li&quot;</span><span class="p">,</span> <span class="s2">&quot;loc.int&quot;</span><span class="p">,</span> <span class="s2">&quot;loc_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_intensity&quot;</span><span class="p">,</span>
             <span class="s2">&quot;st&quot;</span><span class="p">,</span> <span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="s2">&quot;statistics&quot;</span><span class="p">,</span> <span class="s2">&quot;statistical&quot;</span><span class="p">,</span> <span class="s2">&quot;ih&quot;</span><span class="p">,</span> <span class="s2">&quot;int_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;int_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_histogram&quot;</span><span class="p">,</span>
@@ -594,47 +592,47 @@
             <span class="s2">&quot;neighbouring_grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span>
         <span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">has_any_feature_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_any_feature_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_discretised_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_discretised_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ih_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glcm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glrlm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_glszm_family</span><span class="p">()</span> \
                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gldzm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ngtdm_family</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_ngldm_family</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">has_morphology_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_morphology_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mrp&quot;</span><span class="p">,</span> <span class="s2">&quot;morph&quot;</span><span class="p">,</span> <span class="s2">&quot;morphology&quot;</span><span class="p">,</span> <span class="s2">&quot;morphological&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_local_intensity_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_local_intensity_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;li&quot;</span><span class="p">,</span> <span class="s2">&quot;loc.int&quot;</span><span class="p">,</span> <span class="s2">&quot;loc_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_int&quot;</span><span class="p">,</span> <span class="s2">&quot;local_intensity&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_stats_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_stats_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;st&quot;</span><span class="p">,</span> <span class="s2">&quot;stat&quot;</span><span class="p">,</span> <span class="s2">&quot;stats&quot;</span><span class="p">,</span> <span class="s2">&quot;statistics&quot;</span><span class="p">,</span> <span class="s2">&quot;statistical&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_ih_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_ih_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ih&quot;</span><span class="p">,</span> <span class="s2">&quot;int_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;int_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_ivh_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_ivh_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ivh&quot;</span><span class="p">,</span> <span class="s2">&quot;int_vol_hist&quot;</span><span class="p">,</span> <span class="s2">&quot;intensity_volume_histogram&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_glcm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_glcm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cm&quot;</span><span class="p">,</span> <span class="s2">&quot;glcm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_cooccurrence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;cooccurrence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_glrlm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_glrlm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;rlm&quot;</span><span class="p">,</span> <span class="s2">&quot;glrlm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_run_length_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;run_length_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_glszm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_glszm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;szm&quot;</span><span class="p">,</span> <span class="s2">&quot;glszm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;size_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_gldzm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_gldzm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;dzm&quot;</span><span class="p">,</span> <span class="s2">&quot;gldzm&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;distance_zone_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_ngtdm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_ngtdm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;tdm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngtdm&quot;</span><span class="p">,</span> <span class="s2">&quot;neighbourhood_grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_tone_difference_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">has_ngldm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">has_ngldm_family</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">family</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ldm&quot;</span><span class="p">,</span> <span class="s2">&quot;ngldm&quot;</span><span class="p">,</span> <span class="s2">&quot;neighbouring_grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;grey_level_dependence_matrix&quot;</span><span class="p">,</span> <span class="s2">&quot;all&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">families</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">check_valid_directional_spatial_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_valid_directional_spatial_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="c1"># Set defaults</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
@@ -668,7 +666,7 @@
 
         <span class="k">return</span> <span class="n">x</span>
 
-    <span class="k">def</span> <span class="nf">check_valid_omnidirectional_spatial_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_valid_omnidirectional_spatial_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="c1"># Set defaults</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">by_slice</span><span class="p">:</span>
@@ -704,7 +702,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">get_feature_extraction_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_feature_extraction_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">setting_def</span><span class="p">(</span>
             <span class="s2">&quot;base_feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;families&quot;</span><span class="p">],</span>
@@ -760,7 +758,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, Alex Zwanenburg.</p>
+    <p>&#169; Copyright 2025, Alex Zwanenburg.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

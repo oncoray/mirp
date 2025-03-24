@@ -1,3 +1,21 @@
+# Version 2.3.2
+
+## Minor changes
+
+- Improved checks on absent (missing) image transformation parameters where the user is expected to specify one or 
+  more values. This now provides clear errors.
+- The default value of `bias_field_correction_n_fitting_levels` was changed from `1` to `3`, as 
+  `bias_field_correction_n_fitting_levels=1` yielded only very minor improvements to image quality,
+  i.e. did not noticeably reduce bias fields in MR.
+
+## Fixes
+
+- Background label is now specified as an integer for scikit-image's `measure.label` function.
+
+## Documentation
+ 
+- Several fixes to the documentation were made.
+
 # Version 2.3.1
 
 ## Fixes
