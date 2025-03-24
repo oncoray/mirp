@@ -4,6 +4,9 @@
 
 - Improved checks on absent (missing) image transformation parameters where the user is expected to specify one or 
   more values. This now provides clear errors.
+- The default value of `bias_field_correction_n_fitting_levels` was changed from `1` to `3`, as 
+  `bias_field_correction_n_fitting_levels=1` yielded only very minor improvements to image quality,
+  i.e. did not noticeably reduce bias fields in MR.
 
 ## Fixes
 
