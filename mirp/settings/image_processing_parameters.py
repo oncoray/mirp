@@ -21,7 +21,7 @@ class ImagePostProcessingClass:
         .. note::
             Bias-field correction can only be applied to MR imaging.
 
-        ..note::
+        .. note::
             Bias-field correction using the N4 algorithm is computationally expensive, and it may be preferable to
             perform this correction prior to feeding MR data to MIRP.
 
