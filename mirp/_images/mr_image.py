@@ -26,7 +26,7 @@ class MRImage(GenericImage):
             mask = np.ones(self.image_dimension, dtype=np.uint8)
 
         if n_max_iterations is None:
-            n_max_iterations = [100 for ii in range(n_fitting_levels)]
+            n_max_iterations = [50 for ii in range(n_fitting_levels)]
 
         # Create ITK input masks
         input_image = itk.GetImageFromArray(self.get_voxel_grid())
@@ -39,9 +39,9 @@ class MRImage(GenericImage):
         threader.SetGlobalDefaultNumberOfThreads(1)
 
         # Start N4 bias correction
-        corrector = itk.N4BiasFieldCorrectionImageFilter.New(input_image, input_mask)
-        corrector.SetNumberOfFittingLevels(n_fitting_levels)
+        corrector = itk.N4BiasFieldCorrectionImageFilter[type(input_image), type(input_mask), type(input_image)].New(input_image, input_mask)
         corrector.SetMaximumNumberOfIterations(n_max_iterations)
+        corrector.SetNumberOfFittingLevels(n_fitting_levels)
         corrector.SetConvergenceThreshold(convergence_threshold)
         corrector.Update()
         output_image = corrector.GetOutput()
