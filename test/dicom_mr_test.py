@@ -45,6 +45,9 @@ def test_bias_field_correction_t1():
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T1", "mask"),
         roi_name="GTV_Mass",
         bias_field_correction=True,
+        # Use bias_field_correction_n_fitting_levels = 1 to speed up test process -- however in
+        # realistic settings, use default (3).
+        bias_field_correction_n_fitting_levels=1,
         base_feature_families="statistics"
     )
 
@@ -98,6 +101,9 @@ def test_bias_field_correction_t2():
         mask=os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T2", "mask"),
         roi_name="GTV_Mass",
         bias_field_correction=True,
+        # Use bias_field_correction_n_fitting_levels = 1 to speed up test process -- however in
+        # realistic settings, use default (3).
+        bias_field_correction_n_fitting_levels=1,
         base_feature_families="statistics"
     )
 
