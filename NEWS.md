@@ -1,3 +1,10 @@
+# Version 2.4.0
+
+## Documentation
+
+- The documentation erroneously mentioned that the `by_slice` parameter could take `"largest"` as an option. This 
+  was no longer possible since the introduction of the `mask_select_largest_slice` parameter in version 2.1.0.
+
 # Version 2.3.2
 
 ## Minor changes
