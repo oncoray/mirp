@@ -1,22 +1,24 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Configure the image processing and feature extraction workflow &mdash; mirp 2.3.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+  <title>Configure the image processing and feature extraction workflow &mdash; mirp 2.3.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=5048a02b"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f4302432"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -347,8 +349,8 @@ voxel spacing to ensure that their spatial representation does not vary between 
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>by_slice</strong> (<em>str</em><em> or </em><em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-largest slice (“largest”). See <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
+<li><p><strong>by_slice</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Defines whether calculations should be performed in 2D (True) or 3D (False).
+See <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
 <li><p><strong>new_spacing</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>float</em><em> or </em><em>list</em><em> of </em><em>list</em><em> of </em><em>float</em><em>, </em><em>optional:</em>) – <p>Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all
 directions. Non-uniform voxel spacing may also be provided, but requires 3 values for z, y, and x directions
 (if <cite>by_slice = False</cite>) or 2 values for y and x directions (otherwise).</p>
@@ -435,8 +437,8 @@ values for lower and upper range respectively. The upper range value can also be
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>by_slice</strong> (<em>str</em><em> or </em><em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-largest slice (“largest”). See <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
+<li><p><strong>by_slice</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Defines whether calculations should be performed in 2D (True) or 3D (False).
+See <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
 <li><p><strong>no_approximation</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Disables approximation of features, such as Geary’s c-measure. Can be True or False (default). See
 <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
 <li><p><strong>ibsi_compliant</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – Limits computation of features to those features that have a reference value in the IBSI reference standard.</p></li>
@@ -612,8 +614,8 @@ attributes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>by_slice</strong> (<em>str</em><em> or </em><em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-largest slice (“largest”). See <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
+<li><p><strong>by_slice</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: False</em>) – Defines whether calculations should be performed in 2D (True) or 3D (False).
+See <a class="reference internal" href="#mirp.settings.general_parameters.GeneralSettingsClass" title="mirp.settings.general_parameters.GeneralSettingsClass"><code class="xref py py-class docutils literal notranslate"><span class="pre">GeneralSettingsClass</span></code></a>.</p></li>
 <li><p><strong>ibsi_compliant</strong> (<em>bool</em><em>, </em><em>optional</em><em>, </em><em>default: True</em>) – Limits use of filters to those that exist in the IBSI reference standard.</p></li>
 <li><p><strong>response_map_feature_families</strong> (<em>str</em><em> or </em><em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em><em>, </em><em>default: &quot;statistics&quot;</em>) – <p>Determines the feature families for which features are computed from response maps (filtered images). Radiomics
 features are implemented as defined in the IBSI reference manual. The following feature families can be
