@@ -1,4 +1,10 @@
 # Version 2.3.3
+
+## Minor changes
+
+- Added the co-occurrence matrix-based maximum correlation coefficient feature. Since no reference standards for this
+  feature exist, you need to specify `ibsi_compliant = False` to compute it.
+
 ## Fixes
 
 - `numpy.trapz` was deprecated and is now replaced by `numpy.trapezoid`.
