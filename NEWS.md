@@ -1,4 +1,7 @@
-# Version 2.4.0
+# Version 2.3.3
+## Fixes
+
+- `numpy.trapz` was deprecated and is now replaced by `numpy.trapezoid`.
 
 ## Documentation
 
