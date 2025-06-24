@@ -187,7 +187,7 @@ class FeatureCMJointEntropy(FeatureCM):
         return -np.sum(matrix.pij.pij * np.log2(matrix.pij.pij))
 
 
-class FeatureCMDifferenceAveraga(FeatureCM):
+class FeatureCMDifferenceAverage(FeatureCM):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "CM - difference average"
@@ -542,7 +542,7 @@ def get_cm_class_dict() -> dict[str, FeatureCM]:
         "cm_joint_avg": FeatureCMJointAverage,
         "cm_joint_var": FeatureCMJointVariance,
         "cm_joint_entr": FeatureCMJointEntropy,
-        "cm_diff_avg": FeatureCMDifferenceAveraga,
+        "cm_diff_avg": FeatureCMDifferenceAverage,
         "cm_diff_var": FeatureCMDifferenceVariance,
         "cm_diff_entr": FeatureCMDifferenceEntropy,
         "cm_sum_avg": FeatureCMSumAverage,
