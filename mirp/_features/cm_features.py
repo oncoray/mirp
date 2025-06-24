@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Generator
 
 import numpy as np
+import pandas as pd
 
 from mirp._features.cm_matrix import MatrixCM
 from mirp._images.generic_image import GenericImage
@@ -187,7 +188,7 @@ class FeatureCMJointEntropy(FeatureCM):
         return -np.sum(matrix.pij.pij * np.log2(matrix.pij.pij))
 
 
-class FeatureCMDifferenceAveraga(FeatureCM):
+class FeatureCMDifferenceAverage(FeatureCM):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = "CM - difference average"
@@ -536,13 +537,88 @@ class FeatureCMInformationCorrelation2(FeatureCM):
             return np.sqrt(1.0 - np.exp(-2.0 * (hxy_2 - hxy)))
 
 
+class FeatureCMMaximumCorrelationCoefficient(FeatureCM):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "CM - maximum correlation coefficient"
+        self.abbr_name = "cm_mcc"
+
+        # MCC is not part of the IBSI corpus and has no assigned identifier.
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(matrix: MatrixCM) -> float:
+        if matrix.is_empty():
+            return np.nan
+
+        # MCC is defined as the square root of the second largest eigen value of Q (Haralick, R.M., Shanmugam,
+        # K. and Dinstein, I. (1973) ‘Textural Features for Image Classification’, IEEE transactions on systems, man,
+        # and cybernetics, SMC-3(6), pp. 610–621. Available at: https://doi.org/10.1109/TSMC.1973.4309314.)
+
+        # Special case: matrix with a single element.
+        if matrix.n_g == 1.0:
+            return 1.0
+
+        def _pij_lookup(mat: MatrixCM, i: float, j: float) -> float:
+            mat = mat.pij
+            pij = mat[(mat.i == i) & (mat.j == j)].pij.values
+            if len(pij) == 0:
+                return 0.0
+            return pij[0]
+
+        def _pi_lookup(mat: MatrixCM, i: float) -> float:
+            mat = mat.pi
+            return mat[mat.i == i].pi.values[0]
+
+        def _pj_lookup(mat: MatrixCM, j: float) -> float:
+            mat = mat.pj
+            return mat[mat.j == j].pj.values[0]
+
+        q_mat = np.zeros((int(matrix.n_g), int(matrix.n_g)), dtype=float)
+
+        # Non-zero entries ONLY exist for each row in the pij table. Moreover, non-zero contributions of k only exist
+        # for the intersection of k-values where entries exist for intensities corresponding to elements i and j (due
+        # to symmetry).
+        for row in matrix.pij.itertuples(index=False):
+            i = row.i
+            j = row.j
+            k = np.intersect1d(
+                matrix.pij[matrix.pij.i == i].j.values,
+                matrix.pij[matrix.pij.i == j].j.values
+            )
+
+            element_value = 0.0
+            for kk in k:
+                pik = _pij_lookup(matrix, i, kk)  ## p(i,k)
+                pjk = _pij_lookup(matrix, j, kk)  ## p(i,j)
+
+                # If either p(i,k) or p(j,k) are 0.0, there is no contribution.
+                if pik == 0.0 or pjk == 0.0:
+                    continue
+
+                pi = _pi_lookup(matrix, i)  ## px(i)
+                pk = _pj_lookup(matrix, kk)  ## py(k)
+
+                element_value += pik * pjk / (pi * pk)  ## p(i,k) * p(j,k) / (px(i), py(k))
+
+            # Update Q.
+            q_mat[int(i) - 1, int(j) - 1] = element_value
+
+        # Compute eigen values and sort.
+        eigen_values = np.linalg.eigvals(q_mat)
+        eigen_values.sort()
+
+        # Return square root of second largest eigenvalue.
+        return np.sqrt(eigen_values[-2])
+
+
 def get_cm_class_dict() -> dict[str, FeatureCM]:
     class_dict = {
         "cm_joint_max": FeatureCMJointMax,
         "cm_joint_avg": FeatureCMJointAverage,
         "cm_joint_var": FeatureCMJointVariance,
         "cm_joint_entr": FeatureCMJointEntropy,
-        "cm_diff_avg": FeatureCMDifferenceAveraga,
+        "cm_diff_avg": FeatureCMDifferenceAverage,
         "cm_diff_var": FeatureCMDifferenceVariance,
         "cm_diff_entr": FeatureCMDifferenceEntropy,
         "cm_sum_avg": FeatureCMSumAverage,
@@ -562,7 +638,8 @@ def get_cm_class_dict() -> dict[str, FeatureCM]:
         "cm_clust_shade": FeatureCMClusterShade,
         "cm_clust_prom": FeatureCMClusterProminence,
         "cm_info_corr1": FeatureCMInformationCorrelation1,
-        "cm_info_corr2": FeatureCMInformationCorrelation2
+        "cm_info_corr2": FeatureCMInformationCorrelation2,
+        "cm_mcc": FeatureCMMaximumCorrelationCoefficient
     }
 
     return class_dict

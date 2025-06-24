@@ -1,3 +1,19 @@
+# Version 2.3.3
+
+## Minor changes
+
+- Added the co-occurrence matrix-based maximum correlation coefficient feature. Since no reference standards for this
+  feature exist, you need to specify `ibsi_compliant = False` to compute it.
+
+## Fixes
+
+- `numpy.trapz` was deprecated and is now replaced by `numpy.trapezoid`.
+
+## Documentation
+
+- The documentation erroneously mentioned that the `by_slice` parameter could take `"largest"` as an option. This 
+  was no longer possible since the introduction of the `mask_select_largest_slice` parameter in version 2.1.0.
+
 # Version 2.3.2
 
 ## Minor changes

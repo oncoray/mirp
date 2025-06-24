@@ -1,22 +1,24 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Feature name references &mdash; mirp 2.3.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+  <title>Feature name references &mdash; mirp 2.3.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
 
   
-      <script src="_static/jquery.js?v=5d32c60e"></script>
-      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=5048a02b"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=f4302432"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -139,8 +141,8 @@ to the name of each feature. However, the naming of features can seem properly a
 <li><p>Discretisation parameters (if any).</p></li>
 </ol>
 <p>Here we will first describe the feature names and their parameters, sorted by feature family, followed by discretisation
-parameters and filters, annotated with their Image Biomarker Standardisation Initiative identifiers <a class="reference internal" href="quantitative_image_analysis.html#zwanenburg2016" id="id1"><span>[Zwanenburg2016]</span></a>,
-<a class="reference internal" href="quantitative_image_analysis.html#depeursinge2020" id="id2"><span>[Depeursinge2020]</span></a>.</p>
+parameters and filters, annotated with their Image Biomarker Standardisation Initiative identifiers <a class="reference internal" href="#zwanenburg2016" id="id1"><span>[Zwanenburg2016]</span></a>,
+<a class="reference internal" href="#depeursinge2020" id="id2"><span>[Depeursinge2020]</span></a>.</p>
 <section id="features">
 <h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
 <section id="morphological-features-hcug">
@@ -293,7 +295,9 @@ definition of these features, whereas MIRP computes these features for specific 
 <li><p><cite>cm_clust_prom</cite>: Cluster prominence (<cite>AE86</cite>)</p></li>
 <li><p><cite>cm_info_corr1</cite>: First measure of information correlation (<cite>R8DG</cite>)</p></li>
 <li><p><cite>cm_info_corr2</cite>: Second measure of information correlation (<cite>JN9H</cite>)</p></li>
+<li><p><cite>cm_mcc</cite>: Maximum correlation coefficient (no identifier).</p></li>
 </ul>
+<p>The <cite>cm_mcc</cite> feature lacks reference values in the IBSI standard. It is only computed if <cite>ibsi_compliant=False</cite>.</p>
 <p>GLCM-features are computed with the following parameters, in sequential order:</p>
 <ul class="simple">
 <li><dl class="simple">

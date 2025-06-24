@@ -380,7 +380,7 @@ class FeatureIVHAreaUnderCurve(FeatureIntensityVolumeHistogram):
         self.ibsi_compliant = False
 
     def _compute(self, data: DataIntensityVolumeHistogram):
-        return np.trapz(y=data.data.nu, x=data.data.gamma)
+        return np.trapezoid(y=data.data.nu, x=data.data.gamma)
 
 
 def get_intensity_volume_histogram_class_dict() -> dict[str, FeatureIntensityVolumeHistogram]:

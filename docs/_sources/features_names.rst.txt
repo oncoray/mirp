@@ -172,6 +172,9 @@ Features computed from grey level co-occurrence matrices (GLCM) are:
 * `cm_clust_prom`: Cluster prominence (`AE86`)
 * `cm_info_corr1`: First measure of information correlation (`R8DG`)
 * `cm_info_corr2`: Second measure of information correlation (`JN9H`)
+* `cm_mcc`: Maximum correlation coefficient (no identifier).
+
+The `cm_mcc` feature lacks reference values in the IBSI standard. It is only computed if `ibsi_compliant=False`.
 
 GLCM-features are computed with the following parameters, in sequential order:
 

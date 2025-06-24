@@ -52,6 +52,7 @@ def test_ibsi_1_digital_phantom():
 
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
+        ibsi_compliant=general_settings.ibsi_compliant,
         no_approximation=True,
         base_feature_families="all",
         base_discretisation_method="none",

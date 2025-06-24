@@ -14,9 +14,9 @@ class ImageInterpolationSettingsClass:
 
     Parameters
     ----------
-    by_slice: str or bool, optional, default: False
-        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest"). See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.
+    by_slice: bool, optional, default: False
+        Defines whether calculations should be performed in 2D (True) or 3D (False).
+        See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.
 
     new_spacing: float or list of float or list of list of float, optional:
         Sets voxel spacing after interpolation. A single value represents the spacing that will be applied in all

@@ -58,7 +58,8 @@ def run_experiment(image, roi, **kwargs):
 
     # Configure settings.
     general_settings = GeneralSettingsClass(
-        by_slice=by_slice
+        by_slice=by_slice,
+        ibsi_compliant=False
     )
 
     image_interpolation_settings = ImageInterpolationSettingsClass(
@@ -69,6 +70,7 @@ def run_experiment(image, roi, **kwargs):
     # Test all the things!
     feature_computation_parameters = FeatureExtractionSettingsClass(
         by_slice=general_settings.by_slice,
+        ibsi_compliant=general_settings.ibsi_compliant,
         no_approximation=True,
         base_feature_families="all",
         base_discretisation_method=["fixed_bin_number", "fixed_bin_size"],

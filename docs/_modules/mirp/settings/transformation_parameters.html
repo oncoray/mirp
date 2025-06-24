@@ -1,21 +1,23 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.transformation_parameters &mdash; mirp 2.3.2 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+  <title>mirp.settings.transformation_parameters &mdash; mirp 2.3.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
 
   
-      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=5048a02b"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=f4302432"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -92,20 +94,20 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mirp.settings.transformation_parameters</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">copy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span></span><span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">mirp.settings.feature_parameters</span><span class="w"> </span><span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">mirp.settings.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">setting_def</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.feature_parameters</span> <span class="kn">import</span> <span class="n">FeatureExtractionSettingsClass</span>
+<span class="kn">from</span> <span class="nn">mirp.settings.utilities</span> <span class="kn">import</span> <span class="n">setting_def</span>
 
 
 <div class="viewcode-block" id="ImageTransformationSettingsClass">
 <a class="viewcode-back" href="../../../configuration.html#mirp.settings.transformation_parameters.ImageTransformationSettingsClass">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span><span class="w"> </span><span class="nc">ImageTransformationSettingsClass</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">ImageTransformationSettingsClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters related to image transformation using filters. Many parameters are conditional on the selected image</span>
 <span class="sd">    filter (``filter_kernels``). Filters and their parameters are defined `here &lt;https://arxiv.org/abs/2006.05470&gt;`_</span>
@@ -122,9 +124,9 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    by_slice: str or bool, optional, default: False</span>
-<span class="sd">        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the</span>
-<span class="sd">        largest slice (&quot;largest&quot;). See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.</span>
+<span class="sd">    by_slice: bool, optional, default: False</span>
+<span class="sd">        Defines whether calculations should be performed in 2D (True) or 3D (False).</span>
+<span class="sd">        See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.</span>
 
 <span class="sd">    ibsi_compliant: bool, optional, default: True</span>
 <span class="sd">        Limits use of filters to those that exist in the IBSI reference standard.</span>
@@ -435,7 +437,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">by_slice</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
             <span class="n">ibsi_compliant</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
@@ -910,7 +912,7 @@
             <span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_image_filters</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">get_available_image_filters</span><span class="p">():</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="s2">&quot;separable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_nonseparable_wavelet&quot;</span><span class="p">,</span>
             <span class="s2">&quot;riesz_steered_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gaussian&quot;</span><span class="p">,</span>
@@ -919,7 +921,7 @@
             <span class="s2">&quot;pyradiomics_square&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_square_root&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_logarithm&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_exponential&quot;</span>
         <span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_boundary_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_boundary_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boundary_condition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Avoid updating by reference.</span>
@@ -937,7 +939,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_pooling_method</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_pooling_method</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">allow_none</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 
         <span class="n">valid_pooling_method</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">allow_none</span><span class="p">:</span>
@@ -959,7 +961,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_sigma</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_sigma</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="c1"># Check if x is provided.</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -986,7 +988,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_truncation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_truncation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="c1"># Check if x is provided.</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1008,7 +1010,7 @@
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_response</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_response</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="n">valid_response</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;modulus&quot;</span><span class="p">,</span> <span class="s2">&quot;abs&quot;</span><span class="p">,</span> <span class="s2">&quot;magnitude&quot;</span><span class="p">,</span> <span class="s2">&quot;angle&quot;</span><span class="p">,</span> <span class="s2">&quot;phase&quot;</span><span class="p">,</span> <span class="s2">&quot;argument&quot;</span><span class="p">,</span> <span class="s2">&quot;real&quot;</span><span class="p">,</span> <span class="s2">&quot;imaginary&quot;</span><span class="p">]</span>
 
@@ -1028,9 +1030,9 @@
         <span class="k">return</span> <span class="n">x</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_separable_wavelet_families</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_separable_wavelet_families</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
         <span class="c1"># Import pywavelets.</span>
-        <span class="kn">import</span><span class="w"> </span><span class="nn">pywt</span>
+        <span class="kn">import</span> <span class="nn">pywt</span>
 
         <span class="c1"># All available kernels from pywavelets.</span>
         <span class="n">available_kernels</span> <span class="o">=</span> <span class="n">pywt</span><span class="o">.</span><span class="n">wavelist</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;discrete&quot;</span><span class="p">)</span>
@@ -1058,7 +1060,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_nonseparable_wavelet_families</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_nonseparable_wavelet_families</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="n">available_kernels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;simoncelli&quot;</span><span class="p">,</span> <span class="s2">&quot;shannon&quot;</span><span class="p">]</span>
 
@@ -1085,7 +1087,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_decomposition_level</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">check_decomposition_level</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
 
         <span class="c1"># Check if x is provided.</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1112,8 +1114,8 @@
 
         <span class="k">return</span> <span class="n">x</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_separable_wavelet_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">var_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span>
+    <span class="k">def</span> <span class="nf">check_separable_wavelet_sets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">var_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
 
         <span class="c1"># Set default value.</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1150,8 +1152,8 @@
         <span class="c1"># Return lowercase values.</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_laws_kernels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">var_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span>
+    <span class="k">def</span> <span class="nf">check_laws_kernels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">var_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
 
         <span class="c1"># Set implemented kernels.</span>
         <span class="n">kernels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;l5&#39;</span><span class="p">,</span> <span class="s1">&#39;e5&#39;</span><span class="p">,</span> <span class="s1">&#39;s5&#39;</span><span class="p">,</span> <span class="s1">&#39;w5&#39;</span><span class="p">,</span> <span class="s1">&#39;r5&#39;</span><span class="p">,</span> <span class="s1">&#39;l3&#39;</span><span class="p">,</span> <span class="s1">&#39;e3&#39;</span><span class="p">,</span> <span class="s1">&#39;s3&#39;</span><span class="p">]</span>
@@ -1187,8 +1189,8 @@
         <span class="c1"># Return lowercase values.</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">xx</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">xx</span> <span class="ow">in</span> <span class="n">x</span><span class="p">]</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">check_riesz_filter_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
-        <span class="kn">from</span><span class="w"> </span><span class="nn">itertools</span><span class="w"> </span><span class="kn">import</span> <span class="n">product</span>
+    <span class="k">def</span> <span class="nf">check_riesz_filter_order</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">product</span>
 
         <span class="c1"># Skip if None</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1241,7 +1243,7 @@
 
         <span class="k">return</span> <span class="n">x</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_mean_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_mean_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1249,7 +1251,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1258,7 +1260,7 @@
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
             <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gaussian&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_laplacian_of_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_laplacian_of_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1270,7 +1272,7 @@
                 <span class="s2">&quot;riesz_steered_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_log&quot;</span>
             <span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_laws_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_laws_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1278,7 +1280,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;laws&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_gabor_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_gabor_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1287,7 +1289,7 @@
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
             <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gabor&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_separable_wavelet_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_separable_wavelet_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1295,7 +1297,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;separable_wavelet&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_nonseparable_wavelet_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_nonseparable_wavelet_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1306,7 +1308,7 @@
                 <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_nonseparable_wavelet&quot;</span>
             <span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_riesz_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_riesz_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1314,7 +1316,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;riesz&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_steered_riesz_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_steered_riesz_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1322,7 +1324,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;riesz_steered&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_square_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_square_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1330,7 +1332,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="o">==</span> <span class="s2">&quot;pyradiomics_square&quot;</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_square_root_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_square_root_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1338,7 +1340,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="o">==</span> <span class="s2">&quot;pyradiomics_square_root&quot;</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_logarithm_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_logarithm_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1346,7 +1348,7 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="o">==</span> <span class="s2">&quot;pyradiomics_logarithm&quot;</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">has_exponential_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">has_exponential_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -1356,7 +1358,7 @@
 
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">get_image_transformation_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span> <span class="nf">get_image_transformation_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">setting_def</span><span class="p">(</span>
             <span class="s2">&quot;response_map_feature_families&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;feature_families&quot;</span><span class="p">,</span>

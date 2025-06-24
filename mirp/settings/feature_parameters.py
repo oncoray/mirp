@@ -11,9 +11,9 @@ class FeatureExtractionSettingsClass:
 
     Parameters
     ----------
-    by_slice: str or bool, optional, default: False
-        Defines whether calculations should be performed in 2D (True) or 3D (False), or alternatively only in the
-        largest slice ("largest"). See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.
+    by_slice: bool, optional, default: False
+        Defines whether calculations should be performed in 2D (True) or 3D (False).
+        See :class:`~mirp.settings.general_parameters.GeneralSettingsClass`.
 
     no_approximation: bool, optional, default: False
         Disables approximation of features, such as Geary's c-measure. Can be True or False (default). See
