@@ -10,6 +10,7 @@ authors = [
     {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
 ]
 license = "EUPL-1.2"
+license-files = ["LICENSE.txt"]
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
