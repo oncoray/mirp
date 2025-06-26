@@ -813,6 +813,21 @@ class ImageTransformationSettingsClass:
                 "that you want to use this method, use ibsi_compliant = False."
             )
 
+        self.lbp_separate_slices: None | list[bool] = None
+        self.lbp_method: None | str = None
+        self.lbp_distance: None | list[float] = None
+
+        if self.has_lbp_transform_filter():
+            if ibsi_compliant:
+                raise ValueError(
+                    "The local binary pattern filter is not part of the IBSI reference standard. If you are sure "
+                    "that you want to use this method, use ibsi_compliant = False."
+                )
+
+            lbp_separate_slices = []
+            if any(self.)
+
+
     @staticmethod
     def get_available_image_filters():
         return [
@@ -1258,6 +1273,13 @@ class ImageTransformationSettingsClass:
 
         return x is not None and any(filter_kernel == "pyradiomics_exponential" for filter_kernel in x)
 
+    def has_lbp_transform_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel in ["lbp", "lbp_2d", "lbp_3d"] for filter_kernel in x)
 
 def get_image_transformation_settings() -> list[dict[str, Any]]:
     return [

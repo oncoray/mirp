@@ -65,7 +65,7 @@ class StandardWorkflow(BaseWorkflow):
 
         return " ".join(message_str)
 
-    def standard_image_processing(self) -> None | tuple[GenericImage, list[BaseMask]]:
+    def standard_image_processing(self) -> Generator[None | tuple[GenericImage, list[BaseMask]]]:
         from mirp._image_processing.cropping import crop
         from mirp._image_processing.tissue_mask import create_tissue_mask
         from mirp._image_processing.alter_mask import alter_mask
@@ -297,6 +297,11 @@ class StandardWorkflow(BaseWorkflow):
                 # Exponential transform filter
                 from mirp._imagefilters.exponential_transform import ExponentialTransformFilter
                 filter_obj = ExponentialTransformFilter(image=image, settings=self.settings, name=current_filter)
+
+            elif self.settings.img_transform.has_lbp_transform_filter(x=current_filter):
+                # Local binary pattern filter
+                from mirp._imagefilters.local_binary_patterns import LocalBinaryPatternFilter
+                filter_obj = LocalBinaryPatternFilter(image=image, settings=self.settings, name=current_filter)
 
             else:
                 raise ValueError(
