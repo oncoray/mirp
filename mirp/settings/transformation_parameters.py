@@ -109,6 +109,7 @@ class ImageTransformationSettingsClass:
         * Separable wavelets: "separable_wavelet"
         * Non-separable wavelets: "nonseparable_wavelet", "riesz_nonseparable_wavelet",
           and "riesz_steered_nonseparable_wavelet"
+        * Local binary patterns: "lbp", "lbp_2d", "lbp_3d"
         * Function transformations: "pyradiomics_square", "pyradiomics_square_root",
           and "pyradiomics_logarithm", "pyradiomics_exponential"
 
@@ -126,6 +127,10 @@ class ImageTransformationSettingsClass:
             Riesz transformation and steerable riesz transformations are experimental. The implementation of these
             filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature
             derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.
+
+        .. warning::
+            Local binary patterns are not part of the IBSI reference standard. Set `ibsi_compliant = False` to use
+            this filter.
 
         .. warning::
             Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference
@@ -334,6 +339,12 @@ class ImageTransformationSettingsClass:
     riesz_filter_tensor_sigma: float or list of float, optional
         Determines width of Gaussian filter used with Riesz filter banks.
 
+    lbp_method: str or list of str, optional
+        Method for computing local binary pattern filter.
+
+    lbp_filter_distance: float or list of float, optional, default: 1.8
+        Euclidean distance for the local binary pattern filter, in voxel spacing.
+
     **kwargs: dict, optional
         Unused keyword arguments.
 
@@ -387,6 +398,8 @@ class ImageTransformationSettingsClass:
             mean_filter_boundary_condition: None | str = None,
             riesz_filter_order: None | int | list[int] = None,
             riesz_filter_tensor_sigma: None | float | list[float] = None,
+            lbp_method: None | str | list[str] = None,
+            lbp_filter_distance: None | float | list[float] = 1.8,
             **kwargs
     ):
         # Set by slice
@@ -814,7 +827,7 @@ class ImageTransformationSettingsClass:
             )
 
         self.lbp_separate_slices: None | list[bool] = None
-        self.lbp_method: None | str = None
+        self.lbp_method: None | list[str] = None
         self.lbp_distance: None | list[float] = None
 
         if self.has_lbp_transform_filter():
@@ -825,8 +838,29 @@ class ImageTransformationSettingsClass:
                 )
 
             lbp_separate_slices = []
-            if any(self.)
+            if any(filter_kernel in ["lbp_2d"] for filter_kernel in self.spatial_filters):
+                lbp_separate_slices += [True]
+            elif any(filter_kernel in ["lbp", "lbp_3d"] for filter_kernel in self.spatial_filters):
+                lbp_separate_slices += [False]
+            self.lbp_separate_slices = lbp_separate_slices
 
+            # Check lbp_method.
+            if not isinstance(lbp_method, str) or not isinstance(lbp_method, list):
+                raise TypeError(f"The lbp_method parameter is expected to be a str or list of str.")
+            if isinstance(lbp_method, str):
+                lbp_method = [lbp_method]
+            if not all(x in ["invariant"] for x in lbp_method):
+                raise ValueError(f"The lbp_method expects one or more of the following: invariant")
+            self.lbp_method = lbp_method
+
+            # Check distance.
+            if not isinstance(lbp_filter_distance, float) or not isinstance(lbp_filter_distance, list):
+                raise TypeError(f"The lbp_filter_distance parameter is expected to be a float or list of float.")
+            if isinstance(lbp_filter_distance, float):
+                lbp_filter_distance = [lbp_filter_distance]
+            if not all(x >= 1.0 for x in lbp_filter_distance):
+                raise TypeError(f"lbp_filter_distance require a value of 1.0 or more.")
+            self.lbp_distance = lbp_filter_distance
 
     @staticmethod
     def get_available_image_filters():
@@ -835,7 +869,8 @@ class ImageTransformationSettingsClass:
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
             "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
-            "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential"
+            "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
+            "lbp", "lbp_2d", "lbp_3d"
         ]
 
     def check_boundary_condition(self, x, var_name):
