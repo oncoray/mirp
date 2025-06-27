@@ -398,7 +398,7 @@ class ImageTransformationSettingsClass:
             mean_filter_boundary_condition: None | str = None,
             riesz_filter_order: None | int | list[int] = None,
             riesz_filter_tensor_sigma: None | float | list[float] = None,
-            lbp_method: None | str | list[str] = None,
+            lbp_method: None | str | list[str] = "default",
             lbp_filter_distance: None | float | list[float] = 1.8,
             **kwargs
     ):
@@ -849,8 +849,8 @@ class ImageTransformationSettingsClass:
                 raise TypeError(f"The lbp_method parameter is expected to be a str or list of str.")
             if isinstance(lbp_method, str):
                 lbp_method = [lbp_method]
-            if not all(x in ["invariant"] for x in lbp_method):
-                raise ValueError(f"The lbp_method expects one or more of the following: invariant")
+            if not all(x in ["default"] for x in lbp_method):
+                raise ValueError(f"The lbp_method expects one or more of the following: default")
             self.lbp_method = lbp_method
 
             # Check distance.

@@ -1,3 +1,5 @@
+from typing import Generator
+
 import numpy as np
 import copy
 
@@ -68,72 +70,89 @@ class LocalBinaryPatternFilter(GenericFilter):
             self,
             voxel_grid: np.ndarray
     ):
+        # Voxel grid as a contiguous flattened array.
+        dims = voxel_grid.shape
+        voxel_original = np.ravel(voxel_grid)
 
+        # Initialise response map as a flattened array.
+        voxel_response = np.zeros(voxel_original.shape, dtype=float)
+
+        # # Get directions corresponding to distance (d) and separate_slices. For each direction, determine the
+        # position of voxels with a valid neighbour (i.e. not out-of-volume) and the
+        # position of their neighbour.
+        neighbour_vectors = list(self._generate_neighbour_direction())
+        weights = 2 ** np.arange(len(neighbour_vectors))
+        for ii, neighbour_vector in enumerate(neighbour_vectors):
+            mask, voxel_neighbour = self._lookup_neighbour_voxel_value(
+                voxels=voxel_original,
+                dims=dims,
+                lookup_vector=neighbour_vector
+            )
+
+            if self.lbp_method == "default":
+                voxel_response[mask] += (voxel_neighbour - voxel_response[mask] >= 0.0) * weights[ii]
+            else:
+                raise ValueError(f"Unknown method: {self.lbp_method}")
+
+        return np.reshape(voxel_response, shape = dims)
+
+    @staticmethod
+    def _coord_to_index(z, y, x, dims):
+        # Translate coordinates to indices
+        index = x + y * dims[2] + z * dims[2] * dims[1]
+
+        # Mark invalid transitions
+        index[np.logical_or(x < 0, x >= dims[2])] = -99999
+        index[np.logical_or(y < 0, y >= dims[1])] = -99999
+        index[np.logical_or(z < 0, z >= dims[0])] = -99999
+
+        return index
+
+    @staticmethod
+    def _index_to_coord(index, dims):
+        z = index // (dims[2] * dims[1])
+        index -= z * (dims[2] * dims[1])
+        y = index // (dims[2])
+        x = index - y * dims[2]
+
+        return z, y, x
+
+    def _lookup_neighbour_voxel_value(self, voxels, dims, lookup_vector):
+        z, y, x = self._index_to_coord(index=np.arange(len(voxels)), dims=dims)
+        neighbour_index = self._coord_to_index(
+            z = z + lookup_vector[0],
+            y = y + lookup_vector[1],
+            x = x + lookup_vector[2],
+            dims = dims
+        )
+
+        mask = neighbour_index > 0
+        return mask, voxels[neighbour_index[mask]]
+
+    def _generate_neighbour_direction(self) -> Generator[tuple[int, ...], None, None]:
+        from mirp._features.utilities import rep
+
+        # Base transition vector
+        trans = np.arange(start=-np.ceil(self.d), stop=np.ceil(self.d) + 1)
+        n = np.size(trans)
+
+        # Build transition array [z,y,x]
+        nbrs = np.array([
+            rep(x=trans, each=1, times=n * n),
+            rep(x=trans, each=n, times=n),
+            rep(x=trans, each=n * n, times=1)
+        ], dtype=np.int32)
+
+        # Filter neighbours based on distance. That is, all voxels that fall within distance d and d-1.0 (a single
+        # rim of voxels), and excluding the central voxel.
+        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs)))
+        index = np.logical_and(neighbour_distance <= self.d, neighbour_distance > self.d - 1.0)
+        index = np.logical_and(index, neighbour_distance > 0.0)
+
+        # Check if neighbourhood should be 3D or 2D.
         if self.separate_slices:
-            # Set the number of dimensions.
-            d = 2.0
+            index[nbrs[0, :] != 0] = False
 
-            # Create the grid coordinates, with [0, 0, 0] in the center.
-            y, x = np.mgrid[:filter_size[1], :filter_size[2]]
-            y -= (filter_size[1] - 1.0) / 2.0
-            x -= (filter_size[2] - 1.0) / 2.0
-
-            # Compute the square of the norm.
-            norm_2 = np.power(y, 2.0) + np.power(x, 2.0)
-
-        else:
-            # Set the number of dimensions.
-            d = 3.0
-
-            # Create the grid coordinates, with [0, 0, 0] in the center.
-            z, y, x = np.mgrid[:filter_size[0], :filter_size[1], :filter_size[2]]
-            z -= (filter_size[0] - 1.0) / 2.0
-            y -= (filter_size[1] - 1.0) / 2.0
-            x -= (filter_size[2] - 1.0) / 2.0
-
-            # Compute the square of the norm.
-            norm_2 = np.power(z, 2.0) + np.power(y, 2.0) + np.power(x, 2.0)
-
-        # Set a single sigma value.
-        sigma = np.max(sigma)
-
-        # Compute the scale factor
-        scale_factor = - 1.0 / sigma ** 2.0 * np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) * (d - norm_2 /
-                                                                                                      sigma ** 2.0)
-
-        # Compute the exponent which determines filter width.
-        width_factor = - norm_2 / (2.0 * sigma ** 2.0)
-
-        # Compute the weights of the filter.
-        filter_weights = np.multiply(scale_factor, np.exp(width_factor))
-
-        if self.separate_slices:
-            # Set filter weights and create a filter.
-            log_filter = FilterSet2D(
-                filter_weights,
-                riesz_order=self.riesz_order,
-                riesz_steered=self.riesz_steered,
-                riesz_sigma=self.riesz_sigma)
-
-            # Convolve laplacian of gaussian filter with the image.
-            response_map = log_filter.convolve(
-                voxel_grid=voxel_grid,
-                mode=self.mode,
-                response="real")
-
-        else:
-            # Set filter weights and create a filter.
-            log_filter = FilterSet3D(
-                filter_weights,
-                riesz_order=self.riesz_order,
-                riesz_steered=self.riesz_steered,
-                riesz_sigma=self.riesz_sigma)
-
-            # Convolve laplacian of gaussian filter with the image.
-            response_map = log_filter.convolve(
-                voxel_grid=voxel_grid,
-                mode=self.mode,
-                response="real")
-
-        # Compute the convolution
-        return response_map
+        for ii, flag in enumerate(index):
+            if flag:
+                yield tuple(nbrs[:, ii].flatten())
