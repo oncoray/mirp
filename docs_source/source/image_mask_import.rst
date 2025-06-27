@@ -200,7 +200,7 @@ MIRP processes and analyses images and masks. There are multiple ways to provide
         image, and so forth.
 
 * By specifying the configuration in a stand-alone data ``xml`` file. An empty copy of the ``xml`` file can be
-  created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the``xml`` file are the same as the
+  created using :func:`mirp.utilities.config_utilities.get_data_xml`. The tags of the ``xml`` file are the same as the
   arguments of :func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`, that are listed below.
 
 Selecting specific images and masks
