@@ -1338,7 +1338,9 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             "filter_kernels", "str", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
             class_key="spatial_filters", test=[
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet", "gaussian", "riesz_gaussian",
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laws", "gabor", "riesz_gabor", "mean"
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laws", "gabor",
+                "riesz_gabor", "mean",
+                "lbp_3d"
             ]
         ),
         setting_def("boundary_condition", "str", test="nearest"),
@@ -1405,5 +1407,7 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             "riesz_filter_order", "int", to_list=True, xml_key=["riesz_filter_order", "riesz_order"],
             class_key="riesz_order", test=[2, 1, 0]
         ),
-        setting_def("riesz_filter_tensor_sigma", "float", to_list=True, test=[3.0, 5.0])
+        setting_def("riesz_filter_tensor_sigma", "float", to_list=True, test=[3.0, 5.0]),
+        setting_def("lbp_method", "str", to_list=True, test="invariant"),
+        setting_def("lbp_filter_distance", "float", to_list=True, class_key="lbp_distance", test=[2.0, 3.0])
     ]

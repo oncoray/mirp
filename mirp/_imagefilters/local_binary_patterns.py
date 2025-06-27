@@ -15,23 +15,35 @@ class LocalBinaryPatternFilter(GenericFilter):
 
         self.ibsi_compliant = False
 
-        self.separate_slices = False
-        self.lbp_method = ""
-        self.d = 1.8
+        self.separate_slices = settings.img_transform.lbp_separate_slices
+        self.lbp_method = settings.img_transform.lbp_method
+        self.d = settings.img_transform.lbp_distance
 
     def generate_object(self):
         # Generator for transformation objects.
+        lbp_method = copy.deepcopy(self.lbp_method)
+        if not isinstance(lbp_method, list):
+            lbp_method = [lbp_method]
+
+        separate_slices = copy.deepcopy(self.separate_slices)
+        if not isinstance(separate_slices, list):
+            separate_slices = [separate_slices]
+
         distance = copy.deepcopy(self.d)
         if not isinstance(distance, list):
             distance = [distance]
 
         # Iterate over options to yield filter objects with specific settings. A copy of the parent object is made to
         # avoid updating by reference.
-        for current_distance in distance:
-            filter_object = copy.deepcopy(self)
-            filter_object.d = current_distance
+        for current_separate_slices in separate_slices:
+            for current_lbp_method in lbp_method:
+                for current_distance in distance:
+                    filter_object = copy.deepcopy(self)
+                    filter_object.separate_slices = current_separate_slices
+                    filter_object.lbp_method = current_lbp_method
+                    filter_object.d = current_distance
 
-            yield filter_object
+                    yield filter_object
 
     def transform(self, image: GenericImage) -> LocalBinaryPatternImage:
         # Create placeholder Laplacian-of-Gaussian response map.

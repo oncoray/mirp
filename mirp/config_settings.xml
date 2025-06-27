@@ -272,6 +272,8 @@
             <riesz_filter_order></riesz_filter_order>
             <!--Sigma for Gaussian filter used in steerable Riesz transformation. -->
             <riesz_filter_tensor_sigma></riesz_filter_tensor_sigma>
+            <lbp_method></lbp_method>
+            <lbp_filter_distance></lbp_filter_distance>
         </image_transformation>
     </config>
 </root>
