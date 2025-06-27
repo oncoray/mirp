@@ -1174,7 +1174,7 @@ class MaskFile(ImageFile):
                 if isinstance(self.roi_name, str):
                     roi_name = self.roi_name
                 elif isinstance(self.roi_name, list):
-                    roi_name = [x for x in self.roi_name if str(current_label) == x or "region_" + str(current_label) == x]
+                    roi_name = [x for x in self.roi_name if str(current_label) == x or "region_" + str(current_label) == x][0]
                 elif isinstance(self.roi_name, dict):
                     roi_name = self.roi_name.get(str(current_label))
                     if roi_name is None:
