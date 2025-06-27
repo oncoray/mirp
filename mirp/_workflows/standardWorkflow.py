@@ -65,7 +65,7 @@ class StandardWorkflow(BaseWorkflow):
 
         return " ".join(message_str)
 
-    def standard_image_processing(self) -> Generator[None | tuple[GenericImage, list[BaseMask]]]:
+    def standard_image_processing(self) -> Generator[None | tuple[GenericImage, list[BaseMask]], None, None]:
         from mirp._image_processing.cropping import crop
         from mirp._image_processing.tissue_mask import create_tissue_mask
         from mirp._image_processing.alter_mask import alter_mask
