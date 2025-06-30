@@ -845,7 +845,7 @@ class ImageTransformationSettingsClass:
             self.lbp_separate_slices = lbp_separate_slices
 
             # Check lbp_method.
-            if not isinstance(lbp_method, str) or not isinstance(lbp_method, list):
+            if not isinstance(lbp_method, str) and not isinstance(lbp_method, list):
                 raise TypeError(f"The lbp_method parameter is expected to be a str or list of str.")
             if isinstance(lbp_method, str):
                 lbp_method = [lbp_method]
@@ -854,7 +854,7 @@ class ImageTransformationSettingsClass:
             self.lbp_method = lbp_method
 
             # Check distance.
-            if not isinstance(lbp_filter_distance, float) or not isinstance(lbp_filter_distance, list):
+            if not isinstance(lbp_filter_distance, float) and not isinstance(lbp_filter_distance, list):
                 raise TypeError(f"The lbp_filter_distance parameter is expected to be a float or list of float.")
             if isinstance(lbp_filter_distance, float):
                 lbp_filter_distance = [lbp_filter_distance]

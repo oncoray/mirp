@@ -74,25 +74,26 @@ class LocalBinaryPatternFilter(GenericFilter):
         dims = voxel_grid.shape
         voxel_original = np.ravel(voxel_grid)
 
-        # Initialise response map as a flattened array.
-        voxel_response = np.zeros(voxel_original.shape, dtype=float)
-
         # # Get directions corresponding to distance (d) and separate_slices. For each direction, determine the
         # position of voxels with a valid neighbour (i.e. not out-of-volume) and the
         # position of their neighbour.
         neighbour_vectors = list(self._generate_neighbour_direction())
         weights = 2 ** np.arange(len(neighbour_vectors))
+
+        # Initialise response map as a flattened array.
+        lbp = np.zeros((len(neighbour_vectors), len(voxel_original)), dtype = bool)
         for ii, neighbour_vector in enumerate(neighbour_vectors):
             mask, voxel_neighbour = self._lookup_neighbour_voxel_value(
                 voxels=voxel_original,
                 dims=dims,
                 lookup_vector=neighbour_vector
             )
+            lbp[ii, mask] = voxel_neighbour - voxel_neighbour[mask] >= 0.0
 
-            if self.lbp_method == "default":
-                voxel_response[mask] += (voxel_neighbour - voxel_response[mask] >= 0.0) * weights[ii]
-            else:
-                raise ValueError(f"Unknown method: {self.lbp_method}")
+        if self.lbp_method == "default":
+            voxel_response = np.sum(np.multiply(lbp, weights), axis = 0)
+        else:
+            raise ValueError(f"Unknown method: {self.lbp_method}")
 
         return np.reshape(voxel_response, shape = dims)
 
