@@ -8,7 +8,8 @@
 ## Fixes
 
 - It is now possible to merge labelled segmentation masks (e.g. 1, 2) using the settings `xml` file. Previously,
-  this would result in an error when attempting to merge the names of the regions of interest. 
+  this would result in an error when attempting to merge the names of the regions of interest.
+- The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. 
 
 # Version 2.3.3
 
