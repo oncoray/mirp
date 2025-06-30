@@ -576,6 +576,24 @@ class FeatureCMMaximumCorrelationCoefficient(FeatureCM):
 
         q_mat = np.zeros((int(matrix.n_g), int(matrix.n_g)), dtype=float)
 
+        # Initialise full matrix for pij, pi and pj and fill. For pi and pj use 1s as default value to prevent division
+        # by 0.
+        pij = np.zeros((int(matrix.n_g), int(matrix.n_g)), dtype=float)
+        pij[(matrix.pij.i.values.astype(int) - 1, matrix.pij.j.values.astype(int) - 1)] = matrix.pij.pij.values
+        pi = np.ones((int(matrix.n_g)), dtype=float)
+        pi[(matrix.pi.i.values.astype(int) - 1)] = matrix.pi.pi.values
+        pj = np.ones((int(matrix.n_g)), dtype=float)
+        pj[(matrix.pj.j.values.astype(int) - 1)] = matrix.pj.pj.values
+
+        non_zero_elems = np.nonzero(pij)
+        for kk in np.arange(len(non_zero_elems[0])):
+            i = non_zero_elems[0][kk]
+            j = non_zero_elems[1][kk]
+
+            q_mat[i,j] = np.sum(np.divide(np.prod(pij[i, :], pij[j, :]), pi[i] * pj))
+
+        q_mat2 = np.zeros((int(matrix.n_g), int(matrix.n_g)), dtype=float)
+
         # Non-zero entries ONLY exist for each row in the pij table. Moreover, non-zero contributions of k only exist
         # for the intersection of k-values where entries exist for intensities corresponding to elements i and j (due
         # to symmetry).
@@ -602,14 +620,17 @@ class FeatureCMMaximumCorrelationCoefficient(FeatureCM):
                 element_value += pik * pjk / (pi * pk)  ## p(i,k) * p(j,k) / (px(i), py(k))
 
             # Update Q.
-            q_mat[int(i) - 1, int(j) - 1] = element_value
+            q_mat2[int(i) - 1, int(j) - 1] = element_value
 
         # Compute eigen values and sort.
         eigen_values = np.linalg.eigvals(q_mat)
         eigen_values.sort()
 
+        # Select second largest eigenvalue, and set minimum value to 0.
+        second_largest_eigen_value = np.max(0.0, eigen_values[-2])
+
         # Return square root of second largest eigenvalue.
-        return np.sqrt(eigen_values[-2])
+        return np.sqrt(second_largest_eigen_value)
 
 
 def get_cm_class_dict() -> dict[str, FeatureCM]:
