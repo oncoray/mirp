@@ -1,5 +1,10 @@
 # Version 2.3.4
 
+## Minor changes
+
+- Computation of the co-occurrence matrix-based maximum correlation coefficient now relies less on look-up, at the cost
+  of a larger memory footprint. Computation should be more efficient.
+
 ## Fixes
 
 - It is now possible to merge labelled segmentation masks (e.g. 1, 2) using the settings `xml` file. Previously,
