@@ -133,27 +133,44 @@ class LocalBinaryPatternFilter(GenericFilter):
     def _generate_neighbour_direction(self) -> Generator[tuple[int, ...], None, None]:
         from mirp._features.utilities import rep
 
-        # Base transition vector
-        trans = np.arange(start=-np.ceil(self.d), stop=np.ceil(self.d) + 1)
-        n = np.size(trans)
-
-        # Build transition array [z,y,x]
-        nbrs = np.array([
-            rep(x=trans, each=1, times=n * n),
-            rep(x=trans, each=n, times=n),
-            rep(x=trans, each=n * n, times=1)
-        ], dtype=np.int32)
-
-        # Filter neighbours based on distance. That is, all voxels that fall within distance d and d-1.0 (a single
-        # rim of voxels), and excluding the central voxel.
-        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis = 0))
-        index = np.logical_and(neighbour_distance <= self.d, neighbour_distance > self.d - 1.0)
-        index = np.logical_and(index, neighbour_distance > 0.0)
-
-        # Check if neighbourhood should be 3D or 2D.
         if self.separate_slices:
-            index[nbrs[0, :] != 0] = False
+            m = 8
+            nbrs = np.array([
+                np.zeros(m, int),
+                np.round(self.d * np.sin(2 * np.pi * np.arange(m, dtype=float) / m)),
+                np.round(self.d * np.cos(2 * np.pi * np.arange(m, dtype=float) / m))
+            ], dtype = int)
 
-        for ii, flag in enumerate(index):
-            if flag:
-                yield tuple(nbrs[:, ii].flatten())
+            # Remove duplicates
+            _, indices = np.unique(nbrs, return_index=True, axis=1)
+            nbrs = nbrs[:, indices.sort()].squeeze()
+
+            # Compute distance to eliminate
+            neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis=0))
+            index = neighbour_distance > 0.0
+
+            for ii, flag in enumerate(index):
+                if flag:
+                    yield tuple(nbrs[:, ii].flatten())
+
+        else:
+            # Base transition vector
+            trans = np.arange(start=-np.ceil(self.d + 1.0), stop=np.ceil(self.d + 1.0) + 1)
+            n = np.size(trans)
+
+            # Build transition array [z,y,x]
+            nbrs = np.array([
+                rep(x=trans, each=n * n, times=1),
+                rep(x=trans, each=n, times=n, use_inversion=True),
+                rep(x=trans, each=1, times=n * n, use_inversion=True)
+            ], dtype=int)
+
+            # Filter neighbours based on distance. That is, all voxels that fall within distance d and d-1.0 (a single
+            # rim of voxels), and excluding the central voxel.
+            neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis = 0))
+            index = np.logical_and(neighbour_distance <= self.d, neighbour_distance > self.d - 1.0)
+            index = np.logical_and(index, neighbour_distance > 0.0)
+
+            for ii, flag in enumerate(index):
+                if flag:
+                    yield tuple(nbrs[:, ii].flatten())
