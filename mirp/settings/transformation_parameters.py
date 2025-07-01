@@ -345,6 +345,8 @@ class ImageTransformationSettingsClass:
         * "default": the default method for LBP, which directionally encodes patterns.
         * "rotation_invariant": computes the unique minimal encoding pattern by rotating over the ring. This method
           is rotationally invariant.
+        * "variance": variance of patterns, similar to the ``"var"`` method in ``scikit-image``. This method is
+          rotationally invariant.
 
         LBP are computed with nearest neighbourhood interpolation.
 

@@ -96,6 +96,17 @@ class LocalBinaryPatternFilter(GenericFilter):
 
         elif self.lbp_method == "variance":
             voxel_response = np.var(lbp, axis = 0)
+
+        elif self.lbp_method == "rotation_invariant":
+            voxel_response = np.sum(np.multiply(lbp, weights[:, np.newaxis]), axis=0)
+
+            for ii in np.arange(1, len(neighbour_vectors)):
+                lbp = np.roll(lbp, 1, axis = 0)
+                voxel_response = np.min(np.vstack((
+                    voxel_response,
+                    np.sum(np.multiply(lbp, weights[:, np.newaxis]), axis=0)
+                )), axis =0)
+
         else:
             raise ValueError(f"Unknown method: {self.lbp_method}")
 
