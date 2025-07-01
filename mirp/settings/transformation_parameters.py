@@ -339,11 +339,18 @@ class ImageTransformationSettingsClass:
     riesz_filter_tensor_sigma: float or list of float, optional
         Determines width of Gaussian filter used with Riesz filter banks.
 
-    lbp_method: str or list of str, optional
-        Method for computing local binary pattern filter.
+    lbp_method: str or list of str, optional, default: "default"
+        Method for computing local binary pattern filter. The following methods are supported:
 
-    lbp_filter_distance: float or list of float, optional, default: 1.8
-        Euclidean distance for the local binary pattern filter, in voxel spacing.
+        * "default": the default method for LBP, which directionally encodes patterns.
+        * "rotation_invariant": computes the unique minimal encoding pattern by rotating over the ring. This method
+          is rotationally invariant.
+
+        LBP are computed with nearest neighbourhood interpolation.
+
+    lbp_filter_distance: float or list of float, optional, default: 1.0
+        Euclidean distance for the local binary pattern filter, in voxel spacing. With a distance of 1.0,
+        all neighbouring voxels are selected.
 
     **kwargs: dict, optional
         Unused keyword arguments.
@@ -399,7 +406,7 @@ class ImageTransformationSettingsClass:
             riesz_filter_order: None | int | list[int] = None,
             riesz_filter_tensor_sigma: None | float | list[float] = None,
             lbp_method: None | str | list[str] = "default",
-            lbp_filter_distance: None | float | list[float] = 1.8,
+            lbp_filter_distance: None | float | list[float] = 1.0,
             **kwargs
     ):
         # Set by slice
@@ -849,8 +856,8 @@ class ImageTransformationSettingsClass:
                 raise TypeError(f"The lbp_method parameter is expected to be a str or list of str.")
             if isinstance(lbp_method, str):
                 lbp_method = [lbp_method]
-            if not all(x in ["default"] for x in lbp_method):
-                raise ValueError(f"The lbp_method expects one or more of the following: default")
+            if not all(x in ["default", "variance", "rotation_invariant"] for x in lbp_method):
+                raise ValueError(f"The lbp_method expects one or more of the following: default, variance, rotation_invariant")
             self.lbp_method = lbp_method
 
             # Check distance.

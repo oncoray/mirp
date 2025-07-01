@@ -53,6 +53,7 @@ class LocalBinaryPatternFilter(GenericFilter):
             image_data=None,
             separate_slices=self.separate_slices,
             distance=self.d,
+            lbp_method = self.lbp_method,
             template=image
         )
         response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
@@ -92,6 +93,9 @@ class LocalBinaryPatternFilter(GenericFilter):
 
         if self.lbp_method == "default":
             voxel_response = np.sum(np.multiply(lbp, weights[:, np.newaxis]), axis = 0)
+
+        elif self.lbp_method == "variance":
+            voxel_response = np.var(lbp, axis = 0)
         else:
             raise ValueError(f"Unknown method: {self.lbp_method}")
 
