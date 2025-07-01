@@ -763,12 +763,12 @@ class LocalBinaryPatternImage(TransformedImage):
     ):
         super().__init__(**kwargs)
 
-        self.distance = distance
-        self.separate_slices = separate_slices
-
         # Update image parameters using the template.
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
+
+        self.distance = distance
+        self.separate_slices = separate_slices
 
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()

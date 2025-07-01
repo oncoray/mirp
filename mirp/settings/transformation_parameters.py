@@ -838,9 +838,9 @@ class ImageTransformationSettingsClass:
                 )
 
             lbp_separate_slices = []
-            if any(filter_kernel in ["lbp_2d"] for filter_kernel in self.spatial_filters):
+            if any(filter_kernel in ["lbp", "lbp_2d"] for filter_kernel in self.spatial_filters):
                 lbp_separate_slices += [True]
-            elif any(filter_kernel in ["lbp", "lbp_3d"] for filter_kernel in self.spatial_filters):
+            elif any(filter_kernel in ["lbp_3d"] for filter_kernel in self.spatial_filters):
                 lbp_separate_slices += [False]
             self.lbp_separate_slices = lbp_separate_slices
 

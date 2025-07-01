@@ -145,6 +145,6 @@ def test_local_binary_pattern_filter():
     feature_data = data[0][0]
     assert len(feature_data) == 1
     assert feature_data["stat_min"].values[0] == -1000.0
-    assert feature_data["square_stat_min"].values[0] == 0.0
-    assert np.max(data[0][1][0].get_voxel_grid()) == np.max(data[0][1][1].get_voxel_grid())
+    assert feature_data["lbp_2d_d1.8_stat_min"].values[0] == 0.0
+    assert feature_data["lbp_2d_d1.8_stat_max"].values[0] == 255.0
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())

@@ -88,10 +88,10 @@ class LocalBinaryPatternFilter(GenericFilter):
                 dims=dims,
                 lookup_vector=neighbour_vector
             )
-            lbp[ii, mask] = voxel_neighbour - voxel_neighbour[mask] >= 0.0
+            lbp[ii, mask] = voxel_neighbour - voxel_original[mask] >= 0.0
 
         if self.lbp_method == "default":
-            voxel_response = np.sum(np.multiply(lbp, weights), axis = 0)
+            voxel_response = np.sum(np.multiply(lbp, weights[:, np.newaxis]), axis = 0)
         else:
             raise ValueError(f"Unknown method: {self.lbp_method}")
 
@@ -146,7 +146,7 @@ class LocalBinaryPatternFilter(GenericFilter):
 
         # Filter neighbours based on distance. That is, all voxels that fall within distance d and d-1.0 (a single
         # rim of voxels), and excluding the central voxel.
-        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs)))
+        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis = 0))
         index = np.logical_and(neighbour_distance <= self.d, neighbour_distance > self.d - 1.0)
         index = np.logical_and(index, neighbour_distance > 0.0)
 
