@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mirp"
-version = "2.3.3"
+version = "2.3.4"
 description = "A package for standardised processing of medical imaging and computation of quantitative features."
 authors = [
     {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
