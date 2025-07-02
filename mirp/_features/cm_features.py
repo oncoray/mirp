@@ -559,57 +559,35 @@ class FeatureCMMaximumCorrelationCoefficient(FeatureCM):
         if matrix.n_g == 1.0:
             return 1.0
 
-        def _pij_lookup(mat: MatrixCM, i: float, j: float) -> float:
-            mat = mat.pij
-            pij = mat[(mat.i == i) & (mat.j == j)].pij.values
-            if len(pij) == 0:
-                return 0.0
-            return pij[0]
-
-        def _pi_lookup(mat: MatrixCM, i: float) -> float:
-            mat = mat.pi
-            return mat[mat.i == i].pi.values[0]
-
-        def _pj_lookup(mat: MatrixCM, j: float) -> float:
-            mat = mat.pj
-            return mat[mat.j == j].pj.values[0]
-
+        # Initialise matrix for q.
         q_mat = np.zeros((int(matrix.n_g), int(matrix.n_g)), dtype=float)
 
-        # Non-zero entries ONLY exist for each row in the pij table. Moreover, non-zero contributions of k only exist
-        # for the intersection of k-values where entries exist for intensities corresponding to elements i and j (due
-        # to symmetry).
-        for row in matrix.pij.itertuples(index=False):
-            i = row.i
-            j = row.j
-            k = np.intersect1d(
-                matrix.pij[matrix.pij.i == i].j.values,
-                matrix.pij[matrix.pij.i == j].j.values
-            )
+        # Initialise full matrix for pij, pi and pj and fill. For pi and pj use 1s as default value to prevent division
+        # by 0.
+        pij = np.zeros((int(matrix.n_g), int(matrix.n_g)), dtype=float)
+        pij[(matrix.pij.i.values.astype(int) - 1, matrix.pij.j.values.astype(int) - 1)] = matrix.pij.pij.values
+        pi = np.ones((int(matrix.n_g)), dtype=float)
+        pi[(matrix.pi.i.values.astype(int) - 1)] = matrix.pi.pi.values
+        pj = np.ones((int(matrix.n_g)), dtype=float)
+        pj[(matrix.pj.j.values.astype(int) - 1)] = matrix.pj.pj.values
 
-            element_value = 0.0
-            for kk in k:
-                pik = _pij_lookup(matrix, i, kk)  ## p(i,k)
-                pjk = _pij_lookup(matrix, j, kk)  ## p(i,j)
+        non_zero_elems = np.nonzero(pij)
+        for kk in np.arange(len(non_zero_elems[0])):
+            i = non_zero_elems[0][kk]
+            j = non_zero_elems[1][kk]
 
-                # If either p(i,k) or p(j,k) are 0.0, there is no contribution.
-                if pik == 0.0 or pjk == 0.0:
-                    continue
-
-                pi = _pi_lookup(matrix, i)  ## px(i)
-                pk = _pj_lookup(matrix, kk)  ## py(k)
-
-                element_value += pik * pjk / (pi * pk)  ## p(i,k) * p(j,k) / (px(i), py(k))
-
-            # Update Q.
-            q_mat[int(i) - 1, int(j) - 1] = element_value
+            # sum of p(i,k) * p(j,k) / (px(i), py(k))
+            q_mat[i,j] = np.sum(np.divide(np.multiply(pij[i, :], pij[j, :]), pi[i] * pj))
 
         # Compute eigen values and sort.
         eigen_values = np.linalg.eigvals(q_mat)
         eigen_values.sort()
 
+        # Select second largest eigenvalue, and set minimum value to 0.
+        second_largest_eigen_value = np.max([0.0, eigen_values[-2]])
+
         # Return square root of second largest eigenvalue.
-        return np.sqrt(eigen_values[-2])
+        return np.sqrt(second_largest_eigen_value)
 
 
 def get_cm_class_dict() -> dict[str, FeatureCM]:

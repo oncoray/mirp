@@ -751,3 +751,74 @@ class ExponentialTransformedImage(TransformedImage):
             x.columns = feature_name_prefix + x.columns
 
         return x
+
+
+class LocalBinaryPatternImage(TransformedImage):
+    def __init__(
+            self,
+            distance: None | float = None,
+            separate_slices: None | bool = None,
+            lbp_method: None | str = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+        self.distance = distance
+        self.separate_slices = separate_slices
+        self.lbp_method = lbp_method
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+        descriptors += [
+            "lbp",
+            "2d" if self.separate_slices else "3d"
+        ]
+
+        # Don't add anything if the method is "default".
+        if self.lbp_method == "variance":
+            descriptors += ["var"]
+        elif self.lbp_method == "rotation_invariant":
+            descriptors += ["rot_invar"]
+
+        descriptors += ["d" + str(self.distance)]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+        attributes = [
+            ("filter_type", "lbp"),
+            ("filter_direction", "2d" if self.separate_slices else "3d"),
+            ("distance", self.distance),
+            ("lbp_method", self.lbp_method)
+        ]
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+        feature_name_prefix = [
+            "lbp",
+            "2d" if self.separate_slices else "3d"
+        ]
+
+        # Don't add anything if the method is "default".
+        if self.lbp_method == "variance":
+            feature_name_prefix += ["var"]
+        elif self.lbp_method == "rotation_invariant":
+            feature_name_prefix += ["rot_invar"]
+
+        feature_name_prefix += ["d" + str(self.distance)]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x

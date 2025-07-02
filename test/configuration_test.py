@@ -497,8 +497,12 @@ def test_image_transformation_settings_configuration(tmp_path):
     assert settings_keyword == settings_xml
     assert settings_keyword == settings_direct
 
-    kwargs = []
     branch = tree.getroot().find("config").find("image_transformation")
+
+    # Set ibsi_compliant to False to test other filter settings.
+    kwargs = [("ibsi_compliant", False)]
+    for xml_data in branch.iter("ibsi_compliant"):
+        xml_data.text = "False"
 
     # Test alternative settings.
     for parameter in settings_definitions:

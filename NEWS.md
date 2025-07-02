@@ -1,3 +1,19 @@
+# Version 2.3.4
+
+## Minor changes
+
+- It is now possible to compute local binary patterns as a filter. 
+- Computation of the co-occurrence matrix-based maximum correlation coefficient now relies less on look-up, at the cost
+  of a larger memory footprint. Computation should be more efficient.
+
+## Fixes
+
+- It is now possible to merge labelled segmentation masks (e.g. 1, 2) using the settings `xml` file. Previously,
+  this would result in an error when attempting to merge the names of the regions of interest.
+- The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. 
+- Directories with sample names without any further underlying directories (no `image_sub_folder` or 
+  `mask_sub_folder`) are now correctly filtered using `sample_name`.
+
 # Version 2.3.3
 
 ## Minor changes

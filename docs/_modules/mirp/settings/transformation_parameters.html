@@ -1,23 +1,21 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="../../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.transformation_parameters &mdash; mirp 2.3.3 documentation</title>
+  <title>mirp.settings.transformation_parameters &mdash; mirp 2.3.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="../../../_static/documentation_options.js?v=f4302432"></script>
-        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
-        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=3fb9b4ff"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -207,6 +205,7 @@
 <span class="sd">        * Separable wavelets: &quot;separable_wavelet&quot;</span>
 <span class="sd">        * Non-separable wavelets: &quot;nonseparable_wavelet&quot;, &quot;riesz_nonseparable_wavelet&quot;,</span>
 <span class="sd">          and &quot;riesz_steered_nonseparable_wavelet&quot;</span>
+<span class="sd">        * Local binary patterns: &quot;lbp&quot;, &quot;lbp_2d&quot;, &quot;lbp_3d&quot;</span>
 <span class="sd">        * Function transformations: &quot;pyradiomics_square&quot;, &quot;pyradiomics_square_root&quot;,</span>
 <span class="sd">          and &quot;pyradiomics_logarithm&quot;, &quot;pyradiomics_exponential&quot;</span>
 
@@ -224,6 +223,10 @@
 <span class="sd">            Riesz transformation and steerable riesz transformations are experimental. The implementation of these</span>
 <span class="sd">            filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature</span>
 <span class="sd">            derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Local binary patterns are not part of the IBSI reference standard. Set `ibsi_compliant = False` to use</span>
+<span class="sd">            this filter.</span>
 
 <span class="sd">        .. warning::</span>
 <span class="sd">            Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference</span>
@@ -432,6 +435,21 @@
 <span class="sd">    riesz_filter_tensor_sigma: float or list of float, optional</span>
 <span class="sd">        Determines width of Gaussian filter used with Riesz filter banks.</span>
 
+<span class="sd">    lbp_method: str or list of str, optional, default: &quot;default&quot;</span>
+<span class="sd">        Method for computing local binary pattern filter. The following methods are supported:</span>
+
+<span class="sd">        * &quot;default&quot;: the default method for LBP, which directionally encodes patterns.</span>
+<span class="sd">        * &quot;rotation_invariant&quot;: computes the unique minimal encoding pattern by rotating over the ring. This method</span>
+<span class="sd">          is rotationally invariant.</span>
+<span class="sd">        * &quot;variance&quot;: variance of patterns, similar to the ``&quot;var&quot;`` method in ``scikit-image``. This method is</span>
+<span class="sd">          rotationally invariant.</span>
+
+<span class="sd">        LBP are computed with nearest neighbourhood interpolation.</span>
+
+<span class="sd">    lbp_filter_distance: float or list of float, optional, default: 1.0</span>
+<span class="sd">        Euclidean distance for the local binary pattern filter, in voxel spacing. With a distance of 1.0,</span>
+<span class="sd">        all neighbouring voxels are selected.</span>
+
 <span class="sd">    **kwargs: dict, optional</span>
 <span class="sd">        Unused keyword arguments.</span>
 
@@ -485,6 +503,8 @@
             <span class="n">mean_filter_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">riesz_filter_order</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">riesz_filter_tensor_sigma</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">lbp_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
+            <span class="n">lbp_filter_distance</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
         <span class="c1"># Set by slice</span>
@@ -911,6 +931,42 @@
                 <span class="s2">&quot;that you want to use this method, use ibsi_compliant = False.&quot;</span>
             <span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbp_separate_slices</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbp_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lbp_distance</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_lbp_transform_filter</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">ibsi_compliant</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;The local binary pattern filter is not part of the IBSI reference standard. If you are sure &quot;</span>
+                    <span class="s2">&quot;that you want to use this method, use ibsi_compliant = False.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="n">lbp_separate_slices</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lbp&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_2d&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span><span class="p">):</span>
+                <span class="n">lbp_separate_slices</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">True</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lbp_3d&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span><span class="p">):</span>
+                <span class="n">lbp_separate_slices</span> <span class="o">+=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lbp_separate_slices</span> <span class="o">=</span> <span class="n">lbp_separate_slices</span>
+
+            <span class="c1"># Check lbp_method.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_method</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The lbp_method parameter is expected to be a str or list of str.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">lbp_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbp_method</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;variance&quot;</span><span class="p">,</span> <span class="s2">&quot;rotation_invariant&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lbp_method</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The lbp_method expects one or more of the following: default, variance, rotation_invariant&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lbp_method</span> <span class="o">=</span> <span class="n">lbp_method</span>
+
+            <span class="c1"># Check distance.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_filter_distance</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_filter_distance</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The lbp_filter_distance parameter is expected to be a float or list of float.&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_filter_distance</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="n">lbp_filter_distance</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbp_filter_distance</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mf">1.0</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lbp_filter_distance</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;lbp_filter_distance require a value of 1.0 or more.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lbp_distance</span> <span class="o">=</span> <span class="n">lbp_filter_distance</span>
+
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">get_available_image_filters</span><span class="p">():</span>
         <span class="k">return</span> <span class="p">[</span>
@@ -918,7 +974,8 @@
             <span class="s2">&quot;riesz_steered_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gaussian&quot;</span><span class="p">,</span>
             <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_laplacian_of_gaussian&quot;</span><span class="p">,</span>
             <span class="s2">&quot;riesz_log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_log&quot;</span><span class="p">,</span> <span class="s2">&quot;laws&quot;</span><span class="p">,</span> <span class="s2">&quot;gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;pyradiomics_square&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_square_root&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_logarithm&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_exponential&quot;</span>
+            <span class="s2">&quot;pyradiomics_square&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_square_root&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_logarithm&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_exponential&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;lbp&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_2d&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_3d&quot;</span>
         <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">check_boundary_condition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">var_name</span><span class="p">):</span>
@@ -1354,8 +1411,15 @@
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
 
-        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="o">==</span> <span class="s2">&quot;pyradiomics_exponential&quot;</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="o">==</span> <span class="s2">&quot;pyradiomics_exponential&quot;</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">has_lbp_transform_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;lbp&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_2d&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_3d&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">get_image_transformation_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
@@ -1380,7 +1444,9 @@
             <span class="s2">&quot;filter_kernels&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;filter_kernels&quot;</span><span class="p">,</span> <span class="s2">&quot;spatial_filters&quot;</span><span class="p">],</span>
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;spatial_filters&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span>
                 <span class="s2">&quot;separable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_log&quot;</span><span class="p">,</span> <span class="s2">&quot;laws&quot;</span><span class="p">,</span> <span class="s2">&quot;gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span>
+                <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_log&quot;</span><span class="p">,</span> <span class="s2">&quot;laws&quot;</span><span class="p">,</span> <span class="s2">&quot;gabor&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;lbp_3d&quot;</span>
             <span class="p">]</span>
         <span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;boundary_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">),</span>
@@ -1447,7 +1513,9 @@
             <span class="s2">&quot;riesz_filter_order&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;riesz_filter_order&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_order&quot;</span><span class="p">],</span>
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;riesz_order&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
         <span class="p">),</span>
-        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;riesz_filter_tensor_sigma&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">])</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;riesz_filter_tensor_sigma&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">3.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;lbp_method&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;variance&quot;</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;lbp_filter_distance&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;lbp_distance&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">])</span>
     <span class="p">]</span>
 </pre></div>
 

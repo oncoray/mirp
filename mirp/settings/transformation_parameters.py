@@ -109,6 +109,7 @@ class ImageTransformationSettingsClass:
         * Separable wavelets: "separable_wavelet"
         * Non-separable wavelets: "nonseparable_wavelet", "riesz_nonseparable_wavelet",
           and "riesz_steered_nonseparable_wavelet"
+        * Local binary patterns: "lbp", "lbp_2d", "lbp_3d"
         * Function transformations: "pyradiomics_square", "pyradiomics_square_root",
           and "pyradiomics_logarithm", "pyradiomics_exponential"
 
@@ -126,6 +127,10 @@ class ImageTransformationSettingsClass:
             Riesz transformation and steerable riesz transformations are experimental. The implementation of these
             filter transformations is complex. Since there is no corresponding IBSI reference standard, any feature
             derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.
+
+        .. warning::
+            Local binary patterns are not part of the IBSI reference standard. Set `ibsi_compliant = False` to use
+            this filter.
 
         .. warning::
             Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference
@@ -334,6 +339,21 @@ class ImageTransformationSettingsClass:
     riesz_filter_tensor_sigma: float or list of float, optional
         Determines width of Gaussian filter used with Riesz filter banks.
 
+    lbp_method: str or list of str, optional, default: "default"
+        Method for computing local binary pattern filter. The following methods are supported:
+
+        * "default": the default method for LBP, which directionally encodes patterns.
+        * "rotation_invariant": computes the unique minimal encoding pattern by rotating over the ring. This method
+          is rotationally invariant.
+        * "variance": variance of patterns, similar to the ``"var"`` method in ``scikit-image``. This method is
+          rotationally invariant.
+
+        LBP are computed with nearest neighbourhood interpolation.
+
+    lbp_filter_distance: float or list of float, optional, default: 1.0
+        Euclidean distance for the local binary pattern filter, in voxel spacing. With a distance of 1.0,
+        all neighbouring voxels are selected.
+
     **kwargs: dict, optional
         Unused keyword arguments.
 
@@ -387,6 +407,8 @@ class ImageTransformationSettingsClass:
             mean_filter_boundary_condition: None | str = None,
             riesz_filter_order: None | int | list[int] = None,
             riesz_filter_tensor_sigma: None | float | list[float] = None,
+            lbp_method: None | str | list[str] = "default",
+            lbp_filter_distance: None | float | list[float] = 1.0,
             **kwargs
     ):
         # Set by slice
@@ -813,6 +835,42 @@ class ImageTransformationSettingsClass:
                 "that you want to use this method, use ibsi_compliant = False."
             )
 
+        self.lbp_separate_slices: None | list[bool] = None
+        self.lbp_method: None | list[str] = None
+        self.lbp_distance: None | list[float] = None
+
+        if self.has_lbp_transform_filter():
+            if ibsi_compliant:
+                raise ValueError(
+                    "The local binary pattern filter is not part of the IBSI reference standard. If you are sure "
+                    "that you want to use this method, use ibsi_compliant = False."
+                )
+
+            lbp_separate_slices = []
+            if any(filter_kernel in ["lbp", "lbp_2d"] for filter_kernel in self.spatial_filters):
+                lbp_separate_slices += [True]
+            elif any(filter_kernel in ["lbp_3d"] for filter_kernel in self.spatial_filters):
+                lbp_separate_slices += [False]
+            self.lbp_separate_slices = lbp_separate_slices
+
+            # Check lbp_method.
+            if not isinstance(lbp_method, str) and not isinstance(lbp_method, list):
+                raise TypeError(f"The lbp_method parameter is expected to be a str or list of str.")
+            if isinstance(lbp_method, str):
+                lbp_method = [lbp_method]
+            if not all(x in ["default", "variance", "rotation_invariant"] for x in lbp_method):
+                raise ValueError(f"The lbp_method expects one or more of the following: default, variance, rotation_invariant")
+            self.lbp_method = lbp_method
+
+            # Check distance.
+            if not isinstance(lbp_filter_distance, float) and not isinstance(lbp_filter_distance, list):
+                raise TypeError(f"The lbp_filter_distance parameter is expected to be a float or list of float.")
+            if isinstance(lbp_filter_distance, float):
+                lbp_filter_distance = [lbp_filter_distance]
+            if not all(x >= 1.0 for x in lbp_filter_distance):
+                raise TypeError(f"lbp_filter_distance require a value of 1.0 or more.")
+            self.lbp_distance = lbp_filter_distance
+
     @staticmethod
     def get_available_image_filters():
         return [
@@ -820,7 +878,8 @@ class ImageTransformationSettingsClass:
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
             "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
-            "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential"
+            "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
+            "lbp", "lbp_2d", "lbp_3d"
         ]
 
     def check_boundary_condition(self, x, var_name):
@@ -1258,6 +1317,13 @@ class ImageTransformationSettingsClass:
 
         return x is not None and any(filter_kernel == "pyradiomics_exponential" for filter_kernel in x)
 
+    def has_lbp_transform_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel in ["lbp", "lbp_2d", "lbp_3d"] for filter_kernel in x)
 
 def get_image_transformation_settings() -> list[dict[str, Any]]:
     return [
@@ -1281,7 +1347,9 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             "filter_kernels", "str", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
             class_key="spatial_filters", test=[
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet", "gaussian", "riesz_gaussian",
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laws", "gabor", "riesz_gabor", "mean"
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laws", "gabor",
+                "riesz_gabor", "mean",
+                "lbp_3d"
             ]
         ),
         setting_def("boundary_condition", "str", test="nearest"),
@@ -1348,5 +1416,7 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             "riesz_filter_order", "int", to_list=True, xml_key=["riesz_filter_order", "riesz_order"],
             class_key="riesz_order", test=[2, 1, 0]
         ),
-        setting_def("riesz_filter_tensor_sigma", "float", to_list=True, test=[3.0, 5.0])
+        setting_def("riesz_filter_tensor_sigma", "float", to_list=True, test=[3.0, 5.0]),
+        setting_def("lbp_method", "str", to_list=True, test=["variance"]),
+        setting_def("lbp_filter_distance", "float", to_list=True, class_key="lbp_distance", test=[2.0, 3.0])
     ]

@@ -336,7 +336,7 @@ class ImageDirectory:
 
                 if len(current_sample_matches) > 0:
                     sample_name_matches += current_sample_matches
-                    matching_sample_names += [sample_name] * len(sample_name_matches)
+                    matching_sample_names += [sample_name] * len(current_sample_matches)
 
                 else:
                     all_samples_selected = False
