@@ -1417,6 +1417,6 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             class_key="riesz_order", test=[2, 1, 0]
         ),
         setting_def("riesz_filter_tensor_sigma", "float", to_list=True, test=[3.0, 5.0]),
-        setting_def("lbp_method", "str", to_list=True, test="invariant"),
+        setting_def("lbp_method", "str", to_list=True, test=["variance"]),
         setting_def("lbp_filter_distance", "float", to_list=True, class_key="lbp_distance", test=[2.0, 3.0])
     ]
