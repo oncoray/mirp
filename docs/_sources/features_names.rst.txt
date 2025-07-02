@@ -471,6 +471,20 @@ Features computed from images that underwent exponential transformation are pref
 Exponential transformations lack reference values in the IBSI standard. They are only computed if
 `ibsi_compliant=False`.
 
+Local binary patterns
+^^^^^^^^^^^^^^^^^^^^^
+
+Features computed from images filtered using the local binary pattern filter are prefixed by:
+
+* `lbp`: Indicating local binary pattern filters.
+* `2d` or `3d`: Whether the local binary pattern is computed in 2d or 3d. Classically, local binary patterns are
+  computed in 2d.
+* `var` or `rot_invar`: Whether rotationally invariant patterns or pattern variance is computed.
+* `d#.#`: Distance for local binary patterns.
+
+Local binary patterns have no reference values in the IBSI standard. They can only be computed if
+`ibsi_compliant=False`.
+
 References
 ----------
 .. [Zwanenburg2016] Zwanenburg A, Leger S, Vallieres M, Loeck S. Image Biomarker Standardisation Initiative. arXiv

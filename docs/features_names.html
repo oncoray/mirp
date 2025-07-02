@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" data-content_root="./">
 <head>
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Feature name references &mdash; mirp 2.3.3 documentation</title>
+  <title>Feature name references &mdash; mirp 2.3.4 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="_static/jquery.js?v=5d32c60e"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-        <script src="_static/documentation_options.js?v=f4302432"></script>
-        <script src="_static/doctools.js?v=9a2dae69"></script>
-        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
-        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=3fb9b4ff"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -91,6 +89,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#square-root-transformation">Square root transformation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#logarithmic-transformation">Logarithmic transformation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#exponential-transformation">Exponential transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#local-binary-patterns">Local binary patterns</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
@@ -636,6 +635,19 @@ computed from filtered images are prefixed by different filter-specific items, w
 <li><p><cite>exp</cite>: Indicating exponential transformation.</p></li>
 </ul>
 <p>Exponential transformations lack reference values in the IBSI standard. They are only computed if
+<cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="local-binary-patterns">
+<h3>Local binary patterns<a class="headerlink" href="#local-binary-patterns" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using the local binary pattern filter are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>lbp</cite>: Indicating local binary pattern filters.</p></li>
+<li><p><cite>2d</cite> or <cite>3d</cite>: Whether the local binary pattern is computed in 2d or 3d. Classically, local binary patterns are
+computed in 2d.</p></li>
+<li><p><cite>var</cite> or <cite>rot_invar</cite>: Whether rotationally invariant patterns or pattern variance is computed.</p></li>
+<li><p><cite>d#.#</cite>: Distance for local binary patterns.</p></li>
+</ul>
+<p>Local binary patterns have no reference values in the IBSI standard. They can only be computed if
 <cite>ibsi_compliant=False</cite>.</p>
 </section>
 </section>
