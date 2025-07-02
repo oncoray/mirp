@@ -2,6 +2,7 @@
 
 ## Minor changes
 
+- It is now possible to compute local binary patterns as a filter. 
 - Computation of the co-occurrence matrix-based maximum correlation coefficient now relies less on look-up, at the cost
   of a larger memory footprint. Computation should be more efficient.
 
