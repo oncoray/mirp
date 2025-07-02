@@ -478,9 +478,8 @@ Features computed from images filtered using the local binary pattern filter are
 
 * `lbp`: Indicating local binary pattern filters.
 * `2d` or `3d`: Whether the local binary pattern is computed in 2d or 3d. Classically, local binary patterns are
-computed in 2d.
+  computed in 2d.
 * `var` or `rot_invar`: Whether rotationally invariant patterns or pattern variance is computed.
-* Wavelet filter combination (`UK1F`).
 * `d#.#`: Distance for local binary patterns.
 
 Local binary patterns have no reference values in the IBSI standard. They can only be computed if
