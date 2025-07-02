@@ -168,7 +168,7 @@
 			<ngldm_spatial_method></ngldm_spatial_method>
         </feature_computation>
         <image_transformation>
-            <!-- Filter kernels to apply. Options: gabor, laplacian_of_gaussian, laws, mean, separable_wavelet,
+            <!-- Filter kernels to apply. Options are, e.g. gabor, laplacian_of_gaussian, laws, mean, separable_wavelet,
             nonseparable_wavelet. See documentation for additional filter kernels. -->
             <filter_kernels></filter_kernels>
              <!-- Boundary conditions, i.e. how to calculate the filter response for voxels that are less than the
@@ -272,7 +272,11 @@
             <riesz_filter_order></riesz_filter_order>
             <!--Sigma for Gaussian filter used in steerable Riesz transformation. -->
             <riesz_filter_tensor_sigma></riesz_filter_tensor_sigma>
+            <!-- Method for computing local binary pattern filter. One or more of default (default), variance,
+            rotation_invariant -->
             <lbp_method></lbp_method>
+            <!-- Euclidean distance for the local binary pattern filter, in voxel spacing. With a distance of 1.0
+            (default), all directly neighbouring voxels are selected. -->
             <lbp_filter_distance></lbp_filter_distance>
         </image_transformation>
     </config>
