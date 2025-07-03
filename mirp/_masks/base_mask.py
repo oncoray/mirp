@@ -47,6 +47,11 @@ class BaseMask:
         # BaseMask does not have an associated directory path.
         return None
 
+    @staticmethod
+    def get_file_name():
+        # BaseMask also has no associated file name.
+        return None
+
     def remove_metadata(self, force=False):
         self.roi.remove_metadata(force=force)
         if self.roi_intensity is not None:

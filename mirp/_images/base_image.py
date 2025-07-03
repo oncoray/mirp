@@ -80,6 +80,11 @@ class BaseImage:
         # BaseImage does not have an associated directory path.
         return None
 
+    @staticmethod
+    def get_file_name():
+        # BaseImage also has no associated file name.
+        return None
+
     def remove_metadata(self, force=False):
         if force:
             self.object_metadata = dict()
