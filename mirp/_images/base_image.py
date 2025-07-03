@@ -75,6 +75,11 @@ class BaseImage:
         if self.modality is None or self.modality == "generic":
             self.modality = modality[0]
 
+    @staticmethod
+    def get_dir_path():
+        # BaseImage does not have an associated directory path.
+        return None
+
     def remove_metadata(self, force=False):
         if force:
             self.object_metadata = dict()

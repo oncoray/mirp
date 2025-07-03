@@ -42,6 +42,11 @@ class BaseMask:
         # Set intensity range.
         self.intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
 
+    @staticmethod
+    def get_dir_path():
+        # BaseMask does not have an associated directory path.
+        return None
+
     def remove_metadata(self, force=False):
         self.roi.remove_metadata(force=force)
         if self.roi_intensity is not None:
