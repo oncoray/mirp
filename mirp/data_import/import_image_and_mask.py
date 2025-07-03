@@ -309,7 +309,7 @@ def set_association_strategy(
         possible_strategies.remove("file_name_similarity")
 
     # Check if position can be used.
-    if all(image.image_origin is None for image in image_list) or all(mask.image_origin is None for mask in mask_list):
+    if all(image.get_image_origin() is None for image in image_list) or all(mask.get_image_origin() is None for mask in mask_list):
         possible_strategies.remove("position")
     else:
         image_position_data = set([
