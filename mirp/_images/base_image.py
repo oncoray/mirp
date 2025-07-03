@@ -60,6 +60,21 @@ class BaseImage:
 
         return np.all(spacing == spacing[0])
 
+    def set_modality(self, modality: None | str):
+        from mirp._data_import.utilities import supported_image_modalities
+        if modality is None:
+            return
+
+        if not isinstance(modality, str):
+            raise ValueError(f"modality is expected to be a character string. Found: {modality}")
+
+        if modality == "generic":
+            raise ValueError(f"modality cannot be 'generic'")
+
+        modality = supported_image_modalities(modality)
+        if self.modality is None or self.modality == "generic":
+            self.modality = modality[0]
+
     def world_coordinates(self):
 
         # Create grid.
