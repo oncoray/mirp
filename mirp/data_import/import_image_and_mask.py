@@ -305,7 +305,7 @@ def set_association_strategy(
         possible_strategies.remove("file_distance")
 
     # Check if file_name_similarity is possible. If file names are absent, this is not possible.
-    if all(image.file_name is None for image in image_list) or all(mask.file_name is None for mask in mask_list):
+    if all(image.get_file_name() is None for image in image_list) or all(mask.get_file_name() is None for mask in mask_list):
         possible_strategies.remove("file_name_similarity")
 
     # Check if position can be used.

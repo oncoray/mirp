@@ -190,6 +190,15 @@ class ImageFile(BaseImage):
 
         return self.dir_path
 
+    def get_file_name(self, allow_none = True):
+        if self.file_name is None:
+            if allow_none:
+                return None
+            else:
+                return "unset_file_name"
+
+        return self.file_name
+
     def get_image_dimension(self, as_str: bool = False):
         if not as_str:
             return self.image_dimension
