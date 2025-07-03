@@ -29,6 +29,9 @@ class BaseMask:
         # Set region of interest.
         self.roi = MaskImage(**kwargs)
 
+        # Set sample name.
+        self.sample_name = self.roi.sample_name
+
         # Define other types of masks.
         self.roi_intensity: None | MaskImage = None
         self.roi_morphology: None | MaskImage = None
