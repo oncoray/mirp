@@ -39,6 +39,13 @@ class BaseMask:
         # Set intensity range.
         self.intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
 
+    def remove_metadata(self, force=False):
+        self.roi.remove_metadata(force=force)
+        if self.roi_intensity is not None:
+            self.roi_intensity.remove_metadata(force=force)
+        if self.roi_morphology is not None:
+            self.roi_morphology.remove_metadata(force=force)
+
     def update_separate_slices(self, x):
         self.roi.update_separate_slices(x=x)
         if self.roi_intensity is not None:
