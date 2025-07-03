@@ -46,8 +46,8 @@ class ImageDicomFile(ImageFile):
         identifier_data = dict({
             "modality": [self.modality],
             "file_type": [self.file_type],
-            "sample_name": [self.get_sample_name()],
-            "dir_path": [self.get_dir_path()],
+            "sample_name": [self.get_sample_name(allow_none=False)],
+            "dir_path": [self.get_dir_path(allow_none=False)],
             "series_instance_uid": [self.series_instance_uid],
             "frame_of_reference_uid": [self.frame_of_reference_uid]
         })

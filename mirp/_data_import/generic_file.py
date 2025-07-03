@@ -172,15 +172,21 @@ class ImageFile(BaseImage):
 
         self.sample_name = sample_name
 
-    def get_sample_name(self):
+    def get_sample_name(self, allow_none = True):
         if self.sample_name is None:
-            return "unset_sample_name"
+            if allow_none:
+                return None
+            else:
+                return "unset_sample_name"
 
         return self.sample_name
 
-    def get_dir_path(self):
+    def get_dir_path(self, allow_none = True):
         if self.dir_path is None:
-            return "unset_dir_path"
+            if allow_none:
+                return None
+            else:
+                return "unset_dir_path"
 
         return self.dir_path
 
