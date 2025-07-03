@@ -299,8 +299,8 @@ def set_association_strategy(
 
     # Check if file_distance is possible. If directory are absent or singular, file distance cannot be used for
     # association.
-    image_dir_path = set(image.dir_path for image in image_list) - {None}
-    mask_dir_path = set(mask.dir_path for mask in mask_list) - {None}
+    image_dir_path = set(image.get_dir_path() for image in image_list) - {None}
+    mask_dir_path = set(mask.get_dir_path() for mask in mask_list) - {None}
     if len(image_dir_path) == 0 or len(mask_dir_path) <= 1:
         possible_strategies.remove("file_distance")
 
