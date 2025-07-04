@@ -111,8 +111,8 @@ class ImageFile(BaseImage):
         identifier_data = dict({
             "modality": [self.modality],
             "file_type": [self.file_type],
-            "sample_name": [self.get_sample_name()],
-            "dir_path": [self.get_dir_path()],
+            "sample_name": [self.get_sample_name(allow_none=False)],
+            "dir_path": [self.get_dir_path(allow_none=False)],
             "image_dimensions": [self.get_image_dimension(as_str=True)],
             "image_spacing": [self.get_image_spacing(as_str=True)],
             "image_orientation": [self.get_image_orientation(as_str=True)]
