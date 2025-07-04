@@ -301,6 +301,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskITKFile) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_002", "STS_003"] for image in image_list)
 
     # Read DICOM _images and _masks for specific samples.
     image_list = import_image_and_mask(
@@ -315,6 +316,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskDicomFileRTSTRUCT) for image in image_list)
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_002", "STS_003"] for image in image_list)
 
     # Read numpy _images and _masks for specific samples.
     image_list = import_image_and_mask(
@@ -329,6 +331,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskNumpyFile) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_002", "STS_003"] for image in image_list)
 
     # Read numpy image and mask stacks for specific samples.
     image_list = import_image_and_mask(
@@ -343,6 +346,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskNumpyFileStack) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_002", "STS_003"] for image in image_list)
 
     # Read Nifti image and _masks for all samples.
     image_list = import_image_and_mask(
@@ -356,6 +360,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskITKFile) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_001", "STS_002", "STS_003"] for image in image_list)
 
     # Read DICOM _images and _masks for all samples.
     image_list = import_image_and_mask(
@@ -370,6 +375,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskDicomFileRTSTRUCT) for image in image_list)
     assert all(image.associated_masks[0].modality == "rtstruct" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_001", "STS_002", "STS_003"] for image in image_list)
 
     # Read numpy _images and _masks for all samples.
     image_list = import_image_and_mask(
@@ -383,6 +389,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskNumpyFile) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_001", "STS_002", "STS_003"] for image in image_list)
 
     # Read numpy image and mask stacks for all samples.
     image_list = import_image_and_mask(
@@ -396,6 +403,7 @@ def test_multiple_image_and_mask_import():
     assert all(isinstance(image.associated_masks[0], MaskNumpyFileStack) for image in image_list)
     assert all(image.associated_masks[0].modality == "generic_mask" for image in image_list)
     assert all(image.sample_name == image.associated_masks[0].sample_name for image in image_list)
+    assert all(image.sample_name in ["STS_001", "STS_002", "STS_003"] for image in image_list)
 
 
 @pytest.mark.ci
