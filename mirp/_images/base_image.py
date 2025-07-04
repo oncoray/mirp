@@ -125,6 +125,27 @@ class BaseImage:
         if force:
             self.object_metadata = dict()
 
+    def associate_with_mask(
+            self,
+            mask_list,
+            association_strategy: None | set[str] = None
+    ):
+        if mask_list is None or len(mask_list) == 0 or association_strategy is None:
+            return
+
+        # Match on sample name.
+        if "sample_name" in association_strategy and self.sample_name is not None:
+            matching_mask_list = [
+                mask_file for mask_file in mask_list
+                if self.sample_name == mask_file.sample_name
+            ]
+
+            if len(matching_mask_list) > 0:
+                self.associated_masks = matching_mask_list
+                return
+
+        return
+
     def world_coordinates(self):
 
         # Create grid.
