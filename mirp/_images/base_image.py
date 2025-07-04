@@ -1,6 +1,13 @@
 import copy
+import sys
+import warnings
 
 import numpy as np
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class BaseImage:
@@ -210,6 +217,17 @@ class BaseImage:
                 f"reference. Please check if segmentation masks are placed correctly:\n\t" + "\n\t".join(problem_list),
                 UserWarning
             )
+
+    def to_object(self, **kwargs):
+        image = self.copy()
+
+        # Drop associated masks.
+        image.associated_masks = None
+
+        return image
+
+    def promote(self, **kwargs):
+        return self
 
     def world_coordinates(self):
 
