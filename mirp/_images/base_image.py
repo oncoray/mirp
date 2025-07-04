@@ -150,6 +150,52 @@ class BaseImage:
         # The BaseImage object is by its nature not on the file system.
         return False
 
+    def check_associated_masks(self):
+        if self.associated_masks is None:
+            return
+
+        for mask in self.associated_masks:
+            self._check_associated_mask_image_data(mask=mask)
+
+    def _check_associated_mask_image_data(self, mask):
+        """
+        Check whether image and associated mask plausibly share the same frame of reference. This method is only
+        used during import of BaseImage and BaseMask.
+        """
+
+        problem_list = []
+        # Mismatch in grid dimension
+        if not np.array_equal(self.get_image_dimension(), mask.get_image_dimension()):
+                problem_list += [
+                    f"different dimensions: \n\t\timage: {self.get_image_dimension()}\n\t\tmask: {mask.get_image_dimension()}"
+                ]
+
+        # Mismatch in origin
+        if not np.allclose(self.get_image_origin(), mask.get_image_origin()):
+            problem_list += [
+                f"different origin: \n\t\timage: {self.get_image_origin()}\n\t\tmask: {mask.get_image_origin()}"
+            ]
+
+        # Mismatch in spacing
+        if not np.allclose(self.get_image_spacing(), mask.get_image_spacing()):
+            problem_list += [
+                f"different spacing: \n\t\timage: {self.get_image_spacing()}\n\t\tmask: {mask.get_image_spacing()}"
+            ]
+
+        # Mismatch in orientation
+        if not np.allclose(self.get_image_orientation(), mask.get_image_orientation()):
+            problem_list += [
+                f"different orientation: \n\t\timage: {np.ravel(self.get_image_orientation())}\n\t\tmask: "
+                f"{np.ravel(mask.get_image_orientation())}"
+            ]
+
+        if len(problem_list) > 0:
+            warnings.warn(
+                f"Image and mask may not have the same frame of "
+                f"reference. Please check if segmentation masks are placed correctly:\n\t" + "\n\t".join(problem_list),
+                UserWarning
+            )
+
     def world_coordinates(self):
 
         # Create grid.
