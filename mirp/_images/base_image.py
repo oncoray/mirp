@@ -85,6 +85,42 @@ class BaseImage:
         # BaseImage also has no associated file name.
         return None
 
+    def get_image_origin(self, as_str=False):
+        if not as_str:
+            return self.image_origin
+
+        if self.image_origin is None:
+            return "unset_image_origin"
+
+        return str(self.image_origin)
+
+    def get_image_orientation(self, as_str=False):
+        if not as_str:
+            return self.image_orientation
+
+        if self.image_orientation is None:
+            return "unset_image_orientation"
+
+        return str(np.ravel(self.image_orientation))
+
+    def get_image_spacing(self, as_str=False):
+        if not as_str:
+            return self.image_spacing
+
+        if self.image_spacing is None:
+            return "unset_image_spacing"
+
+        return str(self.image_spacing)
+
+    def get_image_dimension(self, as_str=False):
+        if not as_str:
+            return self.image_dimension
+
+        if self.image_dimension is None:
+            return "unset_image_dimension"
+
+        return str(self.image_dimension)
+
     def remove_metadata(self, force=False):
         if force:
             self.object_metadata = dict()

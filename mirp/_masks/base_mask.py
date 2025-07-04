@@ -52,6 +52,18 @@ class BaseMask:
         # BaseMask also has no associated file name.
         return None
 
+    def get_image_origin(self, **kwargs):
+        return self.roi.get_image_origin(**kwargs)
+
+    def get_image_orientation(self, **kwargs):
+        return self.roi.get_image_orientation(**kwargs)
+
+    def get_image_spacing(self, **kwargs):
+        return self.roi.get_image_spacing(**kwargs)
+
+    def get_image_dimension(self, **kwargs):
+        return self.roi.get_image_dimension(**kwargs)
+
     def remove_metadata(self, force=False):
         self.roi.remove_metadata(force=force)
         if self.roi_intensity is not None:

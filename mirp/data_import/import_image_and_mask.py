@@ -315,12 +315,12 @@ def set_association_strategy(
         image_position_data = set([
             image.get_image_origin(as_str=True) + image.get_image_spacing(as_str=True) +
             image.get_image_dimension(as_str=True) + image.get_image_orientation(as_str=True)
-            for image in image_list if image.image_origin is not None
+            for image in image_list if image.get_image_origin() is not None
         ])
         mask_position_data = set([
             mask.get_image_origin(as_str=True) + mask.get_image_spacing(as_str=True) +
             mask.get_image_dimension(as_str=True) + mask.get_image_orientation(as_str=True)
-            for mask in mask_list if mask.image_origin is not None
+            for mask in mask_list if mask.get_image_origin() is not None
         ])
 
         # Check that there are more
