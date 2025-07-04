@@ -7,7 +7,7 @@ from mirp._masks.base_mask import BaseMask
 
 
 def read_image(
-        image: ImageFile,
+        image: ImageFile | GenericImage,
         to_numpy=False,
         **kwargs
 ) -> np.ndarray | GenericImage:
@@ -20,7 +20,7 @@ def read_image(
 
 
 def read_image_and_masks(
-        image: ImageFile,
+        image: ImageFile | GenericImage,
         to_numpy=False,
         **kwargs
 ) -> tuple[np.ndarray | GenericImage, list[np.ndarray] | list[BaseMask]]:
