@@ -98,7 +98,7 @@ def supported_mask_modalities(modality: None | str = None) -> list[str]:
 def supported_file_types(file_type: None | str = None) -> list[str]:
 
     if isinstance(file_type, str):
-        modality = file_type.lower()
+        file_type = file_type.lower()
 
     if file_type is None:
         return [".dcm", ".nii", ".nii.gz", ".nrrd", ".npy"]

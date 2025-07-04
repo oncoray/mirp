@@ -1,3 +1,9 @@
+# Version 2.4.0
+
+## Fixes
+
+- Setting file types is now case-insensitive. 
+
 # Version 2.3.4
 
 ## Minor changes
