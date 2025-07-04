@@ -146,6 +146,10 @@ class BaseImage:
 
         return
 
+    def on_file_system(self):
+        # The BaseImage object is by its nature not on the file system.
+        return False
+
     def world_coordinates(self):
 
         # Create grid.
