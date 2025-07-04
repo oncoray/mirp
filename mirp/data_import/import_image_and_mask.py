@@ -222,38 +222,47 @@ def import_image_and_mask(
     image_list = [image if image.on_file_system() else image.copy() for image in image_list]
 
     # Set sample names. First we check if all sample names are missing.
-    if all(image.sample_name is None for image in image_list):
-        if isinstance(sample_name, str):
-            sample_name = [sample_name]
+    sample_name_set = all(image.sample_name is not None for image in image_list)
 
-        if isinstance(sample_name, list) and len(sample_name) == len(image_list):
+    # If a single string is present, convert to list of str.
+    if not sample_name_set and isinstance(sample_name, str):
+        sample_name = [sample_name]
+
+    # Use provided sample names.
+    if not sample_name_set and isinstance(sample_name, list) and len(sample_name) == len(image_list):
+        for ii, image in enumerate(image_list):
+            image.set_sample_name(sample_name=sample_name[ii])
+            if image.associated_masks is not None:
+                for mask in image.associated_masks:
+                    mask.set_sample_name(sample_name=sample_name[ii])
+        sample_name_set = True
+
+    # Infer sample name from file name.
+    if not sample_name_set and all(image.file_name is not None for image in image_list):
+        # Check that this results in unique sample names.
+        file_sample_names = [image.get_sample_name_from_file(must_succeed=True) for image in image_list]
+        if len(set(file_sample_names)) == len(image_list):
             for ii, image in enumerate(image_list):
-                image.set_sample_name(sample_name=sample_name[ii])
+                image.set_sample_name(sample_name=file_sample_names[ii])
+
                 if image.associated_masks is not None:
                     for mask in image.associated_masks:
-                        mask.set_sample_name(sample_name=sample_name[ii])
+                        mask.set_sample_name(sample_name=file_sample_names[ii])
 
-        elif all(image.file_name is not None for image in image_list):
-            # Obtain sample names based on file name, but check that this results in unique file names.
-            file_sample_names = [image.get_sample_name_from_file(must_succeed=True) for image in image_list]
-            if len(set(file_sample_names)) == len(image_list):
-                for ii, image in enumerate(image_list):
-                    image.set_sample_name(sample_name=file_sample_names[ii])
+            sample_name_set = True
 
-                    if image.associated_masks is not None:
-                        for mask in image.associated_masks:
-                            mask.set_sample_name(sample_name=file_sample_names[ii])
+    # Infer sample name from folder structure.
+    if not sample_name_set and all(image.dir_path is not None for image in image_list):
+        # Check that this results in unique sample names.
+        folder_sample_names = [image.get_sample_name_from_folder(sub_folder=image_sub_folder) for image in image_list]
+        if len(set(folder_sample_names)) == len(image_list):
+            for ii, image in enumerate(image_list):
+                image.set_sample_name(sample_name=folder_sample_names[ii])
 
-            else:
-                # Try to use folder structure.
-                folder_sample_names = [image.get_sample_name_from_folder(sub_folder=image_sub_folder) for image in image_list]
-                if len(set(folder_sample_names)) == len(image_list):
-                    for ii, image in enumerate(image_list):
-                        image.set_sample_name(sample_name=folder_sample_names[ii])
-
-                        if image.associated_masks is not None:
-                            for mask in image.associated_masks:
-                                mask.set_sample_name(sample_name=folder_sample_names[ii])
+                if image.associated_masks is not None:
+                    for mask in image.associated_masks:
+                        mask.set_sample_name(sample_name=folder_sample_names[ii])
+            sample_name_set = True
 
     # Then set any sample names for images that still miss them.
     if any(image.sample_name is None for image in image_list):

@@ -482,10 +482,10 @@ class ImageFile(BaseImage):
             return None
 
         # Do not obtain sample name if either file name or file path are missing
-        if self.file_path is None:
+        if self.dir_path is None:
             return None
 
-        dir_struct: list[str] = path_to_parts(os.path.dirname(self.file_path))
+        dir_struct: list[str] = path_to_parts(self.dir_path)
         if sub_folder is None:
             dir_sample_name = dir_struct[-1]
         else:
@@ -496,7 +496,7 @@ class ImageFile(BaseImage):
                 if dir_struct[-1] == path_elem:
                     dir_struct.pop()
                 else:
-                    raise ValueError(f"sub-folder structure `{path_elem}` not found on file path `{self.file_path}`.")
+                    raise ValueError(f"sub-folder structure `{path_elem}` not found on file path `{self.dir_path}`.")
             dir_sample_name = dir_struct[-1]
 
         if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
