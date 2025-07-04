@@ -19,7 +19,8 @@ else:
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
-from mirp._data_import.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance
+from mirp._data_import.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance, \
+    path_to_parts
 
 
 class ImageFile(BaseImage):
@@ -470,6 +471,39 @@ class ImageFile(BaseImage):
 
     def _check_modality(self, raise_error: bool) -> bool:
         return True
+
+    def get_sample_name_from_folder(self, sub_folder: None | str) -> None | str:
+        """
+        Aims to get a sample name candidate based on folder structure.
+        """
+
+        # Do not obtain sample name if it is already present.
+        if isinstance(self.sample_name, str):
+            return None
+
+        # Do not obtain sample name if either file name or file path are missing
+        if self.file_path is None:
+            return None
+
+        dir_struct: list[str] = path_to_parts(os.path.dirname(self.file_path))
+        if sub_folder is None:
+            dir_sample_name = dir_struct[-1]
+        else:
+            # Subtract sub_folder.
+            for path_elem in reversed(path_to_parts(sub_folder)):
+                if path_elem == "":
+                    continue
+                if dir_struct[-1] == path_elem:
+                    dir_struct.pop()
+                else:
+                    raise ValueError(f"sub-folder structure `{path_elem}` not found on file path `{self.file_path}`.")
+            dir_sample_name = dir_struct[-1]
+
+        if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
+            if dir_sample_name not in self.sample_name:
+                return None
+
+        return dir_sample_name
 
     def get_sample_name_from_file(self, must_succeed=False) -> None | str:
         allowed_file_extensions = supported_file_types(self.file_type)
