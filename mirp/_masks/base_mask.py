@@ -71,6 +71,12 @@ class BaseMask:
         if self.roi_morphology is not None:
             self.roi_morphology.remove_metadata(force=force)
 
+    def to_object(self, **kwargs):
+        return self.copy()
+
+    def promote(self, **kwargs):
+        return self
+
     def update_separate_slices(self, x):
         self.roi.update_separate_slices(x=x)
         if self.roi_intensity is not None:
