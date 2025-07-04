@@ -34,6 +34,10 @@ class BaseImage:
         # Set sample name.
         self.sample_name = sample_name
 
+        # Initialise associated masks, which is required for passing image
+        self.image_data = None
+        self.associated_masks = None
+
         # Set metadata. Entries with empty values (None or "") are removed from the metadata dict to avoid
         # polluting the dictionary with unset entries.
         if isinstance(metadata, dict) and len(metadata) > 0:
@@ -51,6 +55,17 @@ class BaseImage:
 
         # Determines whether slices in the stack should be treated separately.
         self.separate_slices = separate_slices
+
+    def copy(self, drop_image=False) -> Self:
+        image = copy.deepcopy(self)
+
+        if drop_image:
+            image.drop_image()
+
+        return image
+
+    def drop_image(self):
+        self.image_data = None
 
     def is_isotropic(self) -> bool:
         if self.separate_slices:

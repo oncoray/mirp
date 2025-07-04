@@ -37,7 +37,6 @@ class GenericImage(BaseImage):
         # Image data. Note that image_data is explicitly defined as this prevents IDE warnings. However,
         # the attribute itself is set using set_voxel_grid. Also, note that we explicitly copy image_data because
         # otherwise we may end up changing objects by reference, which is not the expected behaviour.
-        self.image_data = None
         self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
 
         # Perturbation-related settings that are set during interpolate.
@@ -60,14 +59,6 @@ class GenericImage(BaseImage):
 
         # Image underwent IBSI compliant processing (default True: it is easier to identify exceptions).
         self.ibsi_compliant = True
-
-    def copy(self, drop_image=False) -> Self:
-        image = copy.deepcopy(self)
-
-        if drop_image:
-            image.drop_image()
-
-        return image
 
     def update_from_template(self, template):
         if not isinstance(template, GenericImage):
@@ -170,9 +161,6 @@ class GenericImage(BaseImage):
             return image_list
         else:
             return image_list[0]
-
-    def drop_image(self):
-        self.image_data = None
 
     def is_empty(self) -> bool:
         return self.image_data is None
