@@ -61,6 +61,7 @@ def test_import_native_multiple_images():
 
     assert all(isinstance(x, CTImage) for x in image)
     assert all(isinstance(x, BaseMask) for x in mask)
+    assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in image)
 
     data = extract_features_and_images(
         image_export_format="native",
@@ -76,6 +77,6 @@ def test_import_native_multiple_images():
     for ii, old_feature_data in enumerate(feature_data):
         assert old_feature_data.equals(new_feature_data[ii])
     for ii, old_image in enumerate(image):
-        assert np.array_equal(old_image.get_voxel_grid(), new_image[ii].get_voxel_grid)
+        assert np.array_equal(old_image.get_voxel_grid(), new_image[ii].get_voxel_grid())
     for ii, old_mask in enumerate(mask):
-        assert np.array_equal(old_mask.roi.get_voxel_grid(), new_mask[ii].roi.get_voxel_grid)
+        assert np.array_equal(old_mask.roi.get_voxel_grid(), new_mask[ii].roi.get_voxel_grid())
