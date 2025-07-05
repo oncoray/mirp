@@ -62,6 +62,7 @@ def test_import_native_multiple_images():
     assert all(isinstance(x, CTImage) for x in image)
     assert all(isinstance(x, BaseMask) for x in mask)
     assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in image)
+    assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in mask)
 
     data = extract_features_and_images(
         image_export_format="native",
@@ -73,6 +74,9 @@ def test_import_native_multiple_images():
     new_feature_data = [x[0] for x in data]
     new_image = [x[1][0] for x in data]
     new_mask = [x[2][0] for x in data]
+
+    assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in new_image)
+    assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in new_mask)
 
     for ii, old_feature_data in enumerate(feature_data):
         assert old_feature_data.equals(new_feature_data[ii])
