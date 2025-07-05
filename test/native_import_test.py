@@ -6,6 +6,7 @@ import pytest
 from mirp._images.ct_image import CTImage
 from mirp._masks.base_mask import BaseMask
 from mirp.extract_features_and_images import extract_features_and_images
+from mirp.extract_mask_labels import extract_mask_labels
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -84,3 +85,31 @@ def test_import_native_multiple_images():
         assert np.array_equal(old_image.get_voxel_grid(), new_image[ii].get_voxel_grid())
     for ii, old_mask in enumerate(mask):
         assert np.array_equal(old_mask.roi.get_voxel_grid(), new_mask[ii].roi.get_voxel_grid())
+
+
+def test_extract_labels_native_multiple():
+    data = extract_features_and_images(
+        image_export_format="native",
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        image_modality="CT",
+        base_feature_families="statistics"
+    )
+
+    feature_data = [x[0] for x in data]
+    image = [x[1][0] for x in data]
+    mask = [x[2][0] for x in data]
+
+    assert all(isinstance(x, CTImage) for x in image)
+    assert all(isinstance(x, BaseMask) for x in mask)
+    assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in image)
+    assert all(x.sample_name in ["STS_001", "STS_002", "STS_003"] for x in mask)
+
+    roi_labels = extract_mask_labels(
+        mask = mask
+    )
+    assert len(roi_labels["roi_label"]) == 3
+    assert all(roi_label == "GTV_Mass_CT" for roi_label in roi_labels["roi_label"])
+
+# TODO: add test for extract_image_parameters
