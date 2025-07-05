@@ -815,3 +815,17 @@ class BaseMask:
         attributes.update(self.roi.get_export_attributes())
 
         return attributes
+
+    def export_roi_labels(self):
+
+        attributes = self.get_export_attributes()
+        attributes["roi_label"] = attributes.pop("roi_name")
+
+        # A list is expected for roi_label.
+        attributes["roi_label"] = [attributes["roi_label"]]
+
+        for remove_key in ["translation", "rotation", "image_spacing", "image_origin", "image_orientation"]:
+            if remove_key in attributes.keys():
+                attributes.pop(remove_key)
+
+        return attributes
