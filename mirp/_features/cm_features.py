@@ -584,10 +584,10 @@ class FeatureCMMaximumCorrelationCoefficient(FeatureCM):
         eigen_values.sort()
 
         # Select second largest eigenvalue, and set minimum value to 0.
-        second_largest_eigen_value = np.max([0.0, eigen_values[-2]])
+        second_largest_eigen_value = np.max([0.0, np.real(eigen_values[-2])])
 
         # Return square root of second largest eigenvalue.
-        return np.sqrt(second_largest_eigen_value)
+        return np.real(np.sqrt(second_largest_eigen_value))
 
 
 def get_cm_class_dict() -> dict[str, FeatureCM]:
