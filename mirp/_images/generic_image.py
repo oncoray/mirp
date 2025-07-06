@@ -1278,6 +1278,13 @@ class GenericImage(BaseImage):
         else:
             raise ValueError(f"The current value of export_format was not recognised: {export_format}")
 
+    def export_metadata(self, **kwargs) -> None | dict[str, Any]:
+        metadata = self.object_metadata
+        if isinstance(metadata, dict):
+            return metadata
+        else:
+            return dict()
+
     def get_export_attributes(self) -> dict[str, Any]:
         attributes = []
 
