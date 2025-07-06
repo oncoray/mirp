@@ -1246,8 +1246,8 @@ class MaskFile(ImageFile):
 
         return mask_list
 
-    def export_metadata(self):
-        return
+    def export_metadata(self) -> dict[str, Any]:
+        return super().export_metadata()
 
     def export_roi_labels(self) -> dict[str, Any]:
 
