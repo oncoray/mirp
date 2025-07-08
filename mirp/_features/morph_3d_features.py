@@ -700,7 +700,7 @@ class Feature3DMorphApproximateEnclosingEllipsoidVolumeDensity(Feature3DPCA):
 
     @staticmethod
     def _compute(data: Data3DPrincipleComponents, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return 3.0 * data.volume / (4.0 * np.pi * np.prod(data.semi_axes))
 
@@ -715,7 +715,7 @@ class Feature3DMorphApproximateEnclosingEllipsoidAreaDensity(Feature3DPCA):
 
     @staticmethod
     def _compute(data: Data3DPrincipleComponents, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return data.area / data.get_ellipsoid_surface_area(n_degree=20)
 
@@ -730,7 +730,7 @@ class Feature3DMorphMinimumEnvelopingEllipsoidVolumeDensity(Feature3DMinimumEnve
 
     @staticmethod
     def _compute(data: Data3DMinimumEnvelopingEllipsoid, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return 3.0 * data.volume / (4.0 * np.pi * np.prod(data.semi_axes))
 
@@ -745,7 +745,7 @@ class Feature3DMorphMinimumEnvelopingEllipsoidAreaDensity(Feature3DMinimumEnvelo
 
     @staticmethod
     def _compute(data: Data3DMinimumEnvelopingEllipsoid, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return data.area / data.get_ellipsoid_surface_area(n_degree=20)
 
