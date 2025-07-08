@@ -168,6 +168,7 @@ class GenericImage(BaseImage):
     def set_voxel_grid(self, voxel_grid: np.ndarray):
         self.image_data = voxel_grid
         self.image_dimension = tuple(voxel_grid.shape)
+        self.update_image_data()
 
     def get_voxel_grid(self) -> None | np.ndarray:
         return self.image_data
@@ -458,7 +459,6 @@ class GenericImage(BaseImage):
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=sample_voxel_grid)
-        self.update_image_data()
 
     def register(
             self,
@@ -570,7 +570,6 @@ class GenericImage(BaseImage):
 
         # Set and update image after registration.
         self.set_voxel_grid(voxel_grid=new_mask)
-        self.update_image_data()
 
     def add_noise(self, noise_level, noise_iteration_id):
         """
@@ -604,7 +603,6 @@ class GenericImage(BaseImage):
 
         # Update image.
         self.set_voxel_grid(voxel_grid=voxel_grid)
-        self.update_image_data()
 
     def estimate_noise(self, method="chang"):
 
@@ -774,7 +772,6 @@ class GenericImage(BaseImage):
 
             # Set the updated image data.
             self.set_voxel_grid(voxel_grid=image_data)
-            self.update_image_data()
 
     def normalise_intensities(
             self,
