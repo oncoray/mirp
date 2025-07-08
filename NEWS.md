@@ -35,6 +35,7 @@
 - The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. 
 - Directories with sample names without any further underlying directories (no `image_sub_folder` or 
   `mask_sub_folder`) are now correctly filtered using `sample_name`.
+- Computing semi-axes length for flat geometries no longer produces occasional warnings due to machine precision.
 
 # Version 2.3.3
 
