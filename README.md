@@ -41,19 +41,21 @@ MIRP currently supports the following Python versions and operating systems:
 | 3.11   | Supported | Supported | Supported |
 | 3.12   | Supported | Supported | Supported |
 
-## Supported imaging and mask modalities
+## Supported imaging and mask types
 
-MIRP currently supports the following image modalities:
+MIRP currently supports the following image and mask types:
 
-| File format | File type | Supported modality                              |
+| Data format | Data type | Supported modality                              |
 |-------------|-----------|-------------------------------------------------|
 | DICOM       | image     | CT, MR (incl. ADC, DCE), PT, RTDOSE, CR, DX, MG |
 | DICOM       | mask      | RTSTRUCT, SEG                                   |
 | NIfTI       | any       | any                                             |
 | NRRD        | any       | any                                             |
 | numpy       | any       | any                                             |
+| MIRP-native | any       | any                                             | 
 
-NIfTI, NRRD, and numpy files support any kind of (single-channel) image. MIRP cannot process RGB or 4D images.
+NIfTI, NRRD, and numpy files support any kind of (single-channel) image. MIRP cannot process RGB or 4D images. 
+MIRP-native images and masks can be produced by functions such as `extract_images`, and then used as input. 
 
 ## Installing MIRP
 MIRP is available from PyPI and can be installed using `pip`, or other installer tools:
@@ -62,7 +64,7 @@ MIRP is available from PyPI and can be installed using `pip`, or other installer
 pip install mirp
 ```
 
-## Examples - Computing Radiomics Features
+## Examples - Computing radiomics features
 
 MIRP can be used to compute quantitative features from regions of interest in images in an IBSI-compliant manner 
 using a standardized workflow This requires both images and masks. MIRP can process DICOM, NIfTI, NRRD and numpy 
@@ -104,7 +106,7 @@ feature_data = extract_features(
 The above example will compute features sequentially. MIRP supports parallel processing using the `ray` package. 
 Feature computation can be parallelized by specifying the `num_cpus` argument, e.g. `num_cpus=2` for two CPU threads.
 
-## Examples - Image Preprocessing for Deep Learning
+## Examples - Image preprocessing for deep learning
 Deep learning-based radiomics is an alternative to using predefined quantitative features. MIRP supports 
 preprocessing of images and masks using the same standardized workflow that is used for computing features.
 
@@ -121,7 +123,7 @@ processed_images = deep_learning_preprocessing(
 )
 ```
 
-## Examples - Summarising Image Metadata
+## Examples - Summarising image metadata
 
 MIRP can also summarise image metadata. This is particularly relevant for DICOM files that have considerable 
 metadata. Other files, e.g. NIfTI, only have metadata related to position and spacing of the image.
@@ -167,6 +169,44 @@ mask_labels = extract_mask_labels(
 )
 ```
 
+## Examples - Using MIRP native images and mask
+
+MIRP supports exporting images and masks in its native, internal format. This is specified using the 
+`image_export_format="native"` argument, e.g. in `extract_images(.., image_export_format="native")` or 
+`extract_features_and_images(..., image_export_format="native"`). The resulting images and masks can be used again
+as input, e.g. `extract_features(image=native_images, masks=native_masks, ...)`, with `native_images` and 
+`native_masks` being the images and masks in the native format, respectively.
+  
+This allows for external processing of the contents of images and masks, such as performing gamma corrections. The 
+image and mask contents are retrieved using the `get_voxel_grid` method, and set using the `set_voxel_grid` method.
+`set_voxel_grid` expects a `numpy.ndarray` of the same shape and type (`float` for images, `bool` for masks) as the 
+original.
+
+```python
+from mirp import extract_images, extract_features
+
+results = extract_images(
+    image="path to image",
+    mask="path to mask",
+    image_export_format="native"
+)
+
+image = results[0][0][0]
+mask = results[0][1][0]
+
+# Obtain the numpy.ndarray.
+voxel_grid = image.get_voxel_grid()
+
+# Divide intensities by 2.
+image.set_voxel_grid(voxel_grid=voxel_grid / 2.0)
+
+features = extract_features(
+    image=image,
+    mask=mask,
+    base_discretisation_method="fixed_bin_number",
+    base_discretisation_n_bins=32
+)[0]
+```
 
 # Citation info
 MIRP has been published in *Journal of Open Source Software*:
