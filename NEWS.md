@@ -1,8 +1,24 @@
 # Version 2.4.0
 
+# Major changes
+
+- It is now possible to use and process (in-memory) images and masks in a native `mirp` format. It was already 
+  possible to export imaging and masks, e.g. using `extract_images(..., image_export_format="native")` or
+  `extract_features_and_images(..., image_export_format="native"`). Now the resulting images and masks can be used 
+  as input, e.g. `extract_features(image=native_images, masks=native_masks, ...)`, with `native_images` and 
+  `native_masks` being the resulting images and masks, respectively.
+  
+  This allows for external processing of the contents of images and masks, such as performing gamma corrections. The 
+  image and mask contents are retrieved using the `get_voxel_grid` method, and set using the `set_voxel_grid` method.
+  `set_voxel_grid` expects a `numpy.ndarray` of the same shape and type (`float` for images, `bool` for masks) as the 
+  original.
+
 ## Fixes
 
-- Setting file types is now case-insensitive. 
+- Setting file types is now case-insensitive.
+- The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. This was already the 
+  case, but the return value could still be of a complex type.
+- Sample names are now more effectively determined based on file name and folder structure.
 
 # Version 2.3.4
 
