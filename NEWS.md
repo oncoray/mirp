@@ -19,6 +19,10 @@
 - The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. This was already the 
   case, but the return value could still be of a complex type.
 - Sample names are now more effectively determined based on file name and folder structure.
+- - Computing semi-axes length for flat geometries no longer produces occasional warnings due to machine precision.
+- Computing morphological features for line-like structures no longer results in divisions by zero.
+- Computing morphological features with an empty intensity-mask no longer results in illegal divisions.
+- Computing aggregated texture feature values from underlying NaN values no longer generates warnings.
 
 # Version 2.3.4
 
@@ -34,10 +38,7 @@
   this would result in an error when attempting to merge the names of the regions of interest.
 - The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. 
 - Directories with sample names without any further underlying directories (no `image_sub_folder` or 
-  `mask_sub_folder`) are now correctly filtered using `sample_name`.
-- Computing semi-axes length for flat geometries no longer produces occasional warnings due to machine precision.
-- Computing morphological features for line-like structures no longer results in divisions by zero.
-- Computing morphological features with an empty intensity-mask no longer results in illegal divisions.
+  `mask_sub_folder`) are now correctly filtered using `sample_name`. 
 
 # Version 2.3.3
 

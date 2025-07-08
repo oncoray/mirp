@@ -103,7 +103,10 @@ class FeatureDZM(FeatureTexture):
 
         # Compute feature value from matrices, and average over matrices.
         values = [self._compute(matrix=matrix) for matrix in matrices]
-        self.value = np.nanmean(values)
+        if np.all(np.isnan(values)):
+            self.value = np.nan
+        else:
+            self.value = np.nanmean(values)
 
     @staticmethod
     def _compute(matrix: MatrixDZM):
