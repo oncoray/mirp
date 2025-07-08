@@ -504,6 +504,9 @@ class Feature3DMorphCentreOfMassShift(Feature3DMesh):
 
     @staticmethod
     def _compute(data: Data3DMesh, **kwargs) -> float:
+        if len(data.data_int) == 0 or len(data.data_morph) == 0:
+            return np.nan
+
         # Compute centre of mass for morphological and intensity-weighted mask.
         com_morph = np.array([
             np.mean(data.data_morph.z),

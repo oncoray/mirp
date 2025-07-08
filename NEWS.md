@@ -37,6 +37,7 @@
   `mask_sub_folder`) are now correctly filtered using `sample_name`.
 - Computing semi-axes length for flat geometries no longer produces occasional warnings due to machine precision.
 - Computing morphological features for line-like structures no longer results in divisions by zero.
+- Computing morphological features with an empty intensity-mask no longer results in illegal divisions.
 
 # Version 2.3.3
 
