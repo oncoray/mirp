@@ -59,8 +59,8 @@ Supported image and mask modalities
    :widths: 25 25 50
    :header-rows: 1
 
-   * - File format
-     - File type
+   * - Data format
+     - Data type
      - Supported modality
    * - DICOM
      - image
@@ -75,6 +75,9 @@ Supported image and mask modalities
      - any
      - any
    * - numpy
+     - any
+     - any
+   * - MIRP-native
      - any
      - any
 
