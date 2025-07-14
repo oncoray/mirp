@@ -58,6 +58,10 @@ def ray_remote_disabled(func):
     return placeholder_function
 
 
+def ray_is_available():
+    return RAY_AVAILABLE
+
+
 def ray_is_initialized():
     if RAY_AVAILABLE:
         return ray.is_initialized()

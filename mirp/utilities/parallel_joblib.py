@@ -6,5 +6,5 @@ except ImportError:
     JOBLIB_AVAILABLE = False
 
 
-def ray_is_initialized():
+def joblib_is_available():
     return JOBLIB_AVAILABLE
