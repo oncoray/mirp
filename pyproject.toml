@@ -31,7 +31,6 @@ dependencies = [
     "pywavelets>=1.4.0",
     "scikit-image>=0.20.0",
     "scipy>=1.11",
-    "ray>=2.34.0",
     "typing-extensions>=4.10; python_version<'3.11'"
 ]
 
@@ -41,6 +40,8 @@ Documentation = "https://oncoray.github.io/mirp/"
 Changelog = "https://github.com/oncoray/mirp/blob/master/NEWS.md"
 
 [project.optional-dependencies]
+ray = ["ray>=2.34.0"]
+joblib = ["joblib>=1.4.0"]
 test = ["pytest>=7.4.0"]
 docs = ["sphinx>=5.0.0", "sphinx_rtd_theme>=2.0.0", "nbsphinx"]
 
