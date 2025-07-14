@@ -3,7 +3,7 @@ import copy
 
 from mirp._data_import.generic_file import ImageFile
 from mirp.settings.generic import SettingsClass
-from mirp.utilities.parallel import ray_remote, ray_init, ray_is_initialized, ray_get, ray_shutdown
+from mirp.utilities.parallel_ray import ray_remote, ray_init, ray_is_initialized, ray_get, ray_shutdown
 from mirp._workflows.standardWorkflow import StandardWorkflow
 
 
@@ -139,7 +139,7 @@ def _ray_extractor(
         write_file_format: str = "numpy"
 ):
     # Limit internal threading by third-party libraries.
-    from mirp.utilities.parallel import limit_inner_threads
+    from mirp.utilities.parallel_ray import limit_inner_threads
     limit_inner_threads()
 
     return workflow.deep_learning_conversion(

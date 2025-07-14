@@ -72,7 +72,7 @@ def test_parallel_dl_preprocessing():
 
 
 def test_limit_threads():
-    from mirp.utilities.parallel import limit_inner_threads
+    from mirp.utilities.parallel_ray import limit_inner_threads
 
     limit_inner_threads()
 
