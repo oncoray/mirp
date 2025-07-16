@@ -2,6 +2,7 @@ import os.path
 
 import numpy as np
 
+from mirp import deep_learning_preprocessing_generator
 from mirp.settings.generic import SettingsClass
 from mirp.deep_learning_preprocessing import deep_learning_preprocessing
 
@@ -501,6 +502,44 @@ def test_parallel_processing_image_crop():
             image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
             perturbation_rotation_angles=[-5.0, 0.0, 5.0]
         )
+
+        assert not cluster_exists(backend=parallel_backend)
+        assert len(parallel_data) == 3
+
+        for ii, dataset in enumerate(parallel_data):
+            assert dataset[0][0]["image"].shape == (20, 50, 50)
+            assert dataset[1][0]["mask"].shape == (20, 50, 50)
+            assert np.array_equal(dataset[0][0]["image"], data[ii][0][0]["image"])
+
+
+def test_parallel_processing_image_crop_generator():
+    from mirp.utilities.parallel import cluster_exists
+
+    data = [deep_learning_preprocessing_generator(
+        output_slices=False,
+        crop_size=[20, 50, 50],
+        export_images=True,
+        write_images=False,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        perturbation_rotation_angles=[-5.0, 0.0, 5.0]
+    )]
+
+    assert len(data) == 3
+    for dataset in data:
+        assert dataset[0][0]["image"].shape == (20, 50, 50)
+        assert dataset[1][0]["mask"].shape == (20, 50, 50)
+
+    for parallel_backend in ["ray", "joblib"]:
+        parallel_data = [deep_learning_preprocessing_generator(
+            output_slices=False,
+            crop_size=[20, 50, 50],
+            export_images=True,
+            write_images=False,
+            num_cpus=2,
+            parallel_backend=parallel_backend,
+            image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+            perturbation_rotation_angles=[-5.0, 0.0, 5.0]
+        )]
 
         assert not cluster_exists(backend=parallel_backend)
         assert len(parallel_data) == 3
