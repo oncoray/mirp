@@ -256,13 +256,12 @@ def deep_learning_preprocessing_generator(
     * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
 
     """
-    workflows = list(_base_deep_learning_preprocessing(
+    for workflow in _base_deep_learning_preprocessing(
         export_images=export_images,
         write_images=write_images,
         write_dir=write_dir,
-        **kwargs))
-
-    for workflow in workflows:
+        **kwargs
+    ):
         yield workflow.deep_learning_conversion(
             output_slices=output_slices,
             crop_size=crop_size,
