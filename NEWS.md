@@ -23,6 +23,8 @@
 - Computing morphological features for line-like structures no longer results in divisions by zero.
 - Computing morphological features with an empty intensity-mask no longer results in illegal divisions.
 - Computing aggregated texture feature values from underlying NaN values no longer generates warnings.
+- Features that are not computed because they are not IBSI-compliant are now no longer exported together with valid 
+  features.
 
 # Version 2.3.4
 

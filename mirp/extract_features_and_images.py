@@ -1,6 +1,5 @@
 from typing import Generator, Iterable, Any
-import logging
-import copy
+import logging, copy, sys
 
 from mirp._data_import.generic_file import ImageFile
 from mirp.settings.generic import SettingsClass
@@ -340,7 +339,9 @@ def extract_features_and_images(
     # Configure logger
     logging.basicConfig(
         format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
-        level=logging.INFO, stream=sys.stdout)
+        level=logging.INFO,
+        stream=sys.stdout
+    )
 
     # Conditionally start a ray cluster.
     external_ray = ray_is_initialized()
