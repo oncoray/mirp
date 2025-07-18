@@ -28,6 +28,7 @@
 - Computing aggregated texture feature values from underlying NaN values no longer generates warnings.
 - Features that are not computed because they are not IBSI-compliant are now no longer exported together with valid 
   features.
+- Fixed a warning caused by a division by 0 when computing the coefficient of dispersion.
 
 # Version 2.3.4
 

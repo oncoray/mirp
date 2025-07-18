@@ -403,10 +403,11 @@ class FeatureIHQuartileCoefficientOfDispersion(FeatureIH):
 
     @staticmethod
     def _compute(data: DataIH) -> float:
-        return (
-                (np.percentile(data.image, q=75) - np.percentile(data.image, q=25))
-                / (np.percentile(data.image, q=75) + np.percentile(data.image, q=25))
-        )
+        denom = np.percentile(data.image, q=75) + np.percentile(data.image, q=25)
+        if denom == 0.0:
+            return 1.0
+
+        return (np.percentile(data.image, q=75) - np.percentile(data.image, q=25)) / denom
 
 
 class FeatureIHEntropy(FeatureIH):

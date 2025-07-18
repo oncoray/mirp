@@ -51,7 +51,7 @@ markers = [
     "ci: marks tests for continuous integration"
 ]
 #filterwarnings = [
-#   "error:Mean of empty slice"
+#   "error:invalid value encountered in scalar divid"
 #]
 
 [tool.setuptools.packages.find]
