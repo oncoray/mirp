@@ -187,6 +187,35 @@ def _ray_extractor(
     )
 
 
+@ray_remote
+def _ray_extractor_gen(
+        output_slices,
+        crop_size,
+        image_export_format,
+        write_file_format,
+        export_images,
+        write_images,
+        write_dir,
+        **kwargs
+):
+    # Limit internal threading by third-party libraries.
+    from mirp.utilities.parallel_ray import limit_inner_threads
+    limit_inner_threads()
+
+    for workflow in _base_deep_learning_preprocessing(
+            export_images=export_images,
+            write_images=write_images,
+            write_dir=write_dir,
+            **kwargs
+    ):
+        yield workflow.deep_learning_conversion(
+            output_slices=output_slices,
+            crop_size=crop_size,
+            image_export_format=image_export_format,
+            write_file_format=write_file_format
+        )
+
+
 def deep_learning_preprocessing_generator(
         output_slices: bool = False,
         crop_size: None | list[float] | list[int] = None,
@@ -195,6 +224,8 @@ def deep_learning_preprocessing_generator(
         export_images: None | bool = None,
         write_images: None | bool = None,
         write_dir: None | str = None,
+        num_cpus: None | int = None,
+        parallel_backend: None | str = None,
         **kwargs
 ) -> Generator[Any, None, None]:
     """
@@ -233,6 +264,15 @@ def deep_learning_preprocessing_generator(
         Path to directory where processed images and masks should be written. If not set, processed images and masks
         are returned by this function. Required if ``write_images=True``.
 
+    num_cpus: int, optional, default: None
+        Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
+        parallelized using the ``ray`` or ``joblib`` packages. If a ray cluster is defined by the user, this cluster
+        will be used instead. By default, image and mask processing are processed sequentially.
+
+    parallel_backend: {"none", "ray", "joblib"}, optional, default: "none"
+        Type of backend to use. Default is the sequential backend (``"none"``). Alternative backends are ``"ray"`` and
+        ``"joblib"``, which rely on the ray and joblib libraries respectively.
+
     **kwargs:
         Keyword arguments passed for importing images and masks (
         :func:`~mirp.data_import.import_image_and_mask.import_image_and_mask`) and configuring settings (notably
@@ -256,18 +296,74 @@ def deep_learning_preprocessing_generator(
     * mask resegmentation (:class:`~mirp.settings.resegmentation_parameters.ResegmentationSettingsClass`)
 
     """
-    for workflow in _base_deep_learning_preprocessing(
-        export_images=export_images,
-        write_images=write_images,
-        write_dir=write_dir,
-        **kwargs
-    ):
-        yield workflow.deep_learning_conversion(
+
+    # Configure logger
+    logging.basicConfig(
+        format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
+        level=logging.INFO,
+        stream=sys.stdout
+    )
+
+    backend = parse_parallel_backend(backend=parallel_backend, num_cpus=num_cpus)
+    external_cluster = cluster_exists(backend=backend)
+    start_parallel_cluster(backend=backend, num_cpus=num_cpus)
+
+    # Switch to sequential backend if ray cluster is not formed somehow.
+    if backend == "ray" and not cluster_exists(backend=backend):
+        backend = "none"
+
+    logging.info(message_parallel_process(backend=backend, num_cpus=num_cpus))
+
+    if backend == "none":
+        for workflow in _base_deep_learning_preprocessing(
+                export_images=export_images,
+                write_images=write_images,
+                write_dir=write_dir,
+                **kwargs
+        ):
+            yield workflow.deep_learning_conversion(
+                output_slices=output_slices,
+                crop_size=crop_size,
+                image_export_format=image_export_format,
+                write_file_format=write_file_format
+            )
+
+    elif backend == "ray":
+        for results in _ray_extractor_gen.remote(
             output_slices=output_slices,
             crop_size=crop_size,
             image_export_format=image_export_format,
-            write_file_format=write_file_format
+            write_file_format=write_file_format,
+            export_images=export_images,
+            write_images=write_images,
+            write_dir=write_dir,
+            **kwargs
+        ):
+            yield ray_get(results)
+
+    elif backend == "joblib":
+        from joblib import Parallel, delayed
+        parallel_gen = Parallel(n_jobs=num_cpus, return_as="generator")(
+            delayed(workflow.deep_learning_conversion)(
+                output_slices=output_slices,
+                crop_size=crop_size,
+                image_export_format=image_export_format,
+                write_file_format=write_file_format
+            ) for workflow in _base_deep_learning_preprocessing(
+                export_images=export_images,
+                write_images=write_images,
+                write_dir=write_dir,
+                **kwargs
+            )
         )
+
+        yield from parallel_gen
+
+    else:
+        raise ValueError(f"parallel_backend is expected to be one of 'none', 'ray' or 'joblib'. Found: {backend}")
+
+    if not external_cluster:
+        shutdown_cluster(backend=backend)
 
 
 def _base_deep_learning_preprocessing(
