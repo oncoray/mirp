@@ -187,35 +187,6 @@ def _ray_extractor(
     )
 
 
-@ray_remote
-def _ray_extractor_gen(
-        output_slices,
-        crop_size,
-        image_export_format,
-        write_file_format,
-        export_images,
-        write_images,
-        write_dir,
-        **kwargs
-):
-    # Limit internal threading by third-party libraries.
-    from mirp.utilities.parallel_ray import limit_inner_threads
-    limit_inner_threads()
-
-    for workflow in _base_deep_learning_preprocessing(
-            export_images=export_images,
-            write_images=write_images,
-            write_dir=write_dir,
-            **kwargs
-    ):
-        yield workflow.deep_learning_conversion(
-            output_slices=output_slices,
-            crop_size=crop_size,
-            image_export_format=image_export_format,
-            write_file_format=write_file_format
-        )
-
-
 def deep_learning_preprocessing_generator(
         output_slices: bool = False,
         crop_size: None | list[float] | list[int] = None,
@@ -266,12 +237,12 @@ def deep_learning_preprocessing_generator(
 
     num_cpus: int, optional, default: None
         Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
-        parallelized using the ``ray`` or ``joblib`` packages. If a ray cluster is defined by the user, this cluster
-        will be used instead. By default, image and mask processing are processed sequentially.
+        parallelized using the ``joblib`` package. By default, image and mask processing are processed sequentially.
 
-    parallel_backend: {"none", "ray", "joblib"}, optional, default: "none"
-        Type of backend to use. Default is the sequential backend (``"none"``). Alternative backends are ``"ray"`` and
-        ``"joblib"``, which rely on the ray and joblib libraries respectively.
+    parallel_backend: {"none", "joblib"}, optional, default: "none"
+        Type of backend to use. Default is the sequential backend (``"none"``). ``"joblib"`` can be used as
+        an alternative backend. ``"ray"`` cannot be used in a generator context, because only a single worker will be
+        used.
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
@@ -304,7 +275,8 @@ def deep_learning_preprocessing_generator(
         stream=sys.stdout
     )
 
-    backend = parse_parallel_backend(backend=parallel_backend, num_cpus=num_cpus)
+    # Do not allow ray as a backend.
+    backend = parse_parallel_backend(backend=parallel_backend, num_cpus=num_cpus, ray_allowed=False)
     external_cluster = cluster_exists(backend=backend)
     start_parallel_cluster(backend=backend, num_cpus=num_cpus)
 
@@ -327,19 +299,6 @@ def deep_learning_preprocessing_generator(
                 image_export_format=image_export_format,
                 write_file_format=write_file_format
             )
-
-    elif backend == "ray":
-        for results in _ray_extractor_gen.remote(
-            output_slices=output_slices,
-            crop_size=crop_size,
-            image_export_format=image_export_format,
-            write_file_format=write_file_format,
-            export_images=export_images,
-            write_images=write_images,
-            write_dir=write_dir,
-            **kwargs
-        ):
-            yield ray_get(results)
 
     elif backend == "joblib":
         from joblib import Parallel, delayed

@@ -1,6 +1,6 @@
 import warnings
 
-def parse_parallel_backend(backend: None | str, num_cpus: None | int) -> str:
+def parse_parallel_backend(backend: None | str, num_cpus: None | int, ray_allowed: bool = True) -> str:
     from mirp.utilities.parallel_ray import ray_is_available, ray_is_initialized
     from mirp.utilities.parallel_joblib import joblib_is_available
 
@@ -8,6 +8,13 @@ def parse_parallel_backend(backend: None | str, num_cpus: None | int) -> str:
         return "none"
 
     if backend == "ray":
+        if not ray_allowed:
+            warnings.warn(
+                f"The ray module cannot be used for parallel processing within the current context. Sequential processing is used.",
+                UserWarning
+            )
+            return "none"
+
         if ray_is_available():
             return "ray"
         warnings.warn(
