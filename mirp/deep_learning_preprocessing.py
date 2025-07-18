@@ -319,7 +319,7 @@ def deep_learning_preprocessing_generator(
         yield from parallel_gen
 
     else:
-        raise ValueError(f"parallel_backend is expected to be one of 'none', 'ray' or 'joblib'. Found: {backend}")
+        raise ValueError(f"parallel_backend is expected to be one of 'none' or 'joblib'. Found: {backend}")
 
     if not external_cluster:
         shutdown_cluster(backend=backend)
