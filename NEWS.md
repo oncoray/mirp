@@ -13,6 +13,9 @@
   `set_voxel_grid` expects a `numpy.ndarray` of the same shape and type (`float` for images, `bool` for masks) as the 
   original.
 
+- Parallel processing is now possible using the `joblib` backend in addition to `ray`. This can be specified using the 
+  `parallel_backend` argument. Both libraries are now optional, and not installed automatically using `pip`.
+
 ## Fixes
 
 - Setting file types is now case-insensitive.
