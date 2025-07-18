@@ -3,6 +3,8 @@ import logging, copy, sys
 
 from mirp._data_import.generic_file import ImageFile
 from mirp.settings.generic import SettingsClass
+from mirp.utilities.parallel import (
+    start_parallel_cluster, parse_parallel_backend, message_parallel_process, cluster_exists, shutdown_cluster)
 from mirp.utilities.parallel_ray import ray_remote, ray_init, ray_is_initialized, ray_get, ray_shutdown
 from mirp._workflows.standardWorkflow import StandardWorkflow
 
@@ -265,6 +267,7 @@ def extract_features_and_images(
         write_dir: None | str = None,
         image_export_format: str = "dict",
         num_cpus: None | int = None,
+        parallel_backend: None | str = None,
         **kwargs
 ):
     """
@@ -296,9 +299,13 @@ def extract_features_and_images(
         ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
 
     num_cpus: int, optional, default: None
-        Number of CPU nodes that should be used for parallel processing. Image processing and feature computation can be
-        parallelized using the ``ray`` package. If a ray cluster is defined by the user, this cluster will be used
-        instead. By default, images are processed sequentially.
+        Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
+        parallelized using the ``ray`` or ``joblib`` packages. If a ray cluster is defined by the user, this cluster
+        will be used instead. By default, image and mask processing are processed sequentially.
+
+    parallel_backend: {"none", "ray", "joblib"}, optional, default: "none"
+        Type of backend to use. Default is the sequential backend (``"none"``). Alternative backends are ``"ray"`` and
+        ``"joblib"``, which rely on the ray and joblib libraries respectively.
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
@@ -343,15 +350,19 @@ def extract_features_and_images(
         stream=sys.stdout
     )
 
-    # Conditionally start a ray cluster.
-    external_ray = ray_is_initialized()
-    if not external_ray and num_cpus is not None and num_cpus > 1:
-        ray_init(num_cpus=num_cpus)
+    backend = parse_parallel_backend(backend=parallel_backend, num_cpus=num_cpus)
+    external_cluster = cluster_exists(backend=backend)
+    start_parallel_cluster(backend=backend, num_cpus=num_cpus)
 
-    if ray_is_initialized():
-        # Parallel processing.
+    # Switch to sequential backend if ray cluster is not formed somehow.
+    if backend == "ray" and not cluster_exists(backend=backend):
+        backend = "none"
+
+    logging.info(message_parallel_process(backend=backend, num_cpus=num_cpus))
+
+    if backend == "none":
         results = [
-            _ray_extractor.remote(workflow=workflow, image_export_format=image_export_format)
+            workflow.standard_extraction(image_export_format=image_export_format)
             for workflow in _base_extract_features_and_images(
                 write_features=write_features,
                 export_features=export_features,
@@ -362,22 +373,43 @@ def extract_features_and_images(
             )
         ]
 
+    elif backend == "ray":
+        results = [
+            _ray_extractor.remote(
+                workflow=workflow,
+                image_export_format=image_export_format
+            )
+            for workflow in _base_extract_features_and_images(
+                write_features=write_features,
+                export_features=export_features,
+                write_images=write_images,
+                export_images=export_images,
+                write_dir=write_dir,
+                **kwargs
+            )
+        ]
         results = ray_get(results)
-        if not external_ray:
-            ray_shutdown()
+
+    elif backend == "joblib":
+        from joblib import Parallel, delayed
+        results = Parallel(n_jobs=num_cpus)(
+            delayed(workflow.standard_extraction)(
+                image_export_format=image_export_format
+            ) for workflow in _base_extract_features_and_images(
+                write_features=write_features,
+                export_features=export_features,
+                write_images=write_images,
+                export_images=export_images,
+                write_dir=write_dir,
+                **kwargs
+            )
+        )
 
     else:
-        # Sequential processing.
-        workflows = list(_base_extract_features_and_images(
-            write_features=write_features,
-            export_features=export_features,
-            write_images=write_images,
-            export_images=export_images,
-            write_dir=write_dir,
-            **kwargs
-        ))
+        raise ValueError(f"parallel_backend is expected to be one of 'none', 'ray' or 'joblib'. Found: {backend}")
 
-        results = [workflow.standard_extraction(image_export_format=image_export_format) for workflow in workflows]
+    if not external_cluster:
+        shutdown_cluster(backend=backend)
 
     return results
 
@@ -389,6 +421,8 @@ def extract_features_and_images_generator(
         export_images: None | bool = None,
         write_dir: None | str = None,
         image_export_format: str = "dict",
+        num_cpus: None | int = None,
+        parallel_backend: None | str = None,
         **kwargs
 ):
     """
@@ -418,6 +452,15 @@ def extract_features_and_images_generator(
         Return format for processed images and masks. ``"dict"`` returns dictionaries of images and masks as numpy
         arrays and associated characteristics. ``"native"`` returns images and masks in their internal format.
         ``"numpy"`` returns images and masks in numpy format. This argument is only used if ``export_images=True``.
+
+    num_cpus: int, optional, default: None
+        Number of CPU nodes that should be used for parallel processing. Image and mask processing can be
+        parallelized using the ``joblib`` package. By default, image and mask processing are processed sequentially.
+
+    parallel_backend: {"none", "joblib"}, optional, default: "none"
+        Type of backend to use. Default is the sequential backend (``"none"``). ``"joblib"`` can be used as
+        an alternative backend. ``"ray"`` cannot be used in a generator context, because only a single worker will be
+        used.
 
     **kwargs:
         Keyword arguments passed for importing images and masks (
@@ -455,16 +498,57 @@ def extract_features_and_images_generator(
 
     """
 
-    workflows = list(_base_extract_features_and_images(
-        write_features=write_features,
-        export_features=export_features,
-        write_images=write_images,
-        export_images=export_images,
-        write_dir=write_dir,
-        **kwargs
-    ))
-    for workflow in workflows:
-        yield workflow.standard_extraction(image_export_format=image_export_format)
+    # Configure logger
+    logging.basicConfig(
+        format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
+        level=logging.INFO,
+        stream=sys.stdout
+    )
+
+    # Do not allow ray as a backend.
+    backend = parse_parallel_backend(backend=parallel_backend, num_cpus=num_cpus, ray_allowed=False)
+    external_cluster = cluster_exists(backend=backend)
+    start_parallel_cluster(backend=backend, num_cpus=num_cpus)
+
+    # Switch to sequential backend if ray cluster is not formed somehow.
+    if backend == "ray" and not cluster_exists(backend=backend):
+        backend = "none"
+
+    logging.info(message_parallel_process(backend=backend, num_cpus=num_cpus))
+
+    if backend == "none":
+        for workflow in _base_extract_features_and_images(
+            write_features=write_features,
+            export_features=export_features,
+            write_images=write_images,
+            export_images=export_images,
+            write_dir=write_dir,
+            **kwargs
+        ):
+            yield workflow.standard_extraction(image_export_format=image_export_format)
+
+    elif backend == "joblib":
+        from joblib import Parallel, delayed
+        parallel_gen = Parallel(n_jobs=num_cpus, return_as="generator")(
+            delayed(workflow.standard_extraction)(
+                image_export_format=image_export_format
+            ) for workflow in _base_extract_features_and_images(
+                write_features=write_features,
+                export_features=export_features,
+                write_images=write_images,
+                export_images=export_images,
+                write_dir=write_dir,
+                **kwargs
+            )
+        )
+
+        yield from parallel_gen
+
+    else:
+        raise ValueError(f"parallel_backend is expected to be one of 'none' or 'joblib'. Found: {backend}")
+
+    if not external_cluster:
+        shutdown_cluster(backend=backend)
 
 
 @ray_remote

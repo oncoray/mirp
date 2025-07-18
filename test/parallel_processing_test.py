@@ -2,16 +2,16 @@ import os
 
 import numpy as np
 
+from mirp import extract_features_and_images_generator
 from mirp.extract_features_and_images import extract_features_and_images
 from mirp.deep_learning_preprocessing import deep_learning_preprocessing, deep_learning_preprocessing_generator
+from mirp.utilities.parallel import cluster_exists
 
 # Find path to the test directory. This is because we need to read datafiles stored in subdirectories.
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def test_parallel_feature_extraction():
-    from mirp.utilities.parallel import cluster_exists
-
     sequential_data = extract_features_and_images(
         write_features=False,
         export_features=True,
@@ -50,9 +50,50 @@ def test_parallel_feature_extraction():
             assert sequential_data[ii].equals(parallel_data[ii])
 
 
-def test_parallel_processing_image_crop():
-    from mirp.utilities.parallel import cluster_exists
+def test_parallel_feature_extraction_generator():
+    sequential_data = []
+    for processed_data in extract_features_and_images_generator(
+        write_features=False,
+        export_features=True,
+        write_images=False,
+        export_images=False,
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        perturbation_rotation_angles=[-5.0, 0.0, 5.0],
+        base_feature_families="statistics",
+        resegmentation_intensity_range=[-1000.0, 250.0]
+    ):
+        sequential_data.append(processed_data)
 
+    assert len(sequential_data) == 3
+
+    for parallel_backend in ["joblib"]:
+        parallel_data = []
+        for processed_data in extract_features_and_images_generator(
+            num_cpus=2,
+            parallel_backend=parallel_backend,
+            write_features=False,
+            export_features=True,
+            write_images=False,
+            export_images=False,
+            image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+            mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+            roi_name="GTV-1",
+            perturbation_rotation_angles=[-5.0, 0.0, 5.0],
+            base_feature_families="statistics",
+            resegmentation_intensity_range=[-1000.0, 250.0]
+        ):
+            parallel_data.append(processed_data)
+
+        assert not cluster_exists(backend=parallel_backend)
+        assert len(parallel_data) == 3
+
+        for ii in range(len(sequential_data)):
+            assert sequential_data[ii].equals(parallel_data[ii])
+
+
+def test_parallel_processing_image_crop():
     data = deep_learning_preprocessing(
         output_slices=False,
         crop_size=[20, 50, 50],
@@ -89,8 +130,6 @@ def test_parallel_processing_image_crop():
 
 
 def test_parallel_processing_image_crop_generator():
-    from mirp.utilities.parallel import cluster_exists
-
     # Sequential generator.
     data = []
     for processed_data in deep_learning_preprocessing_generator(
@@ -107,7 +146,8 @@ def test_parallel_processing_image_crop_generator():
 
     assert len(data) == 3
 
-    for parallel_backend in ["ray", "joblib"]:
+    # Ray is not available as a backend because this doesn't speed up the generator.
+    for parallel_backend in ["joblib"]:
         parallel_data = []
         for processed_data in deep_learning_preprocessing_generator(
                 output_slices=False,
