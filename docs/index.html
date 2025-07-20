@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MIRP &mdash; mirp 2.3.4 documentation</title>
+  <title>MIRP &mdash; mirp 2.4.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=3fb9b4ff"></script>
+      <script src="_static/documentation_options.js?v=4d935f96"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -121,8 +121,8 @@ to process images as input for neural networks and other deep learning models.</
 <col style="width: 50.0%" />
 </colgroup>
 <thead>
-<tr class="row-odd"><th class="head"><p>File format</p></th>
-<th class="head"><p>File type</p></th>
+<tr class="row-odd"><th class="head"><p>Data format</p></th>
+<th class="head"><p>Data type</p></th>
 <th class="head"><p>Supported modality</p></th>
 </tr>
 </thead>
@@ -144,6 +144,10 @@ to process images as input for neural networks and other deep learning models.</
 <td><p>any</p></td>
 </tr>
 <tr class="row-even"><td><p>numpy</p></td>
+<td><p>any</p></td>
+<td><p>any</p></td>
+</tr>
+<tr class="row-odd"><td><p>MIRP-native</p></td>
 <td><p>any</p></td>
 <td><p>any</p></td>
 </tr>
@@ -183,8 +187,14 @@ to process images as input for neural networks and other deep learning models.</
 <td><p>✅</p></td>
 <td><p>✅</p></td>
 </tr>
+<tr class="row-odd"><td><p>3.13</p></td>
+<td><p>✅</p></td>
+<td><p>✅</p></td>
+<td><p>✅</p></td>
+</tr>
 </tbody>
 </table>
+<p>Optional dependencies for parallel processing, i.e. <cite>ray</cite> and <cite>joblib</cite>, may not support all Python versions.</p>
 </section>
 </section>
 
