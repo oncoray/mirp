@@ -25,3 +25,9 @@ def random_string(k: int) -> str:
 
     character_list = list(string.ascii_uppercase + string.digits)
     return "".join(choices(character_list, k=k))
+
+
+def zero_if_close(x: np.ndarray, tol: float = 100.0):
+    f =  np.finfo(x.dtype)
+    x[np.abs(x) < f.eps * tol] = 0.0
+    return x

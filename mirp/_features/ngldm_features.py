@@ -117,7 +117,7 @@ class FeatureNGLDM(FeatureTexture):
     def compute(self, image: GenericImage, mask: BaseMask):
         # Skip processing if input image and/or roi are missing
         if image is None or mask is None:
-            return None
+            return
 
         # Check if data actually exists
         if image.is_empty() or mask.roi_intensity.is_empty_mask():
@@ -128,7 +128,10 @@ class FeatureNGLDM(FeatureTexture):
 
         # Compute feature value from matrices, and average over matrices.
         values = [self._compute(matrix=matrix) for matrix in matrices]
-        self.value = np.nanmean(values)
+        if np.all(np.isnan(values)):
+            self.value = np.nan
+        else:
+            self.value = np.nanmean(values)
 
     @staticmethod
     def _compute(matrix: MatrixNGLDM):

@@ -189,6 +189,32 @@ measurable quantity such as Hounsfield Units. Hence a *Fixed Bin Number* algorit
 These parameters can be changed using the ``response_map_discretisation_method`` and
 ``response_map_discretisation_n_bins`` arguments.
 
+Parallel processing example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+MIRP supports parallel processing using ``ray`` and ``joblib``. Using parallel processing, multiple images can be
+processed at the same time. There two relevant parameters: ``num_cpus`` and ``parallel_backend``. ``num_cpus``
+determines the number of workers that will be spawned. ``parallel_backend`` determines the backend using for parallel
+processing, i.e. ``"ray"`` or ``"joblib"``.
+
+In the example below, we extract features from images using 2 workers on a ``joblib`` backend.
+
+.. code-block:: python
+
+    from mirp import extract_features
+
+    feature_data = extract_features(
+        image="path to image",
+        mask="path to mask",
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32,
+        num_cpus=2,
+        parallel_backend="joblib"
+    )
+
+``joblib`` can also be used within a generator context, e.g. with ``extract_features_generator``, but ``ray`` cannot.
+Both ``ray`` and ``joblib`` are optional dependencies of MIRP and need to be installed separately.
+
 API documentation
 -----------------
 

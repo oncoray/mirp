@@ -441,12 +441,21 @@ class StandardWorkflow(BaseWorkflow):
 
         # Get and compute features.
         features = list(generate_features(settings=feature_settings))
+
+        # If IBSI-compliance is required, check that the feature is IBSI compliant and the input image was
+        # processed in an IBSI-compliant manner. Filter those features where this is not the case.
+        if feature_settings.ibsi_compliant:
+            features = [
+                feature for feature in features
+                if feature.is_ibsi_compliant(image=image) or not feature_settings.ibsi_compliant
+            ]
+
+        if len(features) == 0:
+            return
+
         previous_feature = None
         for feature in features:
-            # Check that both the feature is IBSI compliant and the input image is processed in an IBSI-compliant
-            # manner.
-            if feature.is_ibsi_compliant(image=image) or not feature_settings.ibsi_compliant:
-                feature.compute(image=image, mask=mask)
+            feature.compute(image=image, mask=mask)
             if previous_feature is not None:
                 previous_feature.clear_local_cache(other=feature)
             previous_feature = feature

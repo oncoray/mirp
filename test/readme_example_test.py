@@ -78,3 +78,32 @@ def test_example_retrieve_mask_labels():
     )
 
     assert all(x == 1 for x in mask_labels.roi_label.values)
+
+
+def test_example_use_native_data():
+    from mirp import extract_images, extract_features
+
+    results = extract_images(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images", "STS_001", "CT", "dicom", "mask", "RS.dcm"),
+        image_export_format="native"
+    )
+
+    image = results[0][0][0]
+    mask = results[0][1][0]
+
+    # Obtain the numpy.ndarray.
+    voxel_grid = image.get_voxel_grid()
+
+    # Divide intensities by 2.
+    image.set_voxel_grid(voxel_grid=voxel_grid / 2.0)
+
+    features = extract_features(
+        image=image,
+        mask=mask,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32
+    )[0]
+
+    assert features.stat_min.values[0] == -42.0
+    assert features.stat_max.values[0] == 75.0

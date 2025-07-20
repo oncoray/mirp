@@ -46,8 +46,8 @@ class ImageDicomFile(ImageFile):
         identifier_data = dict({
             "modality": [self.modality],
             "file_type": [self.file_type],
-            "sample_name": [self.get_sample_name()],
-            "dir_path": [self.get_dir_path()],
+            "sample_name": [self.get_sample_name(allow_none=False)],
+            "dir_path": [self.get_dir_path(allow_none=False)],
             "series_instance_uid": [self.series_instance_uid],
             "frame_of_reference_uid": [self.frame_of_reference_uid]
         })
@@ -506,51 +506,7 @@ class ImageDicomFile(ImageFile):
         return image_data
 
     def set_object_metadata(self):
-        """
-        Updates the object metadata that is passed to native image and mask classes in to_object.
-        """
-        metadata = []
-        super().set_object_metadata()
-
-        # Ensure that metadata are present.
-        self.load_metadata(limited=False)
-
-        # Study date
-        study_date = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x0020),
-            tag_type="str"
-        )
-
-        if study_date is not None and not study_date == "":
-            metadata += [("study_date", study_date)]
-
-        # Study description
-        study_description = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x1030),
-            tag_type="str"
-        )
-
-        if study_description is not None and not study_description == "":
-            metadata += [("study_description", study_description)]
-
-        # Series description
-        series_description = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x103E),
-            tag_type="str"
-        )
-
-        if series_description is not None and not series_description == "":
-            metadata += [("series_description", series_description)]
-
-        # Series instance UID
-        if self.series_instance_uid is not None:
-            metadata += [("series_instance_uid", self.series_instance_uid)]
-
-        # Update object_metadata
-        self.object_metadata.update(dict(metadata))
+        self.object_metadata.update(self.export_metadata())
 
     def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:

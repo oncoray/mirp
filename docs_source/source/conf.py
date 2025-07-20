@@ -22,7 +22,7 @@ copyright = '2025, Alex Zwanenburg'
 author = 'Alex Zwanenburg'
 
 # The full version, including alpha/beta/rc tags
-release = '2.3.4'
+release = '2.4.0'
 
 
 # -- General configuration ---------------------------------------------------

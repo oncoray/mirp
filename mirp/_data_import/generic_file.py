@@ -19,7 +19,8 @@ else:
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
-from mirp._data_import.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance
+from mirp._data_import.utilities import supported_file_types, match_file_name, bare_file_name, compute_file_distance, \
+    path_to_parts
 
 
 class ImageFile(BaseImage):
@@ -111,8 +112,8 @@ class ImageFile(BaseImage):
         identifier_data = dict({
             "modality": [self.modality],
             "file_type": [self.file_type],
-            "sample_name": [self.get_sample_name()],
-            "dir_path": [self.get_dir_path()],
+            "sample_name": [self.get_sample_name(allow_none=False)],
+            "dir_path": [self.get_dir_path(allow_none=False)],
             "image_dimensions": [self.get_image_dimension(as_str=True)],
             "image_spacing": [self.get_image_spacing(as_str=True)],
             "image_orientation": [self.get_image_orientation(as_str=True)]
@@ -172,17 +173,32 @@ class ImageFile(BaseImage):
 
         self.sample_name = sample_name
 
-    def get_sample_name(self):
+    def get_sample_name(self, allow_none = True):
         if self.sample_name is None:
-            return "unset_sample_name"
+            if allow_none:
+                return None
+            else:
+                return "unset_sample_name"
 
         return self.sample_name
 
-    def get_dir_path(self):
+    def get_dir_path(self, allow_none = True):
         if self.dir_path is None:
-            return "unset_dir_path"
+            if allow_none:
+                return None
+            else:
+                return "unset_dir_path"
 
         return self.dir_path
+
+    def get_file_name(self, allow_none = True):
+        if self.file_name is None:
+            if allow_none:
+                return None
+            else:
+                return "unset_file_name"
+
+        return self.file_name
 
     def get_image_dimension(self, as_str: bool = False):
         if not as_str:
@@ -455,6 +471,39 @@ class ImageFile(BaseImage):
 
     def _check_modality(self, raise_error: bool) -> bool:
         return True
+
+    def get_sample_name_from_folder(self, sub_folder: None | str) -> None | str:
+        """
+        Aims to get a sample name candidate based on folder structure.
+        """
+
+        # Do not obtain sample name if it is already present.
+        if isinstance(self.sample_name, str):
+            return None
+
+        # Do not obtain sample name if either file name or file path are missing
+        if self.dir_path is None:
+            return None
+
+        dir_struct: list[str] = path_to_parts(self.dir_path)
+        if sub_folder is None:
+            dir_sample_name = dir_struct[-1]
+        else:
+            # Subtract sub_folder.
+            for path_elem in reversed(path_to_parts(sub_folder)):
+                if path_elem == "":
+                    continue
+                if dir_struct[-1] == path_elem:
+                    dir_struct.pop()
+                else:
+                    raise ValueError(f"sub-folder structure `{path_elem}` not found on file path `{self.dir_path}`.")
+            dir_sample_name = dir_struct[-1]
+
+        if isinstance(self.sample_name, list) and len(self.sample_name) > 1:
+            if dir_sample_name not in self.sample_name:
+                return None
+
+        return dir_sample_name
 
     def get_sample_name_from_file(self, must_succeed=False) -> None | str:
         allowed_file_extensions = supported_file_types(self.file_type)
@@ -1197,8 +1246,8 @@ class MaskFile(ImageFile):
 
         return mask_list
 
-    def export_metadata(self):
-        return
+    def export_metadata(self) -> dict[str, Any]:
+        return super().export_metadata()
 
     def export_roi_labels(self) -> dict[str, Any]:
 

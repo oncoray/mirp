@@ -211,6 +211,21 @@ def test_extract_features_examples():
     assert feature_data[0]["image_voxel_size_y"][0] == 1.0
     assert feature_data[0]["image_voxel_size_z"][0] == 1.0
 
+    # Parallel processing example
+    feature_data = extract_features(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder = os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=32,
+        num_cpus=2,
+        parallel_backend="joblib"
+    )
+    assert len(feature_data) == 3
+    assert len(feature_data[0]) == 1
+    assert not feature_data[0]["image_voxel_size_x"][0] == 1.0
+    assert not feature_data[0]["image_voxel_size_y"][0] == 1.0
+    assert feature_data[0]["image_voxel_size_z"][0] == 3.27
 
 def test_deeplearning_preprocessing():
     from mirp import deep_learning_preprocessing
@@ -227,6 +242,22 @@ def test_deeplearning_preprocessing():
     assert np.any(image["image"] > -1000.0)
     assert np.any(mask["mask"])
 
+    # Parallel processing example
+    processed_data = deep_learning_preprocessing(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder = os.path.join("CT", "dicom", "image"),
+        mask_sub_folder=os.path.join("CT", "dicom", "mask"),
+        crop_size=[50, 224, 224],
+        num_cpus=2,
+        parallel_backend="joblib"
+    )
+    assert len(processed_data) == 3
+
+    image = processed_data[0][0][0]
+    mask = processed_data[0][1][0]
+
+    assert np.any(image["image"] > -1000.0)
+    assert np.any(mask["mask"])
 
 def test_image_metadata_extraction():
     from mirp import extract_image_parameters

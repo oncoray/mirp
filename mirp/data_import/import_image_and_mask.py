@@ -222,25 +222,47 @@ def import_image_and_mask(
     image_list = [image if image.on_file_system() else image.copy() for image in image_list]
 
     # Set sample names. First we check if all sample names are missing.
-    if all(image.sample_name is None for image in image_list):
-        if isinstance(sample_name, str):
-            sample_name = [sample_name]
+    sample_name_set = all(image.sample_name is not None for image in image_list)
 
-        if isinstance(sample_name, list) and len(sample_name) == len(image_list):
+    # If a single string is present, convert to list of str.
+    if not sample_name_set and isinstance(sample_name, str):
+        sample_name = [sample_name]
+
+    # Use provided sample names.
+    if not sample_name_set and isinstance(sample_name, list) and len(sample_name) == len(image_list):
+        for ii, image in enumerate(image_list):
+            image.set_sample_name(sample_name=sample_name[ii])
+            if image.associated_masks is not None:
+                for mask in image.associated_masks:
+                    mask.set_sample_name(sample_name=sample_name[ii])
+        sample_name_set = True
+
+    # Infer sample name from file name.
+    if not sample_name_set and all(image.file_name is not None for image in image_list):
+        # Check that this results in unique sample names.
+        file_sample_names = [image.get_sample_name_from_file(must_succeed=True) for image in image_list]
+        if len(set(file_sample_names)) == len(image_list):
             for ii, image in enumerate(image_list):
-                image.set_sample_name(sample_name=sample_name[ii])
-                if image.associated_masks is not None:
-                    for mask in image.associated_masks:
-                        mask.set_sample_name(sample_name=sample_name[ii])
-
-        elif all(image.file_name is not None for image in image_list):
-            for image in image_list:
-                file_sample_name = image.get_sample_name_from_file(must_succeed=True)
-                image.set_sample_name(sample_name=file_sample_name)
+                image.set_sample_name(sample_name=file_sample_names[ii])
 
                 if image.associated_masks is not None:
                     for mask in image.associated_masks:
-                        mask.set_sample_name(sample_name=file_sample_name)
+                        mask.set_sample_name(sample_name=file_sample_names[ii])
+
+            sample_name_set = True
+
+    # Infer sample name from folder structure.
+    if not sample_name_set and all(image.dir_path is not None for image in image_list):
+        # Check that this results in unique sample names.
+        folder_sample_names = [image.get_sample_name_from_folder(sub_folder=image_sub_folder) for image in image_list]
+        if len(set(folder_sample_names)) == len(image_list):
+            for ii, image in enumerate(image_list):
+                image.set_sample_name(sample_name=folder_sample_names[ii])
+
+                if image.associated_masks is not None:
+                    for mask in image.associated_masks:
+                        mask.set_sample_name(sample_name=folder_sample_names[ii])
+            sample_name_set = True
 
     # Then set any sample names for images that still miss them.
     if any(image.sample_name is None for image in image_list):
@@ -299,28 +321,28 @@ def set_association_strategy(
 
     # Check if file_distance is possible. If directory are absent or singular, file distance cannot be used for
     # association.
-    image_dir_path = set(image.dir_path for image in image_list) - {None}
-    mask_dir_path = set(mask.dir_path for mask in mask_list) - {None}
+    image_dir_path = set(image.get_dir_path() for image in image_list) - {None}
+    mask_dir_path = set(mask.get_dir_path() for mask in mask_list) - {None}
     if len(image_dir_path) == 0 or len(mask_dir_path) <= 1:
         possible_strategies.remove("file_distance")
 
     # Check if file_name_similarity is possible. If file names are absent, this is not possible.
-    if all(image.file_name is None for image in image_list) or all(mask.file_name is None for mask in mask_list):
+    if all(image.get_file_name() is None for image in image_list) or all(mask.get_file_name() is None for mask in mask_list):
         possible_strategies.remove("file_name_similarity")
 
     # Check if position can be used.
-    if all(image.image_origin is None for image in image_list) or all(mask.image_origin is None for mask in mask_list):
+    if all(image.get_image_origin() is None for image in image_list) or all(mask.get_image_origin() is None for mask in mask_list):
         possible_strategies.remove("position")
     else:
         image_position_data = set([
             image.get_image_origin(as_str=True) + image.get_image_spacing(as_str=True) +
             image.get_image_dimension(as_str=True) + image.get_image_orientation(as_str=True)
-            for image in image_list if image.image_origin is not None
+            for image in image_list if image.get_image_origin() is not None
         ])
         mask_position_data = set([
             mask.get_image_origin(as_str=True) + mask.get_image_spacing(as_str=True) +
             mask.get_image_dimension(as_str=True) + mask.get_image_orientation(as_str=True)
-            for mask in mask_list if mask.image_origin is not None
+            for mask in mask_list if mask.get_image_origin() is not None
         ])
 
         # Check that there are more

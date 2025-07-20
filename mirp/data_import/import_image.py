@@ -7,6 +7,8 @@ import pandas as pd
 from mirp._data_import.directory import ImageDirectory, MaskDirectory
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_file_types, supported_image_modalities, flatten_list
+from mirp._images.base_image import BaseImage
+from mirp._masks.base_mask import BaseMask
 from mirp.settings.import_data_parameters import import_data_settings
 
 
@@ -239,3 +241,19 @@ def _(
         _import_image(current_image, remove_metadata=remove_metadata, **kwargs)
         for current_image in image.image_files
     ]
+
+
+@_import_image.register(BaseImage)
+def _(
+        image: BaseImage,
+        **kwargs
+):
+    return image
+
+
+@_import_image.register(BaseMask)
+def _(
+        image: BaseMask,
+        **kwargs
+):
+    return image

@@ -326,10 +326,11 @@ class FeatureStatQuartileCoefficientOfDispersion(FeatureStat):
 
     @staticmethod
     def _compute(data: DataStatistics) -> float:
-        return (
-                (np.percentile(data.image, q=75) - np.percentile(data.image, q=25))
-                / (np.percentile(data.image, q=75) + np.percentile(data.image, q=25))
-        )
+        denom = np.percentile(data.image, q=75) + np.percentile(data.image, q=25)
+        if denom == 0.0:
+            return 1.0
+
+        return (np.percentile(data.image, q=75) - np.percentile(data.image, q=25)) / denom
 
 
 class FeatureStatEnergy(FeatureStat):

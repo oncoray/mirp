@@ -1,6 +1,13 @@
 import copy
+import sys
+import warnings
 
 import numpy as np
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 
 class BaseImage:
@@ -34,6 +41,10 @@ class BaseImage:
         # Set sample name.
         self.sample_name = sample_name
 
+        # Initialise associated masks, which is required for passing image
+        self.image_data = None
+        self.associated_masks = None
+
         # Set metadata. Entries with empty values (None or "") are removed from the metadata dict to avoid
         # polluting the dictionary with unset entries.
         if isinstance(metadata, dict) and len(metadata) > 0:
@@ -52,6 +63,17 @@ class BaseImage:
         # Determines whether slices in the stack should be treated separately.
         self.separate_slices = separate_slices
 
+    def copy(self, drop_image=False) -> Self:
+        image = copy.deepcopy(self)
+
+        if drop_image:
+            image.drop_image()
+
+        return image
+
+    def drop_image(self):
+        self.image_data = None
+
     def is_isotropic(self) -> bool:
         if self.separate_slices:
             spacing = np.array(self.image_spacing)[[1, 2]]
@@ -59,6 +81,153 @@ class BaseImage:
             spacing = np.array(self.image_spacing)
 
         return np.all(spacing == spacing[0])
+
+    def set_modality(self, modality: None | str):
+        from mirp._data_import.utilities import supported_image_modalities
+        if modality is None:
+            return
+
+        if not isinstance(modality, str):
+            raise ValueError(f"modality is expected to be a character string. Found: {modality}")
+
+        if modality == "generic":
+            raise ValueError(f"modality cannot be 'generic'")
+
+        modality = supported_image_modalities(modality)
+        if self.modality is None or self.modality == "generic":
+            self.modality = modality[0]
+
+    @staticmethod
+    def get_dir_path():
+        # BaseImage does not have an associated directory path.
+        return None
+
+    @staticmethod
+    def get_file_name():
+        # BaseImage also has no associated file name.
+        return None
+
+    def get_image_origin(self, as_str=False):
+        if not as_str:
+            return self.image_origin
+
+        if self.image_origin is None:
+            return "unset_image_origin"
+
+        return str(self.image_origin)
+
+    def get_image_orientation(self, as_str=False):
+        if not as_str:
+            return self.image_orientation
+
+        if self.image_orientation is None:
+            return "unset_image_orientation"
+
+        return str(np.ravel(self.image_orientation))
+
+    def get_image_spacing(self, as_str=False):
+        if not as_str:
+            return self.image_spacing
+
+        if self.image_spacing is None:
+            return "unset_image_spacing"
+
+        return str(self.image_spacing)
+
+    def get_image_dimension(self, as_str=False):
+        if not as_str:
+            return self.image_dimension
+
+        if self.image_dimension is None:
+            return "unset_image_dimension"
+
+        return str(self.image_dimension)
+
+    def remove_metadata(self, force=False):
+        if force:
+            self.object_metadata = dict()
+
+    def associate_with_mask(
+            self,
+            mask_list,
+            association_strategy: None | set[str] = None
+    ):
+        if mask_list is None or len(mask_list) == 0 or association_strategy is None:
+            return
+
+        # Match on sample name.
+        if "sample_name" in association_strategy and self.sample_name is not None:
+            matching_mask_list = [
+                mask_file for mask_file in mask_list
+                if self.sample_name == mask_file.sample_name
+            ]
+
+            if len(matching_mask_list) > 0:
+                self.associated_masks = matching_mask_list
+                return
+
+        return
+
+    def on_file_system(self):
+        # The BaseImage object is by its nature not on the file system.
+        return False
+
+    def check_associated_masks(self):
+        if self.associated_masks is None:
+            return
+
+        for mask in self.associated_masks:
+            self._check_associated_mask_image_data(mask=mask)
+
+    def _check_associated_mask_image_data(self, mask):
+        """
+        Check whether image and associated mask plausibly share the same frame of reference. This method is only
+        used during import of BaseImage and BaseMask.
+        """
+
+        problem_list = []
+        # Mismatch in grid dimension
+        if not np.array_equal(self.get_image_dimension(), mask.get_image_dimension()):
+                problem_list += [
+                    f"different dimensions: \n\t\timage: {self.get_image_dimension()}\n\t\tmask: {mask.get_image_dimension()}"
+                ]
+
+        # Mismatch in origin
+        if not np.allclose(self.get_image_origin(), mask.get_image_origin()):
+            problem_list += [
+                f"different origin: \n\t\timage: {self.get_image_origin()}\n\t\tmask: {mask.get_image_origin()}"
+            ]
+
+        # Mismatch in spacing
+        if not np.allclose(self.get_image_spacing(), mask.get_image_spacing()):
+            problem_list += [
+                f"different spacing: \n\t\timage: {self.get_image_spacing()}\n\t\tmask: {mask.get_image_spacing()}"
+            ]
+
+        # Mismatch in orientation
+        if not np.allclose(self.get_image_orientation(), mask.get_image_orientation()):
+            problem_list += [
+                f"different orientation: \n\t\timage: {np.ravel(self.get_image_orientation())}\n\t\tmask: "
+                f"{np.ravel(mask.get_image_orientation())}"
+            ]
+
+        if len(problem_list) > 0:
+            warnings.warn(
+                f"Image and mask may not have the same frame of "
+                f"reference. Please check if segmentation masks are placed correctly:\n\t" + "\n\t".join(problem_list),
+                UserWarning
+            )
+
+    def to_object(self, **kwargs):
+        image = self.copy()
+
+        # Drop associated masks.
+        image.associated_masks = None
+
+        return image
+
+    def promote(self, **kwargs):
+        return self
 
     def world_coordinates(self):
 

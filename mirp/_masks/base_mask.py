@@ -29,6 +29,9 @@ class BaseMask:
         # Set region of interest.
         self.roi = MaskImage(**kwargs)
 
+        # Set sample name.
+        self.sample_name = self.roi.sample_name
+
         # Define other types of masks.
         self.roi_intensity: None | MaskImage = None
         self.roi_morphology: None | MaskImage = None
@@ -38,6 +41,41 @@ class BaseMask:
 
         # Set intensity range.
         self.intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
+
+    @staticmethod
+    def get_dir_path():
+        # BaseMask does not have an associated directory path.
+        return None
+
+    @staticmethod
+    def get_file_name():
+        # BaseMask also has no associated file name.
+        return None
+
+    def get_image_origin(self, **kwargs):
+        return self.roi.get_image_origin(**kwargs)
+
+    def get_image_orientation(self, **kwargs):
+        return self.roi.get_image_orientation(**kwargs)
+
+    def get_image_spacing(self, **kwargs):
+        return self.roi.get_image_spacing(**kwargs)
+
+    def get_image_dimension(self, **kwargs):
+        return self.roi.get_image_dimension(**kwargs)
+
+    def remove_metadata(self, force=False):
+        self.roi.remove_metadata(force=force)
+        if self.roi_intensity is not None:
+            self.roi_intensity.remove_metadata(force=force)
+        if self.roi_morphology is not None:
+            self.roi_morphology.remove_metadata(force=force)
+
+    def to_object(self, **kwargs):
+        return self.copy()
+
+    def promote(self, **kwargs):
+        return self
 
     def update_separate_slices(self, x):
         self.roi.update_separate_slices(x=x)
@@ -775,5 +813,19 @@ class BaseMask:
     def get_export_attributes(self) -> dict[str, Any]:
         attributes = dict([("roi_name", self.roi_name)])
         attributes.update(self.roi.get_export_attributes())
+
+        return attributes
+
+    def export_roi_labels(self):
+
+        attributes = self.get_export_attributes()
+        attributes["roi_label"] = attributes.pop("roi_name")
+
+        # A list is expected for roi_label.
+        attributes["roi_label"] = [attributes["roi_label"]]
+
+        for remove_key in ["translation", "rotation", "image_spacing", "image_origin", "image_orientation"]:
+            if remove_key in attributes.keys():
+                attributes.pop(remove_key)
 
         return attributes

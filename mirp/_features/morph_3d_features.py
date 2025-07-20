@@ -504,6 +504,9 @@ class Feature3DMorphCentreOfMassShift(Feature3DMesh):
 
     @staticmethod
     def _compute(data: Data3DMesh, **kwargs) -> float:
+        if len(data.data_int) == 0 or len(data.data_morph) == 0:
+            return np.nan
+
         # Compute centre of mass for morphological and intensity-weighted mask.
         com_morph = np.array([
             np.mean(data.data_morph.z),
@@ -700,7 +703,7 @@ class Feature3DMorphApproximateEnclosingEllipsoidVolumeDensity(Feature3DPCA):
 
     @staticmethod
     def _compute(data: Data3DPrincipleComponents, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return 3.0 * data.volume / (4.0 * np.pi * np.prod(data.semi_axes))
 
@@ -715,7 +718,7 @@ class Feature3DMorphApproximateEnclosingEllipsoidAreaDensity(Feature3DPCA):
 
     @staticmethod
     def _compute(data: Data3DPrincipleComponents, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return data.area / data.get_ellipsoid_surface_area(n_degree=20)
 
@@ -730,7 +733,7 @@ class Feature3DMorphMinimumEnvelopingEllipsoidVolumeDensity(Feature3DMinimumEnve
 
     @staticmethod
     def _compute(data: Data3DMinimumEnvelopingEllipsoid, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return 3.0 * data.volume / (4.0 * np.pi * np.prod(data.semi_axes))
 
@@ -745,7 +748,7 @@ class Feature3DMorphMinimumEnvelopingEllipsoidAreaDensity(Feature3DMinimumEnvelo
 
     @staticmethod
     def _compute(data: Data3DMinimumEnvelopingEllipsoid, **kwargs) -> float:
-        if np.any(data.semi_axes == 0.0):
+        if np.any(np.equal(data.semi_axes, 0.0)):
             return np.nan
         return data.area / data.get_ellipsoid_surface_area(n_degree=20)
 

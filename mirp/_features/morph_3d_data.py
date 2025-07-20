@@ -6,6 +6,7 @@ import copy
 
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
+from mirp.utilities.utilities import zero_if_close
 
 
 class Data3DMesh(object):
@@ -472,6 +473,7 @@ class Data3DPrincipleComponents(Data3DMesh):
         # Get eigenvalues and vectors
         if not self.is_singular():
             eigen_val, eigen_vec = np.linalg.eigh(np.cov(pos_mat_pca, rowvar=False))
+            eigen_val = zero_if_close(eigen_val)
             self.semi_axes = tuple(2.0 * np.sqrt(np.sort(eigen_val)))
 
     def get_ellipsoid_surface_area(self, n_degree=10):

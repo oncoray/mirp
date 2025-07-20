@@ -101,7 +101,7 @@ class FeatureCM(FeatureTexture):
     def compute(self, image: GenericImage, mask: BaseMask):
         # Skip processing if input image and/or roi are missing
         if image is None or mask is None:
-            return None
+            return
 
         # Check if data actually exists
         if image.is_empty() or mask.roi_intensity.is_empty_mask():
@@ -112,7 +112,10 @@ class FeatureCM(FeatureTexture):
 
         # Compute feature value from matrices, and average over matrices.
         values = [self._compute(matrix=matrix) for matrix in matrices]
-        self.value = np.nanmean(values)
+        if np.all(np.isnan(values)):
+            self.value = np.nan
+        else:
+            self.value = np.nanmean(values)
 
     @staticmethod
     def _compute(matrix: MatrixCM):
@@ -584,10 +587,10 @@ class FeatureCMMaximumCorrelationCoefficient(FeatureCM):
         eigen_values.sort()
 
         # Select second largest eigenvalue, and set minimum value to 0.
-        second_largest_eigen_value = np.max([0.0, eigen_values[-2]])
+        second_largest_eigen_value = np.max([0.0, np.real(eigen_values[-2])])
 
         # Return square root of second largest eigenvalue.
-        return np.sqrt(second_largest_eigen_value)
+        return np.real(np.sqrt(second_largest_eigen_value))
 
 
 def get_cm_class_dict() -> dict[str, FeatureCM]:

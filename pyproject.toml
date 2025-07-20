@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mirp"
-version = "2.3.4"
+version = "2.4.0"
 description = "A package for standardised processing of medical imaging and computation of quantitative features."
 authors = [
     {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
@@ -17,6 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering :: Image Processing",
     "Topic :: Scientific/Engineering :: Medical Science Apps."
@@ -31,7 +32,6 @@ dependencies = [
     "pywavelets>=1.4.0",
     "scikit-image>=0.20.0",
     "scipy>=1.11",
-    "ray>=2.34.0",
     "typing-extensions>=4.10; python_version<'3.11'"
 ]
 
@@ -41,6 +41,8 @@ Documentation = "https://oncoray.github.io/mirp/"
 Changelog = "https://github.com/oncoray/mirp/blob/master/NEWS.md"
 
 [project.optional-dependencies]
+ray = ["ray>=2.34.0"]
+joblib = ["joblib>=1.4.0"]
 test = ["pytest>=7.4.0"]
 docs = ["sphinx>=5.0.0", "sphinx_rtd_theme>=2.0.0", "nbsphinx"]
 
@@ -50,7 +52,7 @@ markers = [
     "ci: marks tests for continuous integration"
 ]
 #filterwarnings = [
-#   "error:Arrays of 2-dimensional vectors are deprecated"
+#   "error:invalid value encountered in scalar divid"
 #]
 
 [tool.setuptools.packages.find]

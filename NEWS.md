@@ -1,3 +1,35 @@
+# Version 2.4.0
+
+# Major changes
+
+- It is now possible to use and process (in-memory) images and masks in a native `mirp` format. It was already 
+  possible to export imaging and masks, e.g. using `extract_images(..., image_export_format="native")` or
+  `extract_features_and_images(..., image_export_format="native"`). Now the resulting images and masks can be used 
+  as input, e.g. `extract_features(image=native_images, masks=native_masks, ...)`, with `native_images` and 
+  `native_masks` being the resulting images and masks, respectively.
+  
+  This allows for external processing of the contents of images and masks, such as performing gamma corrections. The 
+  image and mask contents are retrieved using the `get_voxel_grid` method, and set using the `set_voxel_grid` method.
+  `set_voxel_grid` expects a `numpy.ndarray` of the same shape and type (`float` for images, `bool` for masks) as the 
+  original.
+
+- Parallel processing is now possible using the `joblib` backend in addition to `ray`. This can be specified using the 
+  `parallel_backend` argument. Both libraries are now optional, and not installed automatically using `pip`.
+
+## Fixes
+
+- Setting file types is now case-insensitive.
+- The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. This was already the 
+  case, but the return value could still be of a complex type.
+- Sample names are now more effectively determined based on file name and folder structure.
+- - Computing semi-axes length for flat geometries no longer produces occasional warnings due to machine precision.
+- Computing morphological features for line-like structures no longer results in divisions by zero.
+- Computing morphological features with an empty intensity-mask no longer results in illegal divisions.
+- Computing aggregated texture feature values from underlying NaN values no longer generates warnings.
+- Features that are not computed because they are not IBSI-compliant are now no longer exported together with valid 
+  features.
+- Fixed a warning caused by a division by 0 when computing the coefficient of dispersion.
+
 # Version 2.3.4
 
 ## Minor changes
@@ -12,7 +44,7 @@
   this would result in an error when attempting to merge the names of the regions of interest.
 - The co-occurrence matrix-based maximum correlation coefficient no longer has complex values. 
 - Directories with sample names without any further underlying directories (no `image_sub_folder` or 
-  `mask_sub_folder`) are now correctly filtered using `sample_name`.
+  `mask_sub_folder`) are now correctly filtered using `sample_name`. 
 
 # Version 2.3.3
 

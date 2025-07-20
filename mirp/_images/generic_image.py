@@ -37,7 +37,6 @@ class GenericImage(BaseImage):
         # Image data. Note that image_data is explicitly defined as this prevents IDE warnings. However,
         # the attribute itself is set using set_voxel_grid. Also, note that we explicitly copy image_data because
         # otherwise we may end up changing objects by reference, which is not the expected behaviour.
-        self.image_data = None
         self.set_voxel_grid(copy.deepcopy(image_data)) if image_data is not None else None
 
         # Perturbation-related settings that are set during interpolate.
@@ -60,14 +59,6 @@ class GenericImage(BaseImage):
 
         # Image underwent IBSI compliant processing (default True: it is easier to identify exceptions).
         self.ibsi_compliant = True
-
-    def copy(self, drop_image=False) -> Self:
-        image = copy.deepcopy(self)
-
-        if drop_image:
-            image.drop_image()
-
-        return image
 
     def update_from_template(self, template):
         if not isinstance(template, GenericImage):
@@ -171,15 +162,13 @@ class GenericImage(BaseImage):
         else:
             return image_list[0]
 
-    def drop_image(self):
-        self.image_data = None
-
     def is_empty(self) -> bool:
         return self.image_data is None
 
     def set_voxel_grid(self, voxel_grid: np.ndarray):
         self.image_data = voxel_grid
         self.image_dimension = tuple(voxel_grid.shape)
+        self.update_image_data()
 
     def get_voxel_grid(self) -> None | np.ndarray:
         return self.image_data
@@ -470,7 +459,6 @@ class GenericImage(BaseImage):
 
         # Set voxel grid
         self.set_voxel_grid(voxel_grid=sample_voxel_grid)
-        self.update_image_data()
 
     def register(
             self,
@@ -582,7 +570,6 @@ class GenericImage(BaseImage):
 
         # Set and update image after registration.
         self.set_voxel_grid(voxel_grid=new_mask)
-        self.update_image_data()
 
     def add_noise(self, noise_level, noise_iteration_id):
         """
@@ -616,7 +603,6 @@ class GenericImage(BaseImage):
 
         # Update image.
         self.set_voxel_grid(voxel_grid=voxel_grid)
-        self.update_image_data()
 
     def estimate_noise(self, method="chang"):
 
@@ -786,7 +772,6 @@ class GenericImage(BaseImage):
 
             # Set the updated image data.
             self.set_voxel_grid(voxel_grid=image_data)
-            self.update_image_data()
 
     def normalise_intensities(
             self,
@@ -1289,6 +1274,13 @@ class GenericImage(BaseImage):
 
         else:
             raise ValueError(f"The current value of export_format was not recognised: {export_format}")
+
+    def export_metadata(self, **kwargs) -> None | dict[str, Any]:
+        metadata = self.object_metadata
+        if isinstance(metadata, dict):
+            return metadata
+        else:
+            return dict()
 
     def get_export_attributes(self) -> dict[str, Any]:
         attributes = []
