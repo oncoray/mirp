@@ -71,6 +71,8 @@ class LocalBinaryPatternFilter(GenericFilter):
             self,
             voxel_grid: np.ndarray
     ):
+        from scipy.stats import kurtosis
+
         # Voxel grid as a contiguous flattened array.
         dims = voxel_grid.shape
         voxel_original = np.ravel(voxel_grid)
@@ -96,6 +98,10 @@ class LocalBinaryPatternFilter(GenericFilter):
 
         elif self.lbp_method == "variance":
             voxel_response = np.var(lbp, axis = 0)
+
+        elif self.lbp_method == "kurtosis":
+            voxel_response = kurtosis(lbp, axis = 0)
+            voxel_response[np.isnan(voxel_response)] = 0.0
 
         elif self.lbp_method == "rotation_invariant":
             voxel_response = np.sum(np.multiply(lbp, weights[:, np.newaxis]), axis=0)

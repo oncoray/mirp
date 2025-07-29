@@ -1,3 +1,9 @@
+# Version 2.4.1
+
+# Minor changes
+
+- Added `kurtosis` method for local binary pattern filter.
+
 # Version 2.4.0
 
 # Major changes
