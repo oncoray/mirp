@@ -100,7 +100,7 @@ class LocalBinaryPatternFilter(GenericFilter):
             voxel_response = np.var(lbp, axis = 0)
 
         elif self.lbp_method == "kurtosis":
-            voxel_response = kurtosis(lbp, axis = 0)
+            voxel_response = kurtosis(lbp.astype(float), axis = 0)
             voxel_response[np.isnan(voxel_response)] = 0.0
 
         elif self.lbp_method == "rotation_invariant":
