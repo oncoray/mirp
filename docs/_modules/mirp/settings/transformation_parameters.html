@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.transformation_parameters &mdash; mirp 2.4.0 documentation</title>
+  <title>mirp.settings.transformation_parameters &mdash; mirp 2.4.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=4d935f96"></script>
+      <script src="../../../_static/documentation_options.js?v=e9ebdb8f"></script>
       <script src="../../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -443,6 +443,8 @@
 <span class="sd">          is rotationally invariant.</span>
 <span class="sd">        * &quot;variance&quot;: variance of patterns, similar to the ``&quot;var&quot;`` method in ``scikit-image``. This method is</span>
 <span class="sd">          rotationally invariant.</span>
+<span class="sd">        * &quot;kurtosis&quot;: kurtosis of patterns, with Fisher correction (i.e. kurtosis for normally distributed patterns</span>
+<span class="sd">           is 0). This method is rotationally invariant.</span>
 
 <span class="sd">        LBP are computed with nearest neighbourhood interpolation.</span>
 
@@ -954,8 +956,9 @@
                 <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The lbp_method parameter is expected to be a str or list of str.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lbp_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">lbp_method</span> <span class="o">=</span> <span class="p">[</span><span class="n">lbp_method</span><span class="p">]</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;variance&quot;</span><span class="p">,</span> <span class="s2">&quot;rotation_invariant&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lbp_method</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The lbp_method expects one or more of the following: default, variance, rotation_invariant&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;default&quot;</span><span class="p">,</span> <span class="s2">&quot;variance&quot;</span><span class="p">,</span> <span class="s2">&quot;kurtosis&quot;</span><span class="p">,</span> <span class="s2">&quot;rotation_invariant&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lbp_method</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The lbp_method expects one or more of the following: default, variance, kurtosis, &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;rotation_invariant&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lbp_method</span> <span class="o">=</span> <span class="n">lbp_method</span>
 
             <span class="c1"># Check distance.</span>

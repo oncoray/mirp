@@ -782,6 +782,8 @@ class LocalBinaryPatternImage(TransformedImage):
         # Don't add anything if the method is "default".
         if self.lbp_method == "variance":
             descriptors += ["var"]
+        elif self.lbp_method == "kurtosis":
+            descriptors += ["kurt"]
         elif self.lbp_method == "rotation_invariant":
             descriptors += ["rot_invar"]
 
@@ -811,6 +813,8 @@ class LocalBinaryPatternImage(TransformedImage):
         # Don't add anything if the method is "default".
         if self.lbp_method == "variance":
             feature_name_prefix += ["var"]
+        elif self.lbp_method == "kurtosis":
+            feature_name_prefix += ["kurt"]
         elif self.lbp_method == "rotation_invariant":
             feature_name_prefix += ["rot_invar"]
 

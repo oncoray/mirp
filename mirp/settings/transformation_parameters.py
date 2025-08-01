@@ -347,6 +347,8 @@ class ImageTransformationSettingsClass:
           is rotationally invariant.
         * "variance": variance of patterns, similar to the ``"var"`` method in ``scikit-image``. This method is
           rotationally invariant.
+        * "kurtosis": kurtosis of patterns, with Fisher correction (i.e. kurtosis for normally distributed patterns
+           is 0). This method is rotationally invariant.
 
         LBP are computed with nearest neighbourhood interpolation.
 
@@ -858,8 +860,9 @@ class ImageTransformationSettingsClass:
                 raise TypeError(f"The lbp_method parameter is expected to be a str or list of str.")
             if isinstance(lbp_method, str):
                 lbp_method = [lbp_method]
-            if not all(x in ["default", "variance", "rotation_invariant"] for x in lbp_method):
-                raise ValueError(f"The lbp_method expects one or more of the following: default, variance, rotation_invariant")
+            if not all(x in ["default", "variance", "kurtosis", "rotation_invariant"] for x in lbp_method):
+                raise ValueError(f"The lbp_method expects one or more of the following: default, variance, kurtosis, "
+                                 f"rotation_invariant")
             self.lbp_method = lbp_method
 
             # Check distance.
