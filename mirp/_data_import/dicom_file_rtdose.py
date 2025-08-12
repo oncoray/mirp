@@ -30,6 +30,28 @@ class ImageDicomFileRTDose(ImageDicomFile):
 
         return False
 
+    def get_identifiers(self, as_hash=False) -> dict[str, Any] | bytes:
+        """
+        General identifiers for images. Compared to other
+        :return: a dictionary with identifiers.
+        """
+
+        identifier_data: dict[str, Any] = super().get_identifiers(as_hash=False)
+        identifier_data.update(
+            dict({
+                "dose_summation_type" : [get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x3004, 0x000A),
+                    tag_type="str"
+                )]
+            })
+        )
+
+        if as_hash:
+            return hashlib.sha256(str(identifier_data).encode(), usedforsecurity=False).digest()
+        else:
+            return identifier_data
+
     def create(self):
         return self
 
