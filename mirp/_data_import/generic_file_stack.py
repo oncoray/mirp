@@ -66,10 +66,17 @@ class ImageFileStack(ImageFile):
     def create(self):
         # Import locally to avoid potential circular references.
         from mirp._data_import.dicom_file_stack import ImageDicomFileStack
+        from mirp._data_import.dicom_file_volume_stack import ImageDicomFileVolumeStack
         from mirp._data_import.itk_file_stack import ImageITKFileStack
         from mirp._data_import.numpy_file_stack import ImageNumpyFileStack
+        from mirp._data_import.dicom_file_rtdose import ImageDicomFileRTDose
 
-        if all(isinstance(image_file_object, ImageDicomFile) for image_file_object in self.image_file_objects):
+        if all(isinstance(image_file_object, ImageDicomFileRTDose) for image_file_object in self.image_file_objects):
+            file_stack_class = ImageDicomFileVolumeStack
+            file_type = "dicom"
+
+        elif all(isinstance(image_file_object, ImageDicomFile) for image_file_object in self.image_file_objects):
+            # General DICOM stacks
             file_stack_class = ImageDicomFileStack
             file_type = "dicom"
 
