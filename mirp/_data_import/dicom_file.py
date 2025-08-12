@@ -664,6 +664,7 @@ class ImageDicomFile(ImageFile):
             (0x0028, 0x0010),  # pixel rows
             (0x0028, 0x0011),  # pixel columns
             (0x0028, 0x0030),  # pixel spacing
+            (0x3004, 0x000A),  # dose summation type
             (0x3004, 0x000C),  # grid frame offset vector
             (0x5200, 0x9229),  # shared functional groups sequence
             (0x5200, 0x9230)   # per-frame functional groups sequence
