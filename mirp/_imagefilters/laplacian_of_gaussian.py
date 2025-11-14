@@ -1,6 +1,8 @@
 import numpy as np
 import copy
 
+from warnings import warn
+
 from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
 from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
@@ -124,6 +126,12 @@ class LaplacianOfGaussianFilter(GenericFilter):
 
         # Update sigma to voxel units.
         sigma = np.divide(np.full(shape=3, fill_value=self.sigma), spacing)
+        if self.separate_slices:
+            sigma = sigma[[1, 2]]
+
+        if max(sigma) < 1.0:
+            warn(f"Sigma is smaller than the image spacing: this may lead to poor sampling of the "
+                 f"Laplacian-of-Gaussian function. ", UserWarning)
 
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
