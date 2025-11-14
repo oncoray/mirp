@@ -2,6 +2,8 @@ import copy
 import pandas as pd
 from typing import Any
 
+from adodbapi.examples.db_print import kw_args
+
 from mirp._images.generic_image import GenericImage
 
 
@@ -201,6 +203,69 @@ class GaussianTransformedImage(TransformedImage):
             x.columns = feature_name_prefix + x.columns
 
         return x
+
+
+class LaplacianTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            laplace_type: None | str = None,
+            boundary_condition: None | str = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.laplace_type = laplace_type
+        self.boundary_condition = boundary_condition
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def _get_laplace_filter_name(self):
+        if self.laplace_type == "convolution":
+            return "lapl"
+        elif self.laplace_type == "oono_puri":
+            return "lapl_op"
+        elif self.laplace_type == "lynch":
+            return "lapl_l"
+        elif self.laplace_type == "equidistant":
+            return "lapl_eqd"
+        else:
+            raise ValueError(f"An unexpected value for laplace_type was encountered: {self.laplace_type}")
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+        descriptors += [self._get_laplace_filter_name()]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "laplacian"),
+            ("laplacian_type", self.laplace_type),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [self._get_laplace_filter_name()]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
 
 
 class LaplacianOfGaussianTransformedImage(TransformedImage):
