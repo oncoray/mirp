@@ -552,7 +552,7 @@ class ImageTransformationSettingsClass:
         self.gaussian_boundary_condition: None | str = gaussian_kernel_boundary_condition
 
         # Check laplacian-of-gaussian filter settings
-        if self.has_laplacian_of_gaussian_filter():
+        if self.has_laplacian_of_gaussian_filter() or self.has_normalised_laplacian_of_gaussian_filter():
             # Check sigma.
             laplacian_of_gaussian_sigma = self.check_sigma(
                 laplacian_of_gaussian_sigma,
@@ -874,16 +874,18 @@ class ImageTransformationSettingsClass:
                 raise TypeError(f"lbp_filter_distance require a value of 1.0 or more.")
             self.lbp_distance = lbp_filter_distance
 
-    @staticmethod
-    def get_available_image_filters():
-        return [
+    def get_available_image_filters(self):
+        available_filters = [
             "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
-            "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
-            "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
+            "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
             "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
             "lbp", "lbp_2d", "lbp_3d"
-        ]
+        ] + \
+        self._get_available_laplacian_of_gaussian_filters() + \
+        self._get_available_normalised_laplacian_of_gaussian_filters()
+
+        return available_filters
 
     def check_boundary_condition(self, x, var_name):
         if x is None:
@@ -1224,6 +1226,13 @@ class ImageTransformationSettingsClass:
         return x is not None and any(
             filter_kernel in ["gaussian", "riesz_gaussian", "riesz_steered_gaussian"] for filter_kernel in x)
 
+    @staticmethod
+    def _get_available_laplacian_of_gaussian_filters():
+        return [
+            "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log",
+            "riesz_steered_laplacian_of_gaussian", "riesz_steered_log"
+        ]
+
     def has_laplacian_of_gaussian_filter(self, x=None):
         if x is None:
             x = self.spatial_filters
@@ -1231,10 +1240,23 @@ class ImageTransformationSettingsClass:
             x = [x]
 
         return x is not None and any(
-            filter_kernel in [
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log",
-                "riesz_steered_laplacian_of_gaussian", "riesz_steered_log"
-            ] for filter_kernel in x)
+            filter_kernel in self._get_available_laplacian_of_gaussian_filters() for filter_kernel in x)
+
+    @staticmethod
+    def _get_available_normalised_laplacian_of_gaussian_filters():
+        return [
+            "normalised_laplacian_of_gaussian", "norm_log", "riesz_normalised_laplacian_of_gaussian",
+            "riesz_norm_log", "riesz_steered_normalised_laplacian_of_gaussian", "riesz_steered_norm_log"
+        ]
+
+    def has_normalised_laplacian_of_gaussian_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(
+            filter_kernel in self._get_available_normalised_laplacian_of_gaussian_filters() for filter_kernel in x)
 
     def has_laws_filter(self, x=None):
         if x is None:

@@ -263,6 +263,11 @@ class StandardWorkflow(BaseWorkflow):
                 from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianFilter
                 filter_obj = LaplacianOfGaussianFilter(image=image, settings=self.settings, name=current_filter)
 
+            elif self.settings.img_transform.has_normalised_laplacian_of_gaussian_filter(x=current_filter):
+                # Normalised Laplacian-of-Gaussian filter
+                from mirp._imagefilters.laplacian_of_gaussian import NormalisedLaplacianOfGaussianFilter
+                filter_obj = NormalisedLaplacianOfGaussianFilter(image=image, settings=self.settings, name=current_filter)
+
             elif self.settings.img_transform.has_laws_filter(x=current_filter):
                 # Laws' kernels
                 from mirp._imagefilters.laws import LawsFilter

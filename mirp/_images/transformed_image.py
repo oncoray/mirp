@@ -206,6 +206,7 @@ class GaussianTransformedImage(TransformedImage):
 class LaplacianOfGaussianTransformedImage(TransformedImage):
     def __init__(
             self,
+            is_normalised: None | bool = None,
             sigma_parameter: None | float = None,
             sigma_cutoff_parameter: None | float = None,
             pooling_method: None | str = None,
@@ -219,6 +220,7 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
         super().__init__(**kwargs)
 
         # Filter parameters
+        self.is_normalised = False if is_normalised is None else is_normalised
         self.sigma_parameter = sigma_parameter
         self.sigma_cutoff_parameter = sigma_cutoff_parameter
         self.pooling_method = pooling_method
@@ -235,6 +237,9 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
+        if self.is_normalised:
+            descriptors += ["norm"]
+
         descriptors += [
             "log",
             "s", str(self.sigma_parameter)
@@ -245,8 +250,10 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
     def get_export_attributes(self) -> dict[str, Any]:
         parent_attributes = super().get_export_attributes()
 
+        filter_type = "normalised_laplacian_of_gaussian" if self.is_normalised else "laplacian_of_gaussian"
+
         attributes = [
-            ("filter_type", "laplacian_of_gaussian"),
+            ("filter_type", filter_type),
             ("sigma_parameter", self.sigma_parameter),
             ("sigma_cutoff_parameter", self.sigma_cutoff_parameter),
             ("boundary_condition", self.boundary_condition)
@@ -268,7 +275,11 @@ class LaplacianOfGaussianTransformedImage(TransformedImage):
     def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
-        feature_name_prefix = [
+        feature_name_prefix = []
+        if self.is_normalised:
+            feature_name_prefix += ["norm"]
+
+        feature_name_prefix += [
             "log",
             "s", str(self.sigma_parameter)
         ]

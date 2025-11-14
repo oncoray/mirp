@@ -18,6 +18,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         self.ibsi_compliant = True
         self.ibsi_id = "L6PA"
 
+        self.is_normalised = False
         self.sigma: float | list[float] = settings.img_transform.log_sigma
         self.sigma_cutoff = settings.img_transform.log_sigma_truncate
         self.pooling_method = settings.img_transform.log_pooling_method
@@ -72,6 +73,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
     def transform(self, image: GenericImage) -> LaplacianOfGaussianTransformedImage:
         # Create placeholder Laplacian-of-Gaussian response map.
         response_map = LaplacianOfGaussianTransformedImage(
+            is_normalised=self.is_normalised,
             image_data=None,
             sigma_parameter=self.sigma,
             sigma_cutoff_parameter=self.sigma_cutoff,
@@ -155,8 +157,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         sigma = np.max(sigma)
 
         # Compute the scale factor
-        scale_factor = - 1.0 / sigma ** 2.0 * np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) * (d - norm_2 /
-                                                                                                      sigma ** 2.0)
+        scale_factor = self._get_scale_factor(sigma=sigma, d=d, norm_2=norm_2)
 
         # Compute the exponent which determines filter width.
         width_factor = - norm_2 / (2.0 * sigma ** 2.0)
@@ -194,3 +195,31 @@ class LaplacianOfGaussianFilter(GenericFilter):
 
         # Compute the convolution
         return response_map
+
+    @staticmethod
+    def _get_scale_factor(sigma, d, norm_2):
+        return (
+            - 1.0 / sigma ** 2.0 *
+            np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) *
+            (d - norm_2 / sigma ** 2.0)
+        )
+
+
+class NormalisedLaplacianOfGaussianFilter(LaplacianOfGaussianFilter):
+
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
+
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.is_normalised = True
+        self.ibsi_compliant = False
+        self.ibsi_id = None
+
+    @staticmethod
+    def _get_scale_factor(sigma, d, norm_2):
+        # Compared to the conventional version, the normalised version lacks the initial 1.0 / sigma^2 factor.
+        return (
+            - 1.0 *
+            np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) *
+            (d - norm_2 / sigma ** 2.0)
+        )

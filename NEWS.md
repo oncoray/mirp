@@ -1,12 +1,19 @@
+# Version 2.4.2
+
+## Minor changes
+
+- Added a normalised version of the Laplacian-of-Gaussian filter (`normalised_laplacian_of_gaussian` or `norm_log`) 
+  for compatibility with software packages that use (non-IBSI-compliant) implementations that normalise the filter.
+
 # Version 2.4.1
 
-# Minor changes
+## Minor changes
 
 - Added `kurtosis` method for local binary pattern filter.
 
 # Version 2.4.0
 
-# Major changes
+## Major changes
 
 - It is now possible to use and process (in-memory) images and masks in a native `mirp` format. It was already 
   possible to export imaging and masks, e.g. using `extract_images(..., image_export_format="native")` or
