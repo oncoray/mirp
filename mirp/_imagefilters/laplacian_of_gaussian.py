@@ -141,9 +141,9 @@ class LaplacianOfGaussianFilter(GenericFilter):
             d = 2.0
 
             # Create the grid coordinates, with [0, 0, 0] in the center.
-            y, x = np.mgrid[:filter_size[1], :filter_size[2]]
-            y -= (filter_size[1] - 1.0) / 2.0
-            x -= (filter_size[2] - 1.0) / 2.0
+            y, x = np.mgrid[:filter_size[0], :filter_size[1]]
+            y -= (filter_size[0] - 1.0) / 2.0
+            x -= (filter_size[1] - 1.0) / 2.0
 
             # Compute the square of the norm.
             norm_2 = np.power(y, 2.0) + np.power(x, 2.0)
