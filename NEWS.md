@@ -5,6 +5,8 @@
 - Added a normalised version of the Laplacian-of-Gaussian filter (`normalised_laplacian_of_gaussian` or `norm_log`) 
   for compatibility with software packages that use (non-IBSI-compliant) implementations that normalise the filter.
 
+- Added support for dose summation of RTDOSE maps for different beams.
+
 # Version 2.4.1
 
 ## Minor changes
