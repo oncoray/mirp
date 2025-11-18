@@ -258,6 +258,11 @@ class StandardWorkflow(BaseWorkflow):
                 from mirp._imagefilters.gaussian import GaussianFilter
                 filter_obj = GaussianFilter(image=image, settings=self.settings, name=current_filter)
 
+            elif self.settings.img_transform.has_laplace_filter(x=current_filter):
+                # Laplace filters.
+                from mirp._imagefilters.laplacian import LaplacianFilter
+                filter_obj = LaplacianFilter(image=image, settings=self.settings, name=current_filter)
+
             elif self.settings.img_transform.has_laplacian_of_gaussian_filter(x=current_filter):
                 # Laplacian of Gaussian filters
                 from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianFilter

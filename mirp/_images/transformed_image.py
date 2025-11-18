@@ -208,7 +208,7 @@ class GaussianTransformedImage(TransformedImage):
 class LaplacianTransformedImage(TransformedImage):
     def __init__(
             self,
-            laplace_type: None | str = None,
+            stencil_size: None | int = None,
             boundary_condition: None | str = None,
             template: None | GenericImage = None,
             **kwargs
@@ -216,28 +216,19 @@ class LaplacianTransformedImage(TransformedImage):
         super().__init__(**kwargs)
 
         # Filter parameters
-        self.laplace_type = laplace_type
+        self.stencil_size = stencil_size
         self.boundary_condition = boundary_condition
 
         # Update image parameters using the template.
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
 
-    def _get_laplace_filter_name(self):
-        if self.laplace_type == "convolution":
-            return "lapl"
-        elif self.laplace_type == "oono_puri":
-            return "lapl_op"
-        elif self.laplace_type == "lynch":
-            return "lapl_l"
-        elif self.laplace_type == "equidistant":
-            return "lapl_eqd"
-        else:
-            raise ValueError(f"An unexpected value for laplace_type was encountered: {self.laplace_type}")
-
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
-        descriptors += [self._get_laplace_filter_name()]
+        descriptors += [
+            "lapl",
+            "n", str(self.stencil_size)
+        ]
 
         return descriptors
 
@@ -246,7 +237,7 @@ class LaplacianTransformedImage(TransformedImage):
 
         attributes = [
             ("filter_type", "laplacian"),
-            ("laplacian_type", self.laplace_type),
+            ("stencil_size", self.stencil_size),
             ("boundary_condition", self.boundary_condition)
         ]
 
@@ -257,7 +248,11 @@ class LaplacianTransformedImage(TransformedImage):
     def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
-        feature_name_prefix = [self._get_laplace_filter_name()]
+        feature_name_prefix = [
+            "lapl",
+            "n", str(self.stencil_size)
+        ]
+
 
         if len(feature_name_prefix) > 0:
             feature_name_prefix = "_".join(feature_name_prefix)

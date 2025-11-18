@@ -214,6 +214,16 @@ class ImageTransformationSettingsClass:
         Sets the boundary condition for Gaussian filters. This supersedes any value set by the general
         ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
 
+    laplace_stencil_size: int or list of int, optional, default: 27
+        Stencil size for the discrete Laplace filter. Stencil size 5 and 9 correspond to 2D discrete Laplace
+        filters, whereas stencil sizes 7, 15, 19, 21, 27 correspond to 3D discrete Laplace filters. Stencil sizes
+        5 and 7 lead to anisotropic filters, whereas the remainder lead to isotropic filters. See Patra and Karttunen
+        (doi:10.1002/num.20129) for more details.
+
+    laplace_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for Laplace filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
     laplacian_of_gaussian_sigma: float or list of float, optional
         Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple values can be specified.
 
@@ -386,6 +396,8 @@ class ImageTransformationSettingsClass:
             gaussian_sigma: None | float | list[float] = None,
             gaussian_kernel_truncate: None | float = 4.0,
             gaussian_kernel_boundary_condition: None | str = None,
+            laplace_stencil_size: None | int = 27,
+            laplace_boundary_condition: None | str = None,
             laplacian_of_gaussian_sigma: None | float | list[float] = None,
             laplacian_of_gaussian_kernel_truncate: None | float = 4.0,
             laplacian_of_gaussian_pooling_method: str = "none",
@@ -874,13 +886,37 @@ class ImageTransformationSettingsClass:
                 raise TypeError(f"lbp_filter_distance require a value of 1.0 or more.")
             self.lbp_distance = lbp_filter_distance
 
+
+        self.laplace_stencil_size: None | list[int] = None
+        self.laplace_boundary_condition: None | str = None
+
+        if self.has_laplace_filter():
+            if ibsi_compliant:
+                raise ValueError(
+                    "The laplace filter is not part of the IBSI reference standard. If you are sure that you want to "
+                    "use this method, use ibsi_compliant = False."
+                )
+
+            # Check distance.
+            if not isinstance(laplace_stencil_size, int) and not isinstance(laplace_stencil_size, list):
+                raise TypeError(f"The lbp_filter_distance parameter is expected to be a float or list of float.")
+            if isinstance(laplace_stencil_size, int):
+                laplace_stencil_size = [laplace_stencil_size]
+            if not all(x in [5, 7, 9, 15, 19, 21, 27] for x in laplace_stencil_size):
+                raise TypeError(f"laplace_stencil_size requires a value of 5, 7, 9, 15, 19, 21, or 27.")
+
+            # Check boundary condition.
+            self.laplace_boundary_condition = self.check_boundary_condition(
+                laplace_boundary_condition, "laplace_boundary_condition"
+            )
+
     def get_available_image_filters(self):
         available_filters = [
             "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
             "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
-            "lbp", "lbp_2d", "lbp_3d"
+            "lbp", "lbp_2d", "lbp_3d", "laplace"
         ] + \
         self._get_available_laplacian_of_gaussian_filters() + \
         self._get_available_normalised_laplacian_of_gaussian_filters()
@@ -1349,6 +1385,14 @@ class ImageTransformationSettingsClass:
             x = [x]
 
         return x is not None and any(filter_kernel in ["lbp", "lbp_2d", "lbp_3d"] for filter_kernel in x)
+
+    def has_laplace_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel in ["laplace"] for filter_kernel in x)
 
 def get_image_transformation_settings() -> list[dict[str, Any]]:
     return [
