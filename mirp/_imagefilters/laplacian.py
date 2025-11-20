@@ -26,20 +26,20 @@ class LaplacianFilter(GenericFilter):
         self.stencil_size = settings.img_transform.laplace_stencil_size
         self.mode = settings.img_transform.laplace_boundary_condition
 
-    def generate_object(self, allow_pooling: bool = False):
+    def generate_object(self):
         # Generator for transformation objects.
         stencil_size = copy.deepcopy(self.stencil_size)
         if not isinstance(stencil_size, list):
             stencil_size = [stencil_size]
 
-            for current_stencil_size in stencil_size:
-                filter_object = copy.deepcopy(self)
-                filter_object.stencil_size = current_stencil_size
+        for current_stencil_size in stencil_size:
+            filter_object = copy.deepcopy(self)
+            filter_object.stencil_size = current_stencil_size
 
-                # 5 and 9-stencil filters are 2D, whereas 7, 15, 19, 21, and 27-stencils are 3D.
-                filter_object.separate_slices = current_stencil_size in [5, 9]
+            # 5 and 9-stencil filters are 2D, whereas 7, 15, 19, 21, and 27-stencils are 3D.
+            filter_object.separate_slices = current_stencil_size in [5, 9]
 
-                yield filter_object
+            yield filter_object
 
     def transform(self, image: GenericImage) -> LaplacianTransformedImage:
         # Create placeholder Laplacian-of-Gaussian response map.
@@ -58,7 +58,7 @@ class LaplacianFilter(GenericFilter):
         response_voxel_grid = None
 
         # Initialise iterator ii to avoid IDE warnings.
-        for ii, pooled_filter_object in enumerate(self.generate_object(allow_pooling=False)):
+        for ii, pooled_filter_object in enumerate(self.generate_object()):
             # Generate transformed voxel grid.
             response_voxel_grid = pooled_filter_object.transform_grid(
                 voxel_grid=image.get_voxel_grid()
