@@ -897,13 +897,14 @@ class ImageTransformationSettingsClass:
                     "use this method, use ibsi_compliant = False."
                 )
 
-            # Check distance.
+            # Check stencil size.
             if not isinstance(laplace_stencil_size, int) and not isinstance(laplace_stencil_size, list):
                 raise TypeError(f"The lbp_filter_distance parameter is expected to be a float or list of float.")
             if isinstance(laplace_stencil_size, int):
                 laplace_stencil_size = [laplace_stencil_size]
             if not all(x in [5, 7, 9, 15, 19, 21, 27] for x in laplace_stencil_size):
                 raise TypeError(f"laplace_stencil_size requires a value of 5, 7, 9, 15, 19, 21, or 27.")
+            self.laplace_stencil_size = laplace_stencil_size
 
             # Check boundary condition.
             self.laplace_boundary_condition = self.check_boundary_condition(
