@@ -917,7 +917,7 @@ class ImageTransformationSettingsClass:
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
             "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
-            "lbp", "lbp_2d", "lbp_3d", "laplace"
+            "lbp", "lbp_2d", "lbp_3d", "laplace", "laplacian"
         ] + \
         self._get_available_laplacian_of_gaussian_filters() + \
         self._get_available_normalised_laplacian_of_gaussian_filters()
@@ -1393,7 +1393,7 @@ class ImageTransformationSettingsClass:
         elif not isinstance(x, list):
             x = [x]
 
-        return x is not None and any(filter_kernel in ["laplace"] for filter_kernel in x)
+        return x is not None and any(filter_kernel in ["laplace", "laplacian"] for filter_kernel in x)
 
 def get_image_transformation_settings() -> list[dict[str, Any]]:
     return [
