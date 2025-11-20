@@ -7,6 +7,8 @@
 
 - Added support for dose summation of RTDOSE maps for different beams.
 
+- Added support for 2D and 3D discrete Laplace filters.
+
 # Version 2.4.1
 
 ## Minor changes

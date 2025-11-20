@@ -218,10 +218,10 @@ class ImageTransformationSettingsClass:
         Stencil size for the discrete Laplace filter. Stencil size 5 and 9 correspond to 2D discrete Laplace
         filters, whereas stencil sizes 7, 15, 19, 21, 27 correspond to 3D discrete Laplace filters. Stencil sizes
         5 and 7 lead to anisotropic filters, whereas the remainder lead to isotropic filters. See Patra and Karttunen
-        (doi:10.1002/num.20129) for more details.
+        (doi:10.1002/num.20129) for more details. Multiple values can be specified.
 
     laplace_boundary_condition: str, optional, default: "mirror"
-        Sets the boundary condition for Laplace filters. This supersedes any value set by the general
+        Sets the boundary condition for discrete Laplace filters. This supersedes any value set by the general
         ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
 
     laplacian_of_gaussian_sigma: float or list of float, optional
@@ -1441,6 +1441,8 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
         setting_def(
             "gaussian_kernel_boundary_condition", "str", class_key="gaussian_boundary_condition", test="constant"
         ),
+        setting_def("laplace_stencil_size", "int", to_list=True, test=[9,27]),
+        setting_def("laplace_boundary_condition", "str", test="constant"),
         setting_def(
             "laplacian_of_gaussian_sigma", "float", to_list=True,
             xml_key=["laplacian_of_gaussian_sigma", "log_sigma"], class_key="log_sigma", test=[1.0, 3.0]

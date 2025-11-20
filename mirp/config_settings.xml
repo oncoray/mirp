@@ -211,6 +211,13 @@
             <nonseparable_wavelet_boundary_condition></nonseparable_wavelet_boundary_condition>
             <!-- Laplacian of Gaussian sigma (in mm). This specifies the width of the Gaussian filter by
             its standard deviation. -->
+            <laplace_stencil_size></laplace_stencil_size>
+            <!-- Stencil size for the discrete Laplace filter. Stencil size 5 and 9 correspond to 2D discrete Laplace
+            filters, whereas stencil sizes 7, 15, 19, 21, 27 correspond to 3D discrete Laplace filters. Stencil sizes
+            5 and 7 lead to anisotropic filters, whereas the remainder lead to isotropic filters. See Patra and Karttunen
+            (doi:10.1002/num.20129) for more details. Multiple values can be specified. -->
+            <laplace_boundary_condition></laplace_boundary_condition>
+            <!-- Boundary condition for discrete Laplace filters. Supersedes generic boundary condition tag. -->
             <laplacian_of_gaussian_sigma></laplacian_of_gaussian_sigma>
             <!-- Number of standard deviations o allow before truncating the Gaussian filter -->
             <laplacian_of_gaussian_kernel_truncate></laplacian_of_gaussian_kernel_truncate>
