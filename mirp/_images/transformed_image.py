@@ -2,8 +2,6 @@ import copy
 import pandas as pd
 from typing import Any
 
-from adodbapi.examples.db_print import kw_args
-
 from mirp._images.generic_image import GenericImage
 
 
