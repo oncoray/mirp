@@ -1,11 +1,111 @@
+from typing import Any
+
 import numpy as np
+import pandas as pd
 import copy
 
 from mirp._images.generic_image import GenericImage
-from mirp._images.transformed_image import SeparableWaveletTransformedImage
+from mirp._images.transformed_image import TransformedImage
 from mirp.settings.generic import SettingsClass
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids, SeparableFilterSet
+
+
+class SeparableWaveletTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            wavelet_family: None | str = None,
+            decomposition_level: None | int = None,
+            filter_kernel_set: None | str = None,
+            stationary_wavelet: None | bool = None,
+            rotation_invariance: None | bool = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.wavelet_family = wavelet_family
+        self.decomposition_level = decomposition_level
+        self.filter_kernel_set = filter_kernel_set
+        self.stationary_wavelet = stationary_wavelet
+        self.rotation_invariance = rotation_invariance
+        self.pooling_method = pooling_method
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+
+        descriptors += [
+            "wavelet", self.wavelet_family, self.filter_kernel_set,
+            "level", str(self.decomposition_level)
+        ]
+
+        if not self.stationary_wavelet:
+            descriptors += ["decimated"]
+        if self.rotation_invariance:
+            descriptors += ["invar"]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "separable_wavelet"),
+            ("wavelet_family", self.wavelet_family),
+            ("wavelet_kernel", self.filter_kernel_set),
+            ("decomposition_level", self.decomposition_level),
+            ("stationary_wavelet", self.stationary_wavelet),
+            ("rotation_invariance", self.rotation_invariance),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        if self.pooling_method is not None:
+            attributes += [("pooling_method", self.pooling_method)]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "wavelet", self.wavelet_family, self.filter_kernel_set,
+            "level", str(self.decomposition_level)
+        ]
+
+        if not self.stationary_wavelet:
+            feature_name_prefix += ["decimated"]
+        if self.rotation_invariance:
+            feature_name_prefix += ["invar"]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class SeparableWaveletFilter(GenericFilter):

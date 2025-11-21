@@ -183,7 +183,7 @@ def test_non_separable_wavelet_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_separable_wavelet_filtered_image_descriptors():
-    from mirp._images.transformed_image import SeparableWaveletTransformedImage
+    from mirp._imagefilters.separable_wavelet import SeparableWaveletTransformedImage
 
     image = SeparableWaveletTransformedImage(
         wavelet_family="testwaveletfamily",
