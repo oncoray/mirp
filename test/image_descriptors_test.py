@@ -83,6 +83,22 @@ def test_gaussian_filtered_image_descriptors():
 
 
 @pytest.mark.ci
+def test_laplace_filtered_image_descriptors():
+    from mirp._imagefilters.laplacian import LaplacianTransformedImage
+
+    image = LaplacianTransformedImage(
+        stencil_size=27,
+        boundary_condition="testboundarycondition",
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
 def test_laplacian_of_gaussian_filtered_image_descriptors():
     from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
 

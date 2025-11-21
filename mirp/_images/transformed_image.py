@@ -17,64 +17,6 @@ class TransformedImage(GenericImage):
         return "fixed_bin_number"
 
 
-class LaplacianTransformedImage(TransformedImage):
-    def __init__(
-            self,
-            stencil_size: None | int = None,
-            boundary_condition: None | str = None,
-            template: None | GenericImage = None,
-            **kwargs
-    ):
-        super().__init__(**kwargs)
-
-        # Filter parameters
-        self.stencil_size = stencil_size
-        self.boundary_condition = boundary_condition
-
-        # Update image parameters using the template.
-        if isinstance(template, GenericImage):
-            self.update_from_template(template=template)
-
-    def get_file_name_descriptor(self) -> list[str]:
-        descriptors = super().get_file_name_descriptor()
-        descriptors += [
-            "lapl",
-            "n", str(self.stencil_size)
-        ]
-
-        return descriptors
-
-    def get_export_attributes(self) -> dict[str, Any]:
-        parent_attributes = super().get_export_attributes()
-
-        attributes = [
-            ("filter_type", "laplacian"),
-            ("stencil_size", self.stencil_size),
-            ("boundary_condition", self.boundary_condition)
-        ]
-
-        parent_attributes.update(dict(attributes))
-
-        return parent_attributes
-
-    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
-        x = super().parse_feature_names(x=x)
-
-        feature_name_prefix = [
-            "lapl",
-            "n", str(self.stencil_size)
-        ]
-
-
-        if len(feature_name_prefix) > 0:
-            feature_name_prefix = "_".join(feature_name_prefix)
-            feature_name_prefix += "_"
-            x.columns = feature_name_prefix + x.columns
-
-        return x
-
-
-
 class LaplacianOfGaussianTransformedImage(TransformedImage):
     def __init__(
             self,
