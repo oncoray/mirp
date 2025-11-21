@@ -120,7 +120,7 @@ def test_laplacian_of_gaussian_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_laws_filtered_image_descriptors():
-    from mirp._images.transformed_image import LawsTransformedImage
+    from mirp._imagefilters.laws import LawsTransformedImage
 
     image = LawsTransformedImage(
         laws_kernel="testlawskernel",
