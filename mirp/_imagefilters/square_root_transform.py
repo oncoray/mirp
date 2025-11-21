@@ -1,10 +1,51 @@
 import copy
+from typing import Any
+
 import numpy as np
+import pandas as pd
 
 from mirp._images.generic_image import GenericImage
-from mirp._images.transformed_image import SquareRootTransformedImage
 from mirp._imagefilters.generic import GenericFilter
+from mirp._images.transformed_image import TransformedImage
 from mirp.settings.generic import SettingsClass
+
+
+class SquareRootTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+        descriptors += ["sqrt"]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+        attributes = [("filter_type", "square_root_transformation")]
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+        feature_name_prefix = ["sqrt"]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
 
 
 class SquareRootTransformFilter(GenericFilter):

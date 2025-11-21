@@ -219,7 +219,7 @@ def test_square_transformed_image_descriptors():
 
 @pytest.mark.ci
 def test_square_root_transformed_image_descriptors():
-    from mirp._images.transformed_image import SquareRootTransformedImage
+    from mirp._imagefilters.square_root_transform import SquareRootTransformedImage
 
     image = SquareRootTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
