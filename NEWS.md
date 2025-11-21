@@ -9,6 +9,11 @@
 
 - Added support for 2D and 3D discrete Laplace filters.
 
+- Trying to apply 3D filters in a slice-by-slice analysis will now throw an error.
+
+- Trying to apply filters to images with anisotropic voxel spacing now provides a warning for filters where the 
+  spatial frequency response depends on the number of voxels, such as filters with kernels with fixed weights.  
+
 # Version 2.4.1
 
 ## Minor changes
