@@ -207,7 +207,7 @@ def test_separable_wavelet_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_square_transformed_image_descriptors():
-    from mirp._images.transformed_image import SquareTransformedImage
+    from mirp._imagefilters.square_transform import SquareTransformedImage
 
     image = SquareTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
