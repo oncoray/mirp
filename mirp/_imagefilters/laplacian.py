@@ -10,7 +10,6 @@ from mirp._images.transformed_image import LaplacianTransformedImage
 from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
 from mirp.settings.generic import SettingsClass
 from mirp._imagefilters.generic import GenericFilter
-from mirp._imagefilters.utilities import pool_voxel_grids
 
 
 class LaplacianFilter(GenericFilter):
@@ -22,9 +21,16 @@ class LaplacianFilter(GenericFilter):
         self.ibsi_compliant = False
         self.ibsi_id = None
 
-        self.separate_slices = None
         self.stencil_size = settings.img_transform.laplace_stencil_size
         self.mode = settings.img_transform.laplace_boundary_condition
+
+        if self.separate_slices and any(x not in [5, 9] for x in self.stencil_size):
+            mismatch_stencil_sizes = [x for x in self.stencil_size if x not in [5, 9]]
+            raise ValueError(f"Cannot use 3D discrete Laplace filters for slice-by-slice filtering. Stencil sizes "
+                             f"{mismatch_stencil_sizes} are not possible. Use 5 or 9 instead.")
+
+    def _not_isotropic_warning_message(self):
+        return f"The discrete Laplace filter (stencil size: {self.stencil_size}) requires isotropic voxel spacing."
 
     def generate_object(self):
         # Generator for transformation objects.
@@ -59,6 +65,9 @@ class LaplacianFilter(GenericFilter):
 
         # Initialise iterator ii to avoid IDE warnings.
         for ii, pooled_filter_object in enumerate(self.generate_object()):
+            # Check that the image is isotropic.
+            pooled_filter_object.check_isotropic_image(image=image)
+
             # Generate transformed voxel grid.
             response_voxel_grid = pooled_filter_object.transform_grid(
                 voxel_grid=image.get_voxel_grid()

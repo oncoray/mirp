@@ -38,6 +38,14 @@ class LawsFilter(GenericFilter):
         # Set boundary condition
         self.mode = settings.img_transform.laws_boundary_condition
 
+        if self.separate_slices and any(len(x) == 6 for x in self.laws_kernel):
+            mismatched_kernels = [x for x in self.laws_kernel if len(x) == 6]
+            raise ValueError(f"Cannot use 3D laws kernels for slice-by-slice filtering. Following kernels cannot be "
+                             f"used: {mismatched_kernels}")
+
+    def _not_isotropic_warning_message(self):
+        return f"Laws kernels require isotropic voxel spacing."
+
     def generate_object(self):
         # Generator for transformation objects.
         laws_kernel = copy.deepcopy(self.laws_kernel)
@@ -58,6 +66,9 @@ class LawsFilter(GenericFilter):
                 filter_object = copy.deepcopy(self)
                 filter_object.laws_kernel = current_laws_kernel
                 filter_object.delta = current_delta
+
+                # Set 2D application.
+                filter_object.separate_slices = len(current_laws_kernel) == 4
 
                 yield filter_object
 
@@ -80,6 +91,8 @@ class LawsFilter(GenericFilter):
 
         if image.is_empty():
             return response_map
+
+        self.check_isotropic_image(image=image)
 
         # Initialise voxel grid.
         response_voxel_grid = None

@@ -38,6 +38,15 @@ class SeparableWaveletFilter(GenericFilter):
         # Set boundary condition
         self.mode = settings.img_transform.separable_wavelet_boundary_condition
 
+        if self.separate_slices and any(len(x) == 3 for x in self.filter_configuration):
+            mismatch_filter_configs = [x for x in self.filter_configuration if len(x) == 3]
+            raise ValueError(f"Cannot use 3D separable wavelets for slice-by-slice filtering. Filter configurations "
+                             f"{mismatch_filter_configs} are not possible. Use filter configurations of length 2 "
+                             f"instead.")
+
+    def _not_isotropic_warning_message(self):
+        return f"Separable wavelet filters require isotropic voxel spacing."
+
     def generate_object(self):
         # Generator for transformation objects.
         wavelet_family = copy.deepcopy(self.wavelet_family)
@@ -84,6 +93,9 @@ class SeparableWaveletFilter(GenericFilter):
 
         if image.is_empty():
             return response_map
+
+        # Check that the voxel spacing is isotropic.
+        self.check_isotropic_image(image=image)
 
         # Initialise voxel grid.
         response_voxel_grid = None

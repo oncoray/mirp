@@ -53,6 +53,9 @@ class MeanFilter(GenericFilter):
         if image.is_empty():
             return response_map
 
+        # Check that the image is isotropic.
+        self.check_isotropic_image(image=image)
+
         # Set up the filter kernel.
         filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size
 
