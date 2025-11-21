@@ -231,7 +231,7 @@ def test_square_root_transformed_image_descriptors():
 
 @pytest.mark.ci
 def test_logarithm_transformed_image_descriptors():
-    from mirp._images.transformed_image import LogarithmTransformedImage
+    from mirp._imagefilters.log_transform import LogarithmTransformedImage
 
     image = LogarithmTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
