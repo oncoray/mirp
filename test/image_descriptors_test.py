@@ -100,7 +100,7 @@ def test_laplace_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_laplacian_of_gaussian_filtered_image_descriptors():
-    from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
+    from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianTransformedImage
 
     image = LaplacianOfGaussianTransformedImage(
         sigma_parameter=1.0,

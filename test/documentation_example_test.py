@@ -28,7 +28,7 @@ def test_quick_start():
 
     # Quick start example 2 (view filtered images)
     from mirp._images.ct_image import CTImage
-    from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
+    from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianTransformedImage
     from mirp import extract_images
 
     images = extract_images(

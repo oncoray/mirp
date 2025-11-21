@@ -1,14 +1,107 @@
+from typing import Any
+
 import numpy as np
+import pandas as pd
 import copy
 
 from warnings import warn
 
 from mirp._images.generic_image import GenericImage
-from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
 from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
+from mirp._images.transformed_image import TransformedImage
 from mirp.settings.generic import SettingsClass
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids
+
+
+class LaplacianOfGaussianTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            is_normalised: None | bool = None,
+            sigma_parameter: None | float = None,
+            sigma_cutoff_parameter: None | float = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.is_normalised = False if is_normalised is None else is_normalised
+        self.sigma_parameter = sigma_parameter
+        self.sigma_cutoff_parameter = sigma_cutoff_parameter
+        self.pooling_method = pooling_method
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+
+        if self.is_normalised:
+            descriptors += ["norm"]
+
+        descriptors += [
+            "log",
+            "s", str(self.sigma_parameter)
+        ]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        filter_type = "normalised_laplacian_of_gaussian" if self.is_normalised else "laplacian_of_gaussian"
+
+        attributes = [
+            ("filter_type", filter_type),
+            ("sigma_parameter", self.sigma_parameter),
+            ("sigma_cutoff_parameter", self.sigma_cutoff_parameter),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        if self.pooling_method is not None:
+            attributes += [("pooling_method", self.pooling_method)]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = []
+        if self.is_normalised:
+            feature_name_prefix += ["norm"]
+
+        feature_name_prefix += [
+            "log",
+            "s", str(self.sigma_parameter)
+        ]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
 
 
 class LaplacianOfGaussianFilter(GenericFilter):
