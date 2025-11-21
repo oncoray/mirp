@@ -38,7 +38,7 @@ def test_generic_image_descriptors():
 
 @pytest.mark.ci
 def test_gabor_filtered_image_descriptors():
-    from mirp._images.transformed_image import GaborTransformedImage
+    from mirp._imagefilters.gabor import GaborTransformedImage
 
     image = GaborTransformedImage(
         sigma_parameter=1.0,
