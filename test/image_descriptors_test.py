@@ -143,7 +143,7 @@ def test_laws_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_mean_filtered_image_descriptors():
-    from mirp._images.transformed_image import MeanTransformedImage
+    from mirp._imagefilters.mean import MeanTransformedImage
 
     image = MeanTransformedImage(
         filter_size=5,
