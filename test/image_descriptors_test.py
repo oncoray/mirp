@@ -64,7 +64,7 @@ def test_gabor_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_gaussian_filtered_image_descriptors():
-    from mirp._images.transformed_image import GaussianTransformedImage
+    from mirp._imagefilters.gaussian import GaussianTransformedImage
 
     image = GaussianTransformedImage(
         sigma_parameter=1.0,
