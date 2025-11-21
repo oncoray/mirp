@@ -243,7 +243,7 @@ def test_logarithm_transformed_image_descriptors():
 
 @pytest.mark.ci
 def test_exponential_transformed_image_descriptors():
-    from mirp._images.transformed_image import ExponentialTransformedImage
+    from mirp._imagefilters.exponential_transform import ExponentialTransformedImage
 
     image = ExponentialTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
