@@ -251,3 +251,20 @@ def test_exponential_transformed_image_descriptors():
 
     attributes = image.get_export_attributes()
     assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_lbp_transformed_image_descriptors():
+    from mirp._imagefilters.local_binary_patterns import LocalBinaryPatternImage
+
+    image = LocalBinaryPatternImage(
+        distance=1.0,
+        separate_slices = True,
+        lbp_method="default",
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
