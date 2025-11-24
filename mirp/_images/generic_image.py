@@ -69,7 +69,7 @@ class GenericImage(BaseImage):
                 f"The new class object should inherit from the template provided by the \"image\" object, which is "
                 f"expected to inherit from GenericImage. Found: {type(template)}")
 
-        # NOTE: image_data is not set automatically.
+        # NOTE: image_data and calibrated_units are not set automatically.
 
         # Attributes from BaseImage
         self.modality = template.modality

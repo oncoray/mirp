@@ -45,6 +45,7 @@ class SeparableWaveletTransformedImage(TransformedImage):
         # Update image parameters using the template.
         if isinstance(template, GenericImage):
             self.update_from_template(template=template)
+            self.calibrated_units = template.calibrated_units and self.filter_kernel_set in ["ll", "lll"]
 
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
