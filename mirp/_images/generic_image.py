@@ -60,6 +60,9 @@ class GenericImage(BaseImage):
         # Image underwent IBSI compliant processing (default True: it is easier to identify exceptions).
         self.ibsi_compliant = True
 
+        # Mark whether intensities represent calibrated units.
+        self.calibrated_units = False
+
     def update_from_template(self, template):
         if not isinstance(template, GenericImage):
             raise TypeError(
