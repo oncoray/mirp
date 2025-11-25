@@ -9,10 +9,16 @@
 
 - Added support for 2D and 3D discrete Laplace filters.
 
-- Trying to apply 3D filters in a slice-by-slice analysis will now throw an error.
+- Applying 3D filters in a slice-by-slice analysis will now raise an error.
 
-- Trying to apply filters to images with anisotropic voxel spacing now provides a warning for filters where the 
-  spatial frequency response depends on the number of voxels, such as filters with kernels with fixed weights.  
+- Applying filters to images with anisotropic voxel spacing now raises a warning for filters where the 
+  spatial frequency response depends on the number of voxels, such as filters with kernels with fixed weights.
+
+- Applying fixed bin size discretisation now raises a warning if all intensities in the masked region are 
+  assigned to the same bin.
+
+- Applying fixed bin size discretisation to images that do not have intensities with calibrated units now raises a 
+  warning. 
 
 # Version 2.4.1
 
