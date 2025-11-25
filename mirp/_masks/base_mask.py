@@ -40,7 +40,7 @@ class BaseMask:
         self.roi_name: str | list[str] = roi_name
 
         # Set intensity range.
-        self.intensity_range: tuple[Any, Any] = tuple([np.nan, np.nan])
+        self.intensity_range: tuple[float, ...] = tuple([np.nan, np.nan])
 
     @staticmethod
     def get_dir_path():
