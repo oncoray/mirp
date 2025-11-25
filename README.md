@@ -209,6 +209,33 @@ features = extract_features(
 )[0]
 ```
 
+# Compatibility
+
+MIRP is compliant with the Image Biomarker Standardisation Initiative's reference standards for image processing and
+feature  computation and for image filters. Compliance is checked automatically as part
+of the software tests.
+
+The reference standards do not cover all possible image pre-processing steps, features or image filters. There are three
+pre-processing steps in MIRP that are used by default and that currently lack reference standards, and thus may be
+implemented differently in other software packages, or be absent entirely. These are:
+
+1. **Anti-aliasing**: Downsampling, i.e. resampling from a high-resolution scan to a lower-resolution image leads
+to aliasing artifacts because the interpolation algorithms will primary use local information from the voxels directly
+adjacent to each interpolation point. To counteract this, MIRP by default uses a Gaussian
+anti-aliasing filter prior to resampling. This filters smooths local information, prevent anti-aliasing artifacts. To
+turn anti-aliasing off set `anti_aliasing = False`.
+
+2. **Use of tissue masks for intensity normalisation**: Intensity normalisation is a pre-processing step commonly
+used for harmonising clinical MRI sequences. These methods use information from intensities in a scan. Generally,
+information from voxels outside the studied patient (air voxels) are not relevant. By default, MIRP tries to exclude
+such voxels by generating a tissue mask based on the intensity distribution, and use only information from voxels
+related containing patient tissue for normalisation. To turn tissue masks off, set `tissue_mask_type = "none"`.
+
+3. **Conversion of PET values to SUV**: If PET scans are provided in the DICOM format, by default MIRP will use
+information contained in the DICOM headers to compute body-weight corrected standardised uptake values. To use raw PET
+information, set `pet_suv_conversion = "none"`. Other types of standardised uptake value can be computed using other
+options.
+
 # Citation info
 MIRP has been published in *Journal of Open Source Software*:
 ```Zwanenburg A, Löck S. MIRP: A Python package for standardised radiomics. J Open Source Softw. 2024;9: 6413. doi:10.21105/joss.06413```
