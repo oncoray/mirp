@@ -104,6 +104,13 @@ def discretise_image(
         # Set bin width.
         image.discretisation_bin_width = bin_width
 
+        # Check that the discretised image is not sparse.
+        if np.all(discretised_voxels[mask_data] == discretised_voxels[mask_data][0]):
+            warnings.warn(
+                f"Fixed bin size discretisation causes all intensities in the masked region to be assigned to the same"
+                f"bin. A smaller `bin_width` (current: {bin_width}) is recommended."
+            )
+
     elif discretisation_method == "fixed_bin_size_pyradiomics":
         if not image.calibrated_units:
             warnings.warn(
@@ -134,6 +141,12 @@ def discretise_image(
 
         # Update IBSI compliance.
         image.ibsi_compliant = False
+
+        if np.all(discretised_voxels[mask_data] == discretised_voxels[mask_data][0]):
+            warnings.warn(
+                f"Fixed bin size discretisation causes all intensities in the masked region to be assigned to the same"
+                f"bin. A smaller `bin_width` (current: {bin_width}) is recommended."
+            )
 
     else:
         raise ValueError(f"The discretisation_method argument was not recognised. Found: {discretisation_method}")
