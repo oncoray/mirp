@@ -1200,7 +1200,8 @@ class GenericImage(BaseImage):
             image_data = itk.GetImageFromArray(image_data.astype(cast_type))
             image_data.SetOrigin(np.array(self.image_origin)[::-1])
             image_data.SetSpacing(np.array(self.image_spacing)[::-1])
-            image_data.SetDirection(itk.matrix_from_array(np.reshape(np.ravel(self.image_orientation)[::-1], [3, 3])))
+            image_data.SetDirection(itk.matrix_from_array(np.reshape(np.ravel(self.image_orientation, order="F")[::-1],
+                                                                     [3, 3])))
 
             itk.imwrite(image_data, file_path)
 
