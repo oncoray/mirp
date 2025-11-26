@@ -493,3 +493,37 @@ def test_read_dicom_image_and_mask_data_xml(tmp_path):
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_PET"
+
+
+@pytest.mark.ci
+def test_non_dicom_mask_naming():
+    # Read CT images and associated masks.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "nifti", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask_sub_folder=os.path.join("CT", "nifti", "mask"),
+        image_modality="CT"
+    )
+
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 1
+    assert all(isinstance(roi, BaseMask) for roi in roi_list)
+    assert roi_list[0].roi_name == "region_1"
+
+    # Read CT images and associated masks with an incorrect name. roi_name is used as a filter, and should provide a
+    # warning because the roi_name does not match any of the labels.
+    image_list = import_image_and_mask(
+        image=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        image_sub_folder=os.path.join("CT", "nifti", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "sts_images"),
+        mask_sub_folder=os.path.join("CT", "nifti", "mask"),
+        image_modality="CT",
+        roi_name="gtv"
+    )
+
+    with pytest.warns(UserWarning, match="No regions of interest were formed."):
+        image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image, CTImage)
+    assert len(roi_list) == 0
