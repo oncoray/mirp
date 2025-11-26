@@ -453,6 +453,8 @@ class ImageFile(BaseImage):
                 else:
                     return False
 
+        return True
+
     def _check_sample_name(self, raise_error: bool) -> bool:
         # Check that image file contains a sample name, if multiple sample names are present. To assess the filename,
         # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
