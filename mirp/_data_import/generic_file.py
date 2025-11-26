@@ -1242,7 +1242,8 @@ class MaskFile(ImageFile):
                         image_spacing=self.image_spacing,
                         image_origin=self.image_origin,
                         image_orientation=self.image_orientation,
-                        image_dimensions=self.image_dimension
+                        image_dimensions=self.image_dimension,
+                        metadata=self.object_metadata
                     )
                 ]
 
