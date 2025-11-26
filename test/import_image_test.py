@@ -141,7 +141,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="*image",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name is None
 
@@ -149,7 +149,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="#_PET*image",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name is None
 
@@ -157,7 +157,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="#_CT_image",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Sample_Name"
 
@@ -165,7 +165,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="#_*_*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Sample_Name"
 
@@ -173,7 +173,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="Sample_#_*_*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Name"
 
@@ -181,7 +181,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="Item_#_*_*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name is None
 
@@ -189,7 +189,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="Sample_#_CT_*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Name"
 
@@ -197,7 +197,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="Sample_#_PET_*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name is None
 
@@ -205,7 +205,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="*_#_*_*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Name"
 
@@ -213,7 +213,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="*#*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Sample_Name_CT_image"
 
@@ -221,7 +221,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample_Name_CT_image.npy",
         pattern="#",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Sample_Name_CT_image"
 
@@ -229,7 +229,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample-Name_CT.image.npy",
         pattern="*-#_*.*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name == "Name"
 
@@ -237,7 +237,7 @@ def test_sample_name_parser():
     sample_name = isolate_sample_name(
         x="Sample-Name_CT.image.npy",
         pattern="*-Name#_*.*",
-        file_extenstion=".npy"
+        file_extension=".npy"
     )
     assert sample_name is None
 

@@ -213,14 +213,14 @@ def match_file_name(
 def isolate_sample_name(
         x: str,
         pattern: str,
-        file_extenstion: None | str | list[str]
+        file_extension: None | str | list[str]
 ) -> None | str:
 
     # Pattern should only contain one sample name placeholder (#).
     if pattern.count("#") != 1:
         return None
 
-    x = bare_file_name(x, file_extension=file_extenstion)
+    x = bare_file_name(x, file_extension=file_extension)
 
     # Determine where the sample name placeholder is compared to other wildcards.
     central_split_id = 0
