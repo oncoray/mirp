@@ -359,7 +359,7 @@ def compute_file_distance(
 
 def parse_image_correction(
         dcm_seq: pydicom.Dataset,
-        tag: tuple[hex, hex],
+        tag: tuple[int, int],
         correction_abbr: str
 ) -> bool:
     """
@@ -486,10 +486,10 @@ def convert_dicom_time(
 
 def get_pydicom_meta_tag(
         dcm_seq: pydicom.Dataset,
-        tag: tuple[hex, hex],
+        tag: tuple[int, int],
         tag_type: None | str = None,
         default: Any = None,
-        macro_dcm_seq: None | tuple[hex, hex] = None,
+        macro_dcm_seq: None | tuple[int, int] = None,
         frame_id: None | int = None,
         test_tag: bool = False
 ) -> Any:
@@ -633,8 +633,8 @@ def get_pydicom_meta_tag(
 
 def has_pydicom_meta_tag(
         dcm_seq: FileDataset | Dataset,
-        tag: tuple[hex, hex],
-        macro_dcm_seq: None | tuple[hex, hex] = None,
+        tag: tuple[int, int],
+        macro_dcm_seq: None | tuple[int, int] = None,
         frame_id: None | int = None
 ) -> bool:
 
@@ -649,7 +649,7 @@ def has_pydicom_meta_tag(
 
 def set_pydicom_meta_tag(
         dcm_seq: FileDataset | Dataset,
-        tag: tuple[hex, hex] | list[hex],
+        tag: tuple[int, int] | list[int],
         value: Any,
         force_vr: None | str = None):
     # Check tag
