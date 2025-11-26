@@ -732,7 +732,7 @@ class ImageFile(BaseImage):
             f"implementation for subclasses."
         )
 
-    def remove_metadata(self):
+    def remove_metadata(self, force=False):
         self.image_metadata = None
 
     def load_data(self, **kwargs):
