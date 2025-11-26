@@ -205,7 +205,7 @@ def match_file_name(
         ]))
 
     if return_list:
-        return matches
+        return matches.tolist()
     else:
         return any(matches)
 
