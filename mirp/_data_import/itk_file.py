@@ -40,7 +40,7 @@ class ImageITKFile(ImageFile):
                 f"[{self.describe_self()}]"
             )
 
-    def copy(self):
+    def copy(self, drop_image=False):
         # Remove metadata during copying to prevent ITK SwigPyObjects from being pickled (which produces errors).
         temporary_metadata = self.image_metadata
         self.remove_metadata()

@@ -95,7 +95,7 @@ class ImageFile(BaseImage):
             f"implementation for subclasses."
         )
 
-    def copy(self):
+    def copy(self, drop_image=False):
         return copy.deepcopy(self)
 
     def on_file_system(self):
