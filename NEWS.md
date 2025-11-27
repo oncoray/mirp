@@ -20,6 +20,12 @@
 - Applying fixed bin size discretisation to images that do not have intensities with calibrated units now raises a 
   warning. 
 
+## Fixes
+
+- Saving image objects to NIfTI now correctly sets orientation. Previously, oblique orientations were not set correctly.
+- Metadata for masks is now exported correctly for segmentation masks that derive from NIfTI, NRRD or Numpy files when
+  `export_format = "dict"`.
+
 # Version 2.4.1
 
 ## Minor changes
