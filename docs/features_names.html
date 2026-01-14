@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Feature name references &mdash; mirp 2.4.1 documentation</title>
+  <title>Feature name references &mdash; mirp 2.4.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=e9ebdb8f"></script>
+      <script src="_static/documentation_options.js?v=de1351e5"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -79,7 +79,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#discretisation-4r0b">Discretisation (<cite>4R0B</cite>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#gabor-transformation-q88h">Gabor transformation (<cite>Q88H</cite>)</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#gaussian-transformation">Gaussian transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#gaussian-filter">Gaussian filter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#laplace-filter">Laplace filter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#laplacian-of-gaussian-transformation-l6pa">Laplacian-of-Gaussian transformation (<cite>L6PA</cite>)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#laws-kernels-jtxt">Laws kernels (<cite>JTXT</cite>)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#mean-transformation-s60f">Mean transformation (<cite>S60F</cite>)</a></li>
@@ -545,14 +546,22 @@ computed from filtered images are prefixed by different filter-specific items, w
 <li><p><cite>invar</cite>: Pseudo-rotational invariance (<cite>O1AQ</cite>). Absent if not invariant.</p></li>
 </ul>
 </section>
-<section id="gaussian-transformation">
-<h3>Gaussian transformation<a class="headerlink" href="#gaussian-transformation" title="Link to this heading"></a></h3>
+<section id="gaussian-filter">
+<h3>Gaussian filter<a class="headerlink" href="#gaussian-filter" title="Link to this heading"></a></h3>
 <p>Features computed from images filtered using Gaussian filters are prefixed by:</p>
 <ul class="simple">
 <li><p><cite>gaussian</cite>: Indicating Gaussian filters.</p></li>
 <li><p><cite>s#,#</cite>: Scale parameter (<cite>41LN</cite>), in physical units.</p></li>
 </ul>
 <p>Gaussian filters lack reference values in the IBSI standard. They are only computed if <cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="laplace-filter">
+<h3>Laplace filter<a class="headerlink" href="#laplace-filter" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using Laplace filters are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>lapl</cite>: Indicating Laplace filters.</p></li>
+<li><p><cite>n#</cite>: Stencil size. Either 5 or 9 (2D) or 7, 15, 19, 21 or 27 (3D).</p></li>
+</ul>
 </section>
 <section id="laplacian-of-gaussian-transformation-l6pa">
 <h3>Laplacian-of-Gaussian transformation (<cite>L6PA</cite>)<a class="headerlink" href="#laplacian-of-gaussian-transformation-l6pa" title="Link to this heading"></a></h3>
@@ -680,7 +689,7 @@ doi:<a class="reference external" href="https://doi.org/10.48550/arXiv.2006.0547
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Alex Zwanenburg.</p>
+    <p>&#169; Copyright 2026, Alex Zwanenburg.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

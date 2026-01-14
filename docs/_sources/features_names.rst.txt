@@ -374,8 +374,8 @@ Features computed from images filtered using Gabor filters are prefixed by:
     * `3D`: Gabor filters are applied along every orthogonal direction.
 * `invar`: Pseudo-rotational invariance (`O1AQ`). Absent if not invariant.
 
-Gaussian transformation
-^^^^^^^^^^^^^^^^^^^^^^^
+Gaussian filter
+^^^^^^^^^^^^^^^
 
 Features computed from images filtered using Gaussian filters are prefixed by:
 
@@ -383,6 +383,14 @@ Features computed from images filtered using Gaussian filters are prefixed by:
 * `s#,#`: Scale parameter (`41LN`), in physical units.
 
 Gaussian filters lack reference values in the IBSI standard. They are only computed if `ibsi_compliant=False`.
+
+Laplace filter
+^^^^^^^^^^^^^^
+
+Features computed from images filtered using Laplace filters are prefixed by:
+
+* `lapl`: Indicating Laplace filters.
+* `n#`: Stencil size. Either 5 or 9 (2D) or 7, 15, 19, 21 or 27 (3D).
 
 Laplacian-of-Gaussian transformation (`L6PA`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

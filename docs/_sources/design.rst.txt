@@ -115,7 +115,8 @@ Internal mask representation
 Masks are internally represented by `_masks.base_mask.BaseMask`. `BaseMask` objects are containers for the actual masks,
 which are `_images.mask_image.MaskImage`. In fact, each `BaseMask` contains up to three variants of masks, notably the
 original mask, the morphological mask and the intensity mask. Whereas the original mask and morphological mask are
-currently direct
+currently identical, the intensity mask can be updated through resegmentation to exclude voxels with intensities
+outside a certain range.
 
 Future directions
 ^^^^^^^^^^^^^^^^^
