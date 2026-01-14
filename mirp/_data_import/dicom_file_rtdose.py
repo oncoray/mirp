@@ -1,5 +1,6 @@
 import warnings
 import os
+import hashlib
 
 import numpy as np
 
@@ -13,7 +14,43 @@ class ImageDicomFileRTDose(ImageDicomFile):
         super().__init__(**kwargs)
 
     def is_stackable(self, stack_images: str):
+        if stack_images == "false":
+            return False
+
+        # If Dose Summation Type (0x3004, 0x000A) is BEAM, the items are stackable.
+        dose_summation_type: str = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x3004, 0x000A),
+            tag_type="str"
+        )
+
+        # Stack dose maps for different beams.
+        if dose_summation_type == "BEAM":
+            return True
+
         return False
+
+    def get_identifiers(self, as_hash=False) -> dict[str, Any] | bytes:
+        """
+        General identifiers for images. Compared to other
+        :return: a dictionary with identifiers.
+        """
+
+        identifier_data: dict[str, Any] = super().get_identifiers(as_hash=False)
+        identifier_data.update(
+            dict({
+                "dose_summation_type" : [get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x3004, 0x000A),
+                    tag_type="str"
+                )]
+            })
+        )
+
+        if as_hash:
+            return hashlib.sha256(str(identifier_data).encode(), usedforsecurity=False).digest()
+        else:
+            return identifier_data
 
     def create(self):
         return self

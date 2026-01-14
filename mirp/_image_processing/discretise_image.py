@@ -81,6 +81,13 @@ def discretise_image(
         else:
             min_intensity = intensity_range[0]
 
+        if not image.calibrated_units:
+            warnings.warn(
+                f"The intensities for this image ({type(image)}) do not represent calibrated values. Use the "
+                f"fixed bin size (`fixed_bin_size`) method instead.",
+                UserWarning
+            )
+
         # Bin voxels.
         discretised_voxels = np.floor((image.get_voxel_grid() - min_intensity) / (bin_width * 1.0)) + 1.0
 
@@ -97,7 +104,21 @@ def discretise_image(
         # Set bin width.
         image.discretisation_bin_width = bin_width
 
+        # Check that the discretised image is not sparse.
+        if np.all(discretised_voxels[mask_data] == discretised_voxels[mask_data][0]):
+            warnings.warn(
+                f"Fixed bin size discretisation causes all intensities in the masked region to be assigned to the same"
+                f"bin. A smaller `bin_width` (current: {bin_width}) is recommended."
+            )
+
     elif discretisation_method == "fixed_bin_size_pyradiomics":
+        if not image.calibrated_units:
+            warnings.warn(
+                f"The intensities for this image ({type(image)}) do not represent calibrated values. Use the "
+                f"fixed bin size (`fixed_bin_size`) method instead.",
+                UserWarning
+            )
+
         # PyRadiomics (up to at least version 3.1.0) used a version of fixed bin size that is not IBSI-compliant.
         min_intensity = np.min(image.get_voxel_grid()[mask_data])
         min_intensity -= min_intensity % bin_width
@@ -120,6 +141,12 @@ def discretise_image(
 
         # Update IBSI compliance.
         image.ibsi_compliant = False
+
+        if np.all(discretised_voxels[mask_data] == discretised_voxels[mask_data][0]):
+            warnings.warn(
+                f"Fixed bin size discretisation causes all intensities in the masked region to be assigned to the same"
+                f"bin. A smaller `bin_width` (current: {bin_width}) is recommended."
+            )
 
     else:
         raise ValueError(f"The discretisation_method argument was not recognised. Found: {discretisation_method}")

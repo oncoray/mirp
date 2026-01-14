@@ -1,11 +1,78 @@
 import copy
+from typing import Any
+
 import numpy as np
+import pandas as pd
 
 from mirp._images.generic_image import GenericImage
-from mirp._images.transformed_image import MeanTransformedImage
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import SeparableFilterSet
+from mirp._images.transformed_image import TransformedImage
 from mirp.settings.generic import SettingsClass
+
+
+class MeanTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            filter_size: None | int = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.filter_size = filter_size
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+            self.calibrated_units = template.calibrated_units
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+        descriptors += ["mean", "d", str(self.filter_size)]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "mean"),
+            ("filter_size", self.filter_size),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = ["mean", "d", str(self.filter_size)]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class MeanFilter(GenericFilter):
@@ -52,6 +119,9 @@ class MeanFilter(GenericFilter):
 
         if image.is_empty():
             return response_map
+
+        # Check that the image is isotropic.
+        self.check_isotropic_image(image=image)
 
         # Set up the filter kernel.
         filter_kernel = np.ones(self.filter_size, dtype=float) / self.filter_size

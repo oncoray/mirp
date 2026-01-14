@@ -74,8 +74,11 @@ class BaseImage:
     def drop_image(self):
         self.image_data = None
 
-    def is_isotropic(self) -> bool:
-        if self.separate_slices:
+    def is_isotropic(self, axis_only: None | bool = None) -> bool:
+        if axis_only is None:
+            axis_only = self.separate_slices
+
+        if axis_only:
             spacing = np.array(self.image_spacing)[[1, 2]]
         else:
             spacing = np.array(self.image_spacing)

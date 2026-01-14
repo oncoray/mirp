@@ -11,6 +11,8 @@ class MRDCEImage(GenericImage):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.calibrated_units = True
+
     def normalise_intensities(
             self,
             normalisation_method: None | str = "none",

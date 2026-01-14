@@ -8,6 +8,8 @@ class PETImage(GenericImage):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.calibrated_units = True
+
     @staticmethod
     def get_colour_map():
         return "gist_yarg"

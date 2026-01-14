@@ -1,12 +1,107 @@
+from typing import Any
+
 import numpy as np
+import pandas as pd
 import copy
 
+from warnings import warn
+
 from mirp._images.generic_image import GenericImage
-from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
 from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
+from mirp._images.transformed_image import TransformedImage
 from mirp.settings.generic import SettingsClass
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import pool_voxel_grids
+
+
+class LaplacianOfGaussianTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            is_normalised: None | bool = None,
+            sigma_parameter: None | float = None,
+            sigma_cutoff_parameter: None | float = None,
+            pooling_method: None | str = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.is_normalised = False if is_normalised is None else is_normalised
+        self.sigma_parameter = sigma_parameter
+        self.sigma_cutoff_parameter = sigma_cutoff_parameter
+        self.pooling_method = pooling_method
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+
+        if self.is_normalised:
+            descriptors += ["norm"]
+
+        descriptors += [
+            "log",
+            "s", str(self.sigma_parameter)
+        ]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        filter_type = "normalised_laplacian_of_gaussian" if self.is_normalised else "laplacian_of_gaussian"
+
+        attributes = [
+            ("filter_type", filter_type),
+            ("sigma_parameter", self.sigma_parameter),
+            ("sigma_cutoff_parameter", self.sigma_cutoff_parameter),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        if self.pooling_method is not None:
+            attributes += [("pooling_method", self.pooling_method)]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = []
+        if self.is_normalised:
+            feature_name_prefix += ["norm"]
+
+        feature_name_prefix += [
+            "log",
+            "s", str(self.sigma_parameter)
+        ]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
 
 
 class LaplacianOfGaussianFilter(GenericFilter):
@@ -18,6 +113,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         self.ibsi_compliant = True
         self.ibsi_id = "L6PA"
 
+        self.is_normalised = False
         self.sigma: float | list[float] = settings.img_transform.log_sigma
         self.sigma_cutoff = settings.img_transform.log_sigma_truncate
         self.pooling_method = settings.img_transform.log_pooling_method
@@ -72,6 +168,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
     def transform(self, image: GenericImage) -> LaplacianOfGaussianTransformedImage:
         # Create placeholder Laplacian-of-Gaussian response map.
         response_map = LaplacianOfGaussianTransformedImage(
+            is_normalised=self.is_normalised,
             image_data=None,
             sigma_parameter=self.sigma,
             sigma_cutoff_parameter=self.sigma_cutoff,
@@ -122,6 +219,12 @@ class LaplacianOfGaussianFilter(GenericFilter):
 
         # Update sigma to voxel units.
         sigma = np.divide(np.full(shape=3, fill_value=self.sigma), spacing)
+        if self.separate_slices:
+            sigma = sigma[[1, 2]]
+
+        if max(sigma) < 1.0:
+            warn(f"Sigma is smaller than the image spacing: this may lead to poor sampling of the "
+                 f"Laplacian-of-Gaussian function. ", UserWarning)
 
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
@@ -131,9 +234,9 @@ class LaplacianOfGaussianFilter(GenericFilter):
             d = 2.0
 
             # Create the grid coordinates, with [0, 0, 0] in the center.
-            y, x = np.mgrid[:filter_size[1], :filter_size[2]]
-            y -= (filter_size[1] - 1.0) / 2.0
-            x -= (filter_size[2] - 1.0) / 2.0
+            y, x = np.mgrid[:filter_size[0], :filter_size[1]]
+            y -= (filter_size[0] - 1.0) / 2.0
+            x -= (filter_size[1] - 1.0) / 2.0
 
             # Compute the square of the norm.
             norm_2 = np.power(y, 2.0) + np.power(x, 2.0)
@@ -155,8 +258,7 @@ class LaplacianOfGaussianFilter(GenericFilter):
         sigma = np.max(sigma)
 
         # Compute the scale factor
-        scale_factor = - 1.0 / sigma ** 2.0 * np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) * (d - norm_2 /
-                                                                                                      sigma ** 2.0)
+        scale_factor = self._get_scale_factor(sigma=sigma, d=d, norm_2=norm_2)
 
         # Compute the exponent which determines filter width.
         width_factor = - norm_2 / (2.0 * sigma ** 2.0)
@@ -194,3 +296,31 @@ class LaplacianOfGaussianFilter(GenericFilter):
 
         # Compute the convolution
         return response_map
+
+    @staticmethod
+    def _get_scale_factor(sigma, d, norm_2):
+        return (
+            - 1.0 / sigma ** 2.0 *
+            np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) *
+            (d - norm_2 / sigma ** 2.0)
+        )
+
+
+class NormalisedLaplacianOfGaussianFilter(LaplacianOfGaussianFilter):
+
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
+
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.is_normalised = True
+        self.ibsi_compliant = False
+        self.ibsi_id = None
+
+    @staticmethod
+    def _get_scale_factor(sigma, d, norm_2):
+        # Compared to the conventional version, the normalised version lacks the initial 1.0 / sigma^2 factor.
+        return (
+            - 1.0 *
+            np.power(1.0 / np.sqrt(2.0 * np.pi * sigma ** 2), d) *
+            (d - norm_2 / sigma ** 2.0)
+        )

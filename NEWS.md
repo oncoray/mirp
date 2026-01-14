@@ -1,12 +1,40 @@
+# Version 2.4.2
+
+## Minor changes
+
+- Added a normalised version of the Laplacian-of-Gaussian filter (`normalised_laplacian_of_gaussian` or `norm_log`) 
+  for compatibility with software packages that use (non-IBSI-compliant) implementations that normalise the filter.
+
+- Added support for dose summation of RTDOSE maps for different beams.
+
+- Added support for 2D and 3D discrete Laplace filters.
+
+- Applying 3D filters in a slice-by-slice analysis will now raise an error.
+
+- Applying filters to images with anisotropic voxel spacing now raises a warning for filters where the 
+  spatial frequency response depends on the number of voxels, such as filters with kernels with fixed weights.
+
+- Applying fixed bin size discretisation now raises a warning if all intensities in the masked region are 
+  assigned to the same bin.
+
+- Applying fixed bin size discretisation to images that do not have intensities with calibrated units now raises a 
+  warning. 
+
+## Fixes
+
+- Saving image objects to NIfTI now correctly sets orientation. Previously, oblique orientations were not set correctly.
+- Metadata for masks is now exported correctly for segmentation masks that derive from NIfTI, NRRD or Numpy files when
+  `export_format = "dict"`.
+
 # Version 2.4.1
 
-# Minor changes
+## Minor changes
 
 - Added `kurtosis` method for local binary pattern filter.
 
 # Version 2.4.0
 
-# Major changes
+## Major changes
 
 - It is now possible to use and process (in-memory) images and masks in a native `mirp` format. It was already 
   possible to export imaging and masks, e.g. using `extract_images(..., image_export_format="native")` or

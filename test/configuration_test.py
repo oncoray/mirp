@@ -547,6 +547,12 @@ def test_image_transformation_settings_configuration(tmp_path):
         if test_value is None:
             continue
 
+        error_message = (f"If you added a new filter parameter check three things: "
+                         f"1. The parameter {argument_key} is specified in get_image_transformation_settings.\n"
+                         f"2. The class key {class_key} is  specified in get_image_transformation_settings.\n"
+                         f"3. The corresponding filter is listed in the spatial_filters specification in "
+                         f"get_image_transformation_settings.")
+
         if argument_key in ["response_map_feature_families", "response_map_discretisation_method",
                             "response_map_discretisation_n_bins", "response_map_discretisation_bin_width"]:
             if isinstance(test_value, list):
@@ -559,8 +565,14 @@ def test_image_transformation_settings_configuration(tmp_path):
             assert list(getattr(settings_keyword.img_transform, class_key)) == [test_value]
             assert isinstance(test_value[0], value_type)
         elif isinstance(test_value, list):
+            if getattr(settings_keyword.img_transform, class_key) is None:
+                raise ValueError(error_message)
+
             assert list(getattr(settings_keyword.img_transform, class_key)) == test_value
             assert isinstance(test_value[0], value_type)
         else:
+            if getattr(settings_keyword.img_transform, class_key) is None:
+                raise ValueError(error_message)
+
             assert getattr(settings_keyword.img_transform, class_key) == test_value
             assert isinstance(test_value, value_type)

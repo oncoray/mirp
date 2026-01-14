@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 import pytest
 
@@ -38,7 +40,7 @@ def test_generic_image_descriptors():
 
 @pytest.mark.ci
 def test_gabor_filtered_image_descriptors():
-    from mirp._images.transformed_image import GaborTransformedImage
+    from mirp._imagefilters.gabor import GaborTransformedImage
 
     image = GaborTransformedImage(
         sigma_parameter=1.0,
@@ -64,7 +66,7 @@ def test_gabor_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_gaussian_filtered_image_descriptors():
-    from mirp._images.transformed_image import GaussianTransformedImage
+    from mirp._imagefilters.gaussian import GaussianTransformedImage
 
     image = GaussianTransformedImage(
         sigma_parameter=1.0,
@@ -83,8 +85,24 @@ def test_gaussian_filtered_image_descriptors():
 
 
 @pytest.mark.ci
+def test_laplace_filtered_image_descriptors():
+    from mirp._imagefilters.laplacian import LaplacianTransformedImage
+
+    image = LaplacianTransformedImage(
+        stencil_size=27,
+        boundary_condition="testboundarycondition",
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
 def test_laplacian_of_gaussian_filtered_image_descriptors():
-    from mirp._images.transformed_image import LaplacianOfGaussianTransformedImage
+    from mirp._imagefilters.laplacian_of_gaussian import LaplacianOfGaussianTransformedImage
 
     image = LaplacianOfGaussianTransformedImage(
         sigma_parameter=1.0,
@@ -104,7 +122,7 @@ def test_laplacian_of_gaussian_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_laws_filtered_image_descriptors():
-    from mirp._images.transformed_image import LawsTransformedImage
+    from mirp._imagefilters.laws import LawsTransformedImage
 
     image = LawsTransformedImage(
         laws_kernel="testlawskernel",
@@ -127,7 +145,7 @@ def test_laws_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_mean_filtered_image_descriptors():
-    from mirp._images.transformed_image import MeanTransformedImage
+    from mirp._imagefilters.mean import MeanTransformedImage
 
     image = MeanTransformedImage(
         filter_size=5,
@@ -146,7 +164,7 @@ def test_mean_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_non_separable_wavelet_filtered_image_descriptors():
-    from mirp._images.transformed_image import NonSeparableWaveletTransformedImage
+    from mirp._imagefilters.nonseparable_wavelet import NonSeparableWaveletTransformedImage
 
     image = NonSeparableWaveletTransformedImage(
         wavelet_family="testwaveletfamily",
@@ -167,7 +185,7 @@ def test_non_separable_wavelet_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_separable_wavelet_filtered_image_descriptors():
-    from mirp._images.transformed_image import SeparableWaveletTransformedImage
+    from mirp._imagefilters.separable_wavelet import SeparableWaveletTransformedImage
 
     image = SeparableWaveletTransformedImage(
         wavelet_family="testwaveletfamily",
@@ -191,7 +209,7 @@ def test_separable_wavelet_filtered_image_descriptors():
 
 @pytest.mark.ci
 def test_square_transformed_image_descriptors():
-    from mirp._images.transformed_image import SquareTransformedImage
+    from mirp._imagefilters.square_transform import SquareTransformedImage
 
     image = SquareTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
@@ -203,7 +221,7 @@ def test_square_transformed_image_descriptors():
 
 @pytest.mark.ci
 def test_square_root_transformed_image_descriptors():
-    from mirp._images.transformed_image import SquareRootTransformedImage
+    from mirp._imagefilters.square_root_transform import SquareRootTransformedImage
 
     image = SquareRootTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
@@ -215,7 +233,7 @@ def test_square_root_transformed_image_descriptors():
 
 @pytest.mark.ci
 def test_logarithm_transformed_image_descriptors():
-    from mirp._images.transformed_image import LogarithmTransformedImage
+    from mirp._imagefilters.log_transform import LogarithmTransformedImage
 
     image = LogarithmTransformedImage(**GENERIC_KWARGS)
     descriptors = image.get_file_name_descriptor()
@@ -227,9 +245,44 @@ def test_logarithm_transformed_image_descriptors():
 
 @pytest.mark.ci
 def test_exponential_transformed_image_descriptors():
-    from mirp._images.transformed_image import ExponentialTransformedImage
+    from mirp._imagefilters.exponential_transform import ExponentialTransformedImage
 
     image = ExponentialTransformedImage(**GENERIC_KWARGS)
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+
+@pytest.mark.ci
+def test_lbp_transformed_image_descriptors():
+    from mirp._imagefilters.local_binary_patterns import LocalBinaryPatternImage
+
+    local_kwargs = copy.deepcopy(GENERIC_KWARGS)
+    local_kwargs.pop("separate_slices", None)
+
+    image = LocalBinaryPatternImage(
+        distance=1.0,
+        separate_slices = True,
+        lbp_method="default",
+        **local_kwargs
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
+
+@pytest.mark.ci
+def test_laplace_transformed_image_descriptors():
+    from mirp._imagefilters.laplacian import LaplacianTransformedImage
+
+    image = LaplacianTransformedImage(
+        stencil_size=7,
+        **GENERIC_KWARGS
+    )
+
     descriptors = image.get_file_name_descriptor()
     assert isinstance(descriptors, list)
 

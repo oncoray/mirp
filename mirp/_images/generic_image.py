@@ -60,13 +60,16 @@ class GenericImage(BaseImage):
         # Image underwent IBSI compliant processing (default True: it is easier to identify exceptions).
         self.ibsi_compliant = True
 
+        # Mark whether intensities represent calibrated units.
+        self.calibrated_units = False
+
     def update_from_template(self, template):
         if not isinstance(template, GenericImage):
             raise TypeError(
                 f"The new class object should inherit from the template provided by the \"image\" object, which is "
                 f"expected to inherit from GenericImage. Found: {type(template)}")
 
-        # NOTE: image_data is not set automatically.
+        # NOTE: image_data and calibrated_units are not set automatically.
 
         # Attributes from BaseImage
         self.modality = template.modality
@@ -1197,7 +1200,8 @@ class GenericImage(BaseImage):
             image_data = itk.GetImageFromArray(image_data.astype(cast_type))
             image_data.SetOrigin(np.array(self.image_origin)[::-1])
             image_data.SetSpacing(np.array(self.image_spacing)[::-1])
-            image_data.SetDirection(itk.matrix_from_array(np.reshape(np.ravel(self.image_orientation)[::-1], [3, 3])))
+            image_data.SetDirection(itk.matrix_from_array(np.reshape(np.ravel(self.image_orientation, order="F")[::-1],
+                                                                     [3, 3])))
 
             itk.imwrite(image_data, file_path)
 

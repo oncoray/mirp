@@ -9,6 +9,8 @@ class MRADCImage(GenericImage):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        self.calibrated_units = True
+
     @staticmethod
     def get_default_lowest_intensity():
         return 0.0

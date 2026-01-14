@@ -1,0 +1,226 @@
+from typing import Any
+
+import numpy as np
+import pandas as pd
+import copy
+
+from mirp._images.generic_image import GenericImage
+from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
+from mirp._images.transformed_image import TransformedImage
+from mirp.settings.generic import SettingsClass
+from mirp._imagefilters.generic import GenericFilter
+
+
+class LaplacianTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            stencil_size: None | int = None,
+            boundary_condition: None | str = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.stencil_size = stencil_size
+        self.boundary_condition = boundary_condition
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+        descriptors += [
+            "lapl",
+            "n", str(self.stencil_size)
+        ]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "laplacian"),
+            ("stencil_size", self.stencil_size),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "lapl",
+            "n", str(self.stencil_size)
+        ]
+
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
+
+
+class LaplacianFilter(GenericFilter):
+
+    def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
+
+        super().__init__(image=image, settings=settings, name=name)
+
+        self.ibsi_compliant = False
+        self.ibsi_id = None
+
+        self.stencil_size = settings.img_transform.laplace_stencil_size
+        self.mode = settings.img_transform.laplace_boundary_condition
+
+        if self.separate_slices and any(x not in [5, 9] for x in self.stencil_size):
+            mismatch_stencil_sizes = [x for x in self.stencil_size if x not in [5, 9]]
+            raise ValueError(f"Cannot use 3D discrete Laplace filters for slice-by-slice filtering. Stencil sizes "
+                             f"{mismatch_stencil_sizes} are not possible. Use 5 or 9 instead.")
+
+    def _not_isotropic_warning_message(self):
+        return f"The discrete Laplace filter (stencil size: {self.stencil_size}) requires isotropic voxel spacing."
+
+    def generate_object(self):
+        # Generator for transformation objects.
+        stencil_size = copy.deepcopy(self.stencil_size)
+        if not isinstance(stencil_size, list):
+            stencil_size = [stencil_size]
+
+        for current_stencil_size in stencil_size:
+            filter_object = copy.deepcopy(self)
+            filter_object.stencil_size = current_stencil_size
+
+            # 5 and 9-stencil filters are 2D, whereas 7, 15, 19, 21, and 27-stencils are 3D.
+            filter_object.separate_slices = current_stencil_size in [5, 9]
+
+            yield filter_object
+
+    def transform(self, image: GenericImage) -> LaplacianTransformedImage:
+        # Create placeholder Laplacian-of-Gaussian response map.
+        response_map = LaplacianTransformedImage(
+            image_data=None,
+            stencil_size=self.stencil_size,
+            boundary_condition=self.mode,
+            template=image
+        )
+        response_map.ibsi_compliant = self.ibsi_compliant and image.ibsi_compliant
+
+        if image.is_empty():
+            return response_map
+
+        # Set response voxel grid.
+        response_voxel_grid = None
+
+        # Initialise iterator ii to avoid IDE warnings.
+        for ii, pooled_filter_object in enumerate(self.generate_object()):
+            # Check that the image is isotropic.
+            pooled_filter_object.check_isotropic_image(image=image)
+
+            # Generate transformed voxel grid.
+            response_voxel_grid = pooled_filter_object.transform_grid(
+                voxel_grid=image.get_voxel_grid()
+            )
+
+            if ii > 1:
+                raise ValueError(f"Laplace response maps cannot be stacked.")
+
+        # Set voxel grid.
+        response_map.set_voxel_grid(voxel_grid=response_voxel_grid)
+
+        return response_map
+
+    def transform_grid(
+            self,
+            voxel_grid: np.ndarray
+    ):
+        # See Patra and Karttunen (10.1002/num.20129) for constants.
+        if self.separate_slices:
+            # two-dimensional filters.
+            if self.stencil_size == 5:
+                # Anisotropic filter.
+                c1 = 0.0
+            elif self.stencil_size == 9:
+                # Isotropic filter.
+                c1 = 1.0 / 6.0
+            else:
+                raise ValueError(f"stencil size is not valid. Found: {self.stencil_size}. Expected: 5 or 7")
+
+            c2 = 1.0 - 2.0 * c1
+            c3 = 4.0 * c1 - 4.0
+
+            filter_weights = np.array([
+                [c1, c2, c1],
+                [c2, c3, c2],
+                [c1, c2, c1]
+            ])
+
+            # Set filter weights and create a filter.
+            laplace_filter = FilterSet2D(filter_weights)
+
+        else:
+            # three-dimensional filters.
+            if self.stencil_size == 7:
+                # Anisotropic filter.
+                c1 = 0.0
+
+            elif self.stencil_size == 15:
+                # Isotropic filter.
+                c1 = 1.0 / 12.0
+
+            elif self.stencil_size == 19:
+                c1 = 0.0
+
+            elif self.stencil_size == 21:
+                c1 = -1.0 / 12.0
+
+            elif self.stencil_size == 27:
+                c1 = 1.0 / 30.0
+
+            else:
+                raise ValueError(f"stencil size is not valid. Found: {self.stencil_size}. Expected: 7, 15, 19, 21, "
+                                 f"or 27.")
+
+            c2 = 1.0 / 6.0 - 2.0 * c1
+            c3 = 1.0 / 3.0 + 4.0 * c1
+            c4 = -4.0 - 8.0 * c1
+            if self.stencil_size == 7:
+                c2 = 0.0
+                c3 = 1.0
+                c4 = -6.0
+
+            filter_weights = np.array([
+                [
+                    [c1, c2, c1],
+                    [c2, c3, c2],
+                    [c1, c2, c1]
+                ], [
+                    [c2, c3, c2],
+                    [c3, c4, c3],
+                    [c2, c3, c2]
+                ], [
+                    [c1, c2, c1],
+                    [c2, c3, c2],
+                    [c1, c2, c1]
+                ]
+            ])
+
+            # Set filter weights and create a filter.
+            laplace_filter = FilterSet3D(filter_weights)
+
+        # Convolve laplace filter with the image.
+        response_map = laplace_filter.convolve(
+            voxel_grid=voxel_grid,
+            mode=self.mode,
+            response="real"
+        )
+
+        # Compute the convolution
+        return response_map

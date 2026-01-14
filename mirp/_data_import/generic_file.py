@@ -95,7 +95,7 @@ class ImageFile(BaseImage):
             f"implementation for subclasses."
         )
 
-    def copy(self):
+    def copy(self, drop_image=False):
         return copy.deepcopy(self)
 
     def on_file_system(self):
@@ -453,6 +453,8 @@ class ImageFile(BaseImage):
                 else:
                     return False
 
+        return True
+
     def _check_sample_name(self, raise_error: bool) -> bool:
         # Check that image file contains a sample name, if multiple sample names are present. To assess the filename,
         # we first strip the extension. Optionally we split the filename on the image name pattern, reducing the
@@ -732,7 +734,7 @@ class ImageFile(BaseImage):
             f"implementation for subclasses."
         )
 
-    def remove_metadata(self):
+    def remove_metadata(self, force=False):
         self.image_metadata = None
 
     def load_data(self, **kwargs):
@@ -1240,7 +1242,8 @@ class MaskFile(ImageFile):
                         image_spacing=self.image_spacing,
                         image_origin=self.image_origin,
                         image_orientation=self.image_orientation,
-                        image_dimensions=self.image_dimension
+                        image_dimensions=self.image_dimension,
+                        metadata=self.object_metadata
                     )
                 ]
 

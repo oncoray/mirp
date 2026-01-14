@@ -18,3 +18,16 @@ class GenericFilter:
 
     def transform(self, image: GenericImage):
         raise NotImplementedError("transform method should be defined in the subclasses.")
+
+    def check_isotropic_image(self, image: GenericImage):
+        import warnings
+
+        # Check if isotropic requirements for the filter are fulfilled.
+        if not image.is_isotropic(axis_only=self.separate_slices):
+            warnings.warn(
+                self._not_isotropic_warning_message(),
+                UserWarning
+            )
+
+    def _not_isotropic_warning_message(self):
+        raise NotImplementedError("_not_isotropic_warning_message method should be defined in the subclasses")

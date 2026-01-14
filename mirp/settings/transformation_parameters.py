@@ -214,6 +214,16 @@ class ImageTransformationSettingsClass:
         Sets the boundary condition for Gaussian filters. This supersedes any value set by the general
         ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
 
+    laplace_stencil_size: int or list of int, optional, default: 27
+        Stencil size for the discrete Laplace filter. Stencil size 5 and 9 correspond to 2D discrete Laplace
+        filters, whereas stencil sizes 7, 15, 19, 21, 27 correspond to 3D discrete Laplace filters. Stencil sizes
+        5 and 7 lead to anisotropic filters, whereas the remainder lead to isotropic filters. See Patra and Karttunen
+        (doi:10.1002/num.20129) for more details. Multiple values can be specified.
+
+    laplace_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for discrete Laplace filters. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
     laplacian_of_gaussian_sigma: float or list of float, optional
         Width of the Gaussian filter in physical dimensions (e.g. mm). Multiple values can be specified.
 
@@ -386,6 +396,8 @@ class ImageTransformationSettingsClass:
             gaussian_sigma: None | float | list[float] = None,
             gaussian_kernel_truncate: None | float = 4.0,
             gaussian_kernel_boundary_condition: None | str = None,
+            laplace_stencil_size: None | int = 27,
+            laplace_boundary_condition: None | str = None,
             laplacian_of_gaussian_sigma: None | float | list[float] = None,
             laplacian_of_gaussian_kernel_truncate: None | float = 4.0,
             laplacian_of_gaussian_pooling_method: str = "none",
@@ -552,7 +564,7 @@ class ImageTransformationSettingsClass:
         self.gaussian_boundary_condition: None | str = gaussian_kernel_boundary_condition
 
         # Check laplacian-of-gaussian filter settings
-        if self.has_laplacian_of_gaussian_filter():
+        if self.has_laplacian_of_gaussian_filter() or self.has_normalised_laplacian_of_gaussian_filter():
             # Check sigma.
             laplacian_of_gaussian_sigma = self.check_sigma(
                 laplacian_of_gaussian_sigma,
@@ -874,16 +886,43 @@ class ImageTransformationSettingsClass:
                 raise TypeError(f"lbp_filter_distance require a value of 1.0 or more.")
             self.lbp_distance = lbp_filter_distance
 
-    @staticmethod
-    def get_available_image_filters():
-        return [
+
+        self.laplace_stencil_size: None | list[int] = None
+        self.laplace_boundary_condition: None | str = None
+
+        if self.has_laplace_filter():
+            if ibsi_compliant:
+                raise ValueError(
+                    "The laplace filter is not part of the IBSI reference standard. If you are sure that you want to "
+                    "use this method, use ibsi_compliant = False."
+                )
+
+            # Check stencil size.
+            if not isinstance(laplace_stencil_size, int) and not isinstance(laplace_stencil_size, list):
+                raise TypeError(f"The lbp_filter_distance parameter is expected to be a float or list of float.")
+            if isinstance(laplace_stencil_size, int):
+                laplace_stencil_size = [laplace_stencil_size]
+            if not all(x in [5, 7, 9, 15, 19, 21, 27] for x in laplace_stencil_size):
+                raise TypeError(f"laplace_stencil_size requires a value of 5, 7, 9, 15, 19, 21, or 27.")
+            self.laplace_stencil_size = laplace_stencil_size
+
+            # Check boundary condition.
+            self.laplace_boundary_condition = self.check_boundary_condition(
+                laplace_boundary_condition, "laplace_boundary_condition"
+            )
+
+    def get_available_image_filters(self):
+        available_filters = [
             "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet",
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
-            "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_steered_laplacian_of_gaussian",
-            "riesz_log", "riesz_steered_log", "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
+            "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
             "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
-            "lbp", "lbp_2d", "lbp_3d"
-        ]
+            "lbp", "lbp_2d", "lbp_3d", "laplace", "laplacian"
+        ] + \
+        self._get_available_laplacian_of_gaussian_filters() + \
+        self._get_available_normalised_laplacian_of_gaussian_filters()
+
+        return available_filters
 
     def check_boundary_condition(self, x, var_name):
         if x is None:
@@ -1224,6 +1263,13 @@ class ImageTransformationSettingsClass:
         return x is not None and any(
             filter_kernel in ["gaussian", "riesz_gaussian", "riesz_steered_gaussian"] for filter_kernel in x)
 
+    @staticmethod
+    def _get_available_laplacian_of_gaussian_filters():
+        return [
+            "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log",
+            "riesz_steered_laplacian_of_gaussian", "riesz_steered_log"
+        ]
+
     def has_laplacian_of_gaussian_filter(self, x=None):
         if x is None:
             x = self.spatial_filters
@@ -1231,10 +1277,23 @@ class ImageTransformationSettingsClass:
             x = [x]
 
         return x is not None and any(
-            filter_kernel in [
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log",
-                "riesz_steered_laplacian_of_gaussian", "riesz_steered_log"
-            ] for filter_kernel in x)
+            filter_kernel in self._get_available_laplacian_of_gaussian_filters() for filter_kernel in x)
+
+    @staticmethod
+    def _get_available_normalised_laplacian_of_gaussian_filters():
+        return [
+            "normalised_laplacian_of_gaussian", "norm_log", "riesz_normalised_laplacian_of_gaussian",
+            "riesz_norm_log", "riesz_steered_normalised_laplacian_of_gaussian", "riesz_steered_norm_log"
+        ]
+
+    def has_normalised_laplacian_of_gaussian_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(
+            filter_kernel in self._get_available_normalised_laplacian_of_gaussian_filters() for filter_kernel in x)
 
     def has_laws_filter(self, x=None):
         if x is None:
@@ -1328,6 +1387,14 @@ class ImageTransformationSettingsClass:
 
         return x is not None and any(filter_kernel in ["lbp", "lbp_2d", "lbp_3d"] for filter_kernel in x)
 
+    def has_laplace_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel in ["laplace", "laplacian"] for filter_kernel in x)
+
 def get_image_transformation_settings() -> list[dict[str, Any]]:
     return [
         setting_def(
@@ -1350,9 +1417,8 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             "filter_kernels", "str", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
             class_key="spatial_filters", test=[
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet", "gaussian", "riesz_gaussian",
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laws", "gabor",
-                "riesz_gabor", "mean",
-                "lbp_3d"
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laplace", "laws", "gabor",
+                "riesz_gabor", "mean", "lbp_3d"
             ]
         ),
         setting_def("boundary_condition", "str", test="nearest"),
@@ -1375,6 +1441,8 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
         setting_def(
             "gaussian_kernel_boundary_condition", "str", class_key="gaussian_boundary_condition", test="constant"
         ),
+        setting_def("laplace_stencil_size", "int", to_list=True, test=[9,27]),
+        setting_def("laplace_boundary_condition", "str", test="constant"),
         setting_def(
             "laplacian_of_gaussian_sigma", "float", to_list=True,
             xml_key=["laplacian_of_gaussian_sigma", "log_sigma"], class_key="log_sigma", test=[1.0, 3.0]

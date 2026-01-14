@@ -265,7 +265,7 @@ class ImageDirectory:
                 continue
 
             sample_name = [
-                isolate_sample_name(x=file_name, pattern=self.image_name, file_extenstion=allowed_file_extensions)
+                isolate_sample_name(x=file_name, pattern=self.image_name, file_extension=allowed_file_extensions)
                 for file_name in path_info_element[2]
             ]
 

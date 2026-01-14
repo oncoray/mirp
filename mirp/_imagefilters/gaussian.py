@@ -1,11 +1,89 @@
+from typing import Any
+
 import numpy as np
 import copy
 
+import pandas as pd
+
 from mirp._images.generic_image import GenericImage
-from mirp._images.transformed_image import GaussianTransformedImage
 from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import FilterSet2D, FilterSet3D
+from mirp._images.transformed_image import TransformedImage
 from mirp.settings.generic import SettingsClass
+
+
+class GaussianTransformedImage(TransformedImage):
+    def __init__(
+            self,
+            sigma_parameter: None | float = None,
+            sigma_cutoff_parameter: None | float = None,
+            boundary_condition: None | str = None,
+            riesz_order: None | int | list[int] = None,
+            riesz_steering: None | bool = None,
+            riesz_sigma_parameter: None | float = None,
+            template: None | GenericImage = None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        # Filter parameters
+        self.sigma_parameter = sigma_parameter
+        self.sigma_cutoff_parameter = sigma_cutoff_parameter
+        self.boundary_condition = boundary_condition
+        self.riesz_transformed = riesz_order is not None
+        self.riesz_order = copy.deepcopy(riesz_order)
+        self.riesz_steering = riesz_steering
+        self.riesz_sigma_parameter = riesz_sigma_parameter
+
+        # Update image parameters using the template.
+        if isinstance(template, GenericImage):
+            self.update_from_template(template=template)
+            self.calibrated_units = template.calibrated_units
+
+    def get_file_name_descriptor(self) -> list[str]:
+        descriptors = super().get_file_name_descriptor()
+
+        descriptors += [
+            "gaussian",
+            "s", str(self.sigma_parameter)
+        ]
+
+        return descriptors
+
+    def get_export_attributes(self) -> dict[str, Any]:
+        parent_attributes = super().get_export_attributes()
+
+        attributes = [
+            ("filter_type", "gaussian"),
+            ("sigma_parameter", self.sigma_parameter),
+            ("sigma_cutoff_parameter", self.sigma_cutoff_parameter),
+            ("boundary_condition", self.boundary_condition)
+        ]
+
+        if self.riesz_transformed:
+            attributes += [("riesz_order", self.riesz_order)]
+
+            if self.riesz_steering:
+                attributes += [("riesz_sigma_parameter", self.riesz_sigma_parameter)]
+
+        parent_attributes.update(dict(attributes))
+
+        return parent_attributes
+
+    def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
+        x = super().parse_feature_names(x=x)
+
+        feature_name_prefix = [
+            "gaussian",
+            "s", str(self.sigma_parameter)
+        ]
+
+        if len(feature_name_prefix) > 0:
+            feature_name_prefix = "_".join(feature_name_prefix)
+            feature_name_prefix += "_"
+            x.columns = feature_name_prefix + x.columns
+
+        return x
 
 
 class GaussianFilter(GenericFilter):
@@ -93,8 +171,8 @@ class GaussianFilter(GenericFilter):
         return response_map
 
     def transform_grid(self,
-                       voxel_grid: np.array,
-                       sigma: np.array):
+                       voxel_grid: np.ndarray,
+                       sigma: np.ndarray):
         # Determine the size of the filter
         filter_size = 1 + 2 * np.floor(self.sigma_cutoff * sigma + 0.5)
         filter_size.astype(int)
