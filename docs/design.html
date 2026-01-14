@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>General design &mdash; mirp 2.4.1 documentation</title>
+  <title>General design &mdash; mirp 2.4.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=e9ebdb8f"></script>
+      <script src="_static/documentation_options.js?v=de1351e5"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -216,7 +216,8 @@ spacing. It is safer to handle DICOM imaging, prior to resampling (<cite>interpo
 <p>Masks are internally represented by <cite>_masks.base_mask.BaseMask</cite>. <cite>BaseMask</cite> objects are containers for the actual masks,
 which are <cite>_images.mask_image.MaskImage</cite>. In fact, each <cite>BaseMask</cite> contains up to three variants of masks, notably the
 original mask, the morphological mask and the intensity mask. Whereas the original mask and morphological mask are
-currently direct</p>
+currently identical, the intensity mask can be updated through resegmentation to exclude voxels with intensities
+outside a certain range.</p>
 <section id="id2">
 <h3>Future directions<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <p>The current implementation of internal image representations is sufficient.</p>
@@ -235,7 +236,7 @@ currently direct</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Alex Zwanenburg.</p>
+    <p>&#169; Copyright 2026, Alex Zwanenburg.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

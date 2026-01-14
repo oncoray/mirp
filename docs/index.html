@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MIRP &mdash; mirp 2.4.1 documentation</title>
+  <title>MIRP &mdash; mirp 2.4.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=e9ebdb8f"></script>
+      <script src="_static/documentation_options.js?v=de1351e5"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -196,6 +196,53 @@ to process images as input for neural networks and other deep learning models.</
 </table>
 <p>Optional dependencies for parallel processing, i.e. <cite>ray</cite> and <cite>joblib</cite>, may not support all Python versions.</p>
 </section>
+<section id="compatibility">
+<h2>Compatibility<a class="headerlink" href="#compatibility" title="Link to this heading"></a></h2>
+<p>MIRP is compliant with the Image Biomarker Standardisation Initiative’s reference standards for image processing and
+feature  computation <a class="reference internal" href="quantitative_image_analysis.html#zwanenburg2020" id="id1"><span>[Zwanenburg2020]</span></a> and for image filters <a class="reference internal" href="quantitative_image_analysis.html#whybra2024" id="id2"><span>[Whybra2024]</span></a>. Compliance is checked automatically as part
+of the software tests.</p>
+<p>The reference standards do not cover all possible image pre-processing steps, features or image filters. There are three
+pre-processing steps in MIRP that are used by default and that currently lack reference standards, and thus may be
+implemented differently in other software packages, or be absent entirely. These are:</p>
+<p>1. <strong>Anti-aliasing</strong>: Downsampling, i.e. resampling from a high-resolution scan to a lower-resolution image leads
+to aliasing artifacts because the interpolation algorithms will primary use local information from the voxels directly
+adjacent to each interpolation point <a class="reference internal" href="#zwanenburg2019" id="id3"><span>[Zwanenburg2019]</span></a>. To counteract this, MIRP by default uses a Gaussian
+anti-aliasing filter prior to resampling. This filters smooths local information, prevent anti-aliasing artifacts. To
+turn anti-aliasing off set <cite>anti_aliasing = False</cite>.</p>
+<p>2. <strong>Use of tissue masks for intensity normalisation</strong>: Intensity normalisation is a pre-processing step commonly
+used for harmonising clinical MRI sequences. These methods use information from intensities in a scan. Generally,
+information from voxels outside the studied patient (air voxels) are not relevant. By default, MIRP tries to exclude
+such voxels by generating a tissue mask based on the intensity distribution, and use only information from voxels
+related containing patient tissue for normalisation. To turn tissue masks off, set <cite>tissue_mask_type = “none”</cite>.</p>
+<p>3. <strong>Conversion of PET values to SUV</strong>: If PET scans are provided in the DICOM format, by default MIRP will use
+information contained in the DICOM headers to compute body-weight corrected standardised uptake values. To use raw PET
+information, set <cite>pet_suv_conversion = “none”</cite>. Other types of standardised uptake value can be computed using other
+options.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<div role="list" class="citation-list">
+<div class="citation" id="zwanenburg2019" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">Zwanenburg2019</a><span class="fn-bracket">]</span></span>
+<p>Zwanenburg A, Leger S, Agolli L, Pilz K, Troost EG, Richter C, Löck S. Assessing robustness of
+radiomic features by image perturbation. Scientific reports. 2019;9(1):614. doi:
+<a class="reference external" href="https://doi.org/10.1038/s41598-018-36938-4">10.1038/s41598-018-36938-4</a></p>
+</div>
+<div class="citation" id="zwanenburg2020" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">Zwanenburg2020</a><span class="fn-bracket">]</span></span>
+<p>Zwanenburg A, Vallieres M, Abdalah MA, Aerts HJWL, Andrearczyk V, Apte A, et al. The Image
+Biomarker Standardization Initiative: Standardized Quantitative Radiomics for High-Throughput Image-based
+Phenotyping. Radiology. 2020;295: 328-338.
+doi:<a class="reference external" href="https://doi.org/10.1148/radiol.2020191145">10.1148/radiol.2020191145</a></p>
+</div>
+<div class="citation" id="whybra2024" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">Whybra2024</a><span class="fn-bracket">]</span></span>
+<p>Whybra P, Zwanenburg A, Andrearczyk V, Schaer R, Apte AP, Ayotte A, et al. The Image Biomarker
+Standardization Initiative: Standardized Convolutional Filters for Reproducible Radiomics and Enhanced Clinical
+Insights. Radiology. 2024;310: e231319. doi:<a class="reference external" href="https://doi.org/10.1148/radiol.231319">10.1148/radiol.231319</a></p>
+</div>
+</div>
+</section>
 </section>
 
 
@@ -208,7 +255,7 @@ to process images as input for neural networks and other deep learning models.</
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Alex Zwanenburg.</p>
+    <p>&#169; Copyright 2026, Alex Zwanenburg.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
