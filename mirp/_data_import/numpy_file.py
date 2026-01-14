@@ -45,7 +45,10 @@ class ImageNumpyFile(ImageFile):
             return False
 
         # Read Numpy file.
-        image_data = np.load(file=self.file_path, mmap_mode="r")
+        if self.file_path is not None:
+            image_data = np.load(file=self.file_path, mmap_mode="r")
+        else:
+            image_data = self.image_data
 
         # Check that the contents are in fact a ndarray.
         if not isinstance(image_data, np.ndarray):
