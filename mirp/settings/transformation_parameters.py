@@ -1417,9 +1417,8 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             "filter_kernels", "str", to_list=True, xml_key=["filter_kernels", "spatial_filters"],
             class_key="spatial_filters", test=[
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet", "gaussian", "riesz_gaussian",
-                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laws", "gabor",
-                "riesz_gabor", "mean",
-                "lbp_3d"
+                "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laplace", "laws", "gabor",
+                "riesz_gabor", "mean", "lbp_3d"
             ]
         ),
         setting_def("boundary_condition", "str", test="nearest"),
