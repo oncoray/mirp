@@ -273,3 +273,18 @@ def test_lbp_transformed_image_descriptors():
 
     attributes = image.get_export_attributes()
     assert isinstance(attributes, dict)
+
+@pytest.mark.ci
+def test_laplace_transformed_image_descriptors():
+    from mirp._imagefilters.laplacian import LaplacianTransformedImage
+
+    image = LaplacianTransformedImage(
+        stencil_size=7,
+        **GENERIC_KWARGS
+    )
+
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)
