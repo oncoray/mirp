@@ -288,3 +288,17 @@ def test_laplace_transformed_image_descriptors():
 
     attributes = image.get_export_attributes()
     assert isinstance(attributes, dict)
+
+@pytest.mark.ci
+def test_prewitt_filter_transformed_image_descriptors():
+    from mirp._imagefilters.prewitt import PrewittTransformedImage
+
+    image = PrewittTransformedImage(
+        boundary_condition="testboundarycondition",
+        **GENERIC_KWARGS
+    )
+    descriptors = image.get_file_name_descriptor()
+    assert isinstance(descriptors, list)
+
+    attributes = image.get_export_attributes()
+    assert isinstance(attributes, dict)

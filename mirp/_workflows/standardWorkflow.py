@@ -313,6 +313,11 @@ class StandardWorkflow(BaseWorkflow):
                 from mirp._imagefilters.local_binary_patterns import LocalBinaryPatternFilter
                 filter_obj = LocalBinaryPatternFilter(image=image, settings=self.settings, name=current_filter)
 
+            elif self.settings.img_transform.has_prewitt_filter(x=current_filter):
+                # Prewitt filter
+                from mirp._imagefilters.prewitt import PrewittFilter
+                filter_obj = PrewittFilter(image=image, settings=self.settings, name=current_filter)
+
             else:
                 raise ValueError(
                     f"{current_filter} is not implemented as a spatial filter. Please use one of ",
