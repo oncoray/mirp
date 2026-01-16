@@ -1,3 +1,11 @@
+# Version 2.5.0
+
+# Additions
+
+- Added support for Prewitt (`prewitt`) and Sobel (`sobel`) filters.
+
+# Fixes
+
 # Version 2.4.2
 
 ## Minor changes
