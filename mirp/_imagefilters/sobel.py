@@ -11,7 +11,7 @@ from mirp._imagefilters.generic import GenericFilter
 from mirp._imagefilters.utilities import SeparableFilterSet
 
 
-class PrewittTransformedImage(TransformedImage):
+class SobelTransformedImage(TransformedImage):
     def __init__(
             self,
             boundary_condition: None | str = None,
@@ -30,7 +30,7 @@ class PrewittTransformedImage(TransformedImage):
     def get_file_name_descriptor(self) -> list[str]:
         descriptors = super().get_file_name_descriptor()
 
-        descriptors += ["prewitt"]
+        descriptors += ["sobel"]
 
         return descriptors
 
@@ -38,7 +38,7 @@ class PrewittTransformedImage(TransformedImage):
         parent_attributes = super().get_export_attributes()
 
         attributes = [
-            ("filter_type", "prewitt"),
+            ("filter_type", "sobel"),
             ("boundary_condition", self.boundary_condition)
         ]
 
@@ -49,7 +49,7 @@ class PrewittTransformedImage(TransformedImage):
     def parse_feature_names(self, x: None | pd.DataFrame) -> pd.DataFrame:
         x = super().parse_feature_names(x=x)
 
-        feature_name_prefix = ["prewitt"]
+        feature_name_prefix = ["sobel"]
 
         if len(feature_name_prefix) > 0:
             feature_name_prefix = "_".join(feature_name_prefix)
@@ -59,7 +59,7 @@ class PrewittTransformedImage(TransformedImage):
         return x
 
 
-class PrewittFilter(GenericFilter):
+class SobelFilter(GenericFilter):
 
     def __init__(self, image: GenericImage, settings: SettingsClass, name: str):
 
@@ -67,7 +67,7 @@ class PrewittFilter(GenericFilter):
         self.ibsi_compliant = False
 
         # Set boundary condition
-        self.mode = settings.img_transform.prewitt_boundary_condition
+        self.mode = settings.img_transform.sobel_boundary_condition
 
     def _not_isotropic_warning_message(self):
         return f"The Prewitt filter requires isotropic voxel spacing."
@@ -75,9 +75,9 @@ class PrewittFilter(GenericFilter):
     def generate_object(self):
         yield copy.deepcopy(self)
 
-    def transform(self, image: GenericImage) -> PrewittTransformedImage:
+    def transform(self, image: GenericImage) -> SobelTransformedImage:
         # Create placeholder separable wavelet response map.
-        response_map = PrewittTransformedImage(
+        response_map = SobelTransformedImage(
             image_data=None,
             boundary_condition=self.mode,
             template=image
@@ -112,12 +112,35 @@ class PrewittFilter(GenericFilter):
         return response_map
 
     def get_filter_set(self) -> list[SeparableFilterSet]:
-        filter_set = [
-            SeparableFilterSet(filter_x=np.array([1.0, 0.0, -1.0])),
-            SeparableFilterSet(filter_y=np.array([1.0, 0.0, -1.0]))
-        ]
+        if self.separate_slices:
+            filter_set = [
+                SeparableFilterSet(
+                    filter_x=np.array([1.0, 0.0, -1.0]),
+                    filter_y=np.array([1.0, 2.0, 1.0])
+                ),
+                SeparableFilterSet(
+                    filter_x=np.array([1.0, 2.0, 1.0]),
+                    filter_y=np.array([1.0, 0.0, -1.0])
+                )
+            ]
 
-        if not self.separate_slices:
-            filter_set += [SeparableFilterSet(filter_z=np.array([1.0, 0.0, -1.0]))]
+        else:
+            filter_set = [
+                SeparableFilterSet(
+                    filter_x=np.array([1.0, 0.0, -1.0]),
+                    filter_y=np.array([1.0, 2.0, 1.0]),
+                    filter_z=np.array([1.0, 2.0, 1.0])
+                ),
+                SeparableFilterSet(
+                    filter_x=np.array([1.0, 2.0, 1.0]),
+                    filter_y=np.array([1.0, 0.0, -1.0]),
+                    filter_z=np.array([1.0, 2.0, 1.0])
+                ),
+                SeparableFilterSet(
+                    filter_x=np.array([1.0, 2.0, 1.0]),
+                    filter_y=np.array([1.0, 2.0, 1.0]),
+                    filter_z=np.array([1.0, 0.0, -1.0])
+                )
+            ]
 
         return filter_set
