@@ -479,6 +479,26 @@ Features computed from images that underwent exponential transformation are pref
 Exponential transformations lack reference values in the IBSI standard. They are only computed if
 `ibsi_compliant=False`.
 
+Prewitt filter
+^^^^^^^^^^^^^^
+
+Features computed from images filtered using the Prewitt filter are prefixed by:
+
+* `prewitt`: Indicating the Prewitt filter.
+
+The Prewitt filter lacks reference values in the IBSI standard.  Features from Prewitt-filtered images are only
+computed if `ibsi_compliant=False`.
+
+Sobel filter
+^^^^^^^^^^^^
+
+Features computed from images filtered using the Sobel filter are prefixed by:
+
+* `sobel`: Indicating the Sobel filter.
+
+The Sobel filter lacks reference values in the IBSI standard. Features from Sobel-filtered images are only computed if
+`ibsi_compliant=False`.
+
 Local binary patterns
 ^^^^^^^^^^^^^^^^^^^^^
 
