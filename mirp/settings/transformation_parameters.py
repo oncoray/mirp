@@ -953,7 +953,7 @@ class ImageTransformationSettingsClass:
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
             "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
-            "lbp", "lbp_2d", "lbp_3d", "laplace", "laplacian"
+            "lbp", "lbp_2d", "lbp_3d", "laplace", "laplacian", "prewitt", "sobel"
         ] + \
         self._get_available_laplacian_of_gaussian_filters() + \
         self._get_available_normalised_laplacian_of_gaussian_filters()

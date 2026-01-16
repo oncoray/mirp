@@ -197,9 +197,9 @@ def test_prewitt_filter():
 
     feature_data = data[0][0]
     assert len(feature_data) == 1
-    assert feature_data["stat_min"].values[0] == -1000.0
-    assert feature_data["prewitt_stat_min"].values[0] == 0.0
-    assert feature_data["prewitt_stat_max"].values[0] == 255.0
+    assert feature_data["stat_min"].to_numpy()[0] == -1000.0
+    assert feature_data["prewitt_stat_min"].to_numpy()[0] == 1.0
+    assert 1400.0 < feature_data["prewitt_stat_max"].to_numpy()[0] < 1450.0
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
 
     # 2D method (by_slice = TRUE)
@@ -220,9 +220,9 @@ def test_prewitt_filter():
 
     feature_data = data[0][0]
     assert len(feature_data) == 1
-    assert feature_data["stat_min"].values[0] == -1000.0
-    assert feature_data["prewitt_stat_min"].values[0] == 0.0
-    assert feature_data["prewitt_stat_max"].values[0] == 255.0
+    assert feature_data["stat_min"].to_numpy()[0] == -1000.0
+    assert feature_data["prewitt_stat_min"].to_numpy()[0] == 0.0
+    assert 1300.0 < feature_data["prewitt_stat_max"].to_numpy()[0] < 1350.0
     assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
 
 
