@@ -109,7 +109,13 @@ class StandardWorkflow(BaseWorkflow):
         for mask in masks:
             mask.update_separate_slices(image.separate_slices)
 
-        # Create a tissue mask
+        # Estimate noise level.
+        estimated_noise_level = self.settings.perturbation.noise_level
+        if self.settings.perturbation.add_noise and estimated_noise_level is None:
+            estimated_noise_level = image.estimate_noise()
+
+        if self.settings.perturbation.add_noise:
+            image.add_noise(noise_level=estimated_noise_level, noise_iteration_id=self.noise_iteration_id)
         if self.settings.post_process.bias_field_correction or \
                 not self.settings.post_process.intensity_normalisation == "none":
             tissue_mask = create_tissue_mask(
@@ -138,14 +144,6 @@ class StandardWorkflow(BaseWorkflow):
         image = image.scale_intensities(
             scale=self.settings.post_process.intensity_scaling
         )
-
-        # Estimate noise level.
-        estimated_noise_level = self.settings.perturbation.noise_level
-        if self.settings.perturbation.add_noise and estimated_noise_level is None:
-            estimated_noise_level = image.estimate_noise()
-
-        if self.settings.perturbation.add_noise:
-            image.add_noise(noise_level=estimated_noise_level, noise_iteration_id=self.noise_iteration_id)
 
         # Translate, rotate and interpolate image
         image.interpolate(

@@ -1,8 +1,13 @@
 # Version 2.5.0
 
-# Additions
+## Additions
 
 - Added support for Prewitt (`prewitt`) and Sobel (`sobel`) filters.
+
+## Minor changes
+
+- Adding noise as an image perturbation / augmentation is now done prior to any normalisation steps to follow a more 
+  logical workflow of *adding noise* → *denoising* → *normalisation* → *resampling*. 
 
 # Fixes
 
