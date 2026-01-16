@@ -116,8 +116,25 @@ class StandardWorkflow(BaseWorkflow):
 
         if self.settings.perturbation.add_noise:
             image.add_noise(noise_level=estimated_noise_level, noise_iteration_id=self.noise_iteration_id)
+
+        # Noise reduction.
+        if not self.settings.post_process.image_denoise_method == "none":
+            if self.settings.post_process.image_denoise_method == "median":
+                image.denoise_median(size=self.settings.post_process.image_denoiser_median_size)
+
+            elif self.settings.post_process.image_denoise_method == "gaussian":
+                ...
+            elif self.settings.post_process.image_denoise_method == "susan":
+                ...
+            else:
+                raise NotImplementedError(
+                    f"The {self.settings.post_process.image_denoise_method} denoising method is not implemented."
+                )
+
+        # Intensity normalisation.
         if self.settings.post_process.bias_field_correction or \
                 not self.settings.post_process.intensity_normalisation == "none":
+            # Create a tissue mask
             tissue_mask = create_tissue_mask(
                 image=image,
                 mask_type=self.settings.post_process.tissue_mask_type,

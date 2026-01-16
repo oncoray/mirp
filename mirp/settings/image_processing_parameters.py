@@ -121,6 +121,7 @@ class ImagePostProcessingClass:
 
     def __init__(
             self,
+            image_denoise_method: str = "none",
             bias_field_correction: bool = False,
             bias_field_correction_n_fitting_levels: int = 3,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
@@ -134,6 +135,14 @@ class ImagePostProcessingClass:
             tissue_mask_range: list[float] | None = None,
             **kwargs
     ):
+        # Image denoise method parameter
+        if not isinstance(image_denoise_method, str):
+            raise TypeError("The image_denoise_method parameter is expected to be a string: none, median, gaussian or susan.")
+        if not image_denoise_method in ["none", "median", "gaussian", "susan"]:
+            raise ValueError(
+                f"The image_denoise_method parameter should be one of none, median, gaussian or susan. Found: {image_denoise_method}"
+            )
+        self.image_denoise_method: str = image_denoise_method
 
         # Set bias_field_correction parameter
         self.bias_field_correction = bias_field_correction
