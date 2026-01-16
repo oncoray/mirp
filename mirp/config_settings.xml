@@ -274,6 +274,10 @@
             <mean_filter_kernel_size></mean_filter_kernel_size>
             <!-- Boundary condition for mean filter kernels. Supersedes generic boundary condition tag. -->
             <mean_filter_boundary_condition></mean_filter_boundary_condition>
+            <!-- Boundary condition for Prewitt filters. Supersedes generic boundary condition tag. -->
+            <prewitt_boundary_condition></prewitt_boundary_condition>
+            <!-- Boundary condition for Sobel filters. Supersedes generic boundary condition tag. -->
+            <sobel_boundary_condition></sobel_boundary_condition>
             <!-- Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
              vector, e.g. 0,0,1. Note: order is (z, y, x).-->
             <riesz_filter_order></riesz_filter_order>
