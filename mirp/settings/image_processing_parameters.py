@@ -22,6 +22,10 @@ class ImagePostProcessingClass:
         * "gaussian": images are denoised using a gaussian filter.
         * "susan": images are denoised using the SUSAN noise filtering algorithm.
 
+    image_denoiser_median_size: int or list of int, optional, default: 3
+        Size of the neighbourhood for the median filter. By default, the voxel neighbourhood is 3 by 3 (by_slice = True)
+        or 3 by 3 by 3 (by_slice = False) voxels.
+
     bias_field_correction: bool, optional, default: False
         Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
         correction is conducted using the information contained within the mask.
@@ -130,6 +134,7 @@ class ImagePostProcessingClass:
     def __init__(
             self,
             image_denoise_method: str = "none",
+            image_denoiser_median_size: int | list[int] = 3,
             bias_field_correction: bool = False,
             bias_field_correction_n_fitting_levels: int = 3,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
@@ -151,6 +156,27 @@ class ImagePostProcessingClass:
                 f"The image_denoise_method parameter should be one of none, median, gaussian or susan. Found: {image_denoise_method}"
             )
         self.image_denoise_method: str = image_denoise_method
+
+        if self.image_denoise_method == "median":
+            x = image_denoiser_median_size
+            if isinstance(x, int):
+                x = [x, x, x]
+
+            if not isinstance(x, list):
+                raise TypeError("The image_denoiser_median_size parameter should be an integer or a list of integers.")
+
+            if not all(isinstance(xi, int) for xi in x):
+                raise TypeError("The image_denoiser_median_size parameter should be an integer or a list of integers.")
+
+            if not all(xi % 2 == 1 for xi in x):
+                raise ValueError("The image_denoiser_median_size parameter should be an odd integer or a list of "
+                                 "odd integers. Found: one or more even integers.")
+
+            if not all(xi > 0 for xi in x):
+                raise ValueError("The image_denoiser_median_size parameter should be an odd integer > 0 or a list of "
+                                 "odd integers > 0. Found: one or more integers 0 or smaller.")
+
+        self.image_denoiser_median_size: int | list[int] = image_denoiser_median_size
 
         # Set bias_field_correction parameter
         self.bias_field_correction = bias_field_correction
