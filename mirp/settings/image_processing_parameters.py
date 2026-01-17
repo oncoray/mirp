@@ -14,6 +14,14 @@ class ImagePostProcessingClass:
 
     Parameters
     ----------
+    image_denoise_method: {"none", "median", "gaussian", "susan"}, default: "none"
+        Method used for removing noise from the image. The following are possible:
+
+        * "none": images are not denoised.
+        * "median": images are denoised using a median filter.
+        * "gaussian": images are denoised using a gaussian filter.
+        * "susan": images are denoised using the SUSAN noise filtering algorithm.
+
     bias_field_correction: bool, optional, default: False
         Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
         correction is conducted using the information contained within the mask.
