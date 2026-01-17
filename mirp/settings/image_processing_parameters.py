@@ -24,7 +24,8 @@ class ImagePostProcessingClass:
 
     image_denoiser_median_size: int or list of int, optional, default: 3
         Size of the neighbourhood for the median filter. By default, the voxel neighbourhood is 3 by 3 (by_slice = True)
-        or 3 by 3 by 3 (by_slice = False) voxels.
+        or 3 by 3 by 3 (by_slice = False) voxels. 1 or 3 odd, positive integers are expected. If 3 integers are
+        provided, these will be used for z, y, and x directions, respectively.
 
     bias_field_correction: bool, optional, default: False
         Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
