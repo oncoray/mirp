@@ -158,12 +158,18 @@ class ImagePostProcessingClass:
         self.image_denoise_method: str = image_denoise_method
 
         if self.image_denoise_method == "median":
+            # Update the image_denoiser_median_size parameter if a length 1 list is provided.
+            if isinstance(image_denoiser_median_size, list) and len(image_denoiser_median_size) == 1:
+                image_denoiser_median_size = image_denoiser_median_size[0]
+
             x = image_denoiser_median_size
             if isinstance(x, int):
                 x = [x, x, x]
 
             if not isinstance(x, list):
                 raise TypeError("The image_denoiser_median_size parameter should be an integer or a list of integers.")
+
+            if not len(x) == 3:
 
             if not all(isinstance(xi, int) for xi in x):
                 raise TypeError("The image_denoiser_median_size parameter should be an integer or a list of integers.")
@@ -431,6 +437,8 @@ class ImagePostProcessingClass:
 def get_post_processing_settings() -> list[dict[str, Any]]:
 
     return [
+        setting_def("image_denoise_method", typing="str", test="median"),
+        setting_def("image_denoiser_median_size", typing="int", to_list=True, test=5),
         setting_def("bias_field_correction", "bool", test=True),
         setting_def(
             "bias_field_correction_n_fitting_levels", "int", xml_key="n_fitting_levels",
