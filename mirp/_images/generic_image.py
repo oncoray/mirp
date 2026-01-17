@@ -742,20 +742,27 @@ class GenericImage(BaseImage):
 
         return estimated_noise
 
-    def denoise_median(self, size: int = 3):
+    def denoise_median(self, size: int | list[int] = 3):
         # Check if empty.
         if self.is_empty():
             return
 
         from scipy.ndimage import median_filter
 
-        # Set footprint (2D) or (3D)
-        if self.separate_slices:
-            footprint = np.ones([1, size, size])
-        else:
-            footprint = np.ones([size, size, size])
+        if isinstance(size, int):
+            # Set footprint (2D) or (3D)
+            if self.separate_slices:
+                footprint = np.ones([1, size, size])
+            else:
+                footprint = np.ones([size, size, size])
 
-        #
+        elif isinstance(size, list):
+            footprint = np.ones(size)
+
+        else:
+            raise TypeError("size is expected to be an int or list of ints.")
+
+        # Apply filter.
         voxel_grid =  median_filter(
             input=self.get_voxel_grid(),
             footprint=footprint,
