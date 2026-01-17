@@ -170,6 +170,8 @@ class ImagePostProcessingClass:
                 raise TypeError("The image_denoiser_median_size parameter should be an integer or a list of integers.")
 
             if not len(x) == 3:
+                raise ValueError("The image_denoiser_median_size parameter should be an integer or a list of "
+                                 f"1 or 3 integers. Found: a list with a length {len(x)}.")
 
             if not all(isinstance(xi, int) for xi in x):
                 raise TypeError("The image_denoiser_median_size parameter should be an integer or a list of integers.")
