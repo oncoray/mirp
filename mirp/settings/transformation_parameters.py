@@ -101,7 +101,10 @@ class ImageTransformationSettingsClass:
         implementation follows the IBSI reference manual. The following filters are supported:
 
         * Mean filters: "mean"
+        * Prewitt filter: "prewitt"
+        * Sobel filter: "sobel
         * Gaussian filters: "gaussian", "riesz_gaussian", and "riesz_steered_gaussian"
+        * Laplace filters: "laplace", "laplacian"
         * Laplacian-of-Gaussian filters: "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian",
           "riesz_log", "riesz_steered_laplacian_of_gaussian", and "riesz_steered_log".
         * Laws kernels: "laws"
@@ -129,8 +132,8 @@ class ImageTransformationSettingsClass:
             derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.
 
         .. warning::
-            Local binary patterns are not part of the IBSI reference standard. Set `ibsi_compliant = False` to use
-            this filter.
+            Local binary patterns, Laplace, Prewitt and Sobel filters are not part of the IBSI reference standard. Set
+            `ibsi_compliant = False`to use these filters.
 
         .. warning::
             Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference
