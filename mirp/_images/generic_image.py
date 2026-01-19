@@ -788,6 +788,15 @@ class GenericImage(BaseImage):
             mode="mirror"
         ))
 
+    def denoise_susan(self):
+        if self.is_empty():
+            return
+
+        # SUSAN looks into the neighbourhood of each voxel, defined by a radius, and then defines a weight-factor to
+        # update a denominator and nominator. The new intensity value is the nominator divided by the denominator.
+        # Like LBP, we can iterate over the directions, and update the denominator and nominator values.
+        denominator = nominator = np.zeros(self.image_dimension, dtype=float)
+
     def saturate(self, intensity_range, fill_value=None):
         """
         Saturate image intensities using an intensity range
