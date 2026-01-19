@@ -27,6 +27,9 @@ class ImagePostProcessingClass:
         or 3 by 3 by 3 (by_slice = False) voxels. 1 or 3 odd, positive integers are expected. If 3 integers are
         provided, these will be used for z, y, and x directions, respectively.
 
+    image_denoiser_gaussian_sigma: float, optional, default: 1.0
+        Width of the Gaussian filter in physical dimensions (e.g. mm).
+
     bias_field_correction: bool, optional, default: False
         Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
         correction is conducted using the information contained within the mask.
@@ -136,6 +139,7 @@ class ImagePostProcessingClass:
             self,
             image_denoise_method: str = "none",
             image_denoiser_median_size: int | list[int] = 3,
+            image_denoiser_gaussian_sigma: float = 1.0,
             bias_field_correction: bool = False,
             bias_field_correction_n_fitting_levels: int = 3,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
@@ -186,6 +190,24 @@ class ImagePostProcessingClass:
                                  "odd integers > 0. Found: one or more integers 0 or smaller.")
 
         self.image_denoiser_median_size: int | list[int] = image_denoiser_median_size
+
+        # Check image_denoiser_gaussian_sigma
+        if self.image_denoise_method == "gaussian":
+
+            # Check that the sigma values are floating points.
+            if not isinstance(image_denoiser_gaussian_sigma, float):
+                raise TypeError(
+                    f"The image_denoiser_gaussian_sigma parameter is expected to be a floating point with value "
+                    f"greater than 0.0. Found: not a floating point value."
+                )
+
+            if not image_denoiser_gaussian_sigma > 0.0:
+                raise ValueError(
+                    f"The image_denoiser_gaussian_sigma parameter is expected to be a floating point with value "
+                    f"greater than 0.0. Found: {image_denoiser_gaussian_sigma}."
+                )
+
+        self.image_denoiser_gaussian_sigma = image_denoiser_gaussian_sigma
 
         # Set bias_field_correction parameter
         self.bias_field_correction = bias_field_correction
@@ -442,6 +464,7 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
     return [
         setting_def("image_denoise_method", typing="str", test="median"),
         setting_def("image_denoiser_median_size", typing="int", to_list=True, test=5),
+        setting_def("image_denoiser_gaussian_sigma", typing="float", test=3.0),
         setting_def("bias_field_correction", "bool", test=True),
         setting_def(
             "bias_field_correction_n_fitting_levels", "int", xml_key="n_fitting_levels",

@@ -771,6 +771,23 @@ class GenericImage(BaseImage):
 
         self.set_voxel_grid(voxel_grid=voxel_grid)
 
+    def denoise_gaussian(self, sigma: float = 1.0):
+        # Check if empty.
+        if self.is_empty():
+            return
+
+        from scipy.ndimage import gaussian_filter
+
+        # Convert sigma to voxel units.
+        sigma_voxel = sigma / np.array(self.image_spacing, dtype=float)
+
+        # Apply filter.
+        self.set_voxel_grid(voxel_grid=gaussian_filter(
+            input=self.get_voxel_grid(),
+            sigma=sigma_voxel,
+            mode="mirror"
+        ))
+
     def saturate(self, intensity_range, fill_value=None):
         """
         Saturate image intensities using an intensity range

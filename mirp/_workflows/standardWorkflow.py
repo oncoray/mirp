@@ -123,7 +123,8 @@ class StandardWorkflow(BaseWorkflow):
                 image.denoise_median(size=self.settings.post_process.image_denoiser_median_size)
 
             elif self.settings.post_process.image_denoise_method == "gaussian":
-                ...
+                image.denoise_gaussian(sigma=self.settings.post_process.image_denoiser_gaussian_sigma)
+
             elif self.settings.post_process.image_denoise_method == "susan":
                 ...
             else:
