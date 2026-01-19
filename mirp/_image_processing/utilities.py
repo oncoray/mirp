@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Generator
 
 import numpy as np
 
@@ -78,3 +78,88 @@ def extend_intensity_range(
     intensity_range[1] += extension
 
     return tuple(intensity_range)
+
+
+def _coord_to_index(z, y, x, dims: tuple[int, ...]):
+    # Translate coordinates to indices
+    index = x + y * dims[2] + z * dims[2] * dims[1]
+
+    # Mark invalid transitions
+    index[np.logical_or(x < 0, x >= dims[2])] = -99999
+    index[np.logical_or(y < 0, y >= dims[1])] = -99999
+    index[np.logical_or(z < 0, z >= dims[0])] = -99999
+
+    return index
+
+
+def _index_to_coord(index, dims: tuple[int, ...]):
+    z = index // (dims[2] * dims[1])
+    index -= z * (dims[2] * dims[1])
+    y = index // (dims[2])
+    x = index - y * dims[2]
+
+    return z, y, x
+
+
+def lookup_neighbour_voxel_value(
+        voxels: np.ndarray,
+        dims: tuple[int, ...],
+        lookup_vector: tuple[int, ...]
+):
+    # voxels are a flat np.ndarray.
+    z, y, x = _index_to_coord(index=np.arange(len(voxels)), dims=dims)
+    neighbour_index = _coord_to_index(
+        z = z + lookup_vector[0],
+        y = y + lookup_vector[1],
+        x = x + lookup_vector[2],
+        dims = dims
+    )
+
+    mask = neighbour_index > 0
+    return mask, voxels[neighbour_index[mask]]
+
+
+def generate_neighbour_direction(self) -> Generator[tuple[int, ...], None, None]:
+    from mirp._features.utilities import rep
+
+    if self.separate_slices:
+        m = 8
+        nbrs = np.array([
+            np.zeros(m, int),
+            np.round(self.d * np.sin(2 * np.pi * np.arange(m, dtype=float) / m)),
+            np.round(self.d * np.cos(2 * np.pi * np.arange(m, dtype=float) / m))
+        ], dtype = int)
+
+        # Remove duplicates
+        _, indices = np.unique(nbrs, return_index=True, axis=1)
+        nbrs = nbrs[:, indices.sort()].squeeze()
+
+        # Compute distance to eliminate
+        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis=0))
+        index = neighbour_distance > 0.0
+
+        for ii, flag in enumerate(index):
+            if flag:
+                yield tuple(nbrs[:, ii].flatten())
+
+    else:
+        # Base transition vector
+        trans = np.arange(start=-np.ceil(self.d + 1.0), stop=np.ceil(self.d + 1.0) + 1)
+        n = np.size(trans)
+
+        # Build transition array [z,y,x]
+        nbrs = np.array([
+            rep(x=trans, each=n * n, times=1),
+            rep(x=trans, each=n, times=n, use_inversion=True),
+            rep(x=trans, each=1, times=n * n, use_inversion=True)
+        ], dtype=int)
+
+        # Filter neighbours based on distance. That is, all voxels that fall within distance d and d-1.0 (a single
+        # rim of voxels), and excluding the central voxel.
+        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis = 0))
+        index = np.logical_and(neighbour_distance <= self.d, neighbour_distance > self.d - 1.0)
+        index = np.logical_and(index, neighbour_distance > 0.0)
+
+        for ii, flag in enumerate(index):
+            if flag:
+                yield tuple(nbrs[:, ii].flatten())
