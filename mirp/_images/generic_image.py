@@ -788,14 +788,80 @@ class GenericImage(BaseImage):
             mode="mirror"
         ))
 
-    def denoise_susan(self):
+    def denoise_susan(
+            self,
+            sigma: float,
+            intensity_threshold: float | None = None
+    ):
+        # This is the implementation of SUSAN after Smith, S.M. and Brady, J.M. (1997) ‘SUSAN—A New Approach to Low
+        # Level Image Processing’, International Journal of Computer Vision, 23(1), pp. 45–78. Available at:
+        # https://doi.org/10.1023/a:1007963824710.
+        from mirp._image_processing.utilities import generate_neighbour_direction, lookup_neighbour_voxel_value
+
         if self.is_empty():
             return
 
         # SUSAN looks into the neighbourhood of each voxel, defined by a radius, and then defines a weight-factor to
         # update a denominator and nominator. The new intensity value is the nominator divided by the denominator.
         # Like LBP, we can iterate over the directions, and update the denominator and nominator values.
-        denominator = nominator = np.zeros(self.image_dimension, dtype=float)
+
+        # Process voxels as a contiguous array.
+        dims = self.image_dimension
+        voxels = np.ravel(self.get_voxel_grid())
+
+        # Initialise empty numerator and denominator.
+        numerator = np.zeros(voxels.shape, float)
+        denominator = np.zeros(voxels.shape, float)
+
+        # Determine intensity_threshold
+        if intensity_threshold is None:
+            intensity_threshold = self.estimate_noise()
+
+        # Set cut-off to 3 times sigma.
+        max_distance = 3.0 * sigma
+
+        # Pre-compute values.
+        two_sigma_sqrd = 2.0 * sigma * sigma
+        int_thrd_sqrd = intensity_threshold * intensity_threshold
+
+        # Similar to Gaussian filters, sigma is in physical units.
+        for neighbours in generate_neighbour_direction(
+            d=max_distance,
+            spacing=self.image_spacing,
+            keep_centre=False,
+            complete=True,
+            dim3=not self.separate_slices
+        ):
+            mask, voxel_neighbour = lookup_neighbour_voxel_value(
+                voxels=voxels,
+                dims=dims,
+                lookup_vector=neighbours
+            )
+            # Compute distance to current neighbour.
+            r_sqrd = np.sum(np.power(np.multiply(neighbours, np.array(self.image_spacing)), 2))
+
+            # Set weights.
+            weights = np.exp(
+                -1.0 * r_sqrd / two_sigma_sqrd - np.power(voxel_neighbour - voxels[mask],2.0) / int_thrd_sqrd
+            )
+
+            # Update denominator and numerator.
+            denominator[mask] += weights
+            numerator[mask] += voxel_neighbour * weights
+
+        # Compute output
+        output = numerator / denominator
+
+        # Update any pixels with denominators with value 0 by taking the median value in a 3 by 3 neighbourhood (see
+        # Smith and Brady)
+        if np.any(denominator == 0.0):
+            from scipy.ndimage import median_filter
+            size = [1, 3, 3] if self.separate_slices else [3, 3, 3]
+            local_median = median_filter(self.get_voxel_grid(), size=size)
+            output[denominator == 0.0] = np.ravel(local_median)[denominator == 0.0]
+
+        self.set_voxel_grid(np.reshape(output, shape=dims))
+
 
     def saturate(self, intensity_range, fill_value=None):
         """

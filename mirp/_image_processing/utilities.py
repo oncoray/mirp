@@ -38,7 +38,7 @@ def set_intensity_range(
         image: GenericImage,
         mask: None | MaskImage = None,
         intensity_range: tuple[Any, Any] | None = None
-) -> tuple[float, float]:
+) -> tuple[float, ...]:
     if intensity_range is not None and not np.any(np.isnan(intensity_range)):
         return intensity_range
 
@@ -64,7 +64,7 @@ def set_intensity_range(
 def extend_intensity_range(
         intensity_range: tuple[Any, Any],
         extend_fraction=0.1
-) -> None | tuple[Any, Any]:
+) -> None | tuple[float, ...]:
     if intensity_range is None or np.any(np.isnan(intensity_range)):
         return intensity_range
 
@@ -119,47 +119,67 @@ def lookup_neighbour_voxel_value(
     return mask, voxels[neighbour_index[mask]]
 
 
-def generate_neighbour_direction(self) -> Generator[tuple[int, ...], None, None]:
+def generate_neighbour_direction(
+        d: float = 1.8,
+        spacing: None | tuple[float, ...] = None,
+        metric: str = "euclidian",
+        keep_centre: bool = False,
+        complete: bool = False,
+        dim3: bool = True
+) -> Generator[tuple[int, ...], None, None]:
     from mirp._features.utilities import rep
 
-    if self.separate_slices:
-        m = 8
-        nbrs = np.array([
-            np.zeros(m, int),
-            np.round(self.d * np.sin(2 * np.pi * np.arange(m, dtype=float) / m)),
-            np.round(self.d * np.cos(2 * np.pi * np.arange(m, dtype=float) / m))
-        ], dtype = int)
+    if spacing is None:
+        spacing = tuple([1.0, 1.0, 1.0])
 
-        # Remove duplicates
-        _, indices = np.unique(nbrs, return_index=True, axis=1)
-        nbrs = nbrs[:, indices.sort()].squeeze()
+    # Convert to numpy array.
+    spacing = np.array(spacing)
 
-        # Compute distance to eliminate
-        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis=0))
-        index = neighbour_distance > 0.0
+    # Set footprint size (in voxel units).
+    footprint_size = int(np.ceil(np.max(d / spacing)))
 
-        for ii, flag in enumerate(index):
-            if flag:
-                yield tuple(nbrs[:, ii].flatten())
+    # Base transition vector
+    trans = np.arange(-footprint_size, footprint_size + 1)
+    n = np.size(trans)
 
+    # Build transition array [z,y,x]
+    nbrs = np.array([
+        rep(x=trans, each=1, times=n * n),
+        rep(x=trans, each=n, times=n),
+        rep(x=trans, each=n * n, times=1)
+    ], dtype=int)
+
+    # Initiate maintenance index
+    index = np.zeros(n, dtype=bool)
+
+    # Remove neighbours more than distance d from the center.
+    if metric.lower() in ["manhattan", "l1", "l_1"]:
+        # Manhattan distance
+        distance = np.sum(np.multiply(np.abs(nbrs), np.expand_dims(spacing, axis=1)), axis=0)
+    elif metric.lower() in ["euclidian", "l2", "l_2"]:
+        # Euclidian distance
+        distance = np.sqrt(np.sum(np.power(np.multiply(nbrs, np.expand_dims(spacing, axis=1)), 2.0), axis=0))
+    elif metric in ["chebyshev", "linf", "l_inf"]:
+        # Chebyshev distance
+        distance = np.max(np.multiply(np.abs(nbrs), np.expand_dims(spacing, axis=1)), axis=0)
     else:
-        # Base transition vector
-        trans = np.arange(start=-np.ceil(self.d + 1.0), stop=np.ceil(self.d + 1.0) + 1)
-        n = np.size(trans)
+        raise ValueError(f"Did not recognize distance metric: {metric}")
 
-        # Build transition array [z,y,x]
-        nbrs = np.array([
-            rep(x=trans, each=n * n, times=1),
-            rep(x=trans, each=n, times=n, use_inversion=True),
-            rep(x=trans, each=1, times=n * n, use_inversion=True)
-        ], dtype=int)
+    index = np.logical_or(index, distance <= d)
 
-        # Filter neighbours based on distance. That is, all voxels that fall within distance d and d-1.0 (a single
-        # rim of voxels), and excluding the central voxel.
-        neighbour_distance = np.sqrt(np.sum(np.multiply(nbrs, nbrs), axis = 0))
-        index = np.logical_and(neighbour_distance <= self.d, neighbour_distance > self.d - 1.0)
-        index = np.logical_and(index, neighbour_distance > 0.0)
+    # Check if centre voxel [0,0,0] should be maintained; False indicates removal
+    if not keep_centre:
+        index = np.logical_and(index, distance > 0.0)
 
-        for ii, flag in enumerate(index):
-            if flag:
-                yield tuple(nbrs[:, ii].flatten())
+    # Check if a complete neighbourhood should be returned
+    # False indicates that only half of the vectors are returned
+    if not complete:
+        index[np.arange(0, stop=len(index) // 2 + 1)] = False
+
+    # Check if neighbourhood should be 3D or 2D
+    if not dim3:
+        index[nbrs[0, :] != 0] = False
+
+    for ii, flag in enumerate(index):
+        if flag:
+            yield tuple(nbrs[:, ii].flatten())
