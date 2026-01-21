@@ -150,7 +150,7 @@ def generate_neighbour_direction(
     ], dtype=int)
 
     # Initiate maintenance index
-    index = np.zeros(n, dtype=bool)
+    index = np.zeros(nbrs.shape[1], dtype=bool)
 
     # Remove neighbours more than distance d from the center.
     if metric.lower() in ["manhattan", "l1", "l_1"]:
