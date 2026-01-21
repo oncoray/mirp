@@ -25,6 +25,7 @@ class GenericImage(BaseImage):
             rotation_angle: None | float = None,
             noise_iteration_id: None | int = None,
             noise_level: None | float = None,
+            denoiser: None | str = None,
             interpolated: bool = False,
             interpolation_algorithm: None | str = None,
             discretisation_method: None | str = None,
@@ -53,6 +54,9 @@ class GenericImage(BaseImage):
         self.discretisation_method = discretisation_method
         self.discretisation_bin_number = discretisation_bin_number
         self.discretisation_bin_width = discretisation_bin_width
+
+        # Denoiser settings
+        self.denoiser = denoiser
 
         # Slice identifiers.
         self.slice_id: None | int = None
@@ -91,6 +95,7 @@ class GenericImage(BaseImage):
         self.discretisation_method = template.discretisation_method
         self.discretisation_bin_number = template.discretisation_bin_number
         self.discretisation_bin_width = template.discretisation_bin_width
+        self.denoiser = template.denoiser
         self.ibsi_compliant = template.ibsi_compliant
 
     def promote(self):
@@ -770,6 +775,7 @@ class GenericImage(BaseImage):
         )
 
         self.set_voxel_grid(voxel_grid=voxel_grid)
+        self.denoiser = f"median ({size})"
 
     def denoise_gaussian(self, sigma: float = 1.0):
         # Check if empty.
@@ -791,6 +797,7 @@ class GenericImage(BaseImage):
             sigma=sigma_voxel,
             mode="mirror"
         ))
+        self.denoiser = f"gaussian ({sigma})"
 
     def denoise_susan(
             self,
@@ -865,6 +872,7 @@ class GenericImage(BaseImage):
             output[denominator == 0.0] = np.ravel(local_median)[denominator == 0.0]
 
         self.set_voxel_grid(np.reshape(output, shape=dims))
+        self.denoiser = f"SUSAN (σ:{sigma}; t:{intensity_threshold})"
 
 
     def saturate(self, intensity_range, fill_value=None):
@@ -1441,6 +1449,10 @@ class GenericImage(BaseImage):
         # Noise
         if self.noise_level is not None and self.noise_level > 0.0:
             attributes += [("noise_level", self.noise_level), ("noise_id", self.noise_iteration_id)]
+
+        # Denoiser
+        if self.denoiser is not None:
+            attributes += [("denoiser", self.denoiser)]
 
         # Image spacing, origin and orientation.
         attributes += [
