@@ -24,6 +24,9 @@ class ImagePostProcessingClass:
           S.M. and Brady, J.M. (1997) ‘SUSAN—A New Approach to Low Level Image Processing’, International Journal of
           Computer Vision, 23(1), pp. 45–78. Available at: https://doi.org/10.1023/a:1007963824710.
 
+        If `by_slice=True`, 2D variants of the denoisers are used, otherwise 3D variants are used instead. Gaussian and
+        SUSAN denoisers take voxel spacing into account.
+
     image_denoiser_median_size: int or list of int, optional, default: 3
         Size of the neighbourhood for the median filter. By default, the voxel neighbourhood is 3 by 3 (by_slice = True)
         or 3 by 3 by 3 (by_slice = False) voxels. 1 or 3 odd, positive integers are expected. If 3 integers are
