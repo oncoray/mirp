@@ -49,9 +49,13 @@
             <image_denoise_method></image_denoise_method>
             <!-- Size of the median filter, 1 or 3 odd integers > 0 (z, y, x). Default: 3 -->
             <image_denoiser_median_size></image_denoiser_median_size>
-            <!-- Width of the Gaussian denoising filter in physical units (e.g. mm). 1 floating point value. Default:
-             1.0 -->
+            <!-- Width of the Gaussian denoising filter in physical units (e.g. mm). -->
             <image_denoiser_gaussian_sigma></image_denoiser_gaussian_sigma>
+            <!-- Width of the Gaussian filter in SUSAN, in physical dimensions (e.g. mm). -->
+            <image_denoiser_susan_sigma></image_denoiser_susan_sigma>
+            <!-- Threshold for the brightness threshold in SUSAN. If None (default), the measure of noise will be
+            determined based on the individual image. Default: None -->
+            <image_denoiser_susan_intensity_threshold></image_denoiser_susan_intensity_threshold>
             <!-- Type of algorithm used to produce an approximate mask of the tissue. Can be none, range (requires
             intensity values), relative_range (default; requires fractions). -->
             <tissue_mask_type></tissue_mask_type>

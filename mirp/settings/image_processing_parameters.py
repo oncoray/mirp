@@ -20,15 +20,25 @@ class ImagePostProcessingClass:
         * "none": images are not denoised.
         * "median": images are denoised using a median filter.
         * "gaussian": images are denoised using a gaussian filter.
-        * "susan": images are denoised using the SUSAN noise filtering algorithm.
+        * "susan": images are denoised using the SUSAN noise filtering algorithm. Implemented after eq. 36 of Smith,
+          S.M. and Brady, J.M. (1997) ‘SUSAN—A New Approach to Low Level Image Processing’, International Journal of
+          Computer Vision, 23(1), pp. 45–78. Available at: https://doi.org/10.1023/a:1007963824710.
 
     image_denoiser_median_size: int or list of int, optional, default: 3
         Size of the neighbourhood for the median filter. By default, the voxel neighbourhood is 3 by 3 (by_slice = True)
         or 3 by 3 by 3 (by_slice = False) voxels. 1 or 3 odd, positive integers are expected. If 3 integers are
         provided, these will be used for z, y, and x directions, respectively.
 
-    image_denoiser_gaussian_sigma: float, optional, default: 1.0
+    image_denoiser_gaussian_sigma: float
         Width of the Gaussian filter in physical dimensions (e.g. mm).
+
+    image_denoiser_susan_sigma: float
+        Width of the Gaussian filter in SUSAN, in physical dimensions (e.g. mm). The maximum neighbourhood considered
+        by the denoiser has a radius of 3 sigma.
+
+    image_denoiser_susan_intensity_threshold: float or None, optional, default: None
+        Threshold for the brightness threshold in SUSAN. If None (default), the measure of noise will be determined
+        based on the individual image.
 
     bias_field_correction: bool, optional, default: False
         Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field
@@ -139,7 +149,9 @@ class ImagePostProcessingClass:
             self,
             image_denoise_method: str = "none",
             image_denoiser_median_size: int | list[int] = 3,
-            image_denoiser_gaussian_sigma: float = 1.0,
+            image_denoiser_gaussian_sigma: float | None = None,
+            image_denoiser_susan_sigma: float | None = None,
+            image_denoiser_susan_intensity_threshold: float | None = None,
             bias_field_correction: bool = False,
             bias_field_correction_n_fitting_levels: int = 3,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
@@ -208,6 +220,39 @@ class ImagePostProcessingClass:
                 )
 
         self.image_denoiser_gaussian_sigma = image_denoiser_gaussian_sigma
+
+        # Check image_denoiser_susan_sigma and image_denoiser_susan_intensity_threshold
+        if self.image_denoise_method == "susan":
+
+            # Check that the sigma values are floating points.
+            if not isinstance(image_denoiser_susan_sigma, float):
+                raise TypeError(
+                    f"The image_denoiser_susan_sigma parameter is expected to be a floating point with value "
+                    f"greater than 0.0. Found: not a floating point value."
+                )
+
+            if not image_denoiser_susan_sigma > 0.0:
+                raise ValueError(
+                    f"The image_denoiser_susan_sigma parameter is expected to be a floating point with value "
+                    f"greater than 0.0. Found: {image_denoiser_susan_sigma}."
+                )
+
+            # Check that SUSAN intensity threshold is None or correct floating points.
+            if not isinstance(image_denoiser_susan_intensity_threshold, float) or \
+                    image_denoiser_susan_intensity_threshold is not None:
+                raise TypeError(
+                    f"The image_denoiser_susan_intensity_threshold parameter is expected to be a floating point with "
+                    f"value greater than 0.0, or None (default). Found: not a floating point value or None."
+                )
+
+            if isinstance(image_denoiser_susan_intensity_threshold, float) and not image_denoiser_susan_sigma > 0.0:
+                raise ValueError(
+                    f"The image_denoiser_susan_intensity_threshold parameter is expected to be a floating point with "
+                    f"value greater than 0.0. Found: {image_denoiser_susan_intensity_threshold}."
+                )
+
+        self.image_denoiser_susan_sigma = image_denoiser_susan_sigma
+        self.image_denoiser_susan_intensity_threshold = image_denoiser_susan_intensity_threshold
 
         # Set bias_field_correction parameter
         self.bias_field_correction = bias_field_correction
@@ -465,6 +510,8 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
         setting_def("image_denoise_method", typing="str", test="median"),
         setting_def("image_denoiser_median_size", typing="int", to_list=True, test=5),
         setting_def("image_denoiser_gaussian_sigma", typing="float", test=3.0),
+        setting_def("image_denoiser_susan_sigma", typing="float", test=4.0),
+        setting_def("image_denoiser_susan_intensity_threshold", typing="float", test=6.0),
         setting_def("bias_field_correction", "bool", test=True),
         setting_def(
             "bias_field_correction_n_fitting_levels", "int", xml_key="n_fitting_levels",

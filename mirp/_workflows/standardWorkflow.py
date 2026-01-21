@@ -126,7 +126,10 @@ class StandardWorkflow(BaseWorkflow):
                 image.denoise_gaussian(sigma=self.settings.post_process.image_denoiser_gaussian_sigma)
 
             elif self.settings.post_process.image_denoise_method == "susan":
-                image.denoise_susan()
+                image.denoise_susan(
+                    sigma=self.settings.post_process.image_denoiser_susan_sigma,
+                    intensity_threshold=self.settings.post_process.image_denoiser_susan_intensity_threshold
+                )
             else:
                 raise NotImplementedError(
                     f"The {self.settings.post_process.image_denoise_method} denoising method is not implemented."
