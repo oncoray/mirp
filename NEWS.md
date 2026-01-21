@@ -2,6 +2,10 @@
 
 ## Additions
 
+- Added denoisers for removing noise from images. Median (`median`), Gaussian (`gaussian`) and SUSAN (`susan`) 
+  denoisers are currently implemented, and can be specified using the `image_denoise_method` parameter (default: 
+  `none`). Denoising occurs prior to any other image processing steps.
+
 - Added support for Prewitt (`prewitt`) and Sobel (`sobel`) filters.
 
 ## Minor changes
