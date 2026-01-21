@@ -238,7 +238,7 @@ class ImagePostProcessingClass:
                 )
 
             # Check that SUSAN intensity threshold is None or correct floating points.
-            if not isinstance(image_denoiser_susan_intensity_threshold, float) or \
+            if not isinstance(image_denoiser_susan_intensity_threshold, float) and \
                     image_denoiser_susan_intensity_threshold is not None:
                 raise TypeError(
                     f"The image_denoiser_susan_intensity_threshold parameter is expected to be a floating point with "
