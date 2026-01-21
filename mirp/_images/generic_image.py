@@ -781,6 +781,10 @@ class GenericImage(BaseImage):
         # Convert sigma to voxel units.
         sigma_voxel = sigma / np.array(self.image_spacing, dtype=float)
 
+        # For 2D application, squeeze the first dimension of the filter.
+        if self.separate_slices:
+            sigma_voxel[0] = 0.0
+
         # Apply filter.
         self.set_voxel_grid(voxel_grid=gaussian_filter(
             input=self.get_voxel_grid(),
