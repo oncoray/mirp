@@ -1047,6 +1047,27 @@ class GenericImage(BaseImage):
 
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
+
+        elif normalisation_method == "histogram_equalisation":
+            from skimage.exposure import equalize_hist
+
+            # Use equalize_hist from scikit learn.
+            image_data = equalize_hist(
+                image=self.get_voxel_grid(),
+                mask=mask
+            )
+
+            # Map to [0, 1]
+            min_int = np.min(image_data)
+            max_int = np.max(image_data)
+            if not max_int == min_int:
+                image_data = (image_data - min_int) / (max_int - min_int)
+            else:
+                image_data -= min_int
+
+            # Update image data
+            self.set_voxel_grid(voxel_grid=image_data)
+
         else:
             raise ValueError(f"{normalisation_method} is not a valid method for normalising intensity values.")
 
