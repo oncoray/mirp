@@ -140,6 +140,10 @@ class ImagePostProcessingClass:
         than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
         not be saturated.
 
+    intensity_normalisation_reference: list of float, np.ndarray, optional
+        Image, array or list of intensity values that is used to compute the reference intensity distribution for the
+        ``"match_reference"`` or ``"match_reference_normalised"`` method.
+
     intensity_scaling: float, optional
         Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after
         normalisation (if any). For example, ``intensity_scaling = 1000.0``, combined with ``intensity_normalisation =
@@ -179,6 +183,7 @@ class ImagePostProcessingClass:
             intensity_normalisation: str = "none",
             intensity_normalisation_range: list[float] | None = None,
             intensity_normalisation_saturation: list[float] | None = None,
+            intensity_normalisation_reference: list[float] | np.ndarray | None = None,
             intensity_scaling: float | None = None,
             tissue_mask_type: str = "relative_range",
             tissue_mask_range: list[float] | None = None,
@@ -471,6 +476,30 @@ class ImagePostProcessingClass:
         # intensity_normalisation_saturation parameter
         self.intensity_normalisation_saturation: None | list[float] = intensity_normalisation_saturation
 
+        # Check intensity_normalisation_reference.
+        if self.intensity_normalisation not in ["match_reference", "match_reference_normalised"]:
+            # Avoid passing intensity_normalisation_reference if it is not used.
+            intensity_normalisation_reference = None
+        else:
+            # This parameter must be provided for the above methods.
+            raise ValueError("The intensity_normalisation_reference parameter must be provided for the "
+                             "`match_reference` and `match_reference_normalised` methods.")
+
+        if intensity_normalisation_reference is not None:
+            if isinstance(intensity_normalisation_reference, list):
+                intensity_normalisation_reference = np.ndarray(intensity_normalisation_reference)
+            elif isinstance(intensity_normalisation_reference, np.ndarray):
+                pass
+            else:
+                raise TypeError("intensity_normalisation_reference should be a list or np.ndarray")
+
+            # Check if the provided array can be cast to floating points.
+            if not np.can_cast(intensity_normalisation_reference, float):
+                raise TypeError("intensity_normalisation_reference should be a list or np.ndarray of floats, "
+                                "or castable to float.")
+
+        self.intensity_normalisation_reference: None | np.ndarray = intensity_normalisation_reference
+
         # Check intensity_scaling
         if intensity_scaling is not None:
             if not isinstance(intensity_scaling, float):
@@ -536,6 +565,8 @@ class ImagePostProcessingClass:
                     "used as the tissue mask."
                 )
 
+        self.tissue_mask_name: str = tissue_mask_name
+
     @staticmethod
     def _get_available_intensity_normalisation_methods():
         return [
@@ -568,7 +599,9 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
         setting_def("intensity_normalisation", "str", test="relative_range"),
         setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
         setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),
+        setting_def("intensity_normalisation_reference", "float", to_list=True),
         setting_def("intensity_scaling", "float", test=3.0),
         setting_def("tissue_mask_type", "str", test="range"),
-        setting_def("tissue_mask_range", "float", to_list=True, test=[0.00, 10.00])
+        setting_def("tissue_mask_range", "float", to_list=True, test=[0.00, 10.00]),
+        setting_def("tissue_mask_name", "str")
     ]
