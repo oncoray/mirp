@@ -915,7 +915,8 @@ class GenericImage(BaseImage):
             intensity_range: None | tuple[Any, Any] = None,
             saturation_range: None | tuple[Any, Any] = None,
             mask: None | np.ndarray = None,
-            reference_image: None | np.ndarray = None
+            reference_image: None | np.ndarray = None,
+            **kwargs
     ) -> Self:
         """
         Normalises image intensities
