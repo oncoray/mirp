@@ -102,11 +102,16 @@ class ImagePostProcessingClass:
           ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.
         * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
           deviation of intensities.
-        * "histogram_equalisation": ...
-        * "adaptive_equalisation": ...
-        * "match_uniform": ...
-        * "match_sigmoid": ...
-        * "match_reference": ...
+        * "histogram_equalisation": Attempts to generate a flat histogram of intensities. Technically,
+          this is a mapping to a uniform distribution. However, the underlying implementation relies on
+          ``scikit-image`` and bins intensities prior to mapping. The result is normalised to [0, 1].
+        * "adaptive_equalisation": Implementation of Contrast Limited Adaptive Histogram Equalisation (CLAHE) from
+          ``scikit-image``.
+        * "match_uniform": Maps intensities to a uniform distribution in [0, 1].
+        * "match_sigmoid": Maps intensities to a standard normal distribution.
+        * "match_reference": Maps intensities to the distribution of a reference image or vector.
+        * "match_reference_normalised": Maps intensities to the distribution of a reference image or vector,
+          and normalises the result to [0, 1].
 
         .. note::
             Intensity normalisation may remove any physical meaning of intensity units. For example, intensity
@@ -137,12 +142,13 @@ class ImagePostProcessingClass:
 
     intensity_scaling: float, optional
         Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after
-        normalisation (if any). For example, `intensity_scaling = 1000.0`, combined with `intensity_normalisation =
-        "range"` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].
+        normalisation (if any). For example, ``intensity_scaling = 1000.0``, combined with ``intensity_normalisation =
+        "range"`` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].
 
-    tissue_mask_type: {"none", "range", "relative_range"}, optional, default: "relative_range"
+    tissue_mask_type: {"none", "range", "relative_range", "reference"}, optional, default: "relative_range"
         Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select
-        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.
+        pixels for bias correction and intensity normalisation by excluding non-tissue voxels. If "reference" an
+        external mask is expected.
 
     tissue_mask_range: list of float, optional
         Range values for creating an approximate mask of the tissue. Required for "range" and "relative_range"
@@ -357,11 +363,11 @@ class ImagePostProcessingClass:
         self.suv_conversion_type = pet_suv_conversion
 
         # Check that intensity_normalisation has the correct values.
-        if intensity_normalisation not in ["none", "range", "relative_range", "quantile_range", "standardisation"]:
+        if intensity_normalisation not in self._get_available_intensity_normalisation_methods():
             raise ValueError(
                 f"The intensity_normalisation parameter is expected to have one of the following values: "
-                f"'none', 'range', 'relative_range', 'quantile_range', 'standardisation'. Found: "
-                f"{intensity_normalisation}.")
+                f"{', '.join(self._get_available_intensity_normalisation_methods())}. Found: {intensity_normalisation}"
+            )
 
         # Set intensity_normalisation parameter.
         self.intensity_normalisation = intensity_normalisation

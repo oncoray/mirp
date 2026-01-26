@@ -914,7 +914,8 @@ class GenericImage(BaseImage):
             normalisation_method: None | str = "none",
             intensity_range: None | tuple[Any, Any] = None,
             saturation_range: None | tuple[Any, Any] = None,
-            mask: None | np.ndarray = None
+            mask: None | np.ndarray = None,
+            reference_image: None | np.ndarray = None
     ) -> Self:
         """
         Normalises image intensities
@@ -923,6 +924,7 @@ class GenericImage(BaseImage):
         :param intensity_range: range of intensities for normalisation.
         :param saturation_range: range of allowed intensity values.
         :param mask: sets area that should be considered for determining normalisation parameters.
+        :param reference_image: reference image to use for histogram matching.
         :return:
         """
 
@@ -1087,12 +1089,69 @@ class GenericImage(BaseImage):
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
 
+        elif normalisation_method == "match_uniform":
+            percentiles, values, lookup_index = self._map_percentiles()
+
+            # For the uniform [0, 1] distribution, percentiles are values.
+            self.set_voxel_grid(percentiles[lookup_index].reshape(self.image_dimension))
+
+        elif normalisation_method == "match_sigmoid":
+            percentiles, values, lookup_index = self._map_percentiles()
+
+            # For the normal distribution use the quantile function to look up values.
+            from scipy.stats import norm
+            new_values = norm.ppf(percentiles)
+            self.set_voxel_grid(new_values[lookup_index].reshape(self.image_dimension))
+
+        elif normalisation_method in ["match_reference", "match_reference_normalised"]:
+            # Get percentiles and values for the reference image.
+            ref_percentiles, ref_values, ref_lookup_index = self._map_percentiles(image=reference_image)
+            src_percentiles, src_values, src_lookup_index = self._map_percentiles()
+
+            # Interpolate source percentiles in ref percentiles and look-up corresponding values.
+            new_values = np.interp(src_percentiles, ref_percentiles, ref_values)
+
+            if normalisation_method == "match_reference_normalised":
+                # Map to [0, 1]
+                min_int = np.min(new_values)
+                max_int = np.max(new_values)
+                if not max_int == min_int:
+                    new_values = (new_values - min_int) / (max_int - min_int)
+                else:
+                    new_values -= min_int
+
+            self.set_voxel_grid(new_values[src_lookup_index].reshape(self.image_dimension))
+
         else:
             raise ValueError(f"{normalisation_method} is not a valid method for normalising intensity values.")
 
         self.saturate(intensity_range=saturation_range)
 
         return self
+
+    def _map_percentiles(
+            self,
+            image: np.ndarray | None = None,
+            proportional: bool = True
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+        # Use internal image if necessary.
+        if image is None:
+            image = self.get_voxel_grid()
+
+        # Turn image into 1D array.
+        image = np.ravel(image)
+
+        values, lookup_index, counts = np.unique(image, return_inverse=True, return_counts=True)
+        if proportional:
+            # Each voxel has the same percentile weight: [1, 1, 2, 3] has percentiles [0.25, 0.25, 0.625, 0.875].
+            percentiles = (np.cumsum(counts) - 0.5 * counts) / len(image)
+        else:
+            # Each group of voxels has the same percentile weight --> [1, 1, 2, 3] has percentiles [0.167, 0.167, 0.5,
+            # 0.833].
+            percentiles = (np.arange(len(values)) + 0.5) / (len(values))
+
+        return percentiles, values, lookup_index
 
     def scale_intensities(self, scale: float) -> Self:
 
