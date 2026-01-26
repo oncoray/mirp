@@ -89,7 +89,7 @@ class ImagePostProcessingClass:
             the patient. These metadata are only present in DICOM files. MIRP cannot convert activity to standardised
             uptake values for images in different formats, and this parameter will have no effect.
 
-    intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation"}, default: "none"
+    intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation", "custom_scale", "histogram_equalisation", "adaptive_equalisation", "match_uniform","match_sigmoid", "match_reference", "match_reference_normalised"}, default: "none"
         Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
         masked by the tissue mask (of present). The following are possible:
 
@@ -102,6 +102,8 @@ class ImagePostProcessingClass:
           ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.
         * "standardisation": normalises intensities by subtraction of the mean intensity and division by the standard
           deviation of intensities.
+        * "custom_scale": Uses the ``intensity_normalisation_standardisation_shift`` and
+        intensity_normalisation_standardisation_scale`` parameters for applying custom shift and scale to the data.
         * "histogram_equalisation": Attempts to generate a flat histogram of intensities. Technically,
           this is a mapping to a uniform distribution. However, the underlying implementation relies on
           ``scikit-image`` and bins intensities prior to mapping. The result is normalised to [0, 1].
@@ -139,6 +141,14 @@ class ImagePostProcessingClass:
         range are mapped to the limits of the saturation range, e.g. with a range of [0.0, 0.8] all values greater
         than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should
         not be saturated.
+
+    intensity_normalisation_standardisation_shift: float, optional
+        Defines the shift parameter for custom scaling. If present, ``intensity_normalisation`` is set to
+        ``"custom_scale"``.
+
+    intensity_normalisation_standardisation_scale: float, optional
+        Defines the scale parameter for custom scaling. Must be a value > 0. If present, ``intensity_normalisation`` is
+         set to ``"custom_scale"``.
 
     intensity_normalisation_reference: list of float, np.ndarray, optional
         Image, array or list of intensity values that is used to compute the reference intensity distribution for the
@@ -183,6 +193,8 @@ class ImagePostProcessingClass:
             intensity_normalisation: str = "none",
             intensity_normalisation_range: list[float] | None = None,
             intensity_normalisation_saturation: list[float] | None = None,
+            intensity_normalisation_standardisation_shift: float | None = None,
+            intensity_normalisation_standardisation_scale: float | None = None,
             intensity_normalisation_reference: list[float] | np.ndarray | None = None,
             intensity_scaling: float | None = None,
             tissue_mask_type: str = "relative_range",
@@ -380,6 +392,10 @@ class ImagePostProcessingClass:
                 f"{', '.join(self._get_available_intensity_normalisation_methods())}. Found: {intensity_normalisation}"
             )
 
+        if intensity_normalisation_standardisation_scale is not None or \
+                intensity_normalisation_standardisation_scale is not None:
+            intensity_normalisation = "custom_scale"
+
         # Set intensity_normalisation parameter.
         self.intensity_normalisation = intensity_normalisation
 
@@ -453,6 +469,25 @@ class ImagePostProcessingClass:
         # Set normalisation range.
         self.intensity_normalisation_range: None | list[float] = intensity_normalisation_range
 
+        if self.intensity_normalisation == "custom_scale":
+            if not isinstance(intensity_normalisation_standardisation_shift, float):
+                raise TypeError(
+                    "The intensity_normalisation_standardisation_shift parameter should be a floating point value."
+                )
+            if not isinstance(intensity_normalisation_standardisation_scale, float):
+                raise TypeError(
+                    "The intensity_normalisation_standardisation_scale parameter should be a floating point value > 0."
+                )
+
+            if intensity_normalisation_standardisation_scale <= 0.0:
+                raise ValueError(
+                    f"The intensity_normalisation_standardisation_scale parameter should be a floating point value > "
+                    f"0. Found: {intensity_normalisation_standardisation_scale}"
+                )
+
+        self.intensity_normalisation_standardisation_shift = intensity_normalisation_standardisation_shift
+        self.intensity_normalisation_standardisation_scale = intensity_normalisation_standardisation_scale
+
         # Check intensity normalisation saturation range.
         if intensity_normalisation_saturation is None:
             intensity_normalisation_saturation = [np.nan, np.nan]
@@ -480,7 +515,8 @@ class ImagePostProcessingClass:
         if self.intensity_normalisation not in ["match_reference", "match_reference_normalised"]:
             # Avoid passing intensity_normalisation_reference if it is not used.
             intensity_normalisation_reference = None
-        else:
+        elif self.intensity_normalisation in ["match_reference", "match_reference_normalised"] and \
+                intensity_normalisation_reference is None:
             # This parameter must be provided for the above methods.
             raise ValueError("The intensity_normalisation_reference parameter must be provided for the "
                              "`match_reference` and `match_reference_normalised` methods.")
@@ -570,8 +606,9 @@ class ImagePostProcessingClass:
     @staticmethod
     def _get_available_intensity_normalisation_methods():
         return [
-            "none", "range", "relative_range", "quantile_range", "standardisation", "histogram_equalisation",
-            "adaptive_equalisation", "match_uniform","match_sigmoid", "match_reference", "match_reference_normalised"
+            "none", "range", "relative_range", "quantile_range", "standardisation", "custom_scale",
+            "histogram_equalisation", "adaptive_equalisation", "match_uniform","match_sigmoid", "match_reference",
+            "match_reference_normalised"
         ]
 
 def get_post_processing_settings() -> list[dict[str, Any]]:
@@ -600,6 +637,8 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
         setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
         setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),
         setting_def("intensity_normalisation_reference", "float", to_list=True),
+        setting_def("intensity_normalisation_standardisation_shift", "float"),
+        setting_def("intensity_normalisation_standardisation_scale", "float"),
         setting_def("intensity_scaling", "float", test=3.0),
         setting_def("tissue_mask_type", "str", test="range"),
         setting_def("tissue_mask_range", "float", to_list=True, test=[0.00, 10.00]),

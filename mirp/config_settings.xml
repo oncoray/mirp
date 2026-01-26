@@ -83,8 +83,9 @@
             <!-- Algorithm used to normalise intensities in the image. Will only use intensities in voxels masked by
             the tissue mask. Can be none (default), range (maps to an intensity range), relative_range (maps to a
             range  of relative intensities), quantile_range (maps to a range of relative intensities based on
-            intensity percentiles), standardisation (performs z-normalisation), histogram_equalisation,
-            adaptive_equalisation, match_uniform, match_sigmoid, match_reference, match_reference_normalised. -->
+            intensity percentiles), standardisation (performs z-normalisation), custom_scale (for custom shift and
+            scales), histogram_equalisation, adaptive_equalisation, match_uniform, match_sigmoid, match_reference,
+            match_reference_normalised. -->
             <intensity_normalisation></intensity_normalisation>
             <!-- Intensity range for range, relative_range and quantile_range normalisation. -->
             <intensity_normalisation_range></intensity_normalisation_range>
@@ -92,6 +93,12 @@
             for the match_reference or match_reference_normalised methods. The programmatic interface might be more
             convenient to use for setting this parameter. -->
             <intensity_normalisation_reference></intensity_normalisation_reference>
+            <!-- Defines the shift parameter for custom scaling. If present, intensity_normalisation is set to
+            "custom_scale". -->
+            <intensity_normalisation_standardisation_shift></intensity_normalisation_standardisation_shift>
+            <!-- Defines the scale parameter for custom scaling. Must be a value > 0. If present,
+            intensity_normalisation is set to "custom_scale".-->
+            <intensity_normalisation_standardisation_scale></intensity_normalisation_standardisation_scale>
             <!-- Intensity saturation after normalisation. Values outside the given range are limited to this range.
              You may define two values for lower and upper boundary respectively. Default: [np.nan, np.nan] (no
              saturation). -->

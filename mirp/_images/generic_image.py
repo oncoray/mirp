@@ -912,8 +912,10 @@ class GenericImage(BaseImage):
     def normalise_intensities(
             self,
             normalisation_method: None | str = "none",
-            intensity_range: None | tuple[Any, Any] = None,
-            saturation_range: None | tuple[Any, Any] = None,
+            intensity_range: None | tuple[float, ...] = None,
+            saturation_range: None | tuple[float, ...] = None,
+            shift: None | float = None,
+            scale: None | float = None,
             mask: None | np.ndarray = None,
             reference_image: None | np.ndarray = None,
             **kwargs
@@ -1049,6 +1051,10 @@ class GenericImage(BaseImage):
             image_data = (image_data - mean_int) / sd_int
 
             # Update image data
+            self.set_voxel_grid(voxel_grid=image_data)
+
+        elif normalisation_method == "custom_scale":
+            image_data = (self.get_voxel_grid() - shift) / scale
             self.set_voxel_grid(voxel_grid=image_data)
 
         elif normalisation_method == "histogram_equalisation":
