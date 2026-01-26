@@ -155,6 +155,11 @@ class ImagePostProcessingClass:
         options. Default: [0.02, 1.00] (``"relative_range"``); [np.nan, np.nan] (``"range"``; effectively all voxels
         are considered to represent tissue).
 
+    tissue_mask_name: str, optional
+        Name of the mask to be used as a tissue mask. The mask should be present among the masks provided as regions
+        of interest. If provided, the ``tissue_mask_type`` parameter is automatically set to ``"reference"``,
+        and other values are ignored.
+
     **kwargs:
         Unused keyword arguments.
     """
@@ -177,6 +182,7 @@ class ImagePostProcessingClass:
             intensity_scaling: float | None = None,
             tissue_mask_type: str = "relative_range",
             tissue_mask_range: list[float] | None = None,
+            tissue_mask_name: str | None = None,
             **kwargs
     ):
         # Image denoise method parameter
@@ -476,8 +482,12 @@ class ImagePostProcessingClass:
 
         self.intensity_scaling: float = intensity_scaling
 
+        # Override tissue_mask_type in case a mask is explicitly provided.
+        if isinstance(tissue_mask_name, str):
+            tissue_mask_type = "reference"
+
         # Check tissue_mask_type
-        if tissue_mask_type not in ["none", "range", "relative_range"]:
+        if tissue_mask_type not in ["none", "range", "relative_range", "reference"]:
             raise ValueError(
                 f"The tissue_mask_type parameter is expected to have one of the following values: "
                 f"'none', 'range', or 'relative_range'. Found: {tissue_mask_type}."
@@ -517,6 +527,21 @@ class ImagePostProcessingClass:
         # Set tissue_mask_range.
         self.tissue_mask_range: tuple[float, ...] = tuple(tissue_mask_range)
 
+        # Check tissue_mask_name. Note that the actual content needs to be checked at run-time, because at this point
+        # we don't know if the mask corresponding to the name is actually present.
+        if self.tissue_mask_type == "reference":
+            if not isinstance(tissue_mask_name, str):
+                raise TypeError(
+                    "The tissue_mask_name parameter is expected to be a string indicated the mask to be "
+                    "used as the tissue mask."
+                )
+
+    @staticmethod
+    def _get_available_intensity_normalisation_methods():
+        return [
+            "none", "range", "relative_range", "quantile_range", "standardisation", "histogram_equalisation",
+            "adaptive_equalisation", "match_uniform","match_sigmoid", "match_reference", "match_reference_normalised"
+        ]
 
 def get_post_processing_settings() -> list[dict[str, Any]]:
 
