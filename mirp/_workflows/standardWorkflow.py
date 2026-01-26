@@ -159,6 +159,7 @@ class StandardWorkflow(BaseWorkflow):
                 normalisation_method=self.settings.post_process.intensity_normalisation,
                 intensity_range=self.settings.post_process.intensity_normalisation_range,
                 saturation_range=self.settings.post_process.intensity_normalisation_saturation,
+                reference_image=self.settings.post_process.intensity_normalisation_reference,
                 mask=tissue_mask
             )
 
