@@ -1090,26 +1090,76 @@ class GenericImage(BaseImage):
             self.set_voxel_grid(voxel_grid=image_data)
 
         elif normalisation_method == "match_uniform":
-            percentiles, values, lookup_index = self._map_percentiles()
+            src_percentiles, src_values, lookup_index = self._map_percentiles(mask=mask)
+
+            if not np.all(mask):
+                # For incomplete tissue masks: interpolate the percentiles for all intensities in the image.
+                all_values, lookup_index = np.unique(np.ravel(self.get_voxel_grid()), return_inverse=True)
+
+                # Interpolate all unique values in the entire image.
+                new_values = np.interp(
+                    all_values,
+                    src_values,
+                    src_percentiles,
+                    left=0.0,
+                    right=1.0
+                )[lookup_index]
+
+            else:
+                # For complete tissue masks:
+                new_values = src_percentiles[lookup_index]
 
             # For the uniform [0, 1] distribution, percentiles are values.
-            self.set_voxel_grid(percentiles[lookup_index].reshape(self.image_dimension))
+            self.set_voxel_grid(new_values.reshape(self.image_dimension))
 
         elif normalisation_method == "match_sigmoid":
-            percentiles, values, lookup_index = self._map_percentiles()
+            src_percentiles, src_values, lookup_index = self._map_percentiles(mask=mask)
 
             # For the normal distribution use the quantile function to look up values.
             from scipy.stats import norm
-            new_values = norm.ppf(percentiles)
-            self.set_voxel_grid(new_values[lookup_index].reshape(self.image_dimension))
+            if not np.all(mask):
+                # For incomplete tissue masks: interpolate the percentiles for all intensities in the image.
+                all_values, lookup_index = np.unique(np.ravel(self.get_voxel_grid()), return_inverse=True)
+
+                # Interpolate all unique values in the entire image. Note that the percentile space is confined to
+                # that of the (masked) source input, because 0 and 1 correspond to infinite values.
+                all_percentiles = np.interp(
+                    all_values,
+                    src_values,
+                    src_percentiles
+                )[lookup_index]
+                new_values = norm.ppf(all_percentiles)[lookup_index]
+
+            else:
+                # For complete tissue masks:
+                new_values = norm.ppf(src_percentiles)[lookup_index]
+
+            self.set_voxel_grid(new_values.reshape(self.image_dimension))
 
         elif normalisation_method in ["match_reference", "match_reference_normalised"]:
             # Get percentiles and values for the reference image.
             ref_percentiles, ref_values, ref_lookup_index = self._map_percentiles(image=reference_image)
-            src_percentiles, src_values, src_lookup_index = self._map_percentiles()
+            src_percentiles, src_values, lookup_index = self._map_percentiles(mask=mask)
 
-            # Interpolate source percentiles in ref percentiles and look-up corresponding values.
-            new_values = np.interp(src_percentiles, ref_percentiles, ref_values)
+            if not np.all(mask):
+                # For incomplete tissue masks: interpolate the percentiles for all intensities in the image.
+                all_values, lookup_index = np.unique(np.ravel(self.get_voxel_grid()), return_inverse=True)
+
+                # Interpolate all unique values in the entire image.
+                all_percentiles = np.interp(
+                    all_values,
+                    src_values,
+                    src_percentiles,
+                    left=0.0,
+                    right=1.0
+                )
+
+                # Interpolate percentiles from the entire image within ref percentiles and look-up corresponding values.
+                new_values = np.interp(all_percentiles, ref_percentiles, ref_values)
+
+            else:
+                # Interpolate source percentiles in ref percentiles and look-up corresponding values.
+                new_values = np.interp(src_percentiles, ref_percentiles, ref_values)
 
             if normalisation_method == "match_reference_normalised":
                 # Map to [0, 1]
@@ -1120,7 +1170,7 @@ class GenericImage(BaseImage):
                 else:
                     new_values -= min_int
 
-            self.set_voxel_grid(new_values[src_lookup_index].reshape(self.image_dimension))
+            self.set_voxel_grid(new_values[lookup_index].reshape(self.image_dimension))
 
         else:
             raise ValueError(f"{normalisation_method} is not a valid method for normalising intensity values.")
@@ -1132,6 +1182,7 @@ class GenericImage(BaseImage):
     def _map_percentiles(
             self,
             image: np.ndarray | None = None,
+            mask: np.ndarray | None = None,
             proportional: bool = True
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
 
@@ -1141,6 +1192,8 @@ class GenericImage(BaseImage):
 
         # Turn image into 1D array.
         image = np.ravel(image)
+        if mask is not None:
+            image = image[np.ravel(mask)]
 
         values, lookup_index, counts = np.unique(image, return_inverse=True, return_counts=True)
         if proportional:

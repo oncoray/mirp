@@ -106,7 +106,7 @@ class ImagePostProcessingClass:
           this is a mapping to a uniform distribution. However, the underlying implementation relies on
           ``scikit-image`` and bins intensities prior to mapping. The result is normalised to [0, 1].
         * "adaptive_equalisation": Implementation of Contrast Limited Adaptive Histogram Equalisation (CLAHE) from
-          ``scikit-image``.
+          ``scikit-image``. This method cannot use a tissue mask.
         * "match_uniform": Maps intensities to a uniform distribution in [0, 1].
         * "match_sigmoid": Maps intensities to a standard normal distribution.
         * "match_reference": Maps intensities to the distribution of a reference image or vector.
