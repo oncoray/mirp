@@ -141,8 +141,10 @@ class StandardWorkflow(BaseWorkflow):
             # Create a tissue mask
             tissue_mask = create_tissue_mask(
                 image=image,
+                masks=masks,
                 mask_type=self.settings.post_process.tissue_mask_type,
-                mask_intensity_range=self.settings.post_process.tissue_mask_range
+                mask_intensity_range=self.settings.post_process.tissue_mask_range,
+                mask_name=self.settings.post_process.tissue_mask_name
             )
 
             # Perform bias field correction
