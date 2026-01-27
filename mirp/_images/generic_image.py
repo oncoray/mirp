@@ -1145,7 +1145,7 @@ class GenericImage(BaseImage):
                     all_values,
                     src_values,
                     src_percentiles
-                )[lookup_index]
+                )
                 new_values = norm.ppf(all_percentiles)[lookup_index]
 
             else:
