@@ -20,12 +20,11 @@ def test_intensity_normalisation():
     from mirp.settings.image_processing_parameters import ImagePostProcessingClass
     from mirp import extract_features_and_images
     from mirp._masks.base_mask import BaseMask
-    from mirp._images.generic_image import GenericImage
     from mirp._images.mr_image import MRImage
 
     for intensity_normalisation_method in ImagePostProcessingClass()._get_available_intensity_normalisation_methods():
         # Skip over select intensity normalisation methods that require a custom test.
-        if intensity_normalisation_method == "custom_scale":
+        if intensity_normalisation_method in ["custom_scale", "match_reference", "match_reference_normalised"]:
             continue
 
         # No tissue mask.
@@ -110,12 +109,31 @@ def test_intensity_normalisation():
             assert np.max(image_nm.get_voxel_grid()) == 1.0
             assert np.min(image_m.get_voxel_grid()) == 0.0
             assert np.max(image_m.get_voxel_grid()) == 1.0
-            assert 0.27 < np.std(image_nm.get_voxel_grid()) < 0.28
+            assert 0.19 < np.std(image_nm.get_voxel_grid()) < 0.20
+            assert 0.19 < np.std(image_m.get_voxel_grid()) < 0.20
+
+        elif intensity_normalisation_method == "match_uniform":
+            assert 0.00 < np.min(image_nm.get_voxel_grid()) < 0.01
+            assert 0.99 < np.max(image_nm.get_voxel_grid()) < 1.00
+            assert np.min(image_m.get_voxel_grid()) == 0.0
+            assert 0.99 < np.max(image_m.get_voxel_grid()) < 1.00
+            assert 0.28 < np.std(image_nm.get_voxel_grid()) < 0.29
             assert 0.32 < np.std(image_m.get_voxel_grid()) < 0.33
+
+        elif intensity_normalisation_method == "match_sigmoid":
+            assert -3.10 < np.min(image_nm.get_voxel_grid()) < -3.09
+            assert 5.33 < np.max(image_nm.get_voxel_grid()) < 5.34
+            assert -2.84 < np.min(image_m.get_voxel_grid()) < -2.83
+            assert 5.29 < np.max(image_m.get_voxel_grid()) < 5.30
+            assert 0.99 < np.std(image_nm.get_voxel_grid()) < 1.00
+            assert 1.39 < np.std(image_m.get_voxel_grid()) < 1.40
 
         else:
             raise NotImplementedError(f"Test for intensity_normalisation_method {intensity_normalisation_method} not implemented")
 
 
 def test_custom_scale():
+    ...
+
+def test_match_reference():
     ...
