@@ -33,7 +33,7 @@ def create_tissue_mask(
         mask = np.logical_and(voxel_grid >= mask_intensity_range[0], voxel_grid <= mask_intensity_range[1])
 
     elif mask_type == "relative_range":
-        from skimage.morphology import binary_opening
+        from skimage.morphology import opening
 
         # The relative intensity range provided forms the mask range. This means that we need to convert the relative
         # range to the range present in the image.
@@ -59,7 +59,7 @@ def create_tissue_mask(
         mask = np.logical_and(voxel_grid >= tissue_range[0], voxel_grid <= tissue_range[1])
 
         # Perform binary closing to smooth the mask.
-        mask = binary_opening(mask)
+        mask = opening(mask)
 
     elif mask_type == "reference":
         # Find the mask with the correct name.
