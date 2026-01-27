@@ -133,7 +133,50 @@ def test_intensity_normalisation():
 
 
 def test_custom_scale():
-    ...
+    from mirp import extract_features_and_images
+    from mirp._images.mr_image import MRImage
+    from mirp._masks.base_mask import BaseMask
+
+    # No tissue mask.
+    data_no_mask = extract_features_and_images(
+        tissue_mask_type="none",
+        intensity_normalisation="custom_scale",
+        intensity_normalisation_standardisation_shift=500.0,
+        intensity_normalisation_standardisation_scale=100.0,
+        **GENERIC_KWARGS
+    )
+
+    # Tissue mask
+    data_mask = extract_features_and_images(
+        tissue_mask_type="relative_range",
+        tissue_mask_range=[0.02, 1.00],
+        intensity_normalisation="custom_scale",
+        intensity_normalisation_standardisation_shift=500.0,
+        intensity_normalisation_standardisation_scale=100.0,
+        **GENERIC_KWARGS
+    )
+
+    feature_data_nm = data_no_mask[0][0]
+    image_nm = data_no_mask[0][1][0]
+    mask_nm = data_no_mask[0][2][0]
+    feature_data_m = data_mask[0][0]
+    image_m = data_mask[0][1][0]
+    mask_m = data_mask[0][2][0]
+
+    assert len(feature_data_nm) == 1
+    assert len(feature_data_m) == 1
+    assert isinstance(mask_nm, BaseMask)
+    assert isinstance(mask_m, BaseMask)
+    assert isinstance(image_nm, MRImage)
+    assert isinstance(image_m, MRImage)
+
+    assert np.min(image_nm.get_voxel_grid()) == -5.0
+    assert 13.0 < np.max(image_nm.get_voxel_grid()) < 13.1
+    assert np.min(image_m.get_voxel_grid()) == -5.0
+    assert 13.0 < np.max(image_m.get_voxel_grid()) < 13.1
+    assert 2.39 < np.std(image_nm.get_voxel_grid()) < 2.40
+    assert 2.39 < np.std(image_m.get_voxel_grid()) < 2.40
+
 
 def test_match_reference():
     ...
