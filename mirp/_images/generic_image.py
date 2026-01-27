@@ -926,6 +926,8 @@ class GenericImage(BaseImage):
         "relative_range", "quantile_range", "standardisation".
         :param intensity_range: range of intensities for normalisation.
         :param saturation_range: range of allowed intensity values.
+        :param shift: shift for custom scale.
+        :param scale: scale for custom scale.
         :param mask: sets area that should be considered for determining normalisation parameters.
         :param reference_image: reference image to use for histogram matching.
         :return:
@@ -1080,12 +1082,21 @@ class GenericImage(BaseImage):
         elif normalisation_method == "adaptive_equalisation":
             from skimage.exposure import equalize_adapthist
 
+            # We need to normalise the image data to [0, 1] to use equalize_adapthist
+            image_data = self.get_voxel_grid()
+            min_int = np.min(image_data)
+            max_int = np.max(image_data)
+            if not max_int == min_int:
+                image_data = (image_data - min_int) / (max_int - min_int)
+            else:
+                image_data -= min_int
+
             # Use equalize_adapthist from scikit image.
             image_data = equalize_adapthist(
-                image=self.get_voxel_grid()
+                image=image_data
             )
 
-            # Map to [0, 1]
+            # Map the result from CLAHE to [0, 1], again, just in case.
             min_int = np.min(image_data)
             max_int = np.max(image_data)
             if not max_int == min_int:
