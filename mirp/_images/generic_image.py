@@ -484,7 +484,7 @@ class GenericImage(BaseImage):
             spline_order = self.get_interpolation_spline_order(settings=settings)
         if anti_aliasing is None:
             anti_aliasing = settings.img_interpolate.anti_aliasing
-        if anti_aliasing_smoothing_beta is None:
+        if anti_aliasing_smoothing_beta is None and anti_aliasing:
             anti_aliasing_smoothing_beta = settings.img_interpolate.smoothing_beta
 
         return self._register(
