@@ -79,12 +79,10 @@ class Data3DMesh(object):
         vert_b = vertices[faces[:, 1], :]
         vert_c = vertices[faces[:, 2], :]
 
-        # noinspection PyUnreachableCode
         self.volume = np.abs(np.sum(
             1.0 / 6.0 * np.einsum("ij,ij->i", vert_a, np.cross(vert_b, vert_c, 1, 1))
         ))
 
-        # noinspection PyUnreachableCode
         self.area = mesh_surface_area(verts=vertices, faces=faces)
 
     def is_empty(self):
@@ -743,3 +741,37 @@ class Data3DSpatial(Data3DMesh):
                 geary_c = 1.0
 
         return moran_i, geary_c
+
+
+class Data3DVoxel(object):
+
+    def __init__(self):
+
+        # Voxels
+        self.mask: np.ndarray | None = None
+        self.image: np.ndarray | None = None
+
+        self.spacing: tuple[float, ...] | None = None
+
+    def compute(self, image: GenericImage, mask: BaseMask):
+        # Skip processing if input image and/or roi are missing
+        if image is None or mask is None:
+            return
+
+        # Check if data actually exists
+        if image.is_empty() or mask.roi_morphology.is_empty_mask():
+            return
+
+        # Image spacing
+        self.spacing = image.image_spacing
+
+        # Set mask.
+        self.mask = mask.roi_morphology.get_voxel_grid()
+        self.image = image.get_voxel_grid()
+
+    def is_empty(self):
+        return np.sum(self.mask) == 0
+
+    def is_singular(self):
+
+        return np.sum(self.mask) <= 1

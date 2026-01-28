@@ -5,7 +5,7 @@ import numpy as np
 
 from mirp._features.morph_3d_data import (
     Data3DMesh, Data3DConvexHull, Data3DAxisAlignedBoundingBox, Data3DOrientedMinimumBoundingBox,
-    Data3DPrincipleComponents, Data3DSpatial, Data3DMinimumEnvelopingEllipsoid
+    Data3DPrincipleComponents, Data3DSpatial, Data3DMinimumEnvelopingEllipsoid, Data3DVoxel
 )
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
@@ -370,6 +370,47 @@ class Feature3DSpatial(Feature3DMesh):
             mask: BaseMask | None = None
     ):
         raise NotImplementedError("Implement _compute for feature-specific computation.")
+
+
+class Feature3DVoxel(Feature3DMorph):
+    def __init__(
+            self,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _get_data(
+            image: GenericImage,
+            mask: BaseMask
+    ) -> Data3DVoxel:
+        data = Data3DVoxel()
+        data.compute(image=image, mask=mask)
+
+        return data
+
+    def clear_local_cache(self, other):
+        if not isinstance(other, Feature3DVoxel):
+            self._get_data.cache_clear()
+
+    def clear_cache(self):
+        super().clear_cache()
+        self._get_data.cache_clear()
+
+    @staticmethod
+    def _compute(data: Data3DVoxel, image: GenericImage | None = None, mask: BaseMask | None = None):
+        raise NotImplementedError("Implement _compute for feature-specific computation.")
+
+    def compute(self, image: GenericImage, mask: BaseMask):
+        # Get data.
+        data = self._get_data(image=image, mask=mask)
+
+        # Compute feature value.
+        if data.is_empty():
+            self.value = np.nan
+        else:
+            self.value = self._compute(data=data, image=image, mask=mask)
 
 
 class Feature3DMorphVolume(Feature3DMesh):
