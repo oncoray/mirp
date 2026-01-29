@@ -89,6 +89,10 @@ class FeatureExtractionSettingsClass:
         Width of each bin in the "fixed_bin_size" discretisation method. No default value. Multiple values can be
         specified in a list to yield features according to each bin width.
 
+    stat_value_shift: float, optional, default: 0.0
+        Value added to intensities in the image for computing several features: energy,  root-mean-square and total
+        energy. The resulting features are not IBSI-compliant.
+
     ivh_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "none"}, optional, default: "none"
         Method used for discretising intensities for computing intensity-volume histograms. The discretisation
         methods follow those in ``base_discretisation_method``. The "none" method changes to "fixed_bin_number" if
@@ -198,6 +202,7 @@ class FeatureExtractionSettingsClass:
             base_discretisation_method: None | str | list[str] = None,
             base_discretisation_n_bins: None | int | list[int] = None,
             base_discretisation_bin_width: None | float | list[float] = None,
+            stat_value_shift: float = 0.0,
             ivh_discretisation_method: str = "none",
             ivh_discretisation_n_bins: None | int = 1000,
             ivh_discretisation_bin_width: None | float = None,
@@ -319,6 +324,15 @@ class FeatureExtractionSettingsClass:
         self.discretisation_method: None | list[str] = base_discretisation_method
         self.discretisation_n_bins: None | list[int] = base_discretisation_n_bins
         self.discretisation_bin_width: None | list[float] = base_discretisation_bin_width
+
+        if self.has_stats_family():
+            # Check stat_value_shift
+            if not isinstance(stat_value_shift, float):
+                raise TypeError(
+                    "The stat_value_shift parameter is expected to be a single, floating point value."
+                )
+
+        self.stat_value_shift: float = stat_value_shift
 
         if self.has_ivh_family():
             if ivh_discretisation_method not in ["fixed_bin_size", "fixed_bin_number", "none"]:
@@ -624,6 +638,7 @@ def get_feature_extraction_settings() -> list[dict[str, Any]]:
             xml_key=["discretisation_bin_width", "discr_bin_width"], class_key="discretisation_bin_width",
             test=[10.0, 34.0]
         ),
+        setting_def("stat_value_shift", "float", test=10.0),
         setting_def(
             "ivh_discretisation_method", "str", xml_key=["ivh_discretisation_method", "ivh_discr_method"],
             class_key="ivh_discretisation_method", test="fixed_bin_size"

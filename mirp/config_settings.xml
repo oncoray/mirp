@@ -164,6 +164,9 @@
             <discretisation_bin_width></discretisation_bin_width>
             <!-- Bin number for the fixed_bin_number algorithm. Multiple values are possible. -->
             <discretisation_n_bins></discretisation_n_bins>
+            <!-- Value added to intensities in the image for computing several features: energy,  root-mean-square and total
+            energy. The resulting features are not IBSI-compliant. -->
+            <stat_value_shift></stat_value_shift>
             <!-- Discretisation algorithm for the intensity-volume histogram. Can be none, fixed_bin_number and/or
             fixed_bin_size. If unset, the image modality determines the algorithm.-->
             <ivh_discretisation_method></ivh_discretisation_method>

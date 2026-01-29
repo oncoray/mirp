@@ -24,6 +24,12 @@ class DataStatistics(object):
         # Intensity standard deviation
         self.sigma: float | None = None
 
+        # Offset (used for non-compliant features)
+        self.offset: float = 0.0
+
+        # Volume of each voxel.
+        self.voxel_volume: float = 0.0
+
     def compute(self, image: GenericImage, mask: BaseMask):
         # Skip processing if input image and/or roi are missing
         if image is None or mask is None:
@@ -32,6 +38,9 @@ class DataStatistics(object):
         # Check if data actually exists
         if image.is_empty() or mask.roi_intensity.is_empty_mask():
             return
+
+        # Voxel volume.
+        self.voxel_volume = np.prod(image.image_spacing)
 
         # Convert to dataframe and remove entries outside the mask.
         image = mask.as_pandas_dataframe(image=image, intensity_mask=True)
@@ -50,6 +59,7 @@ class DataStatistics(object):
 
         # Standard deviation
         self.sigma = np.std(self.image, ddof=0)
+
 
     def is_empty(self):
         return self.image is None
@@ -346,10 +356,22 @@ class FeatureStatEnergy(FeatureStat):
         return np.sum(data.image ** 2.0)
 
 
+class FeatureStatEnergyOffset(FeatureStat):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Statistics - energy (offset)"
+        self.abbr_name = "stat_energy_offset"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: DataStatistics):
+        return np.sum((data.image + data.offset) ** 2.0)
+
+
 class FeatureStatRootMeanSquare(FeatureStat):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "Statistics - "
+        self.name = "Statistics - root mean square"
         self.abbr_name = "stat_rms"
         self.ibsi_id = "5ZWQ"
         self.ibsi_compliant = True
@@ -357,6 +379,42 @@ class FeatureStatRootMeanSquare(FeatureStat):
     @staticmethod
     def _compute(data: DataStatistics) -> float:
         return  np.sqrt(np.sum(data.image ** 2.0) / data.n_voxels)
+
+
+class FeatureStatRootMeanSquareOffset(FeatureStat):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Statistics - root mean square (offset)"
+        self.abbr_name = "stat_rms_offset"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: DataStatistics) -> float:
+        return  np.sqrt(np.sum((data.image + data.offset) ** 2.0) / data.n_voxels)
+
+
+class FeatureStatTotalEnergy(FeatureStat):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Statistics - total energy"
+        self.abbr_name = "stat_total_energy"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: DataStatistics):
+        return np.sum(data.image ** 2.0) * data.voxel_volume
+
+
+class FeatureStatTotalEnergyOffset(FeatureStat):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Statistics - total energy (offset)"
+        self.abbr_name = "stat_total_energy_offset"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: DataStatistics):
+        return np.sum((data.image + data.offset) ** 2.0) * data.voxel_volume
 
 
 def get_statistics_class_dict() -> dict[str, FeatureStat]:
@@ -377,7 +435,11 @@ def get_statistics_class_dict() -> dict[str, FeatureStat]:
         "stat_cov": FeatureStatCoefficientOfVariation,
         "stat_qcod": FeatureStatQuartileCoefficientOfDispersion,
         "stat_energy": FeatureStatEnergy,
-        "stat_rms": FeatureStatRootMeanSquare
+        "stat_energy_offset": FeatureStatEnergyOffset,
+        "stat_rms": FeatureStatRootMeanSquare,
+        "stat_rms_offset": FeatureStatRootMeanSquareOffset,
+        "stat_total_energy": FeatureStatTotalEnergy,
+        "stat_total_energy_offset": FeatureStatTotalEnergyOffset
     }
 
     return class_dict

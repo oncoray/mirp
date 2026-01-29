@@ -31,3 +31,24 @@ def test_morphological_features():
     non_compliant_features = ["morph_max_2d_diam_z", "morph_max_2d_diam_y", "morph_max_2d_diam_x"]
     assert all(x not in data_compliant.columns for x in non_compliant_features)
     assert all(x in data_non_compliant.columns for x in non_compliant_features)
+
+
+def test_statistics_features():
+    # Theses are just functional tests: there is no reference standard.
+    from mirp import extract_features
+
+    data_compliant = extract_features(
+        base_feature_families="statistics",
+        ibsi_compliant=True,
+        **GENERIC_KWARGS
+    )[0]
+
+    data_non_compliant = extract_features(
+        base_feature_families="statistics",
+        ibsi_compliant=False,
+        **GENERIC_KWARGS
+    )[0]
+
+    non_compliant_features = []
+    assert all(x not in data_compliant.columns for x in non_compliant_features)
+    assert all(x in data_non_compliant.columns for x in non_compliant_features)
