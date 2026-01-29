@@ -6,6 +6,24 @@
   denoisers are currently implemented, and can be specified using the `image_denoise_method` parameter (default: 
   `none`). Denoising occurs prior to any other image processing steps.
 
+- Added support for setting tissue masks based on regions of interest. Tissue masks determine which parts of the 
+  image are used for bias-field correction and intensity normalisation. An existing region of interest (from e.g. 
+  an RTSTRUCT DICOM file) can be specified using the `tissue_mask_name` parameter. This region of interest must also be 
+  specified as `roi_name`.
+
+- Added support for additional intensity normalisation methods: histogram equalisation (`histogram_equalisation`), 
+  contrast limited adaptive histogram equalisation (`adaptive_equalisation`), uniform matching (`match_uniform`; 
+  matches intensity distribution to a uniform distribution, similar to histogram equalisation), Gaussian matching 
+  (`match_sigmoid`; matches intensity distribution to a Gaussian distribution), reference matching 
+  (`match_reference`, `match_reference_normalised`; matches intensity distribution to a reference intensity 
+  distribution, similar to histogram matching). Reference matching requires a reference image or array of 
+  intensities as input (see `intensity_normalisation_reference` parameter).
+
+- Added support for custom intensity normalisation to enable using fixed (or predetermined) shift and scale 
+  parameters. Shift and scale parameters can be set using `intensity_normalisation_standardisation_shift` and 
+  `intensity_normalisation_standardisation_scale`, respectively. Using these parameters automatically sets the 
+  intensity normalisation method to `custom_scale`.
+
 - Added support for Prewitt (`prewitt`) and Sobel (`sobel`) filters.
 
 ## Minor changes
