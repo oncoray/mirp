@@ -820,6 +820,42 @@ class Feature3DMorphGearyMeasure(Feature3DSpatial):
         return data.geary_c
 
 
+class Feature3DMorphMax2DDiameterSlice(Feature3DVoxel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Morphology (3D) - maximum 2D diameter (z)"
+        self.abbr_name = "morph_max_2d_diam_z"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: Data3DVoxel, **kwargs):
+        return np.max(np.sum(data.mask, axis=0)) * data.spacing[0]
+
+
+class Feature3DMorphMax2DDiameterColumn(Feature3DVoxel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Morphology (3D) - maximum 2D diameter (y)"
+        self.abbr_name = "morph_max_2d_diam_y"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: Data3DVoxel, **kwargs):
+        return np.max(np.sum(data.mask, axis=1)) * data.spacing[1]
+
+
+class Feature3DMorphMax2DDiameterRow(Feature3DVoxel):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.name = "Morphology (3D) - maximum 2D diameter (x)"
+        self.abbr_name = "morph_max_2d_diam_x"
+        self.ibsi_compliant = False
+
+    @staticmethod
+    def _compute(data: Data3DVoxel, **kwargs):
+        return np.max(np.sum(data.mask, axis=2)) * data.spacing[2]
+
+
 def get_morphology_3d_class_dict() -> dict[str, Feature3DMorph]:
     class_dict = {
         "morph_volume": Feature3DMorphVolume,
@@ -850,7 +886,10 @@ def get_morphology_3d_class_dict() -> dict[str, Feature3DMorph]:
         "morph_vol_dens_aee": Feature3DMorphApproximateEnclosingEllipsoidVolumeDensity,
         "morph_area_dens_aee": Feature3DMorphApproximateEnclosingEllipsoidAreaDensity,
         "morph_moran_i": Feature3DMorphMoranIndex,
-        "morph_geary_c": Feature3DMorphGearyMeasure
+        "morph_geary_c": Feature3DMorphGearyMeasure,
+        "morph_diam_2d_z": Feature3DMorphMax2DDiameterSlice,
+        "morph_diam_2d_y": Feature3DMorphMax2DDiameterColumn,
+        "morph_diam_2d_x": Feature3DMorphMax2DDiameterRow
     }
 
     return class_dict
