@@ -49,6 +49,18 @@ def test_statistics_features():
         **GENERIC_KWARGS
     )[0]
 
-    non_compliant_features = []
+    data_non_compliant_offset = extract_features(
+        base_feature_families="statistics",
+        stat_value_shift=100.0,
+        ibsi_compliant=False,
+        **GENERIC_KWARGS
+    )[0]
+
+    non_compliant_features = ["stat_energy_offset", "stat_rms_offset", "stat_total_energy", "stat_total_energy_offset"]
     assert all(x not in data_compliant.columns for x in non_compliant_features)
     assert all(x in data_non_compliant.columns for x in non_compliant_features)
+    assert all(x in data_non_compliant_offset.columns for x in non_compliant_features)
+
+    assert data_non_compliant.stat_energy_offset.to_numpy() < data_non_compliant_offset.stat_energy_offset.to_numpy()
+    assert data_non_compliant.stat_rms_offset.to_numpy() < data_non_compliant_offset.stat_rms_offset.to_numpy()
+    assert data_non_compliant.stat_total_energy_offset.to_numpy() < data_non_compliant_offset.stat_total_energy_offset.to_numpy()

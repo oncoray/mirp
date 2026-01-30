@@ -24,9 +24,6 @@ class DataStatistics(object):
         # Intensity standard deviation
         self.sigma: float | None = None
 
-        # Offset (used for non-compliant features)
-        self.offset: float = 0.0
-
         # Volume of each voxel.
         self.voxel_volume: float = 0.0
 
@@ -357,15 +354,16 @@ class FeatureStatEnergy(FeatureStat):
 
 
 class FeatureStatEnergyOffset(FeatureStat):
-    def __init__(self, **kwargs):
+    def __init__(self, offset: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - energy (offset)"
         self.abbr_name = "stat_energy_offset"
         self.ibsi_compliant = False
 
-    @staticmethod
-    def _compute(data: DataStatistics):
-        return np.sum((data.image + data.offset) ** 2.0)
+        self.offset = offset
+
+    def _compute(self, data: DataStatistics):
+        return np.sum((data.image + self.offset) ** 2.0)
 
 
 class FeatureStatRootMeanSquare(FeatureStat):
@@ -382,15 +380,16 @@ class FeatureStatRootMeanSquare(FeatureStat):
 
 
 class FeatureStatRootMeanSquareOffset(FeatureStat):
-    def __init__(self, **kwargs):
+    def __init__(self,  offset: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - root mean square (offset)"
         self.abbr_name = "stat_rms_offset"
         self.ibsi_compliant = False
 
-    @staticmethod
-    def _compute(data: DataStatistics) -> float:
-        return  np.sqrt(np.sum((data.image + data.offset) ** 2.0) / data.n_voxels)
+        self.offset = offset
+
+    def _compute(self, data: DataStatistics) -> float:
+        return  np.sqrt(np.sum((data.image + self.offset) ** 2.0) / data.n_voxels)
 
 
 class FeatureStatTotalEnergy(FeatureStat):
@@ -406,15 +405,16 @@ class FeatureStatTotalEnergy(FeatureStat):
 
 
 class FeatureStatTotalEnergyOffset(FeatureStat):
-    def __init__(self, **kwargs):
+    def __init__(self, offset: float = 0.0, **kwargs):
         super().__init__(**kwargs)
         self.name = "Statistics - total energy (offset)"
         self.abbr_name = "stat_total_energy_offset"
         self.ibsi_compliant = False
 
-    @staticmethod
-    def _compute(data: DataStatistics):
-        return np.sum((data.image + data.offset) ** 2.0) * data.voxel_volume
+        self.offset = offset
+
+    def _compute(self, data: DataStatistics):
+        return np.sum((data.image + self.offset) ** 2.0) * data.voxel_volume
 
 
 def get_statistics_class_dict() -> dict[str, FeatureStat]:
@@ -474,5 +474,9 @@ def generate_stat_features(
                 yield class_dict[feature](
                     percentile=percentile
                 )
+        elif feature in ["stat_energy_offset", "stat_rms_offset", "stat_total_energy_offset"]:
+            yield class_dict[feature](
+                offset = settings.stat_value_shift
+            )
         else:
             yield class_dict[feature]()
