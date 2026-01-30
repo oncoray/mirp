@@ -177,6 +177,12 @@
             <ivh_discretisation_n_bins></ivh_discretisation_n_bins>
             <!-- Bin width (in intensity units) for the fixed_bin_size algorithm. -->
             <ivh_discr_bin_width></ivh_discr_bin_width>
+            <!-- Method used to pool features computed from multiple texture matrices. How matrices are handled
+            depends on spatial method parameters. Spatial methods that result in only a single method ignore this
+            parameter. The default value is "average", which averages over feature values. Other options are "min",
+            "max", "range", "std" (standard deviation) and "var" (variance). Pooling methods other than "average" are
+             not IBSI-compliant. -->
+            <texture_feature_pooling_method></texture_feature_pooling_method>
             <!-- Distance (in voxels) for GLCM for determining the neighbourhood. -->
             <glcm_distance></glcm_distance>
             <!-- Determines how cooccurrence matrices are merged. One "2d_average", "2d_slice_merge",

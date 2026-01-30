@@ -108,6 +108,12 @@ class FeatureExtractionSettingsClass:
     ivh_discretisation_bin_width: float, optional
         Width of each bin in the "fixed_bin_size" discretisation method. No default value.
 
+    texture_feature_pooling_method: {"average", "min", "max", "range", "std", "var"}, optional, default: "average"
+        Method used to pool features computed from multiple texture matrices. How matrices are handled depends on
+        spatial method parameters. Spatial methods that result in only a single method ignore this parameter. The
+        default value is "average", which averages over feature values. Other options are "min", "max", "range",
+        "std" (standard deviation) and "var" (variance). Pooling methods other than "average" are not IBSI-compliant.
+
     glcm_distance: float or list of float, optional, default: 1.0
         Distance (in voxels) for GLCM for determining the neighbourhood. Chebyshev, or checkerboard, distance is
         used. A value of 1.0 will therefore consider all (diagonally) adjacent voxels as its neighbourhood. A list of
@@ -211,6 +217,7 @@ class FeatureExtractionSettingsClass:
             ivh_discretisation_method: str = "none",
             ivh_discretisation_n_bins: None | int = 1000,
             ivh_discretisation_bin_width: None | float = None,
+            texture_feature_pooling_method: str | list[str] = "average",
             glcm_distance: float | list[float] = 1.0,
             glcm_spatial_method: None | str | list[str] = None,
             glrlm_spatial_method: None | str | list[str] = None,
@@ -413,6 +420,43 @@ class FeatureExtractionSettingsClass:
         self.ivh_discretisation_n_bins: None | int = ivh_discretisation_n_bins
         self.ivh_discretisation_bin_width: None | float = ivh_discretisation_bin_width
 
+        # Set feature pooling method.
+        if self.has_any_texture_family():
+            available_feature_pooling_methods = ["average", "min", "max", "range", "std", "var"]
+            if isinstance(texture_feature_pooling_method, str):
+                texture_feature_pooling_method = [texture_feature_pooling_method]
+
+            if not isinstance(texture_feature_pooling_method, list):
+                raise TypeError(
+                    f"The texture_feature_pooling_method parameter is expected to be a string, or list of string with "
+                    f"values {', '.join(available_feature_pooling_methods)}. Found: not a string or list thereof."
+                )
+
+            if not all(isinstance(x, str) for x in texture_feature_pooling_method):
+                raise TypeError(
+                    f"The texture_feature_pooling_method parameter is expected to be a string, or list of string with "
+                    f"values {', '.join(available_feature_pooling_methods)}. Found: not a string or list with only "
+                    f"string elements."
+                )
+
+            if not all(x in available_feature_pooling_methods for x in texture_feature_pooling_method):
+                raise ValueError(
+                    f"One or more values for texture_feature_pooling_method is not in "
+                    f"{', '.join(available_feature_pooling_methods)}: "
+                    f"{', '.join(set(texture_feature_pooling_method) - set(available_feature_pooling_methods))}"
+                )
+
+            if self.ibsi_compliant and any(x != "average" for x in texture_feature_pooling_method):
+                raise ValueError(
+                    "The only IBSI-compliant option for texture_feature_pooling_method is 'average'. To use other "
+                    "methods, set ibsi_compliant=False."
+                )
+
+            # Keep only unique.
+            texture_feature_pooling_method = list(set(texture_feature_pooling_method))
+
+        self.texture_feature_pooling_method = texture_feature_pooling_method
+
         # Set GLCM attributes.
         if self.has_glcm_family():
             # Check distance parameter.
@@ -581,6 +625,14 @@ class FeatureExtractionSettingsClass:
     def has_ngldm_family(self):
         return any(family in ["ldm", "ngldm", "neighbouring_grey_level_dependence_matrix", "grey_level_dependence_matrix", "all"] for family in self.families)
 
+    def has_any_texture_family(self):
+        return self.has_glcm_family() or \
+            self.has_glrlm_family() or \
+            self.has_glszm_family() or \
+            self.has_gldzm_family() or \
+            self.has_ngtdm_family() or \
+            self.has_ngldm_family()
+
     def check_valid_directional_spatial_method(self, x, var_name):
 
         # Set defaults
@@ -683,6 +735,7 @@ def get_feature_extraction_settings() -> list[dict[str, Any]]:
             "ivh_discretisation_bin_width", "float", xml_key=["ivh_discretisation_bin_width", "ivh_discr_bin_width"],
             test=30.0
         ),
+        setting_def("texture_feature_pooling_method", "str", to_list=True, test=["average"]),
         setting_def("glcm_distance", "float", to_list=True, xml_key=["glcm_distance", "glcm_dist"], test=[2.0, 3.0]),
         setting_def("glcm_spatial_method", "str", to_list=True, test=["2d_average", "2d_slice_merge"]),
         setting_def("glrlm_spatial_method", "str", to_list=True, test=["2d_average", "2d_slice_merge"]),
