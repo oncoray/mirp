@@ -64,3 +64,15 @@ def test_statistics_features():
     assert data_non_compliant.stat_energy_offset.to_numpy() < data_non_compliant_offset.stat_energy_offset.to_numpy()
     assert data_non_compliant.stat_rms_offset.to_numpy() < data_non_compliant_offset.stat_rms_offset.to_numpy()
     assert data_non_compliant.stat_total_energy_offset.to_numpy() < data_non_compliant_offset.stat_total_energy_offset.to_numpy()
+
+
+    # Test other percentiles.
+    data_pct = extract_features(
+        base_feature_families="statistics",
+        ibsi_compliant=True,
+        stat_percentile=[10.0, 20.0, 80.0, 90.0],
+        **GENERIC_KWARGS
+    )[0]
+
+    assert (data_pct.stat_p10.to_numpy() < data_pct.stat_p20.to_numpy() < data_pct.stat_p80.to_numpy() <
+            data_pct.stat_p90.to_numpy())

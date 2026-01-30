@@ -465,12 +465,9 @@ def generate_stat_features(
     if len(features) == 0:
         return
 
-    # Set default percentiles.
-    percentiles = [10.0, 90.0]
-
     for feature in features:
         if feature == "stat_p":
-            for percentile in percentiles:
+            for percentile in settings.stat_percentile:
                 yield class_dict[feature](
                     percentile=percentile
                 )

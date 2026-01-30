@@ -89,6 +89,10 @@ class FeatureExtractionSettingsClass:
         Width of each bin in the "fixed_bin_size" discretisation method. No default value. Multiple values can be
         specified in a list to yield features according to each bin width.
 
+    stat_percentile: float or list of float, optional, default: [10.0, 90.0]
+        Percentile values where the intensity distribution is evaluated. Should be one or more floating point values
+        between 0.0 and 100.0. Default: [10.0, 90.0]
+
     stat_value_shift: float, optional, default: 0.0
         Value added to intensities in the image for computing several features: energy,  root-mean-square and total
         energy. The resulting features are not IBSI-compliant.
@@ -202,6 +206,7 @@ class FeatureExtractionSettingsClass:
             base_discretisation_method: None | str | list[str] = None,
             base_discretisation_n_bins: None | int | list[int] = None,
             base_discretisation_bin_width: None | float | list[float] = None,
+            stat_percentile: None | float | list[float] = None,
             stat_value_shift: float = 0.0,
             ivh_discretisation_method: str = "none",
             ivh_discretisation_n_bins: None | int = 1000,
@@ -332,7 +337,33 @@ class FeatureExtractionSettingsClass:
                     "The stat_value_shift parameter is expected to be a single, floating point value."
                 )
 
+            # Check stat_percentile
+            if stat_percentile is None:
+                stat_percentile = [10.0, 90.0]
+
+            if isinstance(stat_percentile, float):
+                stat_percentile = [stat_percentile]
+
+            if not isinstance(stat_percentile, list):
+                raise TypeError(
+                    "The stat_percentile parameter is expected to be a float, or list of floating point values "
+                    "between 0.0 and 100.0. Found: not a floating point value or list of floating point values."
+                )
+
+            if not all(isinstance(x, float) for x in stat_percentile):
+                raise TypeError(
+                    "The stat_percentile parameter is expected to be a float, or list of floating point values "
+                    "between 0.0 and 100.0. Found: not a list of floating point values."
+                )
+
+            if not all(0.0 <= x <= 100.0 for x in stat_percentile):
+                raise ValueError(
+                    "The stat_percentile parameter is expected to be a float, or list of floating point values "
+                    "between 0.0 and 100.0. Found: values outside the closed [0.0, 100.0] interval."
+                )
+
         self.stat_value_shift: float = stat_value_shift
+        self.stat_percentile: list[float] = stat_percentile
 
         if self.has_ivh_family():
             if ivh_discretisation_method not in ["fixed_bin_size", "fixed_bin_number", "none"]:
@@ -638,6 +669,7 @@ def get_feature_extraction_settings() -> list[dict[str, Any]]:
             xml_key=["discretisation_bin_width", "discr_bin_width"], class_key="discretisation_bin_width",
             test=[10.0, 34.0]
         ),
+        setting_def("stat_percentile", "float", to_list=True, test=[20.0, 80.0]),
         setting_def("stat_value_shift", "float", test=10.0),
         setting_def(
             "ivh_discretisation_method", "str", xml_key=["ivh_discretisation_method", "ivh_discr_method"],
