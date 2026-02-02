@@ -1,5 +1,6 @@
 import os.path
 import numpy as np
+import pytest
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -65,7 +66,6 @@ def test_statistics_features():
     assert data_non_compliant.stat_rms_offset.to_numpy() < data_non_compliant_offset.stat_rms_offset.to_numpy()
     assert data_non_compliant.stat_total_energy_offset.to_numpy() < data_non_compliant_offset.stat_total_energy_offset.to_numpy()
 
-
     # Test other percentiles.
     data_pct = extract_features(
         base_feature_families="statistics",
@@ -76,3 +76,97 @@ def test_statistics_features():
 
     assert (data_pct.stat_p10.to_numpy() < data_pct.stat_p20.to_numpy() < data_pct.stat_p80.to_numpy() <
             data_pct.stat_p90.to_numpy())
+
+
+def test_pooled_texture_features():
+    from mirp import extract_features
+
+    # It should not be possible to use pooling methods other than average for IBSI-compliant workflows.
+    with pytest.raises(ValueError, match="set ibsi_compliant=False"):
+        _ = extract_features(
+            base_feature_families=["cm"],
+            ibsi_compliant=True,
+            base_discretisation_method="fixed_bin_number",
+            base_discretisation_n_bins=16,
+            texture_feature_pooling_method=["average", "min", "max"],
+            glcm_spatial_method=["3d_average", "3d_volume_merge"],
+            **GENERIC_KWARGS
+        )
+
+    # Test that all pooling methods function.
+    data = extract_features(
+            base_feature_families=["cm"],
+            ibsi_compliant=False,
+            base_discretisation_method="fixed_bin_number",
+            base_discretisation_n_bins=16,
+            texture_feature_pooling_method=["average", "min", "max", "range", "std", "var"],
+            glcm_spatial_method="3d_average",
+            **GENERIC_KWARGS
+        )[0]
+
+    assert data.columns.str.startswith('cm_').sum() == 156
+    assert data.cm_joint_max_d1_3d_range_fbn_n16.to_numpy()[0] == data.cm_joint_max_d1_3d_max_fbn_n16.to_numpy()[0] - \
+           data.cm_joint_max_d1_3d_min_fbn_n16.to_numpy()[0]
+    assert data.cm_joint_max_d1_3d_min_fbn_n16.to_numpy()[0] < data.cm_joint_max_d1_3d_avg_fbn_n16.to_numpy()[0] < \
+           data.cm_joint_max_d1_3d_max_fbn_n16.to_numpy()[0]
+    assert data.cm_joint_max_d1_3d_std_fbn_n16.to_numpy()[0] == np.sqrt(data.cm_joint_max_d1_3d_var_fbn_n16.to_numpy()[0])
+
+    # Test that pooling methods revert to average for methods that merge all matrices instead.
+    data = extract_features(
+        base_feature_families=["cm"],
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method=["average", "min", "max", "range", "std", "var"],
+        glcm_spatial_method="3d_volume_merge",
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith('cm_').sum() == 26
+    assert "cm_joint_max_d1_3d_v_mrg_fbn_n16" in data.columns
+    assert "cm_joint_max_d1_3d_v_mrg_std_fbn_n16" not in data.columns
+
+    # Test that pooling methods work with all directional spatial methods.
+    data = extract_features(
+        base_feature_families=["cm"],
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method=["min"],
+        glcm_spatial_method=[
+            "2d_average", "2d_slice_merge", "2.5d_direction_merge", "2.5d_volume_merge", "3d_average", "3d_volume_merge"
+        ],
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith('cm_').sum() == 156
+    assert "cm_joint_max_d1_2d_min_fbn_n16" in data.columns
+    assert "cm_joint_max_d1_2d_s_mrg_min_fbn_n16" in data.columns
+    assert "cm_joint_max_d1_2.5d_d_mrg_min_fbn_n16" in data.columns
+    assert "cm_joint_max_d1_2.5d_v_mrg_fbn_n16" in data.columns  # Matrix merging method
+    assert "cm_joint_max_d1_3d_min_fbn_n16" in data.columns
+    assert "cm_joint_max_d1_3d_v_mrg_fbn_n16" in data.columns  # Matrix merging method
+
+    # Test that pooling methods work with all non-directional spatial methods.
+    data = extract_features(
+        base_feature_families=["szm"],
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method=["min"],
+        glszm_spatial_method=["2d", "2.5d", "3d"],
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith('szm_').sum() == 48
+    assert "szm_sze_2d_min_fbn_n16" in data.columns
+    assert "szm_sze_2.5d_fbn_n16" in data.columns  # Matrix merging method
+    assert "szm_sze_3d_fbn_n16" in data.columns  # Matrix merging method
+
+    # Check for all types of texture features - RLM (GLCM already tested)
+
+    # Check for all types of texture features - DZM (SZM already tested).
+
+    # Check for all types of texture features - NGTDM
+
+    # Check for all types of texture features - NGLDM
