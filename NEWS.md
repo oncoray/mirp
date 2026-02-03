@@ -26,12 +26,22 @@
 
 - Added support for Prewitt (`prewitt`) and Sobel (`sobel`) filters.
 
+- Added support for computing statistical features with a value shift that can be set using the `stat_value_shift` 
+  parameter.
+
+- Added support for computing depth, column and row-wise maximum diameter morphological features.
+
+- Added support for using pooling methods other than averaging for pooling multiple feature values from underlying 
+  texture matrices. These are `min`, `max`, `range`, `std` (standard deviation) and `var` (variance).
+
 ## Minor changes
 
 - Adding noise as an image perturbation / augmentation is now done prior to any normalisation steps to follow a more 
   logical workflow of *adding noise* → *denoising* → *normalisation* → *resampling*. 
 
 # Fixes
+
+- Fixes deprecation errors from scikit-image.
 
 # Version 2.4.2
 
