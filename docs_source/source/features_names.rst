@@ -353,6 +353,23 @@ These are then followed by a parameter specifying the number of bins or bin size
 * `w#.#`: Width of each bin for fixed bin size discretisation methods.
 * `n#`: Number of bins for the fixed bin number discretisation method.
 
+Texture feature pooling
+-----------------------
+
+Several spatial methods (`2d`, `2d_avg`, `2d_s_mrg`, `2.5d_d_mrg`, `3d_avg`) compute feature values from more than
+one texture matrix. These are then pooled, by default through averaging. However, MIRP implements the following
+additional pooling methods (`texture_feature_pooling_method` parameter):
+
+* `average`: default, pools feature values by computing their average.
+* `min`: pools feature values using the lowest observed value.
+* `max`: pools feature values using the highest observed value.
+* `range`: pools feature values using its range, i.e. the highest minus the lowest observed value.
+* `std`: pools feature values by computing their standard deviation.
+* `var`: pools feature values by computing their average.
+
+Pooling methods aside from `average` are not IBSI-compliant due to lack of reference standard, and can only be computed
+if `ibsi_compliant=False`.
+
 Filters
 -------
 
