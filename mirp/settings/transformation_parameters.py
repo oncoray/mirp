@@ -101,7 +101,10 @@ class ImageTransformationSettingsClass:
         implementation follows the IBSI reference manual. The following filters are supported:
 
         * Mean filters: "mean"
+        * Prewitt filter: "prewitt"
+        * Sobel filter: "sobel
         * Gaussian filters: "gaussian", "riesz_gaussian", and "riesz_steered_gaussian"
+        * Laplace filters: "laplace", "laplacian"
         * Laplacian-of-Gaussian filters: "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian",
           "riesz_log", "riesz_steered_laplacian_of_gaussian", and "riesz_steered_log".
         * Laws kernels: "laws"
@@ -129,8 +132,8 @@ class ImageTransformationSettingsClass:
             derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.
 
         .. warning::
-            Local binary patterns are not part of the IBSI reference standard. Set `ibsi_compliant = False` to use
-            this filter.
+            Local binary patterns, Laplace, Prewitt and Sobel filters are not part of the IBSI reference standard. Set
+            `ibsi_compliant = False`to use these filters.
 
         .. warning::
             Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference
@@ -336,6 +339,14 @@ class ImageTransformationSettingsClass:
         Sets the boundary condition for mean filters. This supersedes any value set by the general
         ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
 
+    prewitt_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for the Prewitt filter. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
+    sobel_boundary_condition: str, optional, default: "mirror"
+        Sets the boundary condition for the Sobel filter. This supersedes any value set by the general
+        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.
+
     riesz_filter_order: float, list of float or list of list of float, optional
         Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer
         vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],
@@ -419,6 +430,8 @@ class ImageTransformationSettingsClass:
             gabor_boundary_condition: None | str = None,
             mean_filter_kernel_size: None | int | list[int] = None,
             mean_filter_boundary_condition: None | str = None,
+            prewitt_boundary_condition: None | str = None,
+            sobel_boundary_condition: None | str = None,
             riesz_filter_order: None | int | list[int] = None,
             riesz_filter_tensor_sigma: None | float | list[float] = None,
             lbp_method: None | str | list[str] = "default",
@@ -536,6 +549,32 @@ class ImageTransformationSettingsClass:
 
         self.mean_filter_size: None | list[int] = mean_filter_kernel_size
         self.mean_filter_boundary_condition: None | str = mean_filter_boundary_condition
+
+        # Check Prewitt filter settings
+        if self.has_prewitt_filter():
+            # Check boundary condition
+            prewitt_boundary_condition = self.check_boundary_condition(
+                prewitt_boundary_condition,
+                "prewitt_boundary_condition"
+            )
+
+        else:
+            prewitt_boundary_condition = None
+
+        self.prewitt_boundary_condition: None | str = prewitt_boundary_condition
+
+        # Check Sobel filter settings
+        if self.has_sobel_filter():
+            # Check boundary condition
+            sobel_boundary_condition = self.check_boundary_condition(
+                sobel_boundary_condition,
+                "sobel_boundary_condition"
+            )
+
+        else:
+            sobel_boundary_condition = None
+
+        self.sobel_boundary_condition: None | str = sobel_boundary_condition
 
         # Check Gaussian kernel settings.
         if self.has_gaussian_filter():
@@ -917,7 +956,7 @@ class ImageTransformationSettingsClass:
             "riesz_steered_nonseparable_wavelet", "gaussian", "riesz_gaussian", "riesz_steered_gaussian",
             "laws", "gabor", "riesz_gabor", "riesz_steered_gabor", "mean",
             "pyradiomics_square", "pyradiomics_square_root", "pyradiomics_logarithm", "pyradiomics_exponential",
-            "lbp", "lbp_2d", "lbp_3d", "laplace", "laplacian"
+            "lbp", "lbp_2d", "lbp_3d", "laplace", "laplacian", "prewitt", "sobel"
         ] + \
         self._get_available_laplacian_of_gaussian_filters() + \
         self._get_available_normalised_laplacian_of_gaussian_filters()
@@ -1254,6 +1293,22 @@ class ImageTransformationSettingsClass:
 
         return x is not None and any(filter_kernel in ["mean"] for filter_kernel in x)
 
+    def has_prewitt_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel in ["prewitt"] for filter_kernel in x)
+
+    def has_sobel_filter(self, x=None):
+        if x is None:
+            x = self.spatial_filters
+        elif not isinstance(x, list):
+            x = [x]
+
+        return x is not None and any(filter_kernel in ["sobel"] for filter_kernel in x)
+
     def has_gaussian_filter(self, x=None):
         if x is None:
             x = self.spatial_filters
@@ -1418,7 +1473,7 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             class_key="spatial_filters", test=[
                 "separable_wavelet", "nonseparable_wavelet", "riesz_nonseparable_wavelet", "gaussian", "riesz_gaussian",
                 "laplacian_of_gaussian", "log", "riesz_laplacian_of_gaussian", "riesz_log", "laplace", "laws", "gabor",
-                "riesz_gabor", "mean", "lbp_3d"
+                "riesz_gabor", "mean", "lbp_3d", "prewitt", "sobel"
             ]
         ),
         setting_def("boundary_condition", "str", test="nearest"),
@@ -1483,6 +1538,8 @@ def get_image_transformation_settings() -> list[dict[str, Any]]:
             class_key="mean_filter_size", test=[3, 7]
         ),
         setting_def("mean_filter_boundary_condition", "str", test="constant"),
+        setting_def("prewitt_boundary_condition", "str", test="constant"),
+        setting_def("sobel_boundary_condition", "str", test="constant"),
         setting_def(
             "riesz_filter_order", "int", to_list=True, xml_key=["riesz_filter_order", "riesz_order"],
             class_key="riesz_order", test=[2, 1, 0]

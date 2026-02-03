@@ -25,6 +25,7 @@ class GenericImage(BaseImage):
             rotation_angle: None | float = None,
             noise_iteration_id: None | int = None,
             noise_level: None | float = None,
+            denoiser: None | str = None,
             interpolated: bool = False,
             interpolation_algorithm: None | str = None,
             discretisation_method: None | str = None,
@@ -53,6 +54,9 @@ class GenericImage(BaseImage):
         self.discretisation_method = discretisation_method
         self.discretisation_bin_number = discretisation_bin_number
         self.discretisation_bin_width = discretisation_bin_width
+
+        # Denoiser settings
+        self.denoiser = denoiser
 
         # Slice identifiers.
         self.slice_id: None | int = None
@@ -91,6 +95,7 @@ class GenericImage(BaseImage):
         self.discretisation_method = template.discretisation_method
         self.discretisation_bin_number = template.discretisation_bin_number
         self.discretisation_bin_width = template.discretisation_bin_width
+        self.denoiser = template.denoiser
         self.ibsi_compliant = template.ibsi_compliant
 
     def promote(self):
@@ -479,7 +484,7 @@ class GenericImage(BaseImage):
             spline_order = self.get_interpolation_spline_order(settings=settings)
         if anti_aliasing is None:
             anti_aliasing = settings.img_interpolate.anti_aliasing
-        if anti_aliasing_smoothing_beta is None:
+        if anti_aliasing_smoothing_beta is None and anti_aliasing:
             anti_aliasing_smoothing_beta = settings.img_interpolate.smoothing_beta
 
         return self._register(
@@ -742,6 +747,134 @@ class GenericImage(BaseImage):
 
         return estimated_noise
 
+    def denoise_median(self, size: int | list[int] = 3):
+        # Check if empty.
+        if self.is_empty():
+            return
+
+        from scipy.ndimage import median_filter
+
+        if isinstance(size, int):
+            # Set footprint (2D) or (3D)
+            if self.separate_slices:
+                footprint = np.ones([1, size, size])
+            else:
+                footprint = np.ones([size, size, size])
+
+        elif isinstance(size, list):
+            footprint = np.ones(size)
+
+        else:
+            raise TypeError("size is expected to be an int or list of ints.")
+
+        # Apply filter.
+        voxel_grid =  median_filter(
+            input=self.get_voxel_grid(),
+            footprint=footprint,
+            mode = "mirror"
+        )
+
+        self.set_voxel_grid(voxel_grid=voxel_grid)
+        self.denoiser = f"median ({size})"
+
+    def denoise_gaussian(self, sigma: float = 1.0):
+        # Check if empty.
+        if self.is_empty():
+            return
+
+        from scipy.ndimage import gaussian_filter
+
+        # Convert sigma to voxel units.
+        sigma_voxel = sigma / np.array(self.image_spacing, dtype=float)
+
+        # For 2D application, squeeze the first dimension of the filter.
+        if self.separate_slices:
+            sigma_voxel[0] = 0.0
+
+        # Apply filter.
+        self.set_voxel_grid(voxel_grid=gaussian_filter(
+            input=self.get_voxel_grid(),
+            sigma=sigma_voxel,
+            mode="mirror"
+        ))
+        self.denoiser = f"gaussian ({sigma})"
+
+    def denoise_susan(
+            self,
+            sigma: float,
+            intensity_threshold: float | None = None
+    ):
+        # This is the implementation of SUSAN after Smith, S.M. and Brady, J.M. (1997) ‘SUSAN—A New Approach to Low
+        # Level Image Processing’, International Journal of Computer Vision, 23(1), pp. 45–78. Available at:
+        # https://doi.org/10.1023/a:1007963824710.
+        from mirp._image_processing.utilities import generate_neighbour_direction, lookup_neighbour_voxel_value
+
+        if self.is_empty():
+            return
+
+        # SUSAN looks into the neighbourhood of each voxel, defined by a radius, and then defines a weight-factor to
+        # update a denominator and nominator. The new intensity value is the nominator divided by the denominator.
+        # Like LBP, we can iterate over the directions, and update the denominator and nominator values.
+
+        # Process voxels as a contiguous array.
+        dims = self.image_dimension
+        voxels = np.ravel(self.get_voxel_grid())
+
+        # Initialise empty numerator and denominator.
+        numerator = np.zeros(voxels.shape, float)
+        denominator = np.zeros(voxels.shape, float)
+
+        # Determine intensity_threshold
+        if intensity_threshold is None:
+            intensity_threshold = self.estimate_noise()
+
+        # Set cut-off to 3 times sigma.
+        max_distance = 3.0 * sigma
+
+        # Pre-compute values.
+        two_sigma_sqrd = 2.0 * sigma * sigma
+        int_thrd_sqrd = intensity_threshold * intensity_threshold
+
+        # Similar to Gaussian filters, sigma is in physical units.
+        for neighbours in generate_neighbour_direction(
+            d=max_distance,
+            spacing=self.image_spacing,
+            keep_centre=False,
+            complete=True,
+            dim3=not self.separate_slices
+        ):
+            mask, voxel_neighbour = lookup_neighbour_voxel_value(
+                voxels=voxels,
+                dims=dims,
+                lookup_vector=neighbours
+            )
+            # Compute distance to current neighbour.
+            r_sqrd = np.sum(np.power(np.multiply(neighbours, np.array(self.image_spacing)), 2))
+
+            # Set weights.
+            weights = np.exp(
+                -1.0 * r_sqrd / two_sigma_sqrd - np.power(voxel_neighbour - voxels[mask],2.0) / int_thrd_sqrd
+            )
+
+            # Update denominator and numerator.
+            denominator[mask] += weights
+            numerator[mask] += voxel_neighbour * weights
+
+        # Compute output
+        output = numerator / denominator
+
+        # Update any pixels with denominators with value 0 by taking the median value in a 3 by 3 neighbourhood (see
+        # Smith and Brady)
+        if np.any(denominator == 0.0):
+            from scipy.ndimage import median_filter
+            size = [1, 3, 3] if self.separate_slices else [3, 3, 3]
+            local_median = median_filter(self.get_voxel_grid(), size=size)
+            output[denominator == 0.0] = np.ravel(local_median)[denominator == 0.0]
+
+        self.set_voxel_grid(np.reshape(output, shape=dims))
+        self.denoiser = f"SUSAN (σ:{sigma}; t:{intensity_threshold})"
+
+
     def saturate(self, intensity_range, fill_value=None):
         """
         Saturate image intensities using an intensity range
@@ -779,9 +912,13 @@ class GenericImage(BaseImage):
     def normalise_intensities(
             self,
             normalisation_method: None | str = "none",
-            intensity_range: None | tuple[Any, Any] = None,
-            saturation_range: None | tuple[Any, Any] = None,
-            mask: None | np.ndarray = None
+            intensity_range: None | tuple[float, ...] = None,
+            saturation_range: None | tuple[float, ...] = None,
+            shift: None | float = None,
+            scale: None | float = None,
+            mask: None | np.ndarray = None,
+            reference_image: None | np.ndarray = None,
+            **kwargs
     ) -> Self:
         """
         Normalises image intensities
@@ -789,7 +926,10 @@ class GenericImage(BaseImage):
         "relative_range", "quantile_range", "standardisation".
         :param intensity_range: range of intensities for normalisation.
         :param saturation_range: range of allowed intensity values.
+        :param shift: shift for custom scale.
+        :param scale: scale for custom scale.
         :param mask: sets area that should be considered for determining normalisation parameters.
+        :param reference_image: reference image to use for histogram matching.
         :return:
         """
 
@@ -914,12 +1054,175 @@ class GenericImage(BaseImage):
 
             # Update image data
             self.set_voxel_grid(voxel_grid=image_data)
+
+        elif normalisation_method == "custom_scale":
+            image_data = (self.get_voxel_grid() - shift) / scale
+            self.set_voxel_grid(voxel_grid=image_data)
+
+        elif normalisation_method == "histogram_equalisation":
+            from skimage.exposure import equalize_hist
+
+            # Use equalize_hist from scikit image.
+            image_data = equalize_hist(
+                image=self.get_voxel_grid(),
+                mask=mask
+            )
+
+            # Map to [0, 1]
+            min_int = np.min(image_data)
+            max_int = np.max(image_data)
+            if not max_int == min_int:
+                image_data = (image_data - min_int) / (max_int - min_int)
+            else:
+                image_data -= min_int
+
+            # Update image data
+            self.set_voxel_grid(voxel_grid=image_data)
+
+        elif normalisation_method == "adaptive_equalisation":
+            from skimage.exposure import equalize_adapthist
+
+            # We need to normalise the image data to [0, 1] to use equalize_adapthist
+            image_data = self.get_voxel_grid()
+            min_int = np.min(image_data)
+            max_int = np.max(image_data)
+            if not max_int == min_int:
+                image_data = (image_data - min_int) / (max_int - min_int)
+            else:
+                image_data -= min_int
+
+            # Use equalize_adapthist from scikit image.
+            image_data = equalize_adapthist(
+                image=image_data
+            )
+
+            # Map the result from CLAHE to [0, 1], again, just in case.
+            min_int = np.min(image_data)
+            max_int = np.max(image_data)
+            if not max_int == min_int:
+                image_data = (image_data - min_int) / (max_int - min_int)
+            else:
+                image_data -= min_int
+
+            # Update image data
+            self.set_voxel_grid(voxel_grid=image_data)
+
+        elif normalisation_method == "match_uniform":
+            src_percentiles, src_values, lookup_index = self._map_percentiles(mask=mask)
+
+            if not np.all(mask):
+                # For incomplete tissue masks: interpolate the percentiles for all intensities in the image.
+                all_values, lookup_index = np.unique(np.ravel(self.get_voxel_grid()), return_inverse=True)
+
+                # Interpolate all unique values in the entire image.
+                new_values = np.interp(
+                    all_values,
+                    src_values,
+                    src_percentiles,
+                    left=0.0,
+                    right=1.0
+                )[lookup_index]
+
+            else:
+                # For complete tissue masks:
+                new_values = src_percentiles[lookup_index]
+
+            # For the uniform [0, 1] distribution, percentiles are values.
+            self.set_voxel_grid(new_values.reshape(self.image_dimension))
+
+        elif normalisation_method == "match_sigmoid":
+            src_percentiles, src_values, lookup_index = self._map_percentiles(mask=mask)
+
+            # For the normal distribution use the quantile function to look up values.
+            from scipy.stats import norm
+            if not np.all(mask):
+                # For incomplete tissue masks: interpolate the percentiles for all intensities in the image.
+                all_values, lookup_index = np.unique(np.ravel(self.get_voxel_grid()), return_inverse=True)
+
+                # Interpolate all unique values in the entire image. Note that the percentile space is confined to
+                # that of the (masked) source input, because 0 and 1 correspond to infinite values.
+                all_percentiles = np.interp(
+                    all_values,
+                    src_values,
+                    src_percentiles
+                )
+                new_values = norm.ppf(all_percentiles)[lookup_index]
+
+            else:
+                # For complete tissue masks:
+                new_values = norm.ppf(src_percentiles)[lookup_index]
+
+            self.set_voxel_grid(new_values.reshape(self.image_dimension))
+
+        elif normalisation_method in ["match_reference", "match_reference_normalised"]:
+            # Get percentiles and values for the reference image.
+            ref_percentiles, ref_values, ref_lookup_index = self._map_percentiles(image=reference_image)
+            src_percentiles, src_values, lookup_index = self._map_percentiles(mask=mask)
+
+            if not np.all(mask):
+                # For incomplete tissue masks: interpolate the percentiles for all intensities in the image.
+                all_values, lookup_index = np.unique(np.ravel(self.get_voxel_grid()), return_inverse=True)
+
+                # Interpolate all unique values in the entire image.
+                all_percentiles = np.interp(
+                    all_values,
+                    src_values,
+                    src_percentiles,
+                    left=0.0,
+                    right=1.0
+                )
+
+                # Interpolate percentiles from the entire image within ref percentiles and look-up corresponding values.
+                new_values = np.interp(all_percentiles, ref_percentiles, ref_values)
+
+            else:
+                # Interpolate source percentiles in ref percentiles and look-up corresponding values.
+                new_values = np.interp(src_percentiles, ref_percentiles, ref_values)
+
+            if normalisation_method == "match_reference_normalised":
+                # Map to [0, 1]
+                min_int = np.min(new_values)
+                max_int = np.max(new_values)
+                if not max_int == min_int:
+                    new_values = (new_values - min_int) / (max_int - min_int)
+                else:
+                    new_values -= min_int
+
+            self.set_voxel_grid(new_values[lookup_index].reshape(self.image_dimension))
+
         else:
             raise ValueError(f"{normalisation_method} is not a valid method for normalising intensity values.")
 
         self.saturate(intensity_range=saturation_range)
 
         return self
+
+    def _map_percentiles(
+            self,
+            image: np.ndarray | None = None,
+            mask: np.ndarray | None = None,
+            proportional: bool = True
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+
+        # Use internal image if necessary.
+        if image is None:
+            image = self.get_voxel_grid()
+
+        # Turn image into 1D array.
+        image = np.ravel(image)
+        if mask is not None:
+            image = image[np.ravel(mask)]
+
+        values, lookup_index, counts = np.unique(image, return_inverse=True, return_counts=True)
+        if proportional:
+            # Each voxel has the same percentile weight: [1, 1, 2, 3] has percentiles [0.25, 0.25, 0.625, 0.875].
+            percentiles = (np.cumsum(counts) - 0.5 * counts) / len(image)
+        else:
+            # Each group of voxels has the same percentile weight --> [1, 1, 2, 3] has percentiles [0.167, 0.167, 0.5,
+            # 0.833].
+            percentiles = (np.arange(len(values)) + 0.5) / (len(values))
+
+        return percentiles, values, lookup_index
 
     def scale_intensities(self, scale: float) -> Self:
 
@@ -1316,6 +1619,10 @@ class GenericImage(BaseImage):
         # Noise
         if self.noise_level is not None and self.noise_level > 0.0:
             attributes += [("noise_level", self.noise_level), ("noise_id", self.noise_iteration_id)]
+
+        # Denoiser
+        if self.denoiser is not None:
+            attributes += [("denoiser", self.denoiser)]
 
         # Image spacing, origin and orientation.
         attributes += [

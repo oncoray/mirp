@@ -181,6 +181,100 @@ def test_normalised_laplacian_of_gaussian():
 
 
 @pytest.mark.ci
+def test_prewitt_filter():
+    data = extract_features_and_images(
+        write_features=False,
+        export_features=True,
+        write_images=False,
+        export_images=True,
+        image_export_format="native",
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        ibsi_compliant=False,
+        base_feature_families="statistics",
+        filter_kernels="prewitt"
+    )
+
+    feature_data = data[0][0]
+    assert len(feature_data) == 1
+    assert feature_data["stat_min"].to_numpy()[0] == -1000.0
+    assert feature_data["prewitt_stat_min"].to_numpy()[0] == 1.0
+    assert 1400.0 < feature_data["prewitt_stat_max"].to_numpy()[0] < 1450.0
+    assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
+
+    # 2D method (by_slice = TRUE)
+    data = extract_features_and_images(
+        write_features=False,
+        export_features=True,
+        write_images=False,
+        export_images=True,
+        image_export_format="native",
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        ibsi_compliant=False,
+        base_feature_families="statistics",
+        by_slice = True,
+        filter_kernels="prewitt"
+    )
+
+    feature_data = data[0][0]
+    assert len(feature_data) == 1
+    assert feature_data["stat_min"].to_numpy()[0] == -1000.0
+    assert feature_data["prewitt_stat_min"].to_numpy()[0] == 0.0
+    assert 1300.0 < feature_data["prewitt_stat_max"].to_numpy()[0] < 1350.0
+    assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
+
+
+@pytest.mark.ci
+def test_sobel_filter():
+    data = extract_features_and_images(
+        write_features=False,
+        export_features=True,
+        write_images=False,
+        export_images=True,
+        image_export_format="native",
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        ibsi_compliant=False,
+        base_feature_families="statistics",
+        filter_kernels="sobel"
+    )
+
+    feature_data = data[0][0]
+    assert len(feature_data) == 1
+    assert feature_data["stat_min"].to_numpy()[0] == -1000.0
+    assert 4.0 < feature_data["sobel_stat_min"].to_numpy()[0] < 5.0
+    assert 16900.0 < feature_data["sobel_stat_max"].to_numpy()[0] < 17000.0
+    assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
+
+    # 2D method (by_slice = TRUE)
+    data = extract_features_and_images(
+        write_features=False,
+        export_features=True,
+        write_images=False,
+        export_images=True,
+        image_export_format="native",
+        image=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "image"),
+        mask=os.path.join(CURRENT_DIR, "data", "ibsi_1_ct_radiomics_phantom", "dicom", "mask"),
+        roi_name="GTV-1",
+        ibsi_compliant=False,
+        base_feature_families="statistics",
+        by_slice = True,
+        filter_kernels="sobel"
+    )
+
+    feature_data = data[0][0]
+    assert len(feature_data) == 1
+    assert feature_data["stat_min"].to_numpy()[0] == -1000.0
+    assert feature_data["sobel_stat_min"].to_numpy()[0] == 0.0
+    assert 4200.0 < feature_data["sobel_stat_max"].to_numpy()[0] < 4300.0
+    assert not np.array_equal(data[0][1][0].get_voxel_grid(), data[0][1][1].get_voxel_grid())
+
+
+@pytest.mark.ci
 def test_local_binary_pattern_filter():
     data = extract_features_and_images(
         write_features=False,

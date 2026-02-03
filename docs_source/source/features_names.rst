@@ -53,8 +53,11 @@ Three-dimensional morphological features are listed below:
 * `morph_area_dens_ombb`: Area density - oriented minimum bounding box (`IQYR`; reference values absent)
 * `morph_vol_dens_mvee`: Volume density - minimum volume enclosing ellipsoid (`SWZ1`; reference values absent)
 * `morph_area_dens_mvee`: Area density - minimum volume enclosing ellipsoid (`BRI8`; reference values absent)
+* `morph_max_2d_diam_z`: Maximum diameter in the *z*-direction (no identifier).
+* `morph_max_2d_diam_y`: Maximum diameter in the *y*-direction (no identifier).
+* `morph_max_2d_diam_x`: Maximum diameter in the *x*-direction (no identifier).
 
-The final four features lack reference values in the IBSI standard. These are only computed if `ibsi_compliant=False`.
+The final seven features lack reference values in the IBSI standard. These are only computed if `ibsi_compliant=False`.
 
 Local intensity features (`9ST6`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -86,7 +89,19 @@ Statistical features are listed below:
 * `stat_cov`: Coefficient of variation (`7TET`)
 * `stat_qcod`: Quartile coefficient of dispersion (`9S40`)
 * `stat_energy`: Energy (`N8CA`)
+* `stat_energy_offset`: Energy with intensity offset (no identifier)
 * `stat_rms`: Root mean square (`5ZWQ`)
+* `stat_rms_offset`: Root mean square with intensity offset (no identifier)
+* `stat_total_energy`: Total energy (no identifier)
+* `stat_total_energy_offset`: Total energy with intensity offset (no identifier)
+
+The total energy feature is defined as the voxel volume times energy.
+The `stat_energy_offset`, `stat_rms_offset`, and `stat_total_energy_offset` add an offset (`stat_value_shift`
+parameter, default `stat_value_shift=0.0`) to the image intensities prior to computing the corresponding feature
+values.
+
+The `stat_energy_offset`, `stat_rms_offset`, `stat_total_energy`, `stat_total_energy_offset` do not have reference
+values, and can only be computed when `ibsi_compliant=False`.
 
 Intensity histogram features (`ZVCW`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -353,6 +368,23 @@ These are then followed by a parameter specifying the number of bins or bin size
 * `w#.#`: Width of each bin for fixed bin size discretisation methods.
 * `n#`: Number of bins for the fixed bin number discretisation method.
 
+Texture feature pooling
+-----------------------
+
+Several spatial methods (`2d`, `2d_avg`, `2d_s_mrg`, `2.5d_d_mrg`, `3d_avg`) compute feature values from more than
+one texture matrix. These are then pooled, by default through averaging. However, MIRP implements the following
+additional pooling methods (`texture_feature_pooling_method` parameter):
+
+* `average`: default, pools feature values by computing their average.
+* `min`: pools feature values using the lowest observed value.
+* `max`: pools feature values using the highest observed value.
+* `range`: pools feature values using its range, i.e. the highest minus the lowest observed value.
+* `std`: pools feature values by computing their standard deviation.
+* `var`: pools feature values by computing their average.
+
+Pooling methods aside from `average` are not IBSI-compliant due to lack of reference standard, and can only be computed
+if `ibsi_compliant=False`.
+
 Filters
 -------
 
@@ -477,6 +509,26 @@ Features computed from images that underwent exponential transformation are pref
 * `exp`: Indicating exponential transformation.
 
 Exponential transformations lack reference values in the IBSI standard. They are only computed if
+`ibsi_compliant=False`.
+
+Prewitt filter
+^^^^^^^^^^^^^^
+
+Features computed from images filtered using the Prewitt filter are prefixed by:
+
+* `prewitt`: Indicating the Prewitt filter.
+
+The Prewitt filter lacks reference values in the IBSI standard.  Features from Prewitt-filtered images are only
+computed if `ibsi_compliant=False`.
+
+Sobel filter
+^^^^^^^^^^^^
+
+Features computed from images filtered using the Sobel filter are prefixed by:
+
+* `sobel`: Indicating the Sobel filter.
+
+The Sobel filter lacks reference values in the IBSI standard. Features from Sobel-filtered images are only computed if
 `ibsi_compliant=False`.
 
 Local binary patterns

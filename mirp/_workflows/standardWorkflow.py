@@ -109,13 +109,42 @@ class StandardWorkflow(BaseWorkflow):
         for mask in masks:
             mask.update_separate_slices(image.separate_slices)
 
-        # Create a tissue mask
+        # Estimate noise level.
+        estimated_noise_level = self.settings.perturbation.noise_level
+        if self.settings.perturbation.add_noise and estimated_noise_level is None:
+            estimated_noise_level = image.estimate_noise()
+
+        if self.settings.perturbation.add_noise:
+            image.add_noise(noise_level=estimated_noise_level, noise_iteration_id=self.noise_iteration_id)
+
+        # Noise reduction.
+        if not self.settings.post_process.image_denoise_method == "none":
+            if self.settings.post_process.image_denoise_method == "median":
+                image.denoise_median(size=self.settings.post_process.image_denoiser_median_size)
+
+            elif self.settings.post_process.image_denoise_method == "gaussian":
+                image.denoise_gaussian(sigma=self.settings.post_process.image_denoiser_gaussian_sigma)
+
+            elif self.settings.post_process.image_denoise_method == "susan":
+                image.denoise_susan(
+                    sigma=self.settings.post_process.image_denoiser_susan_sigma,
+                    intensity_threshold=self.settings.post_process.image_denoiser_susan_intensity_threshold
+                )
+            else:
+                raise NotImplementedError(
+                    f"The {self.settings.post_process.image_denoise_method} denoising method is not implemented."
+                )
+
+        # Intensity normalisation.
         if self.settings.post_process.bias_field_correction or \
                 not self.settings.post_process.intensity_normalisation == "none":
+            # Create a tissue mask
             tissue_mask = create_tissue_mask(
                 image=image,
+                masks=masks,
                 mask_type=self.settings.post_process.tissue_mask_type,
-                mask_intensity_range=self.settings.post_process.tissue_mask_range
+                mask_intensity_range=self.settings.post_process.tissue_mask_range,
+                mask_name=self.settings.post_process.tissue_mask_name
             )
 
             # Perform bias field correction
@@ -132,20 +161,15 @@ class StandardWorkflow(BaseWorkflow):
                 normalisation_method=self.settings.post_process.intensity_normalisation,
                 intensity_range=self.settings.post_process.intensity_normalisation_range,
                 saturation_range=self.settings.post_process.intensity_normalisation_saturation,
+                reference_image=self.settings.post_process.intensity_normalisation_reference,
+                shift=self.settings.post_process.intensity_normalisation_standardisation_shift,
+                scale=self.settings.post_process.intensity_normalisation_standardisation_scale,
                 mask=tissue_mask
             )
 
         image = image.scale_intensities(
             scale=self.settings.post_process.intensity_scaling
         )
-
-        # Estimate noise level.
-        estimated_noise_level = self.settings.perturbation.noise_level
-        if self.settings.perturbation.add_noise and estimated_noise_level is None:
-            estimated_noise_level = image.estimate_noise()
-
-        if self.settings.perturbation.add_noise:
-            image.add_noise(noise_level=estimated_noise_level, noise_iteration_id=self.noise_iteration_id)
 
         # Translate, rotate and interpolate image
         image.interpolate(
@@ -312,6 +336,16 @@ class StandardWorkflow(BaseWorkflow):
                 # Local binary pattern filter
                 from mirp._imagefilters.local_binary_patterns import LocalBinaryPatternFilter
                 filter_obj = LocalBinaryPatternFilter(image=image, settings=self.settings, name=current_filter)
+
+            elif self.settings.img_transform.has_prewitt_filter(x=current_filter):
+                # Prewitt filter
+                from mirp._imagefilters.prewitt import PrewittFilter
+                filter_obj = PrewittFilter(image=image, settings=self.settings, name=current_filter)
+
+            elif self.settings.img_transform.has_sobel_filter(x=current_filter):
+                # Sobel filter
+                from mirp._imagefilters.sobel import SobelFilter
+                filter_obj = SobelFilter(image=image, settings=self.settings, name=current_filter)
 
             else:
                 raise ValueError(

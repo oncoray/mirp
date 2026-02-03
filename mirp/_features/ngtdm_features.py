@@ -7,7 +7,7 @@ from mirp._features.ngtdm_matrix import MatrixNGTDM
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask
 from mirp._features.histogram import get_discretisation_parameters
-from mirp._features.texture_features import FeatureTexture
+from mirp._features.texture_features import FeatureTexture, get_feature_pooling_parameters
 from mirp.settings.feature_parameters import FeatureExtractionSettingsClass
 
 
@@ -99,12 +99,9 @@ class FeatureNGTDM(FeatureTexture):
         # Compute or retrieve matrices from cache.
         matrices = self.get_matrix(image=image, mask=mask)
 
-        # Compute feature value from matrices, and average over matrices.
+        # Compute feature value from matrices.
         values = [self._compute(matrix=matrix) for matrix in matrices]
-        if np.all(np.isnan(values)):
-            self.value = np.nan
-        else:
-            self.value = np.nanmean(values)
+        self.value = self.pool_feature_values(values)
 
     @staticmethod
     def _compute(matrix: MatrixNGTDM):
@@ -258,8 +255,13 @@ def generate_ngtdm_features(
         settings=settings
     ):
         for spatial_method in settings.ngtdm_spatial_method:
-            for feature in features:
-                yield class_dict[feature](
-                    spatial_method=spatial_method,
-                    **discretisation_parameters
-                )
+            for feature_pooling_method in get_feature_pooling_parameters(
+                    settings=settings,
+                    spatial_method=spatial_method
+            ):
+                for feature in features:
+                    yield class_dict[feature](
+                        spatial_method=spatial_method,
+                        feature_pooling_method=feature_pooling_method,
+                        **discretisation_parameters
+                    )

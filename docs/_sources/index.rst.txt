@@ -110,6 +110,10 @@ Supported Python versions and operating systems
      - ✅
      - ✅
      - ✅
+   * - 3.14
+     - ✅
+     - ✅
+     - ✅
 
 Optional dependencies for parallel processing, i.e. `ray` and `joblib`, may not support all Python versions.
 

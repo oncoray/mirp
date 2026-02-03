@@ -89,6 +89,14 @@ class FeatureExtractionSettingsClass:
         Width of each bin in the "fixed_bin_size" discretisation method. No default value. Multiple values can be
         specified in a list to yield features according to each bin width.
 
+    stat_percentile: float or list of float, optional, default: [10.0, 90.0]
+        Percentile values where the intensity distribution is evaluated. Should be one or more floating point values
+        between 0.0 and 100.0. Default: [10.0, 90.0]
+
+    stat_value_shift: float, optional, default: 0.0
+        Value added to intensities in the image for computing several features: energy,  root-mean-square and total
+        energy. The resulting features are not IBSI-compliant.
+
     ivh_discretisation_method: {"fixed_bin_number", "fixed_bin_size", "none"}, optional, default: "none"
         Method used for discretising intensities for computing intensity-volume histograms. The discretisation
         methods follow those in ``base_discretisation_method``. The "none" method changes to "fixed_bin_number" if
@@ -99,6 +107,12 @@ class FeatureExtractionSettingsClass:
 
     ivh_discretisation_bin_width: float, optional
         Width of each bin in the "fixed_bin_size" discretisation method. No default value.
+
+    texture_feature_pooling_method: {"average", "min", "max", "range", "std", "var"}, optional, default: "average"
+        Method used to pool features computed from multiple texture matrices. How matrices are handled depends on
+        spatial method parameters. Spatial methods that result in only a single method ignore this parameter. The
+        default value is "average", which averages over feature values. Other options are "min", "max", "range",
+        "std" (standard deviation) and "var" (variance). Pooling methods other than "average" are not IBSI-compliant.
 
     glcm_distance: float or list of float, optional, default: 1.0
         Distance (in voxels) for GLCM for determining the neighbourhood. Chebyshev, or checkerboard, distance is
@@ -198,9 +212,12 @@ class FeatureExtractionSettingsClass:
             base_discretisation_method: None | str | list[str] = None,
             base_discretisation_n_bins: None | int | list[int] = None,
             base_discretisation_bin_width: None | float | list[float] = None,
+            stat_percentile: None | float | list[float] = None,
+            stat_value_shift: float = 0.0,
             ivh_discretisation_method: str = "none",
             ivh_discretisation_n_bins: None | int = 1000,
             ivh_discretisation_bin_width: None | float = None,
+            texture_feature_pooling_method: str | list[str] = "average",
             glcm_distance: float | list[float] = 1.0,
             glcm_spatial_method: None | str | list[str] = None,
             glrlm_spatial_method: None | str | list[str] = None,
@@ -320,6 +337,41 @@ class FeatureExtractionSettingsClass:
         self.discretisation_n_bins: None | list[int] = base_discretisation_n_bins
         self.discretisation_bin_width: None | list[float] = base_discretisation_bin_width
 
+        if self.has_stats_family():
+            # Check stat_value_shift
+            if not isinstance(stat_value_shift, float):
+                raise TypeError(
+                    "The stat_value_shift parameter is expected to be a single, floating point value."
+                )
+
+            # Check stat_percentile
+            if stat_percentile is None:
+                stat_percentile = [10.0, 90.0]
+
+            if isinstance(stat_percentile, float):
+                stat_percentile = [stat_percentile]
+
+            if not isinstance(stat_percentile, list):
+                raise TypeError(
+                    "The stat_percentile parameter is expected to be a float, or list of floating point values "
+                    "between 0.0 and 100.0. Found: not a floating point value or list of floating point values."
+                )
+
+            if not all(isinstance(x, float) for x in stat_percentile):
+                raise TypeError(
+                    "The stat_percentile parameter is expected to be a float, or list of floating point values "
+                    "between 0.0 and 100.0. Found: not a list of floating point values."
+                )
+
+            if not all(0.0 <= x <= 100.0 for x in stat_percentile):
+                raise ValueError(
+                    "The stat_percentile parameter is expected to be a float, or list of floating point values "
+                    "between 0.0 and 100.0. Found: values outside the closed [0.0, 100.0] interval."
+                )
+
+        self.stat_value_shift: float = stat_value_shift
+        self.stat_percentile: list[float] = stat_percentile
+
         if self.has_ivh_family():
             if ivh_discretisation_method not in ["fixed_bin_size", "fixed_bin_number", "none"]:
                 raise ValueError(
@@ -367,6 +419,43 @@ class FeatureExtractionSettingsClass:
         self.ivh_discretisation_method: None | str = ivh_discretisation_method
         self.ivh_discretisation_n_bins: None | int = ivh_discretisation_n_bins
         self.ivh_discretisation_bin_width: None | float = ivh_discretisation_bin_width
+
+        # Set feature pooling method.
+        if self.has_any_texture_family():
+            available_feature_pooling_methods = ["average", "min", "max", "range", "std", "var"]
+            if isinstance(texture_feature_pooling_method, str):
+                texture_feature_pooling_method = [texture_feature_pooling_method]
+
+            if not isinstance(texture_feature_pooling_method, list):
+                raise TypeError(
+                    f"The texture_feature_pooling_method parameter is expected to be a string, or list of string with "
+                    f"values {', '.join(available_feature_pooling_methods)}. Found: not a string or list thereof."
+                )
+
+            if not all(isinstance(x, str) for x in texture_feature_pooling_method):
+                raise TypeError(
+                    f"The texture_feature_pooling_method parameter is expected to be a string, or list of string with "
+                    f"values {', '.join(available_feature_pooling_methods)}. Found: not a string or list with only "
+                    f"string elements."
+                )
+
+            if not all(x in available_feature_pooling_methods for x in texture_feature_pooling_method):
+                raise ValueError(
+                    f"One or more values for texture_feature_pooling_method is not in "
+                    f"{', '.join(available_feature_pooling_methods)}: "
+                    f"{', '.join(set(texture_feature_pooling_method) - set(available_feature_pooling_methods))}"
+                )
+
+            if self.ibsi_compliant and any(x != "average" for x in texture_feature_pooling_method):
+                raise ValueError(
+                    "The only IBSI-compliant option for texture_feature_pooling_method is 'average'. To use other "
+                    "methods, set ibsi_compliant=False."
+                )
+
+            # Keep only unique.
+            texture_feature_pooling_method = list(set(texture_feature_pooling_method))
+
+        self.texture_feature_pooling_method = texture_feature_pooling_method
 
         # Set GLCM attributes.
         if self.has_glcm_family():
@@ -536,6 +625,14 @@ class FeatureExtractionSettingsClass:
     def has_ngldm_family(self):
         return any(family in ["ldm", "ngldm", "neighbouring_grey_level_dependence_matrix", "grey_level_dependence_matrix", "all"] for family in self.families)
 
+    def has_any_texture_family(self):
+        return self.has_glcm_family() or \
+            self.has_glrlm_family() or \
+            self.has_glszm_family() or \
+            self.has_gldzm_family() or \
+            self.has_ngtdm_family() or \
+            self.has_ngldm_family()
+
     def check_valid_directional_spatial_method(self, x, var_name):
 
         # Set defaults
@@ -624,6 +721,8 @@ def get_feature_extraction_settings() -> list[dict[str, Any]]:
             xml_key=["discretisation_bin_width", "discr_bin_width"], class_key="discretisation_bin_width",
             test=[10.0, 34.0]
         ),
+        setting_def("stat_percentile", "float", to_list=True, test=[20.0, 80.0]),
+        setting_def("stat_value_shift", "float", test=10.0),
         setting_def(
             "ivh_discretisation_method", "str", xml_key=["ivh_discretisation_method", "ivh_discr_method"],
             class_key="ivh_discretisation_method", test="fixed_bin_size"
@@ -636,6 +735,7 @@ def get_feature_extraction_settings() -> list[dict[str, Any]]:
             "ivh_discretisation_bin_width", "float", xml_key=["ivh_discretisation_bin_width", "ivh_discr_bin_width"],
             test=30.0
         ),
+        setting_def("texture_feature_pooling_method", "str", to_list=True, test=["average"]),
         setting_def("glcm_distance", "float", to_list=True, xml_key=["glcm_distance", "glcm_dist"], test=[2.0, 3.0]),
         setting_def("glcm_spatial_method", "str", to_list=True, test=["2d_average", "2d_slice_merge"]),
         setting_def("glrlm_spatial_method", "str", to_list=True, test=["2d_average", "2d_slice_merge"]),

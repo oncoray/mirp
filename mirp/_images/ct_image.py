@@ -32,9 +32,7 @@ class CTImage(GenericImage):
     def normalise_intensities(
             self,
             normalisation_method: None | str = "none",
-            intensity_range: None | tuple[Any, Any] = None,
-            saturation_range: None | tuple[Any, Any] = None,
-            mask: None | np.ndarray = None
+            **kwargs
     ):
         """
         Normalise intensities. NOTE: this changes the class of the object from CTImage to GenericImage as
@@ -52,9 +50,7 @@ class CTImage(GenericImage):
 
         new_image = new_image.normalise_intensities(
             normalisation_method=normalisation_method,
-            intensity_range=intensity_range,
-            saturation_range=saturation_range,
-            mask=mask
+            **kwargs
         )
 
         return new_image

@@ -5,16 +5,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.4.2 documentation</title>
+  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=de1351e5"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=3c4615cf"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -110,6 +110,35 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
+<span class="sd">    image_denoise_method: {&quot;none&quot;, &quot;median&quot;, &quot;gaussian&quot;, &quot;susan&quot;}, default: &quot;none&quot;</span>
+<span class="sd">        Method used for removing noise from the image. The following are possible:</span>
+
+<span class="sd">        * &quot;none&quot;: images are not denoised.</span>
+<span class="sd">        * &quot;median&quot;: images are denoised using a median filter.</span>
+<span class="sd">        * &quot;gaussian&quot;: images are denoised using a gaussian filter.</span>
+<span class="sd">        * &quot;susan&quot;: images are denoised using the SUSAN noise filtering algorithm. Implemented after eq. 36 of Smith,</span>
+<span class="sd">          S.M. and Brady, J.M. (1997) ‘SUSAN—A New Approach to Low Level Image Processing’, International Journal of</span>
+<span class="sd">          Computer Vision, 23(1), pp. 45–78. Available at: https://doi.org/10.1023/a:1007963824710.</span>
+
+<span class="sd">        If `by_slice=True`, 2D variants of the denoisers are used, otherwise 3D variants are used instead. Gaussian and</span>
+<span class="sd">        SUSAN denoisers take voxel spacing into account.</span>
+
+<span class="sd">    image_denoiser_median_size: int or list of int, optional, default: 3</span>
+<span class="sd">        Size of the neighbourhood for the median filter. By default, the voxel neighbourhood is 3 by 3 (by_slice = True)</span>
+<span class="sd">        or 3 by 3 by 3 (by_slice = False) voxels. 1 or 3 odd, positive integers are expected. If 3 integers are</span>
+<span class="sd">        provided, these will be used for z, y, and x directions, respectively.</span>
+
+<span class="sd">    image_denoiser_gaussian_sigma: float</span>
+<span class="sd">        Width of the Gaussian filter in physical dimensions (e.g. mm).</span>
+
+<span class="sd">    image_denoiser_susan_sigma: float</span>
+<span class="sd">        Width of the Gaussian filter in SUSAN, in physical dimensions (e.g. mm). The maximum neighbourhood considered</span>
+<span class="sd">        by the denoiser has a radius of 3 sigma.</span>
+
+<span class="sd">    image_denoiser_susan_intensity_threshold: float or None, optional, default: None</span>
+<span class="sd">        Threshold for the brightness threshold in SUSAN. If None (default), the measure of noise will be determined</span>
+<span class="sd">        based on the individual image.</span>
+
 <span class="sd">    bias_field_correction: bool, optional, default: False</span>
 <span class="sd">        Determines whether N4 bias field correction should be performed. When a tissue mask is present, bias field</span>
 <span class="sd">        correction is conducted using the information contained within the mask.</span>
@@ -148,6 +177,7 @@
 <span class="sd">          variations with body weight and a method for correction. Radiology. 1993 Dec;189(3):847-50).</span>
 <span class="sd">        * &quot;none&quot;: activity is not normalised.</span>
 
+
 <span class="sd">        .. note::</span>
 <span class="sd">            Conversion of activity to standardised uptake values can only be performed for PET data.</span>
 
@@ -156,7 +186,7 @@
 <span class="sd">            the patient. These metadata are only present in DICOM files. MIRP cannot convert activity to standardised</span>
 <span class="sd">            uptake values for images in different formats, and this parameter will have no effect.</span>
 
-<span class="sd">    intensity_normalisation: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;, &quot;quantile_range&quot;, &quot;standardisation&quot;}, default: &quot;none&quot;</span>
+<span class="sd">    intensity_normalisation: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;, &quot;quantile_range&quot;, &quot;standardisation&quot;, &quot;custom_scale&quot;, &quot;histogram_equalisation&quot;, &quot;adaptive_equalisation&quot;, &quot;match_uniform&quot;,&quot;match_sigmoid&quot;, &quot;match_reference&quot;, &quot;match_reference_normalised&quot;}, default: &quot;none&quot;</span>
 <span class="sd">        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels</span>
 <span class="sd">        masked by the tissue mask (of present). The following are possible:</span>
 
@@ -169,6 +199,18 @@
 <span class="sd">          ``intensity_normalisation_range`` parameter, which is interpreted to represent a quantile range.</span>
 <span class="sd">        * &quot;standardisation&quot;: normalises intensities by subtraction of the mean intensity and division by the standard</span>
 <span class="sd">          deviation of intensities.</span>
+<span class="sd">        * &quot;custom_scale&quot;: Uses the ``intensity_normalisation_standardisation_shift`` and</span>
+<span class="sd">        intensity_normalisation_standardisation_scale`` parameters for applying custom shift and scale to the data.</span>
+<span class="sd">        * &quot;histogram_equalisation&quot;: Attempts to generate a flat histogram of intensities. Technically,</span>
+<span class="sd">          this is a mapping to a uniform distribution. However, the underlying implementation relies on</span>
+<span class="sd">          ``scikit-image`` and bins intensities prior to mapping. The result is normalised to [0, 1].</span>
+<span class="sd">        * &quot;adaptive_equalisation&quot;: Implementation of Contrast Limited Adaptive Histogram Equalisation (CLAHE) from</span>
+<span class="sd">          ``scikit-image``. This method cannot use a tissue mask.</span>
+<span class="sd">        * &quot;match_uniform&quot;: Maps intensities to a uniform distribution in [0, 1].</span>
+<span class="sd">        * &quot;match_sigmoid&quot;: Maps intensities to a standard normal distribution.</span>
+<span class="sd">        * &quot;match_reference&quot;: Maps intensities to the distribution of a reference image or vector.</span>
+<span class="sd">        * &quot;match_reference_normalised&quot;: Maps intensities to the distribution of a reference image or vector,</span>
+<span class="sd">          and normalises the result to [0, 1].</span>
 
 <span class="sd">        .. note::</span>
 <span class="sd">            Intensity normalisation may remove any physical meaning of intensity units. For example, intensity</span>
@@ -197,19 +239,37 @@
 <span class="sd">        than 0.8 are assigned a value of 0.8. np.nan can be used to define limits where the intensity values should</span>
 <span class="sd">        not be saturated.</span>
 
+<span class="sd">    intensity_normalisation_standardisation_shift: float, optional</span>
+<span class="sd">        Defines the shift parameter for custom scaling. If present, ``intensity_normalisation`` is set to</span>
+<span class="sd">        ``&quot;custom_scale&quot;``.</span>
+
+<span class="sd">    intensity_normalisation_standardisation_scale: float, optional</span>
+<span class="sd">        Defines the scale parameter for custom scaling. Must be a value &gt; 0. If present, ``intensity_normalisation`` is</span>
+<span class="sd">        set to ``&quot;custom_scale&quot;``.</span>
+
+<span class="sd">    intensity_normalisation_reference: list of float, np.ndarray, optional</span>
+<span class="sd">        Image, array or list of intensity values that is used to compute the reference intensity distribution for the</span>
+<span class="sd">        ``&quot;match_reference&quot;`` or ``&quot;match_reference_normalised&quot;`` method.</span>
+
 <span class="sd">    intensity_scaling: float, optional</span>
 <span class="sd">        Defines scaling parameter to linearly scale intensities with. The scaling parameter is applied after</span>
-<span class="sd">        normalisation (if any). For example, `intensity_scaling = 1000.0`, combined with `intensity_normalisation =</span>
-<span class="sd">        &quot;range&quot;` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].</span>
+<span class="sd">        normalisation (if any). For example, ``intensity_scaling = 1000.0``, combined with ``intensity_normalisation =</span>
+<span class="sd">        &quot;range&quot;`` results in intensities being mapped to a [0.0, 1000.0] range instead of [0.0, 1.0].</span>
 
-<span class="sd">    tissue_mask_type: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;}, optional, default: &quot;relative_range&quot;</span>
+<span class="sd">    tissue_mask_type: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;, &quot;reference&quot;}, optional, default: &quot;relative_range&quot;</span>
 <span class="sd">        Type of algorithm used to produce an approximate tissue mask of the tissue. Such masks can be used to select</span>
-<span class="sd">        pixels for bias correction and intensity normalisation by excluding non-tissue voxels.</span>
+<span class="sd">        pixels for bias correction and intensity normalisation by excluding non-tissue voxels. If &quot;reference&quot; an</span>
+<span class="sd">        external mask is expected.</span>
 
 <span class="sd">    tissue_mask_range: list of float, optional</span>
 <span class="sd">        Range values for creating an approximate mask of the tissue. Required for &quot;range&quot; and &quot;relative_range&quot;</span>
 <span class="sd">        options. Default: [0.02, 1.00] (``&quot;relative_range&quot;``); [np.nan, np.nan] (``&quot;range&quot;``; effectively all voxels</span>
 <span class="sd">        are considered to represent tissue).</span>
+
+<span class="sd">    tissue_mask_name: str, optional</span>
+<span class="sd">        Name of the mask to be used as a tissue mask. The mask should be present among the masks provided as regions</span>
+<span class="sd">        of interest. If provided, the ``tissue_mask_type`` parameter is automatically set to ``&quot;reference&quot;``,</span>
+<span class="sd">        and other values are ignored.</span>
 
 <span class="sd">    **kwargs:</span>
 <span class="sd">        Unused keyword arguments.</span>
@@ -217,6 +277,11 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
+            <span class="n">image_denoise_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+            <span class="n">image_denoiser_median_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="n">image_denoiser_gaussian_sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">image_denoiser_susan_sigma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">image_denoiser_susan_intensity_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">bias_field_correction</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
             <span class="n">bias_field_correction_n_fitting_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
             <span class="n">bias_field_correction_n_max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -225,11 +290,103 @@
             <span class="n">intensity_normalisation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
             <span class="n">intensity_normalisation_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">intensity_normalisation_saturation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">intensity_normalisation_standardisation_shift</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">intensity_normalisation_standardisation_scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">intensity_normalisation_reference</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">intensity_scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">tissue_mask_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span>
             <span class="n">tissue_mask_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">tissue_mask_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
+        <span class="c1"># Image denoise method parameter</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_denoise_method</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The image_denoise_method parameter is expected to be a string: none, median, gaussian or susan.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">image_denoise_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;median&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;susan&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The image_denoise_method parameter should be one of none, median, gaussian or susan. Found: </span><span class="si">{</span><span class="n">image_denoise_method</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_denoise_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">image_denoise_method</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_denoise_method</span> <span class="o">==</span> <span class="s2">&quot;median&quot;</span><span class="p">:</span>
+            <span class="c1"># Update the image_denoiser_median_size parameter if a length 1 list is provided.</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_denoiser_median_size</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_denoiser_median_size</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">image_denoiser_median_size</span> <span class="o">=</span> <span class="n">image_denoiser_median_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="n">x</span> <span class="o">=</span> <span class="n">image_denoiser_median_size</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The image_denoiser_median_size parameter should be an integer or a list of integers.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The image_denoiser_median_size parameter should be an integer or a list of &quot;</span>
+                                 <span class="sa">f</span><span class="s2">&quot;1 or 3 integers. Found: a list with a length </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">xi</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;The image_denoiser_median_size parameter should be an integer or a list of integers.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">xi</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The image_denoiser_median_size parameter should be an odd integer or a list of &quot;</span>
+                                 <span class="s2">&quot;odd integers. Found: one or more even integers.&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">xi</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">x</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The image_denoiser_median_size parameter should be an odd integer &gt; 0 or a list of &quot;</span>
+                                 <span class="s2">&quot;odd integers &gt; 0. Found: one or more integers 0 or smaller.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_denoiser_median_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">image_denoiser_median_size</span>
+
+        <span class="c1"># Check image_denoiser_gaussian_sigma</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_denoise_method</span> <span class="o">==</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">:</span>
+
+            <span class="c1"># Check that the sigma values are floating points.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_denoiser_gaussian_sigma</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The image_denoiser_gaussian_sigma parameter is expected to be a floating point with value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: not a floating point value.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">image_denoiser_gaussian_sigma</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The image_denoiser_gaussian_sigma parameter is expected to be a floating point with value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: </span><span class="si">{</span><span class="n">image_denoiser_gaussian_sigma</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_denoiser_gaussian_sigma</span> <span class="o">=</span> <span class="n">image_denoiser_gaussian_sigma</span>
+
+        <span class="c1"># Check image_denoiser_susan_sigma and image_denoiser_susan_intensity_threshold</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">image_denoise_method</span> <span class="o">==</span> <span class="s2">&quot;susan&quot;</span><span class="p">:</span>
+
+            <span class="c1"># Check that the sigma values are floating points.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_denoiser_susan_sigma</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The image_denoiser_susan_sigma parameter is expected to be a floating point with value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: not a floating point value.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">image_denoiser_susan_sigma</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The image_denoiser_susan_sigma parameter is expected to be a floating point with value &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;greater than 0.0. Found: </span><span class="si">{</span><span class="n">image_denoiser_susan_sigma</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Check that SUSAN intensity threshold is None or correct floating points.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_denoiser_susan_intensity_threshold</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> \
+                    <span class="n">image_denoiser_susan_intensity_threshold</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The image_denoiser_susan_intensity_threshold parameter is expected to be a floating point with &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;value greater than 0.0, or None (default). Found: not a floating point value or None.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">image_denoiser_susan_intensity_threshold</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">image_denoiser_susan_sigma</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The image_denoiser_susan_intensity_threshold parameter is expected to be a floating point with &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;value greater than 0.0. Found: </span><span class="si">{</span><span class="n">image_denoiser_susan_intensity_threshold</span><span class="si">}</span><span class="s2">.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_denoiser_susan_sigma</span> <span class="o">=</span> <span class="n">image_denoiser_susan_sigma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image_denoiser_susan_intensity_threshold</span> <span class="o">=</span> <span class="n">image_denoiser_susan_intensity_threshold</span>
 
         <span class="c1"># Set bias_field_correction parameter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">bias_field_correction</span> <span class="o">=</span> <span class="n">bias_field_correction</span>
@@ -326,11 +483,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">suv_conversion_type</span> <span class="o">=</span> <span class="n">pet_suv_conversion</span>
 
         <span class="c1"># Check that intensity_normalisation has the correct values.</span>
-        <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">,</span> <span class="s2">&quot;standardisation&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_intensity_normalisation_methods</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation parameter is expected to have one of the following values: &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;&#39;none&#39;, &#39;range&#39;, &#39;relative_range&#39;, &#39;quantile_range&#39;, &#39;standardisation&#39;. Found: &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">intensity_normalisation</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_available_intensity_normalisation_methods</span><span class="p">())</span><span class="si">}</span><span class="s2">. Found: </span><span class="si">{</span><span class="n">intensity_normalisation</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">intensity_normalisation_standardisation_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> \
+                <span class="n">intensity_normalisation_standardisation_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">intensity_normalisation</span> <span class="o">=</span> <span class="s2">&quot;custom_scale&quot;</span>
 
         <span class="c1"># Set intensity_normalisation parameter.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation</span> <span class="o">=</span> <span class="n">intensity_normalisation</span>
@@ -405,6 +566,25 @@
         <span class="c1"># Set normalisation range.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_range</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">intensity_normalisation_range</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation</span> <span class="o">==</span> <span class="s2">&quot;custom_scale&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_standardisation_shift</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The intensity_normalisation_standardisation_shift parameter should be a floating point value.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_standardisation_scale</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The intensity_normalisation_standardisation_scale parameter should be a floating point value &gt; 0.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">intensity_normalisation_standardisation_scale</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;The intensity_normalisation_standardisation_scale parameter should be a floating point value &gt; &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;0. Found: </span><span class="si">{</span><span class="n">intensity_normalisation_standardisation_scale</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_standardisation_shift</span> <span class="o">=</span> <span class="n">intensity_normalisation_standardisation_shift</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_standardisation_scale</span> <span class="o">=</span> <span class="n">intensity_normalisation_standardisation_scale</span>
+
         <span class="c1"># Check intensity normalisation saturation range.</span>
         <span class="k">if</span> <span class="n">intensity_normalisation_saturation</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">intensity_normalisation_saturation</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]</span>
@@ -428,6 +608,31 @@
         <span class="c1"># intensity_normalisation_saturation parameter</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_saturation</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">intensity_normalisation_saturation</span>
 
+        <span class="c1"># Check intensity_normalisation_reference.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;match_reference&quot;</span><span class="p">,</span> <span class="s2">&quot;match_reference_normalised&quot;</span><span class="p">]:</span>
+            <span class="c1"># Avoid passing intensity_normalisation_reference if it is not used.</span>
+            <span class="n">intensity_normalisation_reference</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;match_reference&quot;</span><span class="p">,</span> <span class="s2">&quot;match_reference_normalised&quot;</span><span class="p">]</span> <span class="ow">and</span> \
+                <span class="n">intensity_normalisation_reference</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># This parameter must be provided for the above methods.</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The intensity_normalisation_reference parameter must be provided for the &quot;</span>
+                             <span class="s2">&quot;`match_reference` and `match_reference_normalised` methods.&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">intensity_normalisation_reference</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_reference</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                <span class="n">intensity_normalisation_reference</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">(</span><span class="n">intensity_normalisation_reference</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_normalisation_reference</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_reference should be a list or np.ndarray&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Check if the provided array can be cast to floating points.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">can_cast</span><span class="p">(</span><span class="n">intensity_normalisation_reference</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_reference should be a list or np.ndarray of floats, &quot;</span>
+                                <span class="s2">&quot;or castable to float.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">intensity_normalisation_reference</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">intensity_normalisation_reference</span>
+
         <span class="c1"># Check intensity_scaling</span>
         <span class="k">if</span> <span class="n">intensity_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intensity_scaling</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
@@ -439,8 +644,12 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">intensity_scaling</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">intensity_scaling</span>
 
+        <span class="c1"># Override tissue_mask_type in case a mask is explicitly provided.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tissue_mask_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">tissue_mask_type</span> <span class="o">=</span> <span class="s2">&quot;reference&quot;</span>
+
         <span class="c1"># Check tissue_mask_type</span>
-        <span class="k">if</span> <span class="n">tissue_mask_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">tissue_mask_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;reference&quot;</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
                 <span class="sa">f</span><span class="s2">&quot;The tissue_mask_type parameter is expected to have one of the following values: &quot;</span>
                 <span class="sa">f</span><span class="s2">&quot;&#39;none&#39;, &#39;range&#39;, or &#39;relative_range&#39;. Found: </span><span class="si">{</span><span class="n">tissue_mask_type</span><span class="si">}</span><span class="s2">.&quot;</span>
@@ -478,13 +687,36 @@
                         <span class="s2">&quot;The tissue_mask_range parameter should consist of two values between 0.0 and 1.0.&quot;</span><span class="p">)</span>
 
         <span class="c1"># Set tissue_mask_range.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tissue_mask_range</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_range</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">tissue_mask_range</span><span class="p">)</span>
 
+        <span class="c1"># Check tissue_mask_name. Note that the actual content needs to be checked at run-time, because at this point</span>
+        <span class="c1"># we don&#39;t know if the mask corresponding to the name is actually present.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_type</span> <span class="o">==</span> <span class="s2">&quot;reference&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tissue_mask_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;The tissue_mask_name parameter is expected to be a string indicated the mask to be &quot;</span>
+                    <span class="s2">&quot;used as the tissue mask.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">tissue_mask_name</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_available_intensity_normalisation_methods</span><span class="p">():</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">,</span> <span class="s2">&quot;standardisation&quot;</span><span class="p">,</span> <span class="s2">&quot;custom_scale&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;histogram_equalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;adaptive_equalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;match_uniform&quot;</span><span class="p">,</span><span class="s2">&quot;match_sigmoid&quot;</span><span class="p">,</span> <span class="s2">&quot;match_reference&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;match_reference_normalised&quot;</span>
+        <span class="p">]</span></div>
 
 
 <span class="k">def</span> <span class="nf">get_post_processing_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 
     <span class="k">return</span> <span class="p">[</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;image_denoise_method&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;image_denoiser_median_size&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="o">=</span><span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mi">5</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;image_denoiser_gaussian_sigma&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;image_denoiser_susan_sigma&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">4.0</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;image_denoiser_susan_intensity_threshold&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="o">=</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">6.0</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;bias_field_correction&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span>
             <span class="s2">&quot;bias_field_correction_n_fitting_levels&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;n_fitting_levels&quot;</span><span class="p">,</span>
@@ -502,9 +734,13 @@
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;relative_range&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">]),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_saturation&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_reference&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_standardisation_shift&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_standardisation_scale&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_scaling&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">3.0</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;tissue_mask_type&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;range&quot;</span><span class="p">),</span>
-        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;tissue_mask_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">])</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;tissue_mask_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">]),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;tissue_mask_name&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">)</span>
     <span class="p">]</span>
 </pre></div>
 

@@ -1,13 +1,16 @@
+import warnings
 import numpy as np
-from typing import Any
 
 from mirp._images.generic_image import GenericImage
+from mirp._masks.base_mask import BaseMask
 
 
 def create_tissue_mask(
         image: GenericImage,
+        masks: list[BaseMask],
         mask_type: None | str = None,
-        mask_intensity_range: None | tuple[Any, Any] = None
+        mask_intensity_range: None | tuple[float, ...] = None,
+        mask_name: None | str = None
 ) -> np.ndarray:
 
     if mask_type is None or mask_type == "none":
@@ -30,7 +33,7 @@ def create_tissue_mask(
         mask = np.logical_and(voxel_grid >= mask_intensity_range[0], voxel_grid <= mask_intensity_range[1])
 
     elif mask_type == "relative_range":
-        from skimage.morphology import binary_opening
+        from skimage.morphology import opening
 
         # The relative intensity range provided forms the mask range. This means that we need to convert the relative
         # range to the range present in the image.
@@ -56,11 +59,31 @@ def create_tissue_mask(
         mask = np.logical_and(voxel_grid >= tissue_range[0], voxel_grid <= tissue_range[1])
 
         # Perform binary closing to smooth the mask.
-        mask = binary_opening(mask)
+        mask = opening(mask)
+
+    elif mask_type == "reference":
+        # Find the mask with the correct name.
+        available_mask_names = [x.roi_name for x in masks]
+        if mask_name in available_mask_names:
+            # Identify mask and create a copy.
+            target_mask = masks[available_mask_names.index(mask_name)].copy()
+
+            # Register the mask with the image so that they have a one-to-one voxel mapping.
+            target_mask.register(image=image, spline_order=1, anti_aliasing=False)
+
+            # Extract mask.
+            mask = target_mask.roi.get_voxel_grid()
+
+        else:
+            # Warn that mask could not be found.
+            warnings.warn(f"Mask {mask_name} not available as a tissue mask. Available masks: {available_mask_names}")
+            mask = np.ones(image.image_dimension, dtype=bool)
 
     else:
-        raise ValueError(f"The tissue_mask_type configuration parameter is expected to be one of none, range, "
-                         f"or relative_range. Encountered: {mask_type}")
+        raise ValueError(
+            f"The tissue_mask_type configuration parameter is expected to be one of none, range, "
+            f"relative_range or reference. Encountered: {mask_type}"
+        )
 
     # Check that masks are not completely empty.
     if np.all(np.logical_not(mask)):

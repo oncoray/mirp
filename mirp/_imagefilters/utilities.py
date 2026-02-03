@@ -33,12 +33,12 @@ def pool_voxel_grids(x1, x2, pooling_method):
 class SeparableFilterSet:
     def __init__(
             self,
-            filter_x,
-            filter_y,
-            filter_z=None,
-            pre_filter_x=None,
-            pre_filter_y=None,
-            pre_filter_z=None
+            filter_x: np.ndarray | None = None,
+            filter_y: np.ndarray | None = None,
+            filter_z: np.ndarray | None = None,
+            pre_filter_x: np.ndarray | None = None,
+            pre_filter_y: np.ndarray | None = None,
+            pre_filter_z: np.ndarray | None = None
     ):
         self.x = filter_x
         self.y = filter_y
@@ -156,18 +156,26 @@ class SeparableFilterSet:
 
         if require_pre_filter:
             # Create a pre-filter to derive a table with filter orientations.
-            pre_filter_set = SeparableFilterSet(filter_x=self.pr_x,
-                                                filter_y=self.pr_y,
-                                                filter_z=self.pr_z)
+            pre_filter_set = SeparableFilterSet(
+                filter_x=self.pr_x,
+                filter_y=self.pr_y,
+                filter_z=self.pr_z
+            )
 
-            permuted_pre_filters = pre_filter_set.permute_filters(rotational_invariance=rotational_invariance,
-                                                                  as_filter_table=True)
+            permuted_pre_filters = pre_filter_set.permute_filters(
+                rotational_invariance=rotational_invariance,
+                as_filter_table=True
+            )
 
             # Update the columns names
-            permuted_pre_filters.rename(columns={"x": "pr_x",
-                                                 "y": "pr_y",
-                                                 "z": "pr_z"},
-                                        inplace=True)
+            permuted_pre_filters.rename(
+                columns={
+                    "x": "pr_x",
+                    "y": "pr_y",
+                    "z": "pr_z"
+                },
+                inplace=True
+            )
 
             # Join with the permuted_filters table.
             permuted_filters = pd.concat([permuted_pre_filters, permuted_filters], axis=1)
@@ -300,10 +308,12 @@ class SeparableFilterSet:
                 voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_z, axis=0, mode=mode)
 
             # Apply filter along the y-axis.
-            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_y, axis=1, mode=mode)
+            if self.pr_y is not None:
+                voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_y, axis=1, mode=mode)
 
             # Apply filter along the x-axis.
-            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_x, axis=2, mode=mode)
+            if self.pr_x is not None:
+                voxel_grid = ndi.convolve1d(voxel_grid, weights=self.pr_x, axis=2, mode=mode)
 
         else:
             # Apply filter along the z-axis. Note that the voxel grid is stored with z, y, x indexing. Hence the
@@ -312,10 +322,12 @@ class SeparableFilterSet:
                 voxel_grid = ndi.convolve1d(voxel_grid, weights=self.z, axis=0, mode=mode)
 
             # Apply filter along the y-axis.
-            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.y, axis=1, mode=mode)
+            if self.y is not None:
+                voxel_grid = ndi.convolve1d(voxel_grid, weights=self.y, axis=1, mode=mode)
 
             # Apply filter along the x-axis.
-            voxel_grid = ndi.convolve1d(voxel_grid, weights=self.x, axis=2, mode=mode)
+            if self.x is not None:
+                voxel_grid = ndi.convolve1d(voxel_grid, weights=self.x, axis=2, mode=mode)
 
         return voxel_grid
 

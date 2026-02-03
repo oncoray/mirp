@@ -41,6 +41,7 @@ MIRP currently supports the following Python versions and operating systems:
 | 3.11   | Supported | Supported | Supported |
 | 3.12   | Supported | Supported | Supported |
 | 3.13   | Supported | Supported | Supported |
+| 3.14   | Supported | Supported | Supported |
 
 ## Supported imaging and mask types
 

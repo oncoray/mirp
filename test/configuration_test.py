@@ -123,6 +123,8 @@ def test_post_processing_settings_configuration(tmp_path):
         for xml_data in branch.iter(xml_key):
             if isinstance(test_value, list):
                 xml_data.text = ", ".join([str(x) for x in test_value])
+            elif test_value is None:
+                xml_data.text = None
             else:
                 xml_data.text = str(test_value)
 
@@ -146,6 +148,8 @@ def test_post_processing_settings_configuration(tmp_path):
         if isinstance(test_value, list):
             assert list(getattr(settings_keyword.post_process, class_key)) == test_value
             assert isinstance(test_value[0], value_type)
+        elif test_value is None:
+            assert getattr(settings_keyword.post_process, class_key) is None
         else:
             assert getattr(settings_keyword.post_process, class_key) == test_value
             assert isinstance(test_value, value_type)
