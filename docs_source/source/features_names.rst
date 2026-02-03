@@ -53,8 +53,11 @@ Three-dimensional morphological features are listed below:
 * `morph_area_dens_ombb`: Area density - oriented minimum bounding box (`IQYR`; reference values absent)
 * `morph_vol_dens_mvee`: Volume density - minimum volume enclosing ellipsoid (`SWZ1`; reference values absent)
 * `morph_area_dens_mvee`: Area density - minimum volume enclosing ellipsoid (`BRI8`; reference values absent)
+* `morph_max_2d_diam_z`: Maximum diameter in the *z*-direction (no identifier).
+* `morph_max_2d_diam_y`: Maximum diameter in the *y*-direction (no identifier).
+* `morph_max_2d_diam_x`: Maximum diameter in the *x*-direction (no identifier).
 
-The final four features lack reference values in the IBSI standard. These are only computed if `ibsi_compliant=False`.
+The final seven features lack reference values in the IBSI standard. These are only computed if `ibsi_compliant=False`.
 
 Local intensity features (`9ST6`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
