@@ -36,6 +36,8 @@
 
 ## Minor changes
 
+- Python 3.14 is now explicitly supported.
+
 - Adding noise as an image perturbation / augmentation is now done prior to any normalisation steps to follow a more 
   logical workflow of *adding noise* → *denoising* → *normalisation* → *resampling*. 
 
