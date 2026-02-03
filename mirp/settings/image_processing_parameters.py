@@ -148,7 +148,7 @@ class ImagePostProcessingClass:
 
     intensity_normalisation_standardisation_scale: float, optional
         Defines the scale parameter for custom scaling. Must be a value > 0. If present, ``intensity_normalisation`` is
-         set to ``"custom_scale"``.
+        set to ``"custom_scale"``.
 
     intensity_normalisation_reference: list of float, np.ndarray, optional
         Image, array or list of intensity values that is used to compute the reference intensity distribution for the
