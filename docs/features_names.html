@@ -6,16 +6,16 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Feature name references &mdash; mirp 2.4.2 documentation</title>
+  <title>Feature name references &mdash; mirp 2.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=de1351e5"></script>
-      <script src="_static/doctools.js?v=9bcbadda"></script>
-      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/documentation_options.js?v=3c4615cf"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -77,6 +77,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#discretisation-4r0b">Discretisation (<cite>4R0B</cite>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#texture-feature-pooling">Texture feature pooling</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#filters">Filters</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#gabor-transformation-q88h">Gabor transformation (<cite>Q88H</cite>)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#gaussian-filter">Gaussian filter</a></li>
@@ -90,6 +91,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#square-root-transformation">Square root transformation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#logarithmic-transformation">Logarithmic transformation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#exponential-transformation">Exponential transformation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#prewitt-filter">Prewitt filter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#sobel-filter">Sobel filter</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#local-binary-patterns">Local binary patterns</a></li>
 </ul>
 </li>
@@ -178,8 +181,11 @@ parameters and filters, annotated with their Image Biomarker Standardisation Ini
 <li><p><cite>morph_area_dens_ombb</cite>: Area density - oriented minimum bounding box (<cite>IQYR</cite>; reference values absent)</p></li>
 <li><p><cite>morph_vol_dens_mvee</cite>: Volume density - minimum volume enclosing ellipsoid (<cite>SWZ1</cite>; reference values absent)</p></li>
 <li><p><cite>morph_area_dens_mvee</cite>: Area density - minimum volume enclosing ellipsoid (<cite>BRI8</cite>; reference values absent)</p></li>
+<li><p><cite>morph_max_2d_diam_z</cite>: Maximum diameter in the <em>z</em>-direction (no identifier).</p></li>
+<li><p><cite>morph_max_2d_diam_y</cite>: Maximum diameter in the <em>y</em>-direction (no identifier).</p></li>
+<li><p><cite>morph_max_2d_diam_x</cite>: Maximum diameter in the <em>x</em>-direction (no identifier).</p></li>
 </ul>
-<p>The final four features lack reference values in the IBSI standard. These are only computed if <cite>ibsi_compliant=False</cite>.</p>
+<p>The final seven features lack reference values in the IBSI standard. These are only computed if <cite>ibsi_compliant=False</cite>.</p>
 </section>
 <section id="local-intensity-features-9st6">
 <h3>Local intensity features (<cite>9ST6</cite>)<a class="headerlink" href="#local-intensity-features-9st6" title="Link to this heading"></a></h3>
@@ -210,8 +216,18 @@ parameters and filters, annotated with their Image Biomarker Standardisation Ini
 <li><p><cite>stat_cov</cite>: Coefficient of variation (<cite>7TET</cite>)</p></li>
 <li><p><cite>stat_qcod</cite>: Quartile coefficient of dispersion (<cite>9S40</cite>)</p></li>
 <li><p><cite>stat_energy</cite>: Energy (<cite>N8CA</cite>)</p></li>
+<li><p><cite>stat_energy_offset</cite>: Energy with intensity offset (no identifier)</p></li>
 <li><p><cite>stat_rms</cite>: Root mean square (<cite>5ZWQ</cite>)</p></li>
+<li><p><cite>stat_rms_offset</cite>: Root mean square with intensity offset (no identifier)</p></li>
+<li><p><cite>stat_total_energy</cite>: Total energy (no identifier)</p></li>
+<li><p><cite>stat_total_energy_offset</cite>: Total energy with intensity offset (no identifier)</p></li>
 </ul>
+<p>The total energy feature is defined as the voxel volume times energy.
+The <cite>stat_energy_offset</cite>, <cite>stat_rms_offset</cite>, and <cite>stat_total_energy_offset</cite> add an offset (<cite>stat_value_shift</cite>
+parameter, default <cite>stat_value_shift=0.0</cite>) to the image intensities prior to computing the corresponding feature
+values.</p>
+<p>The <cite>stat_energy_offset</cite>, <cite>stat_rms_offset</cite>, <cite>stat_total_energy</cite>, <cite>stat_total_energy_offset</cite> do not have reference
+values, and can only be computed when <cite>ibsi_compliant=False</cite>.</p>
 </section>
 <section id="intensity-histogram-features-zvcw">
 <h3>Intensity histogram features (<cite>ZVCW</cite>)<a class="headerlink" href="#intensity-histogram-features-zvcw" title="Link to this heading"></a></h3>
@@ -522,6 +538,22 @@ notably intensity histogram features and features computed from texture matrices
 <li><p><cite>n#</cite>: Number of bins for the fixed bin number discretisation method.</p></li>
 </ul>
 </section>
+<section id="texture-feature-pooling">
+<h2>Texture feature pooling<a class="headerlink" href="#texture-feature-pooling" title="Link to this heading"></a></h2>
+<p>Several spatial methods (<cite>2d</cite>, <cite>2d_avg</cite>, <cite>2d_s_mrg</cite>, <cite>2.5d_d_mrg</cite>, <cite>3d_avg</cite>) compute feature values from more than
+one texture matrix. These are then pooled, by default through averaging. However, MIRP implements the following
+additional pooling methods (<cite>texture_feature_pooling_method</cite> parameter):</p>
+<ul class="simple">
+<li><p><cite>average</cite>: default, pools feature values by computing their average.</p></li>
+<li><p><cite>min</cite>: pools feature values using the lowest observed value.</p></li>
+<li><p><cite>max</cite>: pools feature values using the highest observed value.</p></li>
+<li><p><cite>range</cite>: pools feature values using its range, i.e. the highest minus the lowest observed value.</p></li>
+<li><p><cite>std</cite>: pools feature values by computing their standard deviation.</p></li>
+<li><p><cite>var</cite>: pools feature values by computing their average.</p></li>
+</ul>
+<p>Pooling methods aside from <cite>average</cite> are not IBSI-compliant due to lack of reference standard, and can only be computed
+if <cite>ibsi_compliant=False</cite>.</p>
+</section>
 <section id="filters">
 <h2>Filters<a class="headerlink" href="#filters" title="Link to this heading"></a></h2>
 <p>Features can not only be computed from the base image, but also from filtered images (<em>response maps</em>). Features
@@ -644,6 +676,24 @@ computed from filtered images are prefixed by different filter-specific items, w
 <li><p><cite>exp</cite>: Indicating exponential transformation.</p></li>
 </ul>
 <p>Exponential transformations lack reference values in the IBSI standard. They are only computed if
+<cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="prewitt-filter">
+<h3>Prewitt filter<a class="headerlink" href="#prewitt-filter" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using the Prewitt filter are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>prewitt</cite>: Indicating the Prewitt filter.</p></li>
+</ul>
+<p>The Prewitt filter lacks reference values in the IBSI standard.  Features from Prewitt-filtered images are only
+computed if <cite>ibsi_compliant=False</cite>.</p>
+</section>
+<section id="sobel-filter">
+<h3>Sobel filter<a class="headerlink" href="#sobel-filter" title="Link to this heading"></a></h3>
+<p>Features computed from images filtered using the Sobel filter are prefixed by:</p>
+<ul class="simple">
+<li><p><cite>sobel</cite>: Indicating the Sobel filter.</p></li>
+</ul>
+<p>The Sobel filter lacks reference values in the IBSI standard. Features from Sobel-filtered images are only computed if
 <cite>ibsi_compliant=False</cite>.</p>
 </section>
 <section id="local-binary-patterns">

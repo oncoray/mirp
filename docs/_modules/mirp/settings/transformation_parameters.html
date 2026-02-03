@@ -5,16 +5,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.transformation_parameters &mdash; mirp 2.4.2 documentation</title>
+  <title>mirp.settings.transformation_parameters &mdash; mirp 2.5.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
-      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=de1351e5"></script>
-      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
-      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../../../_static/documentation_options.js?v=3c4615cf"></script>
+      <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -197,7 +197,10 @@
 <span class="sd">        implementation follows the IBSI reference manual. The following filters are supported:</span>
 
 <span class="sd">        * Mean filters: &quot;mean&quot;</span>
+<span class="sd">        * Prewitt filter: &quot;prewitt&quot;</span>
+<span class="sd">        * Sobel filter: &quot;sobel</span>
 <span class="sd">        * Gaussian filters: &quot;gaussian&quot;, &quot;riesz_gaussian&quot;, and &quot;riesz_steered_gaussian&quot;</span>
+<span class="sd">        * Laplace filters: &quot;laplace&quot;, &quot;laplacian&quot;</span>
 <span class="sd">        * Laplacian-of-Gaussian filters: &quot;laplacian_of_gaussian&quot;, &quot;log&quot;, &quot;riesz_laplacian_of_gaussian&quot;,</span>
 <span class="sd">          &quot;riesz_log&quot;, &quot;riesz_steered_laplacian_of_gaussian&quot;, and &quot;riesz_steered_log&quot;.</span>
 <span class="sd">        * Laws kernels: &quot;laws&quot;</span>
@@ -225,8 +228,8 @@
 <span class="sd">            derived from response maps (filtered images) of Riesz transformations is unlikely to be reproducible.</span>
 
 <span class="sd">        .. warning::</span>
-<span class="sd">            Local binary patterns are not part of the IBSI reference standard. Set `ibsi_compliant = False` to use</span>
-<span class="sd">            this filter.</span>
+<span class="sd">            Local binary patterns, Laplace, Prewitt and Sobel filters are not part of the IBSI reference standard. Set</span>
+<span class="sd">            `ibsi_compliant = False`to use these filters.</span>
 
 <span class="sd">        .. warning::</span>
 <span class="sd">            Function transformations (square, square root, logarithm, exponential) do not have an IBSI reference</span>
@@ -432,6 +435,14 @@
 <span class="sd">        Sets the boundary condition for mean filters. This supersedes any value set by the general</span>
 <span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
 
+<span class="sd">    prewitt_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for the Prewitt filter. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
+<span class="sd">    sobel_boundary_condition: str, optional, default: &quot;mirror&quot;</span>
+<span class="sd">        Sets the boundary condition for the Sobel filter. This supersedes any value set by the general</span>
+<span class="sd">        ``boundary_condition`` parameter. See the ``boundary_condition`` parameter above for all valid options.</span>
+
 <span class="sd">    riesz_filter_order: float, list of float or list of list of float, optional</span>
 <span class="sd">        Riesz-transformation order. If required, should be a 2 (2D filter), or 3-element (3D filter) integer</span>
 <span class="sd">        vector, e.g. [0,0,1]. Multiple sets can be provided by nesting the list, e.g. [[0, 0, 1],</span>
@@ -515,6 +526,8 @@
             <span class="n">gabor_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">mean_filter_kernel_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">mean_filter_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">prewitt_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">sobel_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">riesz_filter_order</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">riesz_filter_tensor_sigma</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">lbp_method</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
@@ -632,6 +645,32 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">mean_filter_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_filter_kernel_size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mean_filter_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">mean_filter_boundary_condition</span>
+
+        <span class="c1"># Check Prewitt filter settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_prewitt_filter</span><span class="p">():</span>
+            <span class="c1"># Check boundary condition</span>
+            <span class="n">prewitt_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">prewitt_boundary_condition</span><span class="p">,</span>
+                <span class="s2">&quot;prewitt_boundary_condition&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prewitt_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">prewitt_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">prewitt_boundary_condition</span>
+
+        <span class="c1"># Check Sobel filter settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_sobel_filter</span><span class="p">():</span>
+            <span class="c1"># Check boundary condition</span>
+            <span class="n">sobel_boundary_condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_boundary_condition</span><span class="p">(</span>
+                <span class="n">sobel_boundary_condition</span><span class="p">,</span>
+                <span class="s2">&quot;sobel_boundary_condition&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sobel_boundary_condition</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sobel_boundary_condition</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">sobel_boundary_condition</span>
 
         <span class="c1"># Check Gaussian kernel settings.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_gaussian_filter</span><span class="p">():</span>
@@ -1013,7 +1052,7 @@
             <span class="s2">&quot;riesz_steered_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gaussian&quot;</span><span class="p">,</span>
             <span class="s2">&quot;laws&quot;</span><span class="p">,</span> <span class="s2">&quot;gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_steered_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
             <span class="s2">&quot;pyradiomics_square&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_square_root&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_logarithm&quot;</span><span class="p">,</span> <span class="s2">&quot;pyradiomics_exponential&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;lbp&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_2d&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_3d&quot;</span><span class="p">,</span> <span class="s2">&quot;laplace&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian&quot;</span>
+            <span class="s2">&quot;lbp&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_2d&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_3d&quot;</span><span class="p">,</span> <span class="s2">&quot;laplace&quot;</span><span class="p">,</span> <span class="s2">&quot;laplacian&quot;</span><span class="p">,</span> <span class="s2">&quot;prewitt&quot;</span><span class="p">,</span> <span class="s2">&quot;sobel&quot;</span>
         <span class="p">]</span> <span class="o">+</span> \
         <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_laplacian_of_gaussian_filters</span><span class="p">()</span> <span class="o">+</span> \
         <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_normalised_laplacian_of_gaussian_filters</span><span class="p">()</span>
@@ -1350,6 +1389,22 @@
 
         <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">has_prewitt_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;prewitt&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">has_sobel_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">filter_kernel</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;sobel&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">filter_kernel</span> <span class="ow">in</span> <span class="n">x</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">has_gaussian_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">spatial_filters</span>
@@ -1515,7 +1570,7 @@
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;spatial_filters&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span>
                 <span class="s2">&quot;separable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_nonseparable_wavelet&quot;</span><span class="p">,</span> <span class="s2">&quot;gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_gaussian&quot;</span><span class="p">,</span>
                 <span class="s2">&quot;laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_laplacian_of_gaussian&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_log&quot;</span><span class="p">,</span> <span class="s2">&quot;laplace&quot;</span><span class="p">,</span> <span class="s2">&quot;laws&quot;</span><span class="p">,</span> <span class="s2">&quot;gabor&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_3d&quot;</span>
+                <span class="s2">&quot;riesz_gabor&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;lbp_3d&quot;</span><span class="p">,</span> <span class="s2">&quot;prewitt&quot;</span><span class="p">,</span> <span class="s2">&quot;sobel&quot;</span>
             <span class="p">]</span>
         <span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;boundary_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">),</span>
@@ -1580,6 +1635,8 @@
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;mean_filter_size&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">]</span>
         <span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;mean_filter_boundary_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;prewitt_boundary_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;sobel_boundary_condition&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;constant&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span>
             <span class="s2">&quot;riesz_filter_order&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;riesz_filter_order&quot;</span><span class="p">,</span> <span class="s2">&quot;riesz_order&quot;</span><span class="p">],</span>
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;riesz_order&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
