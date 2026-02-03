@@ -104,7 +104,7 @@ def test_pooled_texture_features():
             **GENERIC_KWARGS
         )[0]
 
-    assert data.columns.str.startswith('cm_').sum() == 156
+    assert data.columns.str.startswith("cm_").sum() == 156
     assert data.cm_joint_max_d1_3d_range_fbn_n16.to_numpy()[0] == data.cm_joint_max_d1_3d_max_fbn_n16.to_numpy()[0] - \
            data.cm_joint_max_d1_3d_min_fbn_n16.to_numpy()[0]
     assert data.cm_joint_max_d1_3d_min_fbn_n16.to_numpy()[0] < data.cm_joint_max_d1_3d_avg_fbn_n16.to_numpy()[0] < \
@@ -122,7 +122,7 @@ def test_pooled_texture_features():
         **GENERIC_KWARGS
     )[0]
 
-    assert data.columns.str.startswith('cm_').sum() == 26
+    assert data.columns.str.startswith("cm_").sum() == 26
     assert "cm_joint_max_d1_3d_v_mrg_fbn_n16" in data.columns
     assert "cm_joint_max_d1_3d_v_mrg_std_fbn_n16" not in data.columns
 
@@ -139,7 +139,7 @@ def test_pooled_texture_features():
         **GENERIC_KWARGS
     )[0]
 
-    assert data.columns.str.startswith('cm_').sum() == 156
+    assert data.columns.str.startswith("cm_").sum() == 156
     assert "cm_joint_max_d1_2d_min_fbn_n16" in data.columns
     assert "cm_joint_max_d1_2d_s_mrg_min_fbn_n16" in data.columns
     assert "cm_joint_max_d1_2.5d_d_mrg_min_fbn_n16" in data.columns
@@ -158,15 +158,63 @@ def test_pooled_texture_features():
         **GENERIC_KWARGS
     )[0]
 
-    assert data.columns.str.startswith('szm_').sum() == 48
+    assert data.columns.str.startswith("szm_").sum() == 48
     assert "szm_sze_2d_min_fbn_n16" in data.columns
     assert "szm_sze_2.5d_fbn_n16" in data.columns  # Matrix merging method
     assert "szm_sze_3d_fbn_n16" in data.columns  # Matrix merging method
 
     # Check for all types of texture features - RLM (GLCM already tested)
+    data = extract_features(
+        base_feature_families="rlm",
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method="min",
+        glrlm_spatial_method="3d_average",
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith("rlm_").sum() == 16
+    assert "rlm_sre_3d_min_fbn_n16" in data.columns
 
     # Check for all types of texture features - DZM (SZM already tested).
+    data = extract_features(
+        base_feature_families="dzm",
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method="min",
+        gldzm_spatial_method="2d",
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith("dzm_").sum() == 16
+    assert "dzm_sde_2d_min_fbn_n16" in data.columns
 
     # Check for all types of texture features - NGTDM
+    data = extract_features(
+        base_feature_families="ngtdm",
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method="min",
+        ngtdm_spatial_method="2d",
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith("ngt_").sum() == 5
+    assert "ngt_coarseness_2d_min_fbn_n16" in data.columns
 
     # Check for all types of texture features - NGLDM
+    data = extract_features(
+        base_feature_families="ngldm",
+        ibsi_compliant=False,
+        base_discretisation_method="fixed_bin_number",
+        base_discretisation_n_bins=16,
+        texture_feature_pooling_method="min",
+        ngldm_spatial_method="2d",
+        **GENERIC_KWARGS
+    )[0]
+
+    assert data.columns.str.startswith("ngl_").sum() == 17
+    assert "ngl_lde_d1_a0.0_2d_min_fbn_n16" in data.columns
