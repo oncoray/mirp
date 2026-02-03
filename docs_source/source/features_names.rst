@@ -86,7 +86,19 @@ Statistical features are listed below:
 * `stat_cov`: Coefficient of variation (`7TET`)
 * `stat_qcod`: Quartile coefficient of dispersion (`9S40`)
 * `stat_energy`: Energy (`N8CA`)
+* `stat_energy_offset`: Energy with intensity offset (no identifier)
 * `stat_rms`: Root mean square (`5ZWQ`)
+* `stat_rms_offset`: Root mean square with intensity offset (no identifier)
+* `stat_total_energy`: Total energy (no identifier)
+* `stat_total_energy_offset`: Total energy with intensity offset (no identifier)
+
+The total energy feature is defined as the voxel volume times energy.
+The `stat_energy_offset`, `stat_rms_offset`, and `stat_total_energy_offset` add an offset (`stat_value_shift`
+parameter, default `stat_value_shift=0.0`) to the image intensities prior to computing the corresponding feature
+values.
+
+The `stat_energy_offset`, `stat_rms_offset`, `stat_total_energy`, `stat_total_energy_offset` do not have reference
+values, and can only be computed when `ibsi_compliant=False`.
 
 Intensity histogram features (`ZVCW`)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
