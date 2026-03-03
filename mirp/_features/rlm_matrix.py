@@ -122,6 +122,8 @@ class MatrixRLM(DirectionalMatrix):
 
         # Get an interspersed array of intensities. Runs are broken up by np.nan
         intensities = np.insert(data.g.values[trans_vec], end_ind + 1, np.nan)
+        if len(intensities) == 0:
+            return
 
         # Determine run length start and end indices
         rle_end = np.array(np.append(np.where(intensities[1:] != intensities[:-1]), len(intensities) - 1))
