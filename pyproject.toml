@@ -27,12 +27,12 @@ requires-python = ">=3.10"
 dependencies = [
     "itk>=5.3.0",
     "matplotlib>=3.7.0",
-    "numpy>=1.25",
-    "pandas>=2.0.0",
-    "pydicom>=2.4.0",
+    "numpy>=2.4",
+    "pandas>=3.0.0",
+    "pydicom>=3.0.0",
     "pywavelets>=1.4.0",
-    "scikit-image>=0.20.0",
-    "scipy>=1.11",
+    "scikit-image>=0.26.0",
+    "scipy>=1.17",
     "typing-extensions>=4.10; python_version<'3.11'"
 ]
 
