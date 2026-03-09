@@ -80,6 +80,10 @@ def test_read_suv_dro():
         image = image[0]
         mask = mask[0]
 
+        print(f"{dro}: {np.around(np.min(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 5):.5f},"
+              f"{np.around(np.median(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 5):.5f},"
+              f"{np.around(np.max(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 5):.5f}")
+
         # Does not compute correctly:
         if dro in ["DRO_2_0", "DRO_2_1", "DRO_2_2", "DRO_2_3", "DRO_3_0", "DRO_3_1", "DRO_3_2", "DRO_3_3",
                    "DRO_4_2"]:
