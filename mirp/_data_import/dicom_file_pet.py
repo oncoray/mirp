@@ -426,6 +426,11 @@ class ImageDicomFilePT(ImageDicomFile):
     def _get_administration_decay_factor(self) -> float:
         self.load_metadata()
 
+        # Check the current PET unit -- if it already has a SUV unit type, don't perform additional correction.
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        if pet_unit == "GML":
+            return 1.0
+
         # Type of decay correction that is used
         decay_correction = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
