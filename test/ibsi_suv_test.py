@@ -74,7 +74,7 @@ def test_read_suv_dro():
             image_export_format="native",
             image=os.path.join(CURRENT_DIR, "data", "ibsi_suv", "DRO", dro, "PT"),
             mask=os.path.join(CURRENT_DIR, "data", "ibsi_suv", "DRO", dro, "RS"),
-            roi_name="region_1",
+            roi_name="DRO_mask",
             **custom_kwargs
         )[0]
         image = image[0]
