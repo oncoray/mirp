@@ -44,6 +44,13 @@ def test_read_suv_dro():
         DRO_3_2
         DRO_3_3
         DRO_4_2
+
+    Report 2026.03.17
+    Can process:
+        all, but DRO_2_4
+
+    Incorrectly processed:
+
     """
 
     available_dro = [
@@ -55,6 +62,12 @@ def test_read_suv_dro():
         'DRO_5_0'
     ]
 
+    available_dro = [
+        'DRO_2_3', 'DRO_2_4',
+        'DRO_3_0', 'DRO_3_2', 'DRO_3_3',
+        'DRO_4_2'
+    ]
+
     for dro in available_dro:
         custom_kwargs = dict([])
 
@@ -62,13 +75,6 @@ def test_read_suv_dro():
         if dro == "DRO_2_4":
             warnings.warn(f"{dro} is missing information necessary for conversion.", UserWarning)
             continue
-
-        if dro == "DRO_2_1":
-            custom_kwargs.update({"pet_suv_conversion": "lean_body_mass"})
-        elif dro == "DRO_2_2":
-            custom_kwargs.update({"pet_suv_conversion": "ideal_body_weight"})
-        elif dro == "DRO_2_3":
-            custom_kwargs.update({"pet_suv_conversion": "body_surface_area"})
 
         image, mask = extract_images(
             image_export_format="native",
@@ -85,7 +91,7 @@ def test_read_suv_dro():
               f"{np.around(np.max(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 5):.5f}")
 
         # Does not compute correctly:
-        if dro in ["DRO_2_0", "DRO_2_1", "DRO_2_2", "DRO_2_3", "DRO_3_0", "DRO_3_1", "DRO_3_2", "DRO_3_3",
+        if dro in ["DRO_2_2", "DRO_2_3", "DRO_3_0", "DRO_3_1", "DRO_3_2", "DRO_3_3",
                    "DRO_4_2"]:
             warnings.warn(f"{dro} is not converted correctly.", UserWarning)
             continue
