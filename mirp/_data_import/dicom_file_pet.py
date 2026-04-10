@@ -25,53 +25,94 @@ class ImageDicomFilePT(ImageDicomFile):
     ):
         image_data = self.load_data_generic()
 
-        conversion_possible = True
-        # Get decay correction factor
-        try:
-            decay_factor = self._get_administration_decay_factor()
-        except ValueError as err:
-            warnings.warn(
-                f"SUV cannot be computed as decay correction factor could not be determined. {str(err)}",
-                UserWarning
-            )
-            conversion_possible = False
-            decay_factor = 1.0
+        # First we need to go the GML as unit.
+        gml_factor = self._to_gml_conversion_factor()
 
-        # Get conversion factor to BQML
-        try:
-            bqml_factor = self._get_pet_unit_conversion_factor()
-        except ValueError as err:
-            if pet_suv_conversion != "none":
-                warnings.warn(
-                    f"SUV cannot be computed. BQML conversion factor could not be determined. {str(err)}",
-                    UserWarning
-                )
-            conversion_possible = False
-            bqml_factor = 1.0
+        # Then convert to the correct SUV type.
+        suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
 
-        except NotImplementedError as err:
-            if pet_suv_conversion != "none":
-                warnings.warn(
-                    f"SUV cannot be computed. BQML conversion factor could not be determined. {str(err)}",
-                    UserWarning
-                )
-            conversion_possible = False
-            bqml_factor = 1.0
+        # Update image intensities.
+        image_data *= gml_factor * suv_factor
 
-        # Get SUV conversion factor and update the object_metadata attribute.
-        if conversion_possible:
-            suv_factor = self._get_suv_conversion_factor(new_suv_type=pet_suv_conversion)
-            self.object_metadata.update(dict([("suv_type", pet_suv_conversion)]))
-
-        else:
-            suv_factor = 1.0
-            self.object_metadata.update(dict([("suv_type", "none")]))
-
-        # Update image_data
-        image_data *= decay_factor * bqml_factor * suv_factor
-
-        # Set image data.
+        # Set image_data attribute.
         self.image_data = image_data
+
+    def _to_gml_conversion_factor(self) -> float:
+        """To compute SUV, PET units need to be converted to BQML."""
+        self.load_metadata()
+
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        if pet_unit is None:
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+
+        if pet_unit in ["CNTS"]:
+            conversion_factor = self._pet_unit_cnts_to_gml()
+        elif pet_unit in ["CPS"]:
+            conversion_factor = self._pet_unit_cps_to_gml()
+        elif pet_unit in ["BQML"]:
+            conversion_factor = self._pet_unit_bqml_to_gml()
+        elif pet_unit in ["CM2ML"]:
+            conversion_factor = self._pet_unit_cm2ml_to_gml()
+        elif pet_unit in ["GML"]:
+            conversion_factor = self._pet_unit_gml_to_gml()
+        else:
+            raise NotImplementedError(
+                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+            )
+
+        return conversion_factor
+
+    def _pet_unit_cnts_to_gml(self) -> float:
+        ...
+
+    def _pet_unit_cps_to_gml(self) -> float:
+        ...
+
+    def _pet_unit_bqml_to_gml(self) -> float:
+        ...
+
+    def _pet_unit_cm2ml_to_gml(self) -> float:
+        ...
+
+    def _pet_unit_gml_to_gml(self) -> float:
+        # No work required if the current pet unit is GML.
+        return 1.0
+
+    def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
+        # Get SUV type.
+        current_suv_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1006),
+            tag_type="str",
+            default="none"
+        )
+
+        # Convert DICOM SUV type to internal format.
+        translation_table = dict([
+            ("none", "none"),
+            ("BW", "body_weight"),
+            ("BSA", "body_surface_area"),
+            ("LBM", "lean_body_mass_error"),
+            ("LBMJAMES128", "lean_body_mass"),
+            ("LBMJANMA", "lean_body_mass_bmi"),
+            ("IBW", "ideal_body_weight")
+        ])
+        current_suv_type = translation_table[current_suv_type]
+
+        if current_suv_type == new_suv_type:
+            return 1.0
+
+        # Compute conversion factor to unnormalised values.
+        revert_suv_factor = 1.0
+        if current_suv_type != "none":
+            revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
+
+        # Compute required factor to normalised values.
+        suv_factor = 1.0
+        if new_suv_type != "none":
+            suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
+
+        return revert_suv_factor * suv_factor
 
     def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
@@ -662,29 +703,29 @@ class ImageDicomFilePT(ImageDicomFile):
             patient_weight /= 1000.0
 
         # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
-        administered_dose = None
-        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
-        if has_sequence and administered_dose is None:
-            administered_dose = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1074),
-                tag_type="float"
-            )
-
-        if administered_dose is None:
-            raise ValueError(
-                f"Radionuclide Total Dose (0x0018, 0x1074) was missing. SUV normalisation is not possible. "
-                f"[{self.describe_self()}]"
-            )
-        elif administered_dose <= 0.0:
-            raise ValueError(
-                f"Radionuclide Total Dose (0x0018, 0x1074) was not positive ({administered_dose}). "
-                f"SUV normalisation is not possible. [{self.describe_self()}]"
-            )
+        # administered_dose = None
+        # has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+        # if has_sequence and administered_dose is None:
+        #     administered_dose = get_pydicom_meta_tag(
+        #         dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+        #         tag=(0x0018, 0x1074),
+        #         tag_type="float"
+        #     )
+        #
+        # if administered_dose is None:
+        #     raise ValueError(
+        #         f"Radionuclide Total Dose (0x0018, 0x1074) was missing. SUV normalisation is not possible. "
+        #         f"[{self.describe_self()}]"
+        #     )
+        # elif administered_dose <= 0.0:
+        #     raise ValueError(
+        #         f"Radionuclide Total Dose (0x0018, 0x1074) was not positive ({administered_dose}). "
+        #         f"SUV normalisation is not possible. [{self.describe_self()}]"
+        #     )
 
         # Body weight-corrected SUV ------------------------------------------------------------------------------------
         if suv_type == "body_weight":
-            return patient_weight * 1000.0 / administered_dose
+            return patient_weight
 
         # Require patient height.
         patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
@@ -702,15 +743,18 @@ class ImageDicomFilePT(ImageDicomFile):
             # Interpret patient height as cm and convert to meter.
             patient_height /= 100.0
 
+        # Patient height in equations is expressed in cm, not meters.
+        patient_height *= 100.0
+
         # Body surface area-corrected SUV ------------------------------------------------------------------------------
         if suv_type == "body_surface_area":
             # Kim et al. Journal of Nuclear Medicine. Volume 35, No. 1, January 1994. pp 164-167
-            return 10000.0 * patient_weight ** 0.425 * (patient_height * 100.0) ** 0.725 * 0.007184 / administered_dose
+            return 0.007184 * patient_weight ** 0.425 * patient_height ** 0.725
 
         # Require patient biological sex.
         patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
         if patient_biological_sex is None:
-            patient_biological_sex = "O"
+            patient_biological_sex = "o"
         if patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
             raise ValueError(
                 f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex}. SUV normalisation "
@@ -720,42 +764,42 @@ class ImageDicomFilePT(ImageDicomFile):
         # Erroneous lean body mass-corrected SUV -----------------------------------------------------------------------
         if suv_type == "lean_body_mass_error":
             if patient_biological_sex.lower() == "m":
-                norm_factor = 1.10 * patient_weight - 120.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                norm_factor = 1.10 * patient_weight - 120.0 * (patient_weight / patient_height) ** 2.0
             elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
             elif patient_biological_sex.lower() in ["o", "d", "u"]:
                 # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
                 norm_factor = (
-                        1.10 * patient_weight - 120.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                        + 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                        1.10 * patient_weight - 120.0 * (patient_weight / patient_height) ** 2.0
+                        + 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
                 ) / 2.0
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor * 1000.0 / administered_dose
+            return norm_factor
 
         # Lean body mass-corrected SUV ---------------------------------------------------------------------------------
         if suv_type == "lean_body_mass":
             if patient_biological_sex.lower() == "m":
-                norm_factor = 1.10 * patient_weight - 128.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                norm_factor = 1.10 * patient_weight - 128.0 * (patient_weight / patient_height) ** 2.0
             elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
             elif patient_biological_sex.lower() in ["o", "d", "u"]:
                 # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
                 norm_factor = (
-                        1.10 * patient_weight - 128.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                        + 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
+                        1.10 * patient_weight - 128.0 * (patient_weight / patient_height) ** 2.0
+                        + 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
                 ) / 2.0
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor * 1000.0 / administered_dose
+            return norm_factor
 
         # Lean body mass (BMI)-corrected SUV ---------------------------------------------------------------------------
         if suv_type == "lean_body_mass_bmi":
             # Janmahasatian, Sarayut, et al. "Quantification of lean bodyweight." Clinical pharmacokinetics 44
             # (2005): 1051-1065.
-            bmi = patient_weight / patient_height**2.0
+            bmi = patient_weight / (patient_height / 100.0) ** 2.0  # for bmi, height is expressed in meters, not cm.
             if patient_biological_sex.lower() in ["m"]:
                 norm_factor = 9270.0 * patient_weight / (6680.0 + 216.0 * bmi)
             elif patient_biological_sex.lower() in ["f", "w"]:
@@ -768,14 +812,14 @@ class ImageDicomFilePT(ImageDicomFile):
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor * 1000. / administered_dose
+            return norm_factor
 
         # Ideal body weight (IBW)-corrected SUV ------------------------------------------------------------------------
         if suv_type == "ideal_body_weight":
             if patient_biological_sex.lower() in ["m"]:
-                norm_factor = 48.0 + 1.06 * (patient_height * 100.0 - 152.0)
+                norm_factor = 48.0 + 1.06 * (patient_height - 152.0)
             elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 45.5 + 0.91 * (patient_height * 100.0 - 152.0)
+                norm_factor = 45.5 + 0.91 * (patient_height - 152.0)
             elif patient_biological_sex.lower() in ["o", "d", "u"]:
                 # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
                 norm_factor = (
@@ -785,7 +829,9 @@ class ImageDicomFilePT(ImageDicomFile):
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor * 1000.0 / administered_dose
+            return norm_factor
+
+        raise ValueError(f"suv_type was not recognised: {suv_type}")
 
 
 class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
