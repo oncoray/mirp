@@ -403,6 +403,9 @@ class ImageDicomFilePT(ImageDicomFile):
 
 
     def _pet_unit_bqml_to_gml(self) -> float:
+        # BQML to GML is relatively complex, and involves multiple pathways, including vendor-specific pathways.
+        # The first consideration is the decay correction attribute: ADMIN and NONE are straightforward, but START is
+        # complex.
         ...
 
     def _pet_unit_cm2ml_to_gml(self) -> float:
