@@ -775,6 +775,23 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return patient_weight
 
+    def _get_decay_correction(self) -> "str":
+        # Type of decay correction that is used
+        decay_correction = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1102),
+            tag_type="str",
+            default="NONE"
+        )
+
+        if decay_correction not in ["NONE", "START", "ADMIN"]:
+            raise ValueError(
+                f"Decay correction DICOM tag was not recognised: {decay_correction}. One of ",
+                f"NONE, START or ADMIN was expected. [{self.describe_self()}]"
+            )
+
+        return decay_correction
+
     def _get_frame_duration(self, to_seconds=True) -> float:
         frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
         if frame_duration is None or frame_duration <= 0.0:
