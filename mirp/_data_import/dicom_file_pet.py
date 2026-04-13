@@ -363,7 +363,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Get voxel volume in ml.
         voxel_volume = self._get_voxel_volume(to_milliliter=True)
 
-        ...
+        return self._pet_unit_bqml_to_gml() / (frame_duration * voxel_volume)
 
     def _pet_unit_cps_to_gml(self) -> float:
         # CPS is sometimes found in DICOM files from Philips scanners. There are several pathways.
@@ -786,7 +786,16 @@ class ImageDicomFilePT(ImageDicomFile):
         return frame_duration
 
     def _get_voxel_volume(self, to_milliliter=True) -> float:
-        ...
+        # Use slice thickness for z-dimensions. Slice thickness is not always equal to z-spacing.
+        image_slice_thickness = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x0050), tag_type="float")
+        voxel_volume = self.image_spacing[1] * self.image_spacing[2] * image_slice_thickness
+
+        if to_milliliter:
+            # For PET images, physical dimensions are in millimeters, which means that each voxel has a volume of
+            # in mm^3. 1000 mm^3 is 1 milliliter.
+            voxel_volume /= 1000.0
+
+        return voxel_volume
 
 
 class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
