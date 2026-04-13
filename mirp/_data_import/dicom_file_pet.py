@@ -71,8 +71,8 @@ class ImageDicomFilePT(ImageDicomFile):
             radio_admin_ref_time = None
 
         if radio_admin_ref_time is None:
-            # If neither (0x0018, 0x1078) or (0x0018, 0x1072) are present, attempt to read private tags.
-            # GE tags - note that due to anonymisation, acquisition time may be different then reported.
+            # If neither (0x0018, 0x1078) nor (0x0018, 0x1072) are present, attempt to read private tags.
+            # GE tags - note that due to anonymisation, acquisition time may be different from reported.
             acquisition_ref_time = convert_dicom_time(get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata, tag=(0x0009, 0x100d), tag_type="str"))
             radio_admin_ref_time = convert_dicom_time(get_pydicom_meta_tag(
@@ -530,7 +530,7 @@ class ImageDicomFilePT(ImageDicomFile):
     def _get_administration_decay_factor(self) -> float:
         self.load_metadata()
 
-        # Check the current PET unit -- if it already has a SUV unit type, don't perform additional correction.
+        # Check the current PET unit -- if it already has an SUV unit type, don't perform additional correction.
         pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
         if pet_unit == "GML":
             return 1.0
