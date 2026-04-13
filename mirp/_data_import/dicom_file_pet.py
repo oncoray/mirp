@@ -1,4 +1,3 @@
-import warnings
 import numpy as np
 import datetime
 from typing import Any
@@ -401,7 +400,6 @@ class ImageDicomFilePT(ImageDicomFile):
                 f"1009: {acsf}) or SUV scale factor (7053, 1000: {ssf}) attributes may have been set incorrectly."
             )
 
-
     def _pet_unit_bqml_to_gml(self) -> float:
         # BQML to GML is relatively complex, and involves multiple pathways, including vendor-specific pathways.
         # The first consideration is the decay correction attribute: ADMIN and NONE are straightforward, but START is
@@ -628,7 +626,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Require body weight.
         patient_weight = self._get_patient_weight()
 
-                # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
+        # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
         # administered_dose = None
         # has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
         # if has_sequence and administered_dose is None:
