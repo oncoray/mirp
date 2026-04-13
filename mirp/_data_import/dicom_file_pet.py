@@ -18,102 +18,6 @@ class ImageDicomFilePT(ImageDicomFile):
     def create(self):
         return self
 
-    def load_data(
-            self,
-            pet_suv_conversion: str = "body_weight",
-            **kwargs
-    ):
-        image_data = self.load_data_generic()
-
-        # First we need to go the GML as unit.
-        gml_factor = self._to_gml_conversion_factor()
-
-        # Then convert to the correct SUV type.
-        suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
-
-        # Update image intensities.
-        image_data *= gml_factor * suv_factor
-
-        # Set image_data attribute.
-        self.image_data = image_data
-
-    def _to_gml_conversion_factor(self) -> float:
-        """To compute SUV, PET units need to be converted to BQML."""
-        self.load_metadata()
-
-        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
-        if pet_unit is None:
-            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
-
-        if pet_unit in ["CNTS"]:
-            conversion_factor = self._pet_unit_cnts_to_gml()
-        elif pet_unit in ["CPS"]:
-            conversion_factor = self._pet_unit_cps_to_gml()
-        elif pet_unit in ["BQML"]:
-            conversion_factor = self._pet_unit_bqml_to_gml()
-        elif pet_unit in ["CM2ML"]:
-            conversion_factor = self._pet_unit_cm2ml_to_gml()
-        elif pet_unit in ["GML"]:
-            conversion_factor = self._pet_unit_gml_to_gml()
-        else:
-            raise NotImplementedError(
-                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
-            )
-
-        return conversion_factor
-
-    def _pet_unit_cnts_to_gml(self) -> float:
-        ...
-
-    def _pet_unit_cps_to_gml(self) -> float:
-        ...
-
-    def _pet_unit_bqml_to_gml(self) -> float:
-        ...
-
-    def _pet_unit_cm2ml_to_gml(self) -> float:
-        ...
-
-    def _pet_unit_gml_to_gml(self) -> float:
-        # No work required if the current pet unit is GML.
-        return 1.0
-
-    def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
-        # Get SUV type.
-        current_suv_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0054, 0x1006),
-            tag_type="str",
-            default="none"
-        )
-
-        # Convert DICOM SUV type to internal format.
-        translation_table = dict([
-            ("none", "none"),
-            ("BW", "body_weight"),
-            ("BSA", "body_surface_area"),
-            ("LBM", "lean_body_mass_error"),
-            ("LBMJAMES128", "lean_body_mass"),
-            ("LBMJANMA", "lean_body_mass_bmi"),
-            ("IBW", "ideal_body_weight")
-        ])
-        current_suv_type = translation_table[current_suv_type]
-
-        if current_suv_type == new_suv_type:
-            return 1.0
-
-        # Compute conversion factor to unnormalised values.
-        revert_suv_factor = 1.0
-        if current_suv_type != "none":
-            revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
-
-        # Compute required factor to normalised values.
-        suv_factor = 1.0
-        if new_suv_type != "none":
-            suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
-
-        return revert_suv_factor * suv_factor
-
     def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
             metadata = super().export_metadata()
@@ -404,6 +308,164 @@ class ImageDicomFilePT(ImageDicomFile):
         metadata.update(dict(dcm_meta_data))
         return metadata
 
+    def load_data(
+            self,
+            pet_suv_conversion: str = "body_weight",
+            **kwargs
+    ):
+        image_data = self.load_data_generic()
+
+        # First we need to go the GML as unit.
+        gml_factor = self._to_gml_conversion_factor()
+
+        # Then convert to the correct SUV type.
+        suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+
+        # Update image intensities.
+        image_data *= gml_factor * suv_factor
+
+        # Set image_data attribute.
+        self.image_data = image_data
+
+    def _to_gml_conversion_factor(self) -> float:
+        """To compute SUV, PET units need to be converted to BQML."""
+        self.load_metadata()
+
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        if pet_unit is None:
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+
+        if pet_unit in ["CNTS"]:
+            conversion_factor = self._pet_unit_cnts_to_gml()
+        elif pet_unit in ["CPS"]:
+            conversion_factor = self._pet_unit_cps_to_gml()
+        elif pet_unit in ["BQML"]:
+            conversion_factor = self._pet_unit_bqml_to_gml()
+        elif pet_unit in ["CM2ML"]:
+            conversion_factor = self._pet_unit_cm2ml_to_gml()
+        elif pet_unit in ["GML"]:
+            conversion_factor = self._pet_unit_gml_to_gml()
+        else:
+            raise NotImplementedError(
+                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+            )
+
+        return conversion_factor
+
+    def _pet_unit_cnts_to_gml(self) -> float:
+        # CNTS are literally counts measured over the frame duration. We need to convert to BQML by:
+        # - Dividing by the frame duration (CNTS / seconds -> average activity (BQ) in frame)
+        # - Normalising by voxel volume (CNTS -> CNTS / ml)
+
+        # Get frame duration in seconds.
+        frame_duration = self._get_frame_duration(to_seconds=True)
+
+        # Get voxel volume in ml.
+        voxel_volume = self._get_voxel_volume(to_milliliter=True)
+
+        ...
+
+    def _pet_unit_cps_to_gml(self) -> float:
+        # CPS is sometimes found in DICOM files from Philips scanners. There are several pathways.
+
+        # Activity concentration scale factor (7053,1009) - private Philips tag.
+        acsf = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1009), tag_type="float")
+
+        # SUV scale factor ((7053,1000) - private Philips tag.
+        ssf = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1000), tag_type="float")
+
+        if acsf is None and ssf is None:
+            # Pathway 1: ACSF and SSF are both missing -> not a Philips scan.
+
+            # Get frame duration in seconds.
+            frame_duration = self._get_frame_duration(to_seconds=True)
+
+            # If we integrate counts per second over the frame duration, we get counts. Internally conversion goes
+            # CPS -> CNTS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
+            return self._pet_unit_cnts_to_gml() * frame_duration
+
+        elif acsf is not None and acsf > 0.0:
+            # Pathway 2: Using activity concentration scale factor. ACSF converts CPS to BQML.
+            return self._pet_unit_bqml_to_gml() * acsf
+
+        elif ssf is not None and ssf > 0.0:
+            # Pathway 3: Using SUV scale factor. SSF directly converts CPS to GLM (body-weight corrected SUV).
+
+            # SSF needs to be corrected for body weight, because otherwise we will multiply by body weight twice.
+            # SSF directly converts CPS to GML (SUV: BW), whereas we will compute a separate SUV conversion factor.
+            # This also prevents issues if SUV other than body-weight SUV is required.
+            return ssf / self._get_patient_weight()
+        else:
+            raise ValueError(
+                f"Cannot convert CPS units to GML. Philips activity concentration scale factor (7053, "
+                f"1009: {acsf}) or SUV scale factor (7053, 1000: {ssf}) attributes may have been set incorrectly."
+            )
+
+
+    def _pet_unit_bqml_to_gml(self) -> float:
+        ...
+
+    def _pet_unit_cm2ml_to_gml(self) -> float:
+        # Special case for body-surface adjusted SUV -- explicit conversion to GML takes place when
+        # computing the SUV conversion factor.
+        return 1.0
+
+    def _pet_unit_gml_to_gml(self) -> float:
+        # No work required if the current pet unit is GML.
+        return 1.0
+
+    def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
+        # Get SUV type.
+        current_suv_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1006),
+            tag_type="str"
+        )
+
+        # Set SUV type based on PET unit.
+        if current_suv_type is None:
+            # Get PET unit to check if there is a default.
+            pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+            if pet_unit is None:
+                raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+
+            if pet_unit == "GML":
+                # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
+                current_suv_type = "BW"
+            elif pet_unit == "CM2ML":
+                current_suv_type = "BSA"
+
+        # If SUV type was not set, and cannot be inferred, assume that intensities do not represent SUV.
+        if current_suv_type is None:
+            current_suv_type = "none"
+
+        # Convert DICOM SUV type to internal format.
+        translation_table = dict([
+            ("none", "none"),
+            ("BW", "body_weight"),
+            ("BSA", "body_surface_area"),
+            ("LBM", "lean_body_mass_error"),
+            ("LBMJAMES128", "lean_body_mass"),
+            ("LBMJANMA", "lean_body_mass_bmi"),
+            ("IBW", "ideal_body_weight")
+        ])
+        current_suv_type = translation_table[current_suv_type]
+
+        if current_suv_type == new_suv_type:
+            return 1.0
+
+        # Compute conversion factor to unnormalised values.
+        revert_suv_factor = 1.0
+        if current_suv_type != "none":
+            revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
+
+        # Compute required factor to normalised values.
+        suv_factor = 1.0
+        if new_suv_type != "none":
+            suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
+
+        return revert_suv_factor * suv_factor
+
     def _get_tracer_administration_time(self) -> datetime.datetime:
         self.load_metadata()
 
@@ -554,155 +616,16 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return decay_factor
 
-    def _get_pet_unit_conversion_factor(self) -> float:
-        """To compute SUV, PET units need to be converted to BQML."""
-        self.load_metadata()
-
-        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
-        if pet_unit is None:
-            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
-
-        if pet_unit in ["CNTS", "CPS"]:
-            conversion_factor = self._pet_unit_cnt_to_bqml()
-        elif pet_unit in ["BQML"]:
-            conversion_factor = 1.0
-        elif pet_unit in ["GML", "CM2ML"]:
-            conversion_factor = 1.0
-        else:
-            raise NotImplementedError(
-                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
-            )
-
-        return conversion_factor
-
-    def _pet_unit_cnt_to_bqml(self) -> float:
-        self.load_metadata()
-
-        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
-
-        # Read private tag.
-        conversion_factor = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1009), tag_type="float")
-
-        # Use frame duration (if not CPS), and Radiopharmaceutical Volume to convert to Bq/ml.
-        if conversion_factor is None:
-            conversion_factor = 1.0
-            if pet_unit == "CNTS":
-                frame_duration = get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata,
-                    tag=(0x0018, 0x1242),
-                    tag_type="float"
-                )
-                if frame_duration is None:
-                    raise ValueError(
-                        f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]"
-                    )
-                frame_duration /= 1000.0  # From milliseconds to seconds.
-                conversion_factor = 1.0 / frame_duration
-
-            # Radiopharmaceutical volume should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
-            if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
-                administered_volume = get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                    tag=(0x0018, 0x1071),
-                    tag_type="float"
-                )
-                if administered_volume is None:
-                    raise ValueError(
-                        f"Radiopharmaceutical volume cannot be determined from DICOM metadata. [{self.describe_self()}]"
-                    )
-
-                # Divide by administered volume (in cubic cm == milliliter)
-                conversion_factor /= administered_volume
-
-            else:
-                raise ValueError(
-                    f"Radiopharmaceutical Information Sequence (0x0054, 0x0016) is missing in DICOM metadata. "
-                    f"[{self.describe_self()}]"
-                )
-
-        # Final check
-        if conversion_factor is None:
-            raise ValueError(
-                f"Conversion factor for converting {pet_unit} to BQML could not be established. "
-                f"[{self.describe_self()}]"
-            )
-
-        return conversion_factor
-
-    def _get_suv_conversion_factor(self, new_suv_type: str) -> float:
-        self.load_metadata()
-
-        current_suv_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0054, 0x1006),
-            tag_type="str"
-        )
-
-        # Set SUV type based on PET unit.
-        if current_suv_type is None:
-            pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
-            if pet_unit is None:
-                raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
-
-            if pet_unit == "GML":
-                # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
-                current_suv_type = "BW"
-            elif pet_unit == "CM2ML":
-                current_suv_type = "BSA"
-
-        # If SUV type was not set, and cannot be inferred, assume that intensities do not represent SUV.
-        if current_suv_type is None:
-            current_suv_type = "none"
-
-        # Convert DICOM SUV type to internal format.
-        translation_table = dict([
-            ("none", "none"),
-            ("BW", "body_weight"),
-            ("BSA", "body_surface_area"),
-            ("LBM", "lean_body_mass_error"),
-            ("LBMJAMES128", "lean_body_mass"),
-            ("LBMJANMA", "lean_body_mass_bmi"),
-            ("IBW", "ideal_body_weight")
-        ])
-        current_suv_type = translation_table[current_suv_type]
-
-        if current_suv_type == new_suv_type:
-            return 1.0
-
-        # Convert back to BQML.
-        revert_suv_factor = 1.0
-        if current_suv_type != "none":
-            revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
-
-        suv_factor = 1.0
-        if new_suv_type != "none":
-            suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
-
-        return revert_suv_factor * suv_factor
-
     def _compute_suv_factor(self, suv_type: str) -> float:
 
         # No SUV -------------------------------------------------------------------------------------------------------
         if suv_type == "none":
             return 1.0
 
-        # Require body weight and administered dose.
-        patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
-        if patient_weight is None:
-            raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
-                f"[{self.describe_self()}]"
-            )
-        elif patient_weight <= 0.0:
-            raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
-                f"possible. [{self.describe_self()}]"
-            )
-        elif patient_weight >= 1000.0:
-            # Weight is likely provide in grams, not kilograms. Convert to kg.
-            patient_weight /= 1000.0
+        # Require body weight.
+        patient_weight = self._get_patient_weight()
 
-        # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
+                # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
         # administered_dose = None
         # has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
         # if has_sequence and administered_dose is None:
@@ -832,6 +755,38 @@ class ImageDicomFilePT(ImageDicomFile):
             return norm_factor
 
         raise ValueError(f"suv_type was not recognised: {suv_type}")
+
+    def _get_patient_weight(self) -> float:
+        patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
+        if patient_weight is None:
+            raise ValueError(
+                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
+                f"[{self.describe_self()}]"
+            )
+        elif patient_weight <= 0.0:
+            raise ValueError(
+                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
+                f"possible. [{self.describe_self()}]"
+            )
+        elif patient_weight >= 1000.0:
+            # Weight is likely provide in grams, not kilograms. Convert to kg.
+            patient_weight /= 1000.0
+
+        return patient_weight
+
+    def _get_frame_duration(self, to_seconds=True) -> float:
+        frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
+        if frame_duration is None or frame_duration <= 0.0:
+            raise ValueError(f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]")
+
+        # From milliseconds to seconds, since count per second is Bq.
+        if to_seconds:
+            frame_duration /= 1000.0
+
+        return frame_duration
+
+    def _get_voxel_volume(self, to_milliliter=True) -> float:
+        ...
 
 
 class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
