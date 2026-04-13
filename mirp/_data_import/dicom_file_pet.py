@@ -404,7 +404,19 @@ class ImageDicomFilePT(ImageDicomFile):
         # BQML to GML is relatively complex, and involves multiple pathways, including vendor-specific pathways.
         # The first consideration is the decay correction attribute: ADMIN and NONE are straightforward, but START is
         # complex.
-        ...
+        decay_correction_method = self._get_decay_correction()
+
+        if decay_correction_method == "ADMIN":
+            ...
+        elif decay_correction_method == "NONE":
+            ...
+        elif decay_correction_method == "START":
+            ...
+        else:
+            raise ValueError(
+                f"Decay correction DICOM tag was not recognised: {decay_correction_method}. One of ",
+                f"NONE, START or ADMIN was expected. [{self.describe_self()}]"
+            )
 
     def _pet_unit_cm2ml_to_gml(self) -> float:
         # Special case for body-surface adjusted SUV -- explicit conversion to GML takes place when
