@@ -429,7 +429,7 @@ class ImageDicomFilePT(ImageDicomFile):
             )
 
             # Compute time between reference and administration.
-            time_diff_ref_adm = time_acq + time_avg - time_adm
+            time_diff_ref_adm = time_acq + datetime.timedelta(seconds=time_avg) - time_adm
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
 
             # Method 2:
@@ -621,7 +621,7 @@ class ImageDicomFilePT(ImageDicomFile):
             elif patient_biological_sex.lower() in ["o", "d", "u"]:
                 # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
                 norm_factor = (
-                        48.0 + 1.06 * (patient_height * 100.0 - 152.0) + 45.5 + 0.91 * (patient_height * 100.0 - 152.0)
+                        48.0 + 1.06 * (patient_height - 152.0) + 45.5 + 0.91 * (patient_height - 152.0)
                 ) / 2.0
 
             else:
