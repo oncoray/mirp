@@ -413,10 +413,10 @@ class ImageDicomFilePT(ImageDicomFile):
             return 1.0 / administered_dose
 
         elif decay_correction_method == "NONE":
-            time_adm
+            time_adm = self._get_administration_time()
             time_acq = self._get_acquisition_start_time()
-            frame_duration
-            half_life
+            frame_duration = self._get_frame_duration(to_seconds=True)
+            half_life = self.get_half_life()
 
         elif decay_correction_method == "START":
             ...
@@ -487,65 +487,65 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return revert_suv_factor * suv_factor
 
-    def _get_tracer_administration_time(self) -> datetime.datetime:
+    def _get_administration_time(self) -> datetime.datetime:
         self.load_metadata()
 
-        # Set initial value of tracer administration reference time.
-        admin_ref_time = None
+        #  Fall back to Private GE Radiopharmaceutical Start DateTime.
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0009, 0x103b),
+            tag_type="str"
+        )
+        if admin_ref_time is not None:
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+            return admin_ref_time
 
         # Administration time should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
         has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
-
-        # Prefer Radiopharmaceutical Start DateTime (0x0018, 0x1078)
-        if has_sequence and admin_ref_time is None:
-            admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1078),
-                tag_type="str"
-            )
-            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
-
-        # Fallback to Radiopharmaceutical Start Time (0x0018, 0x1072)
-        if has_sequence and admin_ref_time is None:
-            admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1072),
-                tag_type="str"
-            )
-
-            if admin_ref_time is not None:
-                # Infer start date.
-                acquisition_start_time = self._get_acquisition_start_time()
-                admin_ref_time = datetime.datetime(
-                    year=acquisition_start_time.year,
-                    month=acquisition_start_time.month,
-                    day=acquisition_start_time.day,
-                    hour=int(admin_ref_time[0:2]),
-                    minute=int(admin_ref_time[2:4]),
-                    second=int(admin_ref_time[4:6]),
-                    microsecond=0 if len(admin_ref_time) <= 6 else int(round(float(admin_ref_time[6:]) * 1000))
-                )
-
-                # Correct for overnight recordings.
-                if admin_ref_time > acquisition_start_time:
-                    admin_ref_time -= datetime.timedelta(days=(acquisition_start_time - admin_ref_time).days)
-
-        #  Fall back to Private GE Radiopharmaceutical Start DateTime.
-        if admin_ref_time is None:
-            admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0009, 0x103b),
-                tag_type="str"
-            )
-            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
-
-        # Final check.
-        if admin_ref_time is None:
+        if not has_sequence:
             raise ValueError(
                 f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
             )
 
-        return admin_ref_time
+        # Use Radiopharmaceutical Start DateTime (0x0018, 0x1078)
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+            tag=(0x0018, 0x1078),
+            tag_type="str"
+        )
+        if admin_ref_time is not None:
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+            return admin_ref_time
+
+        # Fallback to Radiopharmaceutical Start Time (0x0018, 0x1072)
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+            tag=(0x0018, 0x1072),
+            tag_type="str"
+        )
+
+        if admin_ref_time is not None:
+            # Infer start date.
+            acquisition_start_time = self._get_acquisition_start_time()
+            admin_ref_time = datetime.datetime(
+                year=acquisition_start_time.year,
+                month=acquisition_start_time.month,
+                day=acquisition_start_time.day,
+                hour=int(admin_ref_time[0:2]),
+                minute=int(admin_ref_time[2:4]),
+                second=int(admin_ref_time[4:6]),
+                microsecond=0 if len(admin_ref_time) <= 6 else int(round(float(admin_ref_time[6:]) * 1000))
+            )
+
+            # Correct for overnight recordings.
+            if admin_ref_time > acquisition_start_time:
+                admin_ref_time -= datetime.timedelta(days=(acquisition_start_time - admin_ref_time).days)
+
+            return admin_ref_time
+
+        raise ValueError(
+           f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
+        )
 
     def _get_administration_decay_factor(self) -> float:
         self.load_metadata()
@@ -573,7 +573,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         # Get acquisition start time and tracer administration time.
         acquisition_start_time = self._get_acquisition_start_time()
-        tracer_administration_time = self._get_tracer_administration_time()
+        tracer_administration_time = self._get_administration_time()
 
         # Get frame duration in seconds.
         frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
