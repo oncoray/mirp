@@ -395,7 +395,7 @@ class ImageDicomFilePT(ImageDicomFile):
             # SSF needs to be corrected for body weight, because otherwise we will multiply by body weight twice.
             # SSF directly converts CPS to GML (SUV: BW), whereas we will compute a separate SUV conversion factor.
             # This also prevents issues if SUV other than body-weight SUV is required.
-            return ssf / self._get_patient_weight()
+            return ssf
         else:
             raise ValueError(
                 f"Cannot convert CPS units to GML. Philips activity concentration scale factor (7053, "
@@ -408,10 +408,11 @@ class ImageDicomFilePT(ImageDicomFile):
         # complex.
         decay_correction_method = self._get_decay_correction()
         administered_dose = self._get_administered_dose()
+        weight = self._get_patient_weight()
 
         if decay_correction_method == "ADMIN":
             # Note 1000.0 is used because of units should be g / ml (not kg / ml)
-            return 1000.0 / administered_dose
+            return 1000.0 * weight / administered_dose
 
         elif decay_correction_method == "NONE":
             time_adm = self._get_administration_time()
@@ -432,7 +433,7 @@ class ImageDicomFilePT(ImageDicomFile):
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
 
             # Note 1000.0 is used because of units should be g / ml (not kg / ml)
-            return 1000.0 / (administered_dose * decay_factor)
+            return 1000.0 * weight / (administered_dose * decay_factor)
 
         elif decay_correction_method == "START":
             time_adm = self._get_administration_time()
@@ -447,7 +448,7 @@ class ImageDicomFilePT(ImageDicomFile):
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
 
             # Note 1000.0 is used because of units should be g / ml (not kg / ml)
-            return 1000.0 / (administered_dose * decay_factor)
+            return 1000.0 * weight / (administered_dose * decay_factor)
 
         else:
             raise ValueError(
@@ -465,28 +466,25 @@ class ImageDicomFilePT(ImageDicomFile):
         return 1.0
 
     def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
-        # Get SUV type.
-        current_suv_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0054, 0x1006),
-            tag_type="str"
-        )
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        if pet_unit is None:
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
-        # Set SUV type based on PET unit.
-        if current_suv_type is None:
-            # Get PET unit to check if there is a default.
-            pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
-            if pet_unit is None:
-                raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+        if pet_unit == "GML":
+            # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
+            current_suv_type = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0054, 0x1006),
+                tag_type="str",
+                default="BW"
+            )
+        elif pet_unit == "CM2ML":
+            current_suv_type = "BSA"
 
-            if pet_unit == "GML":
-                # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
-                current_suv_type = "BW"
-            elif pet_unit == "CM2ML":
-                current_suv_type = "BSA"
-
-        # If SUV type was not set, and cannot be inferred, assume that intensities do not represent SUV.
-        if current_suv_type is None:
+        elif pet_unit in ["BQML", "CPS", "CNTS"]:
+            # These are internally converted to body-weight SUV in _to_gml_conversion_factor.
+            current_suv_type = "BW"
+        else:
             current_suv_type = "none"
 
         # Convert DICOM SUV type to internal format.
@@ -527,7 +525,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         # Body weight-corrected SUV ------------------------------------------------------------------------------------
         if suv_type == "body_weight":
-            return patient_weight
+            return patient_weight * 1000.0
 
         # Require patient height.
         patient_height = self._get_patient_height()
@@ -538,7 +536,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Body surface area-corrected SUV ------------------------------------------------------------------------------
         if suv_type == "body_surface_area":
             # Kim et al. Journal of Nuclear Medicine. Volume 35, No. 1, January 1994. pp 164-167
-            return 0.007184 * patient_weight ** 0.425 * patient_height ** 0.725
+            return 0.007184 * patient_weight ** 0.425 * patient_height ** 0.725 * 10000.0
 
         # Require patient biological sex.
         patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
@@ -565,7 +563,7 @@ class ImageDicomFilePT(ImageDicomFile):
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor
+            return norm_factor * 1000.0
 
         # Lean body mass-corrected SUV ---------------------------------------------------------------------------------
         if suv_type == "lean_body_mass":
@@ -582,7 +580,7 @@ class ImageDicomFilePT(ImageDicomFile):
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor
+            return norm_factor * 1000.0
 
         # Lean body mass (BMI)-corrected SUV ---------------------------------------------------------------------------
         if suv_type == "lean_body_mass_bmi":
@@ -601,7 +599,7 @@ class ImageDicomFilePT(ImageDicomFile):
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor
+            return norm_factor * 1000.0
 
         # Ideal body weight (IBW)-corrected SUV ------------------------------------------------------------------------
         if suv_type == "ideal_body_weight":
@@ -612,13 +610,12 @@ class ImageDicomFilePT(ImageDicomFile):
             elif patient_biological_sex.lower() in ["o", "d", "u"]:
                 # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
                 norm_factor = (
-                        48.0 + 1.06 * (patient_height - 152.0) + 45.5 + 0.91 * (patient_height - 152.0)
+                    48.0 + 1.06 * (patient_height - 152.0) + 45.5 + 0.91 * (patient_height - 152.0)
                 ) / 2.0
-
             else:
                 raise ValueError("unreachable code")
 
-            return norm_factor
+            return norm_factor * 1000.0
 
         raise ValueError(f"suv_type was not recognised: {suv_type}")
 
