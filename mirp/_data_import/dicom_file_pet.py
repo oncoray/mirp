@@ -353,7 +353,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return conversion_factor
 
-    def _pet_unit_cnts_to_gml(self) -> float:
+    def _pet_unit_cps_to_gml(self) -> float:
         # CNTS are literally counts measured over the frame duration. We need to convert to BQML by:
         # - Dividing by the frame duration (CNTS / seconds -> average activity (BQ) in frame)
         # - Normalising by voxel volume (CNTS -> CNTS / ml)
@@ -366,7 +366,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return self._pet_unit_bqml_to_gml() / (frame_duration * voxel_volume)
 
-    def _pet_unit_cps_to_gml(self) -> float:
+    def _pet_unit_cnts_to_gml(self) -> float:
         # CPS is sometimes found in DICOM files from Philips scanners. There are several pathways.
 
         # Activity concentration scale factor (7053,1009) - private Philips tag.
@@ -382,8 +382,8 @@ class ImageDicomFilePT(ImageDicomFile):
             frame_duration = self._get_frame_duration(to_seconds=True)
 
             # If we integrate counts per second over the frame duration, we get counts. Internally conversion goes
-            # CPS -> CNTS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
-            return self._pet_unit_cnts_to_gml() * frame_duration
+            # CNTS -> CPS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
+            return self._pet_unit_cps_to_gml() * frame_duration
 
         elif acsf is not None and acsf > 0.0:
             # Pathway 2: Using activity concentration scale factor. ACSF converts CPS to BQML.
