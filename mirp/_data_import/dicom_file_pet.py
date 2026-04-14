@@ -902,7 +902,13 @@ class ImageDicomFilePT(ImageDicomFile):
     def _get_voxel_volume(self, to_milliliter=True) -> float:
         # Use slice thickness for z-dimensions. Slice thickness is not always equal to z-spacing.
         image_slice_thickness = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x0050), tag_type="float")
-        voxel_volume = self.image_spacing[1] * self.image_spacing[2] * image_slice_thickness
+        image_pixel_size = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0028, 0x0030),
+                tag_type="mult_float"
+        )
+
+        voxel_volume = image_pixel_size[0] * image_pixel_size[1] * image_slice_thickness
 
         if to_milliliter:
             # For PET images, physical dimensions are in millimeters, which means that each voxel has a volume of
