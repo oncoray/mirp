@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import datetime
 from typing import Any
@@ -405,11 +407,17 @@ class ImageDicomFilePT(ImageDicomFile):
         # The first consideration is the decay correction attribute: ADMIN and NONE are straightforward, but START is
         # complex.
         decay_correction_method = self._get_decay_correction()
+        administered_dose = self._get_administered_dose()
 
         if decay_correction_method == "ADMIN":
-            ...
+            return 1.0 / administered_dose
+
         elif decay_correction_method == "NONE":
-            ...
+            time_adm
+            time_acq = self._get_acquisition_start_time()
+            frame_duration
+            half_life
+
         elif decay_correction_method == "START":
             ...
         else:
@@ -638,46 +646,12 @@ class ImageDicomFilePT(ImageDicomFile):
         # Require body weight.
         patient_weight = self._get_patient_weight()
 
-        # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
-        # administered_dose = None
-        # has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
-        # if has_sequence and administered_dose is None:
-        #     administered_dose = get_pydicom_meta_tag(
-        #         dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-        #         tag=(0x0018, 0x1074),
-        #         tag_type="float"
-        #     )
-        #
-        # if administered_dose is None:
-        #     raise ValueError(
-        #         f"Radionuclide Total Dose (0x0018, 0x1074) was missing. SUV normalisation is not possible. "
-        #         f"[{self.describe_self()}]"
-        #     )
-        # elif administered_dose <= 0.0:
-        #     raise ValueError(
-        #         f"Radionuclide Total Dose (0x0018, 0x1074) was not positive ({administered_dose}). "
-        #         f"SUV normalisation is not possible. [{self.describe_self()}]"
-        #     )
-
         # Body weight-corrected SUV ------------------------------------------------------------------------------------
         if suv_type == "body_weight":
             return patient_weight
 
         # Require patient height.
-        patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
-        if patient_height is None:
-            raise ValueError(
-                f"Patient Size (0x0010, 0x1020) was missing. SUV normalisation ({suv_type}) is not possible. "
-                f"[{self.describe_self()}]"
-            )
-        elif patient_height <= 0.0:
-            raise ValueError(
-                f"Patient Size (0x0010, 0x1020) was not positive ({patient_height}). SUV normalisation ({suv_type}) "
-                f"is not possible. [{self.describe_self()}]"
-            )
-        elif patient_height > 3.0:
-            # Interpret patient height as cm and convert to meter.
-            patient_height /= 100.0
+        patient_height = self._get_patient_height()
 
         # Patient height in equations is expressed in cm, not meters.
         patient_height *= 100.0
@@ -769,23 +743,39 @@ class ImageDicomFilePT(ImageDicomFile):
 
         raise ValueError(f"suv_type was not recognised: {suv_type}")
 
-    def _get_patient_weight(self) -> float:
-        patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
-        if patient_weight is None:
+    def _get_administered_dose(self) -> float:
+        # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
+        administered_dose = None
+        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+        if has_sequence and administered_dose is None:
+            administered_dose: float = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+                tag=(0x0018, 0x1074),
+                tag_type="float"
+            )
+
+        if administered_dose is None:
             raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
+                f"Radionuclide Total Dose (0x0018, 0x1074) was missing. SUV normalisation is not possible. "
                 f"[{self.describe_self()}]"
             )
-        elif patient_weight <= 0.0:
+        elif administered_dose <= 0.0:
             raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
-                f"possible. [{self.describe_self()}]"
+                f"Radionuclide Total Dose (0x0018, 0x1074) was not positive ({administered_dose}). "
+                f"SUV normalisation is not possible. [{self.describe_self()}]"
             )
-        elif patient_weight >= 1000.0:
-            # Weight is likely provide in grams, not kilograms. Convert to kg.
-            patient_weight /= 1000.0
 
-        return patient_weight
+        # Dose is likely specified as MBq and not Bq (6 orders of magnitude)
+        if administered_dose < 10**4:
+            warnings.warn(
+                f"Administered dose is likely expressed in MBq instead of Bq ({administered_dose}). "
+                f"[{self.describe_self()}]",
+                UserWarning
+            )
+            # Convert to Bq.
+            administered_dose *= 10**6
+
+        return administered_dose
 
     def _get_decay_correction(self) -> "str":
         # Type of decay correction that is used
@@ -814,6 +804,42 @@ class ImageDicomFilePT(ImageDicomFile):
             frame_duration /= 1000.0
 
         return frame_duration
+
+    def _get_patient_height(self) -> float:
+        patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
+        if patient_height is None:
+            raise ValueError(
+                f"Patient Size (0x0010, 0x1020) was missing. SUV normalisation is not possible. "
+                f"[{self.describe_self()}]"
+            )
+        elif patient_height <= 0.0:
+            raise ValueError(
+                f"Patient Size (0x0010, 0x1020) was not positive ({patient_height}). SUV normalisation "
+                f"is not possible. [{self.describe_self()}]"
+            )
+        elif patient_height > 3.0:
+            # Interpret patient height as cm and convert to meter.
+            patient_height /= 100.0
+
+        return patient_height
+
+    def _get_patient_weight(self) -> float:
+        patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
+        if patient_weight is None:
+            raise ValueError(
+                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
+                f"[{self.describe_self()}]"
+            )
+        elif patient_weight <= 0.0:
+            raise ValueError(
+                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
+                f"possible. [{self.describe_self()}]"
+            )
+        elif patient_weight >= 1000.0:
+            # Weight is likely provide in grams, not kilograms. Convert to kg.
+            patient_weight /= 1000.0
+
+        return patient_weight
 
     def _get_voxel_volume(self, to_milliliter=True) -> float:
         # Use slice thickness for z-dimensions. Slice thickness is not always equal to z-spacing.
