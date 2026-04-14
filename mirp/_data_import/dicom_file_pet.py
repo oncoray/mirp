@@ -416,7 +416,7 @@ class ImageDicomFilePT(ImageDicomFile):
             time_adm = self._get_administration_time()
             time_acq = self._get_acquisition_start_time()
             frame_duration = self._get_frame_duration(to_seconds=True)
-            half_life = self.get_half_life()
+            half_life = self._get_half_life()
 
         elif decay_correction_method == "START":
             ...
@@ -804,6 +804,29 @@ class ImageDicomFilePT(ImageDicomFile):
             frame_duration /= 1000.0
 
         return frame_duration
+
+    def _get_half_life(self) -> float:
+        # Check that the radiopharmaceutical information sequence is present
+        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+        if not has_sequence:
+            raise ValueError(
+                f"The Radiopharmaceutical information sequence was not defined (0x0054, 0x0016). "
+                f"Half-life of the tracer cannot be determined. [{self.describe_self()}]"
+            )
+
+        half_life = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+            tag=(0x0018, 0x1075),
+            tag_type="float"
+        )
+
+        if half_life is None:
+            raise ValueError(
+                f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
+                f"information sequence (0x0054, 0x0016). [{self.describe_self()}]"
+            )
+
+        return half_life
 
     def _get_patient_height(self) -> float:
         patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
