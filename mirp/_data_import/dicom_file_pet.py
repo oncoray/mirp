@@ -410,7 +410,8 @@ class ImageDicomFilePT(ImageDicomFile):
         administered_dose = self._get_administered_dose()
 
         if decay_correction_method == "ADMIN":
-            return 1.0 / administered_dose
+            # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+            return 1000.0 / administered_dose
 
         elif decay_correction_method == "NONE":
             time_adm = self._get_administration_time()
@@ -439,7 +440,8 @@ class ImageDicomFilePT(ImageDicomFile):
                     (1.0 - np.exp(-_lambda * frame_duration))
             )
 
-            return decay_factor / administered_dose
+            # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+            return 1000.0 / (administered_dose * decay_factor)
 
         elif decay_correction_method == "START":
             time_adm = self._get_administration_time()
@@ -453,7 +455,8 @@ class ImageDicomFilePT(ImageDicomFile):
             time_diff_ref_adm = time_acq - time_adm
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
 
-            return decay_factor / administered_dose
+            # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+            return 1000.0 / (administered_dose * decay_factor)
 
         else:
             raise ValueError(
