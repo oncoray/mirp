@@ -422,7 +422,6 @@ class ImageDicomFilePT(ImageDicomFile):
             # Compute decay constant.
             _lambda = np.log(2.0) / half_life
 
-            # Method 1.
             # Compute average frame time (i.e. where activity is average).
             time_avg = (1.0 / _lambda) * np.log(
                 (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda / frame_duration))
@@ -431,14 +430,6 @@ class ImageDicomFilePT(ImageDicomFile):
             # Compute time between reference and administration.
             time_diff_ref_adm = time_acq + datetime.timedelta(seconds=time_avg) - time_adm
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
-
-            # Method 2:
-            # Correct for decay during frame in addition to decay between administration and acquisition start.
-            time_diff_ref_adm_2 = time_acq - time_adm
-            decay_factor_2 = (
-                    frame_duration * _lambda * np.exp(_lambda * time_diff_ref_adm_2.total_seconds()) /
-                    (1.0 - np.exp(-_lambda * frame_duration))
-            )
 
             # Note 1000.0 is used because of units should be g / ml (not kg / ml)
             return 1000.0 / (administered_dose * decay_factor)
