@@ -425,7 +425,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
             # Compute average frame time (i.e. where activity is average).
             time_avg = (1.0 / _lambda) * np.log(
-                (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda / frame_duration))
+                (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda * frame_duration))
             )
 
             # Compute time between reference and administration.
@@ -436,15 +436,41 @@ class ImageDicomFilePT(ImageDicomFile):
             return 1000.0 * weight / (administered_dose * decay_factor)
 
         elif decay_correction_method == "START":
+            # START is more complex because manufacturers have handled this differently.
             time_adm = self._get_administration_time()
             time_acq = self._get_acquisition_start_time()
+            time_acq_private = self._get_acquisition_start_time(private_only=True)
+            time_series = self._get_series_time()
+            manufacturer = self._get_manufacturer()
             half_life = self._get_half_life()
 
             # Compute decay constant.
             _lambda = np.log(2.0) / half_life
 
+            # Try various pathways to set start time.
+            if time_acq_private is not None:
+                # Prioritise private tages.
+                time_start = time_acq_private
+
+            elif manufacturer in ["siemens", "philips"] and time_series != time_acq:
+                frame_duration = self._get_frame_duration(to_seconds=True)
+                time_frame_ref = self._get_frame_reference_time()
+
+                # Compute average frame time (i.e. where activity is average).
+                time_avg = (1.0 / _lambda) * np.log(
+                    (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda * frame_duration))
+                )
+                time_start = time_acq + datetime.timedelta(seconds=time_avg) - time_frame_ref
+
+            elif manufacturer in ["ge"] and time_series != time_acq:
+                time_frame_ref = self._get_frame_reference_time()
+                time_start = time_acq - time_frame_ref
+
+            else:
+                time_start = time_acq
+
             # Compute time between reference and administration.
-            time_diff_ref_adm = time_acq - time_adm
+            time_diff_ref_adm = time_start - time_adm
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
 
             # Note 1000.0 is used because of units should be g / ml (not kg / ml)
@@ -741,6 +767,14 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return frame_duration
 
+    def _get_frame_reference_time(self) -> datetime.timedelta:
+        frame_reference_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1300), tag_type="float")
+        if frame_reference_time is None or frame_reference_time < 0.0:
+            raise ValueError(f"Frame reference time cannot be determined from DICOM metadata. [{self.describe_self()}]")
+
+        # Frame reference time is defined in milliseconds.
+        return datetime.timedelta(milliseconds=frame_reference_time)
+
     def _get_half_life(self) -> float:
         # Check that the radiopharmaceutical information sequence is present
         has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
@@ -763,6 +797,25 @@ class ImageDicomFilePT(ImageDicomFile):
             f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
             f"information sequence (0x0054, 0x0016). [{self.describe_self()}]"
         )
+
+    def _get_manufacturer(self) -> str:
+        manufacturer = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0070),
+            tag_type="str",
+            default="unknown"
+        )
+
+        if "siemens" in manufacturer.lower():
+            manufacturer = "siemens"
+        elif any(x in manufacturer.lower() for x in ["ge medical", "ge healthcare"]):
+            manufacturer = "ge"
+        elif "philips" in manufacturer.lower():
+            manufacturer = "philips"
+        else:
+            manufacturer = "other"
+
+        return manufacturer
 
     def _get_patient_height(self) -> float:
         patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
@@ -799,6 +852,27 @@ class ImageDicomFilePT(ImageDicomFile):
             patient_weight /= 1000.0
 
         return patient_weight
+
+    def _get_series_time(self) -> datetime.datetime:
+        # Standard DICOM: Fall back to Series Date and Series Time
+        series_start_date = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0021),
+            tag_type="str"
+        )
+        series_start_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0031),
+            tag_type="str"
+        )
+        if series_start_date is not None and series_start_time is not None:
+            series_time = convert_dicom_time(
+                date_str=series_start_date,
+                time_str=series_start_time
+            )
+            return series_time
+
+        raise ValueError(f"Series time cannot be determined from DICOM metadata. [{self.describe_self()}]")
 
     def _get_voxel_volume(self, to_milliliter=True) -> float:
         # Use slice thickness for z-dimensions. Slice thickness is not always equal to z-spacing.

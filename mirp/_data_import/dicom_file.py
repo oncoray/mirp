@@ -670,7 +670,7 @@ class ImageDicomFile(ImageFile):
             (0x5200, 0x9230)   # per-frame functional groups sequence
         ]
 
-    def _get_acquisition_start_time(self) -> datetime.datetime:
+    def _get_acquisition_start_time(self, private_only=False) -> None | datetime.datetime:
         self.load_metadata()
 
         # Try private GE Acquisition DateTime (0x0009, 0x100d).
@@ -692,6 +692,10 @@ class ImageDicomFile(ImageFile):
         if acquisition_ref_time is not None:
             acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
             return acquisition_ref_time
+
+        if private_only:
+            # Return None if there are no private attributes related to the acquisition start time.
+            return None
 
         # Standard DICOM attribute: Acquisition Datetime (0x0008, 0x002A).
         acquisition_ref_time = get_pydicom_meta_tag(

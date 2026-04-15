@@ -75,22 +75,6 @@ def test_read_suv_dro():
         'DRO_5_0'
     ]
 
-    available_dro = [
-        'DRO_2_4',
-        'DRO_2_5',
-        'DRO_2_6_0', 'DRO_2_6_1', 'DRO_2_6_2',
-        'DRO_3_0',
-        'DRO_3_1',
-        'DRO_3_2_0', 'DRO_3_2_1', 'DRO_3_2_2',
-        'DRO_3_3_0', 'DRO_3_3_1',
-        'DRO_3_4_0', 'DRO_3_4_1', 'DRO_3_4_2',
-        'DRO_3_5_0', 'DRO_3_5_1', 'DRO_3_5_2',
-        'DRO_4_0',
-        'DRO_4_1',
-        'DRO_4_2',
-        'DRO_5_0'
-    ]
-
     for dro in available_dro:
         custom_kwargs = dict([])
 
