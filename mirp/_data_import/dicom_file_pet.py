@@ -731,7 +731,8 @@ class ImageDicomFilePT(ImageDicomFile):
 
             # Correct for overnight recordings.
             if admin_ref_time > acquisition_start_time:
-                admin_ref_time -= datetime.timedelta(days=(acquisition_start_time - admin_ref_time).days)
+                time_diff = admin_ref_time - acquisition_start_time + datetime.timedelta(days=1)
+                admin_ref_time -= datetime.timedelta(days=time_diff.days)
 
             return admin_ref_time
 
