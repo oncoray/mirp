@@ -313,12 +313,13 @@ class ImageDicomFilePT(ImageDicomFile):
     def load_data(
             self,
             pet_suv_conversion: str = "body_weight",
+            pet_autocorrect_administration_start: bool = True,
             **kwargs
     ):
         image_data = self.load_data_generic()
 
         # First we need to go the GML as unit.
-        gml_factor = self._to_gml_conversion_factor()
+        gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
 
         # Then convert to the correct SUV type.
         suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
@@ -329,7 +330,7 @@ class ImageDicomFilePT(ImageDicomFile):
         # Set image_data attribute.
         self.image_data = image_data
 
-    def _to_gml_conversion_factor(self) -> float:
+    def _to_gml_conversion_factor(self, autocorrect_administration_start=True) -> float:
         """To compute SUV, PET units need to be converted to BQML."""
         self.load_metadata()
 
@@ -338,11 +339,11 @@ class ImageDicomFilePT(ImageDicomFile):
             raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
         if pet_unit in ["CNTS"]:
-            conversion_factor = self._pet_unit_cnts_to_gml()
+            conversion_factor = self._pet_unit_cnts_to_gml(autocorrect_administration_start=autocorrect_administration_start)
         elif pet_unit in ["CPS"]:
-            conversion_factor = self._pet_unit_cps_to_gml()
+            conversion_factor = self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start)
         elif pet_unit in ["BQML"]:
-            conversion_factor = self._pet_unit_bqml_to_gml()
+            conversion_factor = self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start)
         elif pet_unit in ["CM2ML"]:
             conversion_factor = self._pet_unit_cm2ml_to_gml()
         elif pet_unit in ["GML"]:
@@ -354,7 +355,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return conversion_factor
 
-    def _pet_unit_cps_to_gml(self) -> float:
+    def _pet_unit_cps_to_gml(self, autocorrect_administration_start=True) -> float:
         # CNTS are literally counts measured over the frame duration. We need to convert to BQML by:
         # - Dividing by the frame duration (CNTS / seconds -> average activity (BQ) in frame)
         # - Normalising by voxel volume (CNTS -> CNTS / ml)
@@ -365,9 +366,9 @@ class ImageDicomFilePT(ImageDicomFile):
         # Get voxel volume in ml.
         voxel_volume = self._get_voxel_volume(to_milliliter=True)
 
-        return self._pet_unit_bqml_to_gml() / (frame_duration * voxel_volume)
+        return self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start) / (frame_duration * voxel_volume)
 
-    def _pet_unit_cnts_to_gml(self) -> float:
+    def _pet_unit_cnts_to_gml(self, autocorrect_administration_start=True) -> float:
         # CPS is sometimes found in DICOM files from Philips scanners. There are several pathways.
 
         # Activity concentration scale factor (7053,1009) - private Philips tag.
@@ -384,7 +385,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
             # If we integrate counts per second over the frame duration, we get counts. Internally conversion goes
             # CNTS -> CPS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
-            return self._pet_unit_cps_to_gml() * frame_duration
+            return self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start) * frame_duration
 
         elif acsf is not None and acsf > 0.0:
             # Pathway 2: Using activity concentration scale factor. ACSF converts CPS to BQML.
@@ -403,7 +404,7 @@ class ImageDicomFilePT(ImageDicomFile):
                 f"1009: {acsf}) or SUV scale factor (7053, 1000: {ssf}) attributes may have been set incorrectly."
             )
 
-    def _pet_unit_bqml_to_gml(self) -> float:
+    def _pet_unit_bqml_to_gml(self, autocorrect_administration_start=True) -> float:
         # BQML to GML is relatively complex, and involves multiple pathways, including vendor-specific pathways.
         # The first consideration is the decay correction attribute: ADMIN and NONE are straightforward, but START is
         # complex.
@@ -416,7 +417,7 @@ class ImageDicomFilePT(ImageDicomFile):
             return 1000.0 * weight / administered_dose
 
         elif decay_correction_method == "NONE":
-            time_adm = self._get_administration_time()
+            time_adm = self._get_administration_time(autocorrect_administration_start=autocorrect_administration_start)
             time_acq = self._get_acquisition_start_time()
             frame_duration = self._get_frame_duration(to_seconds=True)
             half_life = self._get_half_life()
@@ -438,7 +439,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         elif decay_correction_method == "START":
             # START is more complex because manufacturers have handled this differently.
-            time_adm = self._get_administration_time()
+            time_adm = self._get_administration_time(autocorrect_administration_start=autocorrect_administration_start)
             time_acq = self._get_acquisition_start_time()
             time_acq_private = self._get_acquisition_start_time(private_only=True)
             time_series = self._get_series_time()
@@ -680,7 +681,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return administered_dose
 
-    def _get_administration_time(self) -> datetime.datetime:
+    def _get_administration_time(self, autocorrect_administration_start=True) -> datetime.datetime:
         self.load_metadata()
 
         #  Fall back to Private GE Radiopharmaceutical Start DateTime.
@@ -731,7 +732,7 @@ class ImageDicomFilePT(ImageDicomFile):
             )
 
             # Correct for overnight recordings.
-            if admin_ref_time > acquisition_start_time:
+            if admin_ref_time > acquisition_start_time and autocorrect_administration_start:
                 original_admin_ref_time = copy.deepcopy(admin_ref_time)
 
                 time_diff = admin_ref_time - acquisition_start_time + datetime.timedelta(days=1)
