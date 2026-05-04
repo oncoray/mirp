@@ -1,3 +1,4 @@
+import copy
 import warnings
 
 import numpy as np
@@ -731,8 +732,19 @@ class ImageDicomFilePT(ImageDicomFile):
 
             # Correct for overnight recordings.
             if admin_ref_time > acquisition_start_time:
+                original_admin_ref_time = copy.deepcopy(admin_ref_time)
+
                 time_diff = admin_ref_time - acquisition_start_time + datetime.timedelta(days=1)
                 admin_ref_time -= datetime.timedelta(days=time_diff.days)
+
+                warnings.warn(
+                    f"Radiopharmaceutical administration start date and time ({original_admin_ref_time}) was interpreted to be "
+                    f"after the acquisition start time ({acquisition_start_time}). This was corrected to "
+                    f"{admin_ref_time}. If the administration start time was indeed after the acquisition start time, "
+                    f"please use pet_autocorrect_administration_start=False as input argument. "
+                    f"[{self.describe_self()}]",
+                    UserWarning
+                )
 
             return admin_ref_time
 
