@@ -80,6 +80,10 @@
             comparable between patients, these are converted to standardised uptake values. The following are possible:
             body_weight, body_surface_area, lean_body_mass, lean_body_mass_bmi, ideal_body_weight, none -->
             <pet_suv_conversion></pet_suv_conversion>
+            <!-- By default, when the administration date cannot be determined from DICOM attributes directly,
+            administration time is corrected to be before acquisition time. If false, the acquisition date is used,
+            even if this would result in administration starting after acquisition started. -->
+            <pet_autocorrect_administration_start></pet_autocorrect_administration_start>
             <!-- Algorithm used to normalise intensities in the image. Will only use intensities in voxels masked by
             the tissue mask. Can be none (default), range (maps to an intensity range), relative_range (maps to a
             range  of relative intensities), quantile_range (maps to a range of relative intensities based on

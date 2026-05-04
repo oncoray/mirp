@@ -89,6 +89,11 @@ class ImagePostProcessingClass:
             the patient. These metadata are only present in DICOM files. MIRP cannot convert activity to standardised
             uptake values for images in different formats, and this parameter will have no effect.
 
+    pet_autocorrect_administration_start: bool, optional, default: True
+        By default, when the administration date cannot be determined from DICOM attributes directly,
+        administration time is corrected to be before acquisition time. If false, the acquisition date is used,
+        even if this would result in administration starting after acquisition started.
+
     intensity_normalisation: {"none", "range", "relative_range", "quantile_range", "standardisation", "custom_scale", "histogram_equalisation", "adaptive_equalisation", "match_uniform","match_sigmoid", "match_reference", "match_reference_normalised"}, default: "none"
         Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels
         masked by the tissue mask (of present). The following are possible:
@@ -190,6 +195,7 @@ class ImagePostProcessingClass:
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
             bias_field_convergence_threshold: float = 0.001,
             pet_suv_conversion: str = "body_weight",
+            pet_autocorrect_administration_start: bool = True,
             intensity_normalisation: str = "none",
             intensity_normalisation_range: list[float] | None = None,
             intensity_normalisation_saturation: list[float] | None = None,
@@ -384,6 +390,12 @@ class ImagePostProcessingClass:
 
         # Set suv_conversion_type parameter.
         self.suv_conversion_type = pet_suv_conversion
+
+        if not isinstance(pet_autocorrect_administration_start, bool):
+            raise TypeError(
+                f"The pet_autocorrect_administration_start parameter is expected to be a boolean. Found: {type(pet_autocorrect_administration_start)}"
+            )
+        self.pet_autocorrect_administration_start = pet_autocorrect_administration_start
 
         # Check that intensity_normalisation has the correct values.
         if intensity_normalisation not in self._get_available_intensity_normalisation_methods():
@@ -633,6 +645,7 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
             class_key="convergence_threshold", test=0.1
         ),
         setting_def("pet_suv_conversion", "str", class_key="suv_conversion_type", test="none"),
+        setting_def("pet_autocorrect_administration_start", "bool", test=False),
         setting_def("intensity_normalisation", "str", test="relative_range"),
         setting_def("intensity_normalisation_range", "float", to_list=True, test=[0.10, 0.90]),
         setting_def("intensity_normalisation_saturation", "float", to_list=True, test=[0.00, 10.00]),

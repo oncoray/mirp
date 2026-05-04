@@ -85,7 +85,8 @@ class StandardWorkflow(BaseWorkflow):
         image, masks = read_image_and_masks(
             self.image_file,
             to_numpy=False,
-            pet_suv_conversion=self.settings.post_process.suv_conversion_type
+            pet_suv_conversion=self.settings.post_process.suv_conversion_type,
+            pet_autocorrect_administration_start=self.settings.post_process.pet_autocorrect_administration_start
         )
 
         if masks is None or len(masks) == 0:
