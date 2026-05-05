@@ -297,6 +297,11 @@ class StandardWorkflow(BaseWorkflow):
                 yield transformed_image, masks
 
     def transform_images(self, image: GenericImage) -> Generator[TransformedImage, None, None]:
+        if self.settings.img_transform is None:
+            raise TypeError(
+                "settings.img_transform is not correctly set: None instead of ImageTransformationSettingsClass"
+            )
+
         # Check if image transformation is required
         if self.settings.img_transform.spatial_filters is None:
             return
