@@ -51,6 +51,9 @@ def test_read_suv_dro():
 
     Incorrectly processed:
 
+    Report 2026.05.05
+    Can process all, none incorrect.
+
     """
 
     available_dro = [
