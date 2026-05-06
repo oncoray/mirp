@@ -751,15 +751,7 @@ class ImageDicomFile(ImageFile):
         series_description = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x103E), tag_type="str")
         if series_description is not None and series_description != "":
             attributes += [("series_description", series_description)]
-
-        # Try to find the acquisition time (which may be equal to series time).
-        try:
-            acquisition_time = self._get_acquisition_start_time()
-        except ValueError:
-            acquisition_time = None
-        if acquisition_time is not None:
-            attributes += [("acquisition_time", acquisition_time)]
-
+        
         if self.series_instance_uid is not None:
             attributes += [("series_instance_uid", self.series_instance_uid)]
         if self.frame_of_reference_uid is not None:
