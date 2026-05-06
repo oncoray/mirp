@@ -1,19 +1,13 @@
 import copy
 import hashlib
-import sys
 import numpy as np
 import pandas as pd
 
-from typing import Any
+from typing import Any, Self
 from pathlib import Path
 
 from mirp._images.base_image import BaseImage
 from mirp.settings.generic import SettingsClass
-
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 
 class GenericImage(BaseImage):

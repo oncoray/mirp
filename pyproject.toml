@@ -14,7 +14,6 @@ license-files = ["LICENSE.txt"]
 readme = "README.md"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -32,8 +31,7 @@ dependencies = [
     "pydicom>=3.0.0",
     "pywavelets>=1.4.0",
     "scikit-image>=0.26.0",
-    "scipy>=1.17",
-    "typing-extensions>=4.10; python_version<'3.11'"
+    "scipy>=1.17"
 ]
 
 [project.urls]

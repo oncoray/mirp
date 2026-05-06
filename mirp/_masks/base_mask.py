@@ -3,18 +3,12 @@ import warnings
 import numpy as np
 import pandas as pd
 import copy
-import sys
-from typing import Any
+from typing import Any, Self
 from pathlib import Path
 
 from mirp._images.generic_image import GenericImage
 from mirp._images.mask_image import MaskImage
 from mirp.settings.generic import SettingsClass
-
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
 
 
 class BaseMask:

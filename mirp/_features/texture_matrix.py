@@ -2,13 +2,8 @@ import copy
 
 import pandas as pd
 import numpy as np
-import sys
 
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
-from typing import Generator
+from typing import Self, Generator
 
 from mirp._images.generic_image import GenericImage
 from mirp._masks.base_mask import BaseMask

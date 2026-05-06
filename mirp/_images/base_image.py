@@ -1,13 +1,8 @@
 import copy
-import sys
 import warnings
-
 import numpy as np
 
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
+from typing import Self
 
 
 class BaseImage:

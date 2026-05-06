@@ -1,14 +1,9 @@
-import sys
 import datetime
 import os.path
 import hashlib
 import numpy as np
 
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
-from typing import Any
+from typing import Any, Self
 
 from pydicom import dcmread
 from warnings import warn
