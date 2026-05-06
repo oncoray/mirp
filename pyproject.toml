@@ -22,7 +22,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Image Processing",
     "Topic :: Scientific/Engineering :: Medical Science Apps."
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
     "itk>=5.3.0",
     "matplotlib>=3.7.0",
