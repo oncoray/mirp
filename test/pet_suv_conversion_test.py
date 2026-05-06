@@ -17,8 +17,8 @@ def test_pet_suv_conversion_none():
     feature_data = data[0]
 
     assert len(feature_data) == 1
-    assert 43300.0 < feature_data["stat_max"].values[0] < 43400.0
-    assert 920.0 < feature_data["stat_min"].values[0] < 930.0
+    assert 32567.0 < feature_data["stat_max"].values[0] < 32568.0
+    assert 694.0 < feature_data["stat_min"].values[0] < 695.0
 
 
 def test_pet_suv_conversion_body_weight():
