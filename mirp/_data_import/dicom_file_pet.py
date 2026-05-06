@@ -318,14 +318,15 @@ class ImageDicomFilePT(ImageDicomFile):
     ):
         image_data = self.load_data_generic()
 
-        # First we need to go the GML as unit.
-        gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
+        if pet_suv_conversion != "none":
+            # First we need to go the GML as unit.
+            gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
 
-        # Then convert to the correct SUV type.
-        suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+            # Then convert to the correct SUV type.
+            suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
 
-        # Update image intensities.
-        image_data *= gml_factor * suv_factor
+            # Update image intensities.
+            image_data *= gml_factor * suv_factor
 
         # Set image_data attribute.
         self.image_data = image_data
