@@ -95,17 +95,9 @@ def test_read_suv_dro():
               f"{np.around(np.median(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 5):.5f},"
               f"{np.around(np.max(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 5):.5f}")
 
-        # Does not compute correctly:
-        # if dro in ["DRO_2_2", "DRO_2_3", "DRO_3_0", "DRO_3_1", "DRO_3_2", "DRO_3_3",
-        #            "DRO_4_2"]:
-        #     warnings.warn(f"{dro} is not converted correctly.", UserWarning)
-        #     continue
-        #
-        # assert isinstance(image, PETImage)
-        # assert isinstance(mask, BaseMask)
-        #
-        # assert np.around(np.median(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 3) == 1.0
-        # assert np.around(np.max(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 3) == 4.0
-        # assert np.around(np.min(image.get_voxel_grid()[mask.roi.get_voxel_grid()]), 3) == 0.2
+        assert isinstance(image, PETImage)
+        assert isinstance(mask, BaseMask)
 
-        pass
+        assert 0.99 < np.median(image.get_voxel_grid()[mask.roi.get_voxel_grid()]) < 1.01
+        assert 3.99 < np.max(image.get_voxel_grid()[mask.roi.get_voxel_grid()]) < 4.01
+        assert 0.19 < np.min(image.get_voxel_grid()[mask.roi.get_voxel_grid()]) < 0.21
