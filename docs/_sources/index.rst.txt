@@ -95,9 +95,9 @@ Supported Python versions and operating systems
      - Windows
      - macOS
    * - 3.10
-     - ✅
-     - ✅
-     - ✅
+     - ❌ (≥ v2.6.0)
+     - ❌ (≥ v2.6.0)
+     - ❌ (≥ v2.6.0)
    * - 3.11
      - ✅
      - ✅
@@ -115,6 +115,7 @@ Supported Python versions and operating systems
      - ✅
      - ✅
 
+Since version 2.6.0, Python 3.10 is no longer available due to lack of support in numpy 2.4.0.
 Optional dependencies for parallel processing, i.e. `ray` and `joblib`, may not support all Python versions.
 
 Compatibility

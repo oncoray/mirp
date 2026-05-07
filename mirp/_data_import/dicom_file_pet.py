@@ -1,4 +1,6 @@
+import copy
 import warnings
+
 import numpy as np
 import datetime
 from typing import Any
@@ -17,61 +19,6 @@ class ImageDicomFilePT(ImageDicomFile):
 
     def create(self):
         return self
-
-    def load_data(
-            self,
-            pet_suv_conversion: str = "body_weight",
-            **kwargs
-    ):
-        image_data = self.load_data_generic()
-
-        conversion_possible = True
-        # Get decay correction factor
-        try:
-            decay_factor = self._get_administration_decay_factor()
-        except ValueError as err:
-            warnings.warn(
-                f"SUV cannot be computed as decay correction factor could not be determined. {str(err)}",
-                UserWarning
-            )
-            conversion_possible = False
-            decay_factor = 1.0
-
-        # Get conversion factor to BQML
-        try:
-            bqml_factor = self._get_pet_unit_conversion_factor()
-        except ValueError as err:
-            if pet_suv_conversion != "none":
-                warnings.warn(
-                    f"SUV cannot be computed. BQML conversion factor could not be determined. {str(err)}",
-                    UserWarning
-                )
-            conversion_possible = False
-            bqml_factor = 1.0
-
-        except NotImplementedError as err:
-            if pet_suv_conversion != "none":
-                warnings.warn(
-                    f"SUV cannot be computed. BQML conversion factor could not be determined. {str(err)}",
-                    UserWarning
-                )
-            conversion_possible = False
-            bqml_factor = 1.0
-
-        # Get SUV conversion factor and update the object_metadata attribute.
-        if conversion_possible:
-            suv_factor = self._get_suv_conversion_factor(new_suv_type=pet_suv_conversion)
-            self.object_metadata.update(dict([("suv_type", pet_suv_conversion)]))
-
-        else:
-            suv_factor = 1.0
-            self.object_metadata.update(dict([("suv_type", "none")]))
-
-        # Update image_data
-        image_data *= decay_factor * bqml_factor * suv_factor
-
-        # Set image data.
-        self.image_data = image_data
 
     def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
@@ -127,8 +74,8 @@ class ImageDicomFilePT(ImageDicomFile):
             radio_admin_ref_time = None
 
         if radio_admin_ref_time is None:
-            # If neither (0x0018, 0x1078) or (0x0018, 0x1072) are present, attempt to read private tags.
-            # GE tags - note that due to anonymisation, acquisition time may be different then reported.
+            # If neither (0x0018, 0x1078) nor (0x0018, 0x1072) are present, attempt to read private tags.
+            # GE tags - note that due to anonymisation, acquisition time may be different from reported.
             acquisition_ref_time = convert_dicom_time(get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata, tag=(0x0009, 0x100d), tag_type="str"))
             radio_admin_ref_time = convert_dicom_time(get_pydicom_meta_tag(
@@ -363,152 +310,28 @@ class ImageDicomFilePT(ImageDicomFile):
         metadata.update(dict(dcm_meta_data))
         return metadata
 
-    def _get_tracer_administration_time(self) -> datetime.datetime:
-        self.load_metadata()
+    def load_data(
+            self,
+            pet_suv_conversion: str = "body_weight",
+            pet_autocorrect_administration_start: bool = True,
+            **kwargs
+    ):
+        image_data = self.load_data_generic()
 
-        # Set initial value of tracer administration reference time.
-        admin_ref_time = None
+        if pet_suv_conversion != "none":
+            # First we need to go the GML as unit.
+            gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
 
-        # Administration time should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
-        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+            # Then convert to the correct SUV type.
+            suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
 
-        # Prefer Radiopharmaceutical Start DateTime (0x0018, 0x1078)
-        if has_sequence and admin_ref_time is None:
-            admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1078),
-                tag_type="str"
-            )
-            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+            # Update image intensities.
+            image_data *= gml_factor * suv_factor
 
-        # Fallback to Radiopharmaceutical Start Time (0x0018, 0x1072)
-        if has_sequence and admin_ref_time is None:
-            admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1072),
-                tag_type="str"
-            )
+        # Set image_data attribute.
+        self.image_data = image_data
 
-            if admin_ref_time is not None:
-                # Infer start date.
-                acquisition_start_time = self._get_acquisition_start_time()
-                admin_ref_time = datetime.datetime(
-                    year=acquisition_start_time.year,
-                    month=acquisition_start_time.month,
-                    day=acquisition_start_time.day,
-                    hour=int(admin_ref_time[0:2]),
-                    minute=int(admin_ref_time[2:4]),
-                    second=int(admin_ref_time[4:6]),
-                    microsecond=0 if len(admin_ref_time) <= 6 else int(round(float(admin_ref_time[6:]) * 1000))
-                )
-
-                # Correct for overnight recordings.
-                if admin_ref_time > acquisition_start_time:
-                    admin_ref_time -= datetime.timedelta(days=(acquisition_start_time - admin_ref_time).days)
-
-        #  Fall back to Private GE Radiopharmaceutical Start DateTime.
-        if admin_ref_time is None:
-            admin_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0009, 0x103b),
-                tag_type="str"
-            )
-            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
-
-        # Final check.
-        if admin_ref_time is None:
-            raise ValueError(
-                f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
-            )
-
-        return admin_ref_time
-
-    def _get_administration_decay_factor(self) -> float:
-        self.load_metadata()
-
-        # Type of decay correction that is used
-        decay_correction = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0054, 0x1102),
-            tag_type="str",
-            default="NONE"
-        )
-        if decay_correction == "ADMIN":
-            return 1.0
-
-        elif decay_correction not in ["NONE", "START"]:
-            raise ValueError(
-                f"Decay correction DICOM tag was not recognised: {decay_correction}. One of ",
-                f"NONE, START or ADMIN was expected. [{self.describe_self()}]"
-            )
-
-        # Get acquisition start time and tracer administration time.
-        acquisition_start_time = self._get_acquisition_start_time()
-        tracer_administration_time = self._get_tracer_administration_time()
-
-        # Get frame duration in seconds.
-        frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
-        if frame_duration is None:
-            raise ValueError(f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]")
-        frame_duration /= 1000.0  # From milliseconds to seconds.
-
-        # Radionuclide total dose and radionuclide half-life
-        half_life = None
-        if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
-            half_life = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                tag=(0x0018, 0x1075),
-                tag_type="float"
-            )
-
-        if half_life is None:
-            raise ValueError(
-                f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
-                f"information sequence (0x0054, 0x0016). [{self.describe_self()}]"
-            )
-
-        # Decay constant.
-        _lambda = np.log(2.0) / half_life
-
-        # Process for different decay corrections
-        if decay_correction == "NONE":
-            time_to_acquisition_start = acquisition_start_time - tracer_administration_time
-            time_to_acquisition_start = (
-                    time_to_acquisition_start.days * 86400.0 +
-                    time_to_acquisition_start.seconds +
-                    time_to_acquisition_start.microseconds / 1000000.0
-            )
-
-            # Correct for decay during frame in addition to decay between administration and acquisition start.
-            decay_factor = (
-                frame_duration * _lambda * np.exp(_lambda * time_to_acquisition_start) /
-                (1.0 - np.exp(-_lambda * frame_duration))
-            )
-
-        elif decay_correction == "START":
-            # Decay correction of pixel values for the period from pixel acquisition up to scan start
-            # Additionally correct for decay between administration and acquisition start. Based on QIBA SUV
-            # vendorneutral pseudocode.
-
-            time_to_acquisition_start = acquisition_start_time - tracer_administration_time
-            time_to_acquisition_start = (
-                    time_to_acquisition_start.days * 86400.0 +
-                    time_to_acquisition_start.seconds +
-                    time_to_acquisition_start.microseconds / 1000000.0
-            )
-
-            # Correct for decay between administration and acquisition start.
-            decay_factor = np.exp(_lambda * time_to_acquisition_start)
-
-        else:
-            raise ValueError(
-                f"Decay correction DICOM tag was not recognised: {decay_correction}. One of NONE, START or ADMIN "
-                f"was expected. [{self.describe_self()}]"
-            )
-
-        return decay_factor
-
-    def _get_pet_unit_conversion_factor(self) -> float:
+    def _to_gml_conversion_factor(self, autocorrect_administration_start=True) -> float:
         """To compute SUV, PET units need to be converted to BQML."""
         self.load_metadata()
 
@@ -516,12 +339,16 @@ class ImageDicomFilePT(ImageDicomFile):
         if pet_unit is None:
             raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
-        if pet_unit in ["CNTS", "CPS"]:
-            conversion_factor = self._pet_unit_cnt_to_bqml()
+        if pet_unit in ["CNTS"]:
+            conversion_factor = self._pet_unit_cnts_to_gml(autocorrect_administration_start=autocorrect_administration_start)
+        elif pet_unit in ["CPS"]:
+            conversion_factor = self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start)
         elif pet_unit in ["BQML"]:
-            conversion_factor = 1.0
-        elif pet_unit in ["GML", "CM2ML"]:
-            conversion_factor = 1.0
+            conversion_factor = self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start)
+        elif pet_unit in ["CM2ML"]:
+            conversion_factor = self._pet_unit_cm2ml_to_gml()
+        elif pet_unit in ["GML"]:
+            conversion_factor = self._pet_unit_gml_to_gml()
         else:
             raise NotImplementedError(
                 f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
@@ -529,83 +356,164 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return conversion_factor
 
-    def _pet_unit_cnt_to_bqml(self) -> float:
-        self.load_metadata()
+    def _pet_unit_cps_to_gml(self, autocorrect_administration_start=True) -> float:
+        # CNTS are literally counts measured over the frame duration. We need to convert to BQML by:
+        # - Dividing by the frame duration (CNTS / seconds -> average activity (BQ) in frame)
+        # - Normalising by voxel volume (CNTS -> CNTS / ml)
 
-        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        # Get frame duration in seconds.
+        frame_duration = self._get_frame_duration(to_seconds=True)
 
-        # Read private tag.
-        conversion_factor = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1009), tag_type="float")
+        # Get voxel volume in ml.
+        voxel_volume = self._get_voxel_volume(to_milliliter=True)
 
-        # Use frame duration (if not CPS), and Radiopharmaceutical Volume to convert to Bq/ml.
-        if conversion_factor is None:
-            conversion_factor = 1.0
-            if pet_unit == "CNTS":
-                frame_duration = get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata,
-                    tag=(0x0018, 0x1242),
-                    tag_type="float"
-                )
-                if frame_duration is None:
-                    raise ValueError(
-                        f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]"
-                    )
-                frame_duration /= 1000.0  # From milliseconds to seconds.
-                conversion_factor = 1.0 / frame_duration
+        return self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start) / (frame_duration * voxel_volume)
 
-            # Radiopharmaceutical volume should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
-            if get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True):
-                administered_volume = get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata[0x0054, 0x0016][0],
-                    tag=(0x0018, 0x1071),
-                    tag_type="float"
-                )
-                if administered_volume is None:
-                    raise ValueError(
-                        f"Radiopharmaceutical volume cannot be determined from DICOM metadata. [{self.describe_self()}]"
-                    )
+    def _pet_unit_cnts_to_gml(self, autocorrect_administration_start=True) -> float:
+        # CPS is sometimes found in DICOM files from Philips scanners. There are several pathways.
 
-                # Divide by administered volume (in cubic cm == milliliter)
-                conversion_factor /= administered_volume
+        # Activity concentration scale factor (7053,1009) - private Philips tag.
+        acsf = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1009), tag_type="float")
 
-            else:
-                raise ValueError(
-                    f"Radiopharmaceutical Information Sequence (0x0054, 0x0016) is missing in DICOM metadata. "
-                    f"[{self.describe_self()}]"
-                )
+        # SUV scale factor ((7053,1000) - private Philips tag.
+        ssf = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1000), tag_type="float")
 
-        # Final check
-        if conversion_factor is None:
+        if acsf is None and ssf is None:
+            # Pathway 1: ACSF and SSF are both missing -> not a Philips scan.
+
+            # Get frame duration in seconds.
+            frame_duration = self._get_frame_duration(to_seconds=True)
+
+            # If we integrate counts per second over the frame duration, we get counts. Internally conversion goes
+            # CNTS -> CPS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
+            return self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start) * frame_duration
+
+        elif acsf is not None and acsf > 0.0:
+            # Pathway 2: Using activity concentration scale factor. ACSF converts CPS to BQML.
+            return self._pet_unit_bqml_to_gml() * acsf
+
+        elif ssf is not None and ssf > 0.0:
+            # Pathway 3: Using SUV scale factor. SSF directly converts CPS to GLM (body-weight corrected SUV).
+
+            # SSF needs to be corrected for body weight, because otherwise we will multiply by body weight twice.
+            # SSF directly converts CPS to GML (SUV: BW), whereas we will compute a separate SUV conversion factor.
+            # This also prevents issues if SUV other than body-weight SUV is required.
+            return ssf
+        else:
             raise ValueError(
-                f"Conversion factor for converting {pet_unit} to BQML could not be established. "
-                f"[{self.describe_self()}]"
+                f"Cannot convert CPS units to GML. Philips activity concentration scale factor (7053, "
+                f"1009: {acsf}) or SUV scale factor (7053, 1000: {ssf}) attributes may have been set incorrectly."
             )
 
-        return conversion_factor
+    def _pet_unit_bqml_to_gml(self, autocorrect_administration_start=True) -> float:
+        # BQML to GML is relatively complex, and involves multiple pathways, including vendor-specific pathways.
+        # The first consideration is the decay correction attribute: ADMIN and NONE are straightforward, but START is
+        # complex.
+        decay_correction_method = self._get_decay_correction()
+        administered_dose = self._get_administered_dose()
+        weight = self._get_patient_weight()
 
-    def _get_suv_conversion_factor(self, new_suv_type: str) -> float:
-        self.load_metadata()
+        if decay_correction_method == "ADMIN":
+            # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+            return 1000.0 * weight / administered_dose
 
-        current_suv_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0054, 0x1006),
-            tag_type="str"
-        )
+        elif decay_correction_method == "NONE":
+            time_adm = self._get_administration_time(autocorrect_administration_start=autocorrect_administration_start)
+            time_acq = self._get_acquisition_start_time()
+            frame_duration = self._get_frame_duration(to_seconds=True)
+            half_life = self._get_half_life()
 
-        # Set SUV type based on PET unit.
-        if current_suv_type is None:
-            pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
-            if pet_unit is None:
-                raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+            # Compute decay constant.
+            _lambda = np.log(2.0) / half_life
 
-            if pet_unit == "GML":
-                # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
-                current_suv_type = "BW"
-            elif pet_unit == "CM2ML":
-                current_suv_type = "BSA"
+            # Compute average frame time (i.e. where activity is average).
+            time_avg = (1.0 / _lambda) * np.log(
+                (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda * frame_duration))
+            )
 
-        # If SUV type was not set, and cannot be inferred, assume that intensities do not represent SUV.
-        if current_suv_type is None:
+            # Compute time between reference and administration.
+            time_diff_ref_adm = time_acq + datetime.timedelta(seconds=time_avg) - time_adm
+            decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
+
+            # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+            return 1000.0 * weight / (administered_dose * decay_factor)
+
+        elif decay_correction_method == "START":
+            # START is more complex because manufacturers have handled this differently.
+            time_adm = self._get_administration_time(autocorrect_administration_start=autocorrect_administration_start)
+            time_acq = self._get_acquisition_start_time()
+            time_acq_private = self._get_acquisition_start_time(private_only=True)
+            time_series = self._get_series_time()
+            manufacturer = self._get_manufacturer()
+            half_life = self._get_half_life()
+
+            # Compute decay constant.
+            _lambda = np.log(2.0) / half_life
+
+            # Try various pathways to set start time.
+            if time_acq_private is not None:
+                # Prioritise private tages.
+                time_start = time_acq_private
+
+            elif manufacturer in ["siemens", "philips"] and time_series != time_acq:
+                frame_duration = self._get_frame_duration(to_seconds=True)
+                time_frame_ref = self._get_frame_reference_time()
+
+                # Compute average frame time (i.e. where activity is average).
+                time_avg = (1.0 / _lambda) * np.log(
+                    (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda * frame_duration))
+                )
+                time_start = time_acq + datetime.timedelta(seconds=time_avg) - time_frame_ref
+
+            elif manufacturer in ["ge"] and time_series != time_acq:
+                time_frame_ref = self._get_frame_reference_time()
+                time_start = time_acq - time_frame_ref
+
+            else:
+                time_start = time_acq
+
+            # Compute time between reference and administration.
+            time_diff_ref_adm = time_start - time_adm
+            decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
+
+            # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+            return 1000.0 * weight / (administered_dose * decay_factor)
+
+        else:
+            raise ValueError(
+                f"Decay correction DICOM tag was not recognised: {decay_correction_method}. One of ",
+                f"NONE, START or ADMIN was expected. [{self.describe_self()}]"
+            )
+
+    def _pet_unit_cm2ml_to_gml(self) -> float:
+        # Special case for body-surface adjusted SUV -- explicit conversion to GML takes place when
+        # computing the SUV conversion factor.
+        return 1.0
+
+    def _pet_unit_gml_to_gml(self) -> float:
+        # No work required if the current pet unit is GML.
+        return 1.0
+
+    def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        if pet_unit is None:
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+
+        if pet_unit == "GML":
+            # If absent, and the Units (0054,1001) are GML, then the type of SUV shall be assumed to be BW.
+            current_suv_type = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0054, 0x1006),
+                tag_type="str",
+                default="BW"
+            )
+        elif pet_unit == "CM2ML":
+            current_suv_type = "BSA"
+
+        elif pet_unit in ["BQML", "CPS", "CNTS"]:
+            # These are internally converted to body-weight SUV in _to_gml_conversion_factor.
+            current_suv_type = "BW"
+        else:
             current_suv_type = "none"
 
         # Convert DICOM SUV type to internal format.
@@ -623,11 +531,12 @@ class ImageDicomFilePT(ImageDicomFile):
         if current_suv_type == new_suv_type:
             return 1.0
 
-        # Convert back to BQML.
+        # Compute conversion factor to unnormalised values.
         revert_suv_factor = 1.0
         if current_suv_type != "none":
             revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
 
+        # Compute required factor to normalised values.
         suv_factor = 1.0
         if new_suv_type != "none":
             suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
@@ -640,27 +549,111 @@ class ImageDicomFilePT(ImageDicomFile):
         if suv_type == "none":
             return 1.0
 
-        # Require body weight and administered dose.
-        patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
-        if patient_weight is None:
-            raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
-                f"[{self.describe_self()}]"
-            )
-        elif patient_weight <= 0.0:
-            raise ValueError(
-                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
-                f"possible. [{self.describe_self()}]"
-            )
-        elif patient_weight >= 1000.0:
-            # Weight is likely provide in grams, not kilograms. Convert to kg.
-            patient_weight /= 1000.0
+        # Require body weight.
+        patient_weight = self._get_patient_weight()
 
+        # Body weight-corrected SUV ------------------------------------------------------------------------------------
+        if suv_type == "body_weight":
+            return patient_weight * 1000.0
+
+        # Require patient height.
+        patient_height = self._get_patient_height()
+
+        # Patient height in equations is expressed in cm, not meters.
+        patient_height *= 100.0
+
+        # Body surface area-corrected SUV ------------------------------------------------------------------------------
+        if suv_type == "body_surface_area":
+            # Kim et al. Journal of Nuclear Medicine. Volume 35, No. 1, January 1994. pp 164-167
+            return 0.007184 * patient_weight ** 0.425 * patient_height ** 0.725 * 10000.0
+
+        # Require patient biological sex.
+        patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
+        if patient_biological_sex is None:
+            patient_biological_sex = "o"
+        if patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
+            raise ValueError(
+                f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex}. SUV normalisation "
+                f"({suv_type}) is not possible. [{self.describe_self()}]"
+            )
+
+        # Erroneous lean body mass-corrected SUV -----------------------------------------------------------------------
+        if suv_type == "lean_body_mass_error":
+            if patient_biological_sex.lower() == "m":
+                norm_factor = 1.10 * patient_weight - 120.0 * (patient_weight / patient_height) ** 2.0
+            elif patient_biological_sex.lower() in ["f", "w"]:
+                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
+            elif patient_biological_sex.lower() in ["o", "d", "u"]:
+                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
+                norm_factor = (
+                        1.10 * patient_weight - 120.0 * (patient_weight / patient_height) ** 2.0
+                        + 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
+                ) / 2.0
+            else:
+                raise ValueError("unreachable code")
+
+            return norm_factor * 1000.0
+
+        # Lean body mass-corrected SUV ---------------------------------------------------------------------------------
+        if suv_type == "lean_body_mass":
+            if patient_biological_sex.lower() == "m":
+                norm_factor = 1.10 * patient_weight - 128.0 * (patient_weight / patient_height) ** 2.0
+            elif patient_biological_sex.lower() in ["f", "w"]:
+                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
+            elif patient_biological_sex.lower() in ["o", "d", "u"]:
+                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
+                norm_factor = (
+                        1.10 * patient_weight - 128.0 * (patient_weight / patient_height) ** 2.0
+                        + 1.07 * patient_weight - 148.0 * (patient_weight / patient_height) ** 2.0
+                ) / 2.0
+            else:
+                raise ValueError("unreachable code")
+
+            return norm_factor * 1000.0
+
+        # Lean body mass (BMI)-corrected SUV ---------------------------------------------------------------------------
+        if suv_type == "lean_body_mass_bmi":
+            # Janmahasatian, Sarayut, et al. "Quantification of lean bodyweight." Clinical pharmacokinetics 44
+            # (2005): 1051-1065.
+            bmi = patient_weight / (patient_height / 100.0) ** 2.0  # for bmi, height is expressed in meters, not cm.
+            if patient_biological_sex.lower() in ["m"]:
+                norm_factor = 9270.0 * patient_weight / (6680.0 + 216.0 * bmi)
+            elif patient_biological_sex.lower() in ["f", "w"]:
+                norm_factor = 9270.0 * patient_weight / (8780.0 + 244.0 * bmi)
+            elif patient_biological_sex.lower() in ["o", "d", "u"]:
+                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
+                norm_factor = (
+                    9270.0 * patient_weight / (6680.0 + 216.0 * bmi) + 9270.0 * patient_weight / (8780.0 + 244.0 * bmi)
+                ) / 2.0
+            else:
+                raise ValueError("unreachable code")
+
+            return norm_factor * 1000.0
+
+        # Ideal body weight (IBW)-corrected SUV ------------------------------------------------------------------------
+        if suv_type == "ideal_body_weight":
+            if patient_biological_sex.lower() in ["m"]:
+                norm_factor = 48.0 + 1.06 * (patient_height - 152.0)
+            elif patient_biological_sex.lower() in ["f", "w"]:
+                norm_factor = 45.5 + 0.91 * (patient_height - 152.0)
+            elif patient_biological_sex.lower() in ["o", "d", "u"]:
+                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
+                norm_factor = (
+                    48.0 + 1.06 * (patient_height - 152.0) + 45.5 + 0.91 * (patient_height - 152.0)
+                ) / 2.0
+            else:
+                raise ValueError("unreachable code")
+
+            return norm_factor * 1000.0
+
+        raise ValueError(f"suv_type was not recognised: {suv_type}")
+
+    def _get_administered_dose(self) -> float:
         # Administered dose should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
         administered_dose = None
         has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
         if has_sequence and administered_dose is None:
-            administered_dose = get_pydicom_meta_tag(
+            administered_dose: float = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata[0x0054, 0x0016][0],
                 tag=(0x0018, 0x1074),
                 tag_type="float"
@@ -677,110 +670,242 @@ class ImageDicomFilePT(ImageDicomFile):
                 f"SUV normalisation is not possible. [{self.describe_self()}]"
             )
 
-        # Body weight-corrected SUV ------------------------------------------------------------------------------------
-        if suv_type == "body_weight":
-            return patient_weight * 1000.0 / administered_dose
+        # Dose is likely specified as MBq and not Bq (6 orders of magnitude)
+        if administered_dose < 10**4:
+            warnings.warn(
+                f"Administered dose is likely expressed in MBq instead of Bq ({administered_dose}). "
+                f"[{self.describe_self()}]",
+                UserWarning
+            )
+            # Convert to Bq.
+            administered_dose *= 10**6
 
-        # Require patient height.
+        return administered_dose
+
+    def _get_administration_time(self, autocorrect_administration_start=True) -> datetime.datetime:
+        self.load_metadata()
+
+        #  Fall back to Private GE Radiopharmaceutical Start DateTime.
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0009, 0x103b),
+            tag_type="str"
+        )
+        if admin_ref_time is not None:
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+            return admin_ref_time
+
+        # Administration time should come from the Radiopharmaceutical Information Sequence (0x0054, 0x0016).
+        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+        if not has_sequence:
+            raise ValueError(
+                f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
+            )
+
+        # Use Radiopharmaceutical Start DateTime (0x0018, 0x1078)
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+            tag=(0x0018, 0x1078),
+            tag_type="str"
+        )
+        if admin_ref_time is not None:
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+            return admin_ref_time
+
+        # Fallback to Radiopharmaceutical Start Time (0x0018, 0x1072)
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+            tag=(0x0018, 0x1072),
+            tag_type="str"
+        )
+
+        if admin_ref_time is not None:
+            # Infer start date.
+            acquisition_start_time = self._get_acquisition_start_time()
+            admin_ref_time = datetime.datetime(
+                year=acquisition_start_time.year,
+                month=acquisition_start_time.month,
+                day=acquisition_start_time.day,
+                hour=int(admin_ref_time[0:2]),
+                minute=int(admin_ref_time[2:4]),
+                second=int(admin_ref_time[4:6]),
+                microsecond=0 if len(admin_ref_time) <= 6 else int(round(float(admin_ref_time[6:]) * 1000))
+            )
+
+            # Correct for overnight recordings.
+            if admin_ref_time > acquisition_start_time and autocorrect_administration_start:
+                original_admin_ref_time = copy.deepcopy(admin_ref_time)
+
+                time_diff = admin_ref_time - acquisition_start_time + datetime.timedelta(days=1)
+                admin_ref_time -= datetime.timedelta(days=time_diff.days)
+
+                warnings.warn(
+                    f"Radiopharmaceutical administration start date and time ({original_admin_ref_time}) was interpreted to be "
+                    f"after the acquisition start time ({acquisition_start_time}). This was corrected to "
+                    f"{admin_ref_time}. If the administration start time was indeed after the acquisition start time, "
+                    f"please use pet_autocorrect_administration_start=False as input argument. "
+                    f"[{self.describe_self()}]",
+                    UserWarning
+                )
+
+            return admin_ref_time
+
+        raise ValueError(
+           f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
+        )
+
+    def _get_decay_correction(self) -> "str":
+        # Type of decay correction that is used
+        decay_correction = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0054, 0x1102),
+            tag_type="str",
+            default="NONE"
+        )
+
+        if decay_correction not in ["NONE", "START", "ADMIN"]:
+            raise ValueError(
+                f"Decay correction DICOM tag was not recognised: {decay_correction}. One of ",
+                f"NONE, START or ADMIN was expected. [{self.describe_self()}]"
+            )
+
+        return decay_correction
+
+    def _get_frame_duration(self, to_seconds=True) -> float:
+        frame_duration = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x1242), tag_type="float")
+        if frame_duration is None or frame_duration <= 0.0:
+            raise ValueError(f"Frame duration cannot be determined from DICOM metadata. [{self.describe_self()}]")
+
+        # From milliseconds to seconds, since count per second is Bq.
+        if to_seconds:
+            frame_duration /= 1000.0
+
+        return frame_duration
+
+    def _get_frame_reference_time(self) -> datetime.timedelta:
+        frame_reference_time = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1300), tag_type="float")
+        if frame_reference_time is None or frame_reference_time < 0.0:
+            raise ValueError(f"Frame reference time cannot be determined from DICOM metadata. [{self.describe_self()}]")
+
+        # Frame reference time is defined in milliseconds.
+        return datetime.timedelta(milliseconds=frame_reference_time)
+
+    def _get_half_life(self) -> float:
+        # Check that the radiopharmaceutical information sequence is present
+        has_sequence = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x0016), test_tag=True)
+        if not has_sequence:
+            raise ValueError(
+                f"The Radiopharmaceutical information sequence was not defined (0x0054, 0x0016). "
+                f"Half-life of the tracer cannot be determined. [{self.describe_self()}]"
+            )
+
+        half_life = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata[0x0054, 0x0016][0],
+            tag=(0x0018, 0x1075),
+            tag_type="float"
+        )
+
+        if half_life is not None:
+            return half_life
+
+        raise ValueError(
+            f"Radionuclide half-life (0x0018, 0x1075) was missing in the Radiopharmaceutical "
+            f"information sequence (0x0054, 0x0016). [{self.describe_self()}]"
+        )
+
+    def _get_manufacturer(self) -> str:
+        manufacturer = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0070),
+            tag_type="str",
+            default="unknown"
+        )
+
+        if "siemens" in manufacturer.lower():
+            manufacturer = "siemens"
+        elif any(x in manufacturer.lower() for x in ["ge medical", "ge healthcare"]):
+            manufacturer = "ge"
+        elif "philips" in manufacturer.lower():
+            manufacturer = "philips"
+        else:
+            manufacturer = "other"
+
+        return manufacturer
+
+    def _get_patient_height(self) -> float:
         patient_height = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1020), tag_type="float")
         if patient_height is None:
             raise ValueError(
-                f"Patient Size (0x0010, 0x1020) was missing. SUV normalisation ({suv_type}) is not possible. "
+                f"Patient Size (0x0010, 0x1020) was missing. SUV normalisation is not possible. "
                 f"[{self.describe_self()}]"
             )
         elif patient_height <= 0.0:
             raise ValueError(
-                f"Patient Size (0x0010, 0x1020) was not positive ({patient_height}). SUV normalisation ({suv_type}) "
+                f"Patient Size (0x0010, 0x1020) was not positive ({patient_height}). SUV normalisation "
                 f"is not possible. [{self.describe_self()}]"
             )
         elif patient_height > 3.0:
             # Interpret patient height as cm and convert to meter.
             patient_height /= 100.0
 
-        # Body surface area-corrected SUV ------------------------------------------------------------------------------
-        if suv_type == "body_surface_area":
-            # Kim et al. Journal of Nuclear Medicine. Volume 35, No. 1, January 1994. pp 164-167
-            return 1000.0 * patient_weight ** 0.425 * (patient_height * 100.0) ** 0.725 * 0.007184 / administered_dose
+        return patient_height
 
-        # Require patient biological sex.
-        patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
-        if patient_biological_sex is None:
-            patient_biological_sex = "O"
-        if patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
+    def _get_patient_weight(self) -> float:
+        patient_weight = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x1030), tag_type="float")
+        if patient_weight is None:
             raise ValueError(
-                f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex}. SUV normalisation "
-                f"({suv_type}) is not possible. [{self.describe_self()}]"
+                f"Patient weight (0x0010, 0x1030) was missing. SUV normalisation is not possible. "
+                f"[{self.describe_self()}]"
             )
+        elif patient_weight <= 0.0:
+            raise ValueError(
+                f"Patient weight (0x0010, 0x1030) was not positive ({patient_weight}). SUV normalisation is not "
+                f"possible. [{self.describe_self()}]"
+            )
+        elif patient_weight >= 1000.0:
+            # Weight is likely provide in grams, not kilograms. Convert to kg.
+            patient_weight /= 1000.0
 
-        # Erroneous lean body mass-corrected SUV -----------------------------------------------------------------------
-        if suv_type == "lean_body_mass_error":
-            if patient_biological_sex.lower() == "m":
-                norm_factor = 1.10 * patient_weight - 120.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-            elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-            elif patient_biological_sex.lower() in ["o", "d", "u"]:
-                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
-                norm_factor = (
-                        1.10 * patient_weight - 120.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                        + 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                ) / 2.0
-            else:
-                raise ValueError("unreachable code")
+        return patient_weight
 
-            return norm_factor * 1000.0 / administered_dose
+    def _get_series_time(self) -> datetime.datetime:
+        # Standard DICOM: Fall back to Series Date and Series Time
+        series_start_date = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0021),
+            tag_type="str"
+        )
+        series_start_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0031),
+            tag_type="str"
+        )
+        if series_start_date is not None and series_start_time is not None:
+            series_time = convert_dicom_time(
+                date_str=series_start_date,
+                time_str=series_start_time
+            )
+            return series_time
 
-        # Lean body mass-corrected SUV ---------------------------------------------------------------------------------
-        if suv_type == "lean_body_mass":
-            if patient_biological_sex.lower() == "m":
-                norm_factor = 1.10 * patient_weight - 128.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-            elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-            elif patient_biological_sex.lower() in ["o", "d", "u"]:
-                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
-                norm_factor = (
-                        1.10 * patient_weight - 128.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                        + 1.07 * patient_weight - 148.0 * (patient_weight ** 2.0 / (patient_height * 100.0) ** 2.0)
-                ) / 2.0
-            else:
-                raise ValueError("unreachable code")
+        raise ValueError(f"Series time cannot be determined from DICOM metadata. [{self.describe_self()}]")
 
-            return norm_factor * 1000.0 / administered_dose
+    def _get_voxel_volume(self, to_milliliter=True) -> float:
+        # Use slice thickness for z-dimensions. Slice thickness is not always equal to z-spacing.
+        image_slice_thickness = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0018, 0x0050), tag_type="float")
+        image_pixel_size = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0028, 0x0030),
+                tag_type="mult_float"
+        )
 
-        # Lean body mass (BMI)-corrected SUV ---------------------------------------------------------------------------
-        if suv_type == "lean_body_mass_bmi":
-            # Janmahasatian, Sarayut, et al. "Quantification of lean bodyweight." Clinical pharmacokinetics 44
-            # (2005): 1051-1065.
-            bmi = patient_weight / patient_height**2.0
-            if patient_biological_sex.lower() in ["m"]:
-                norm_factor = 9270.0 * patient_weight / (6680.0 + 216.0 * bmi)
-            elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 9270.0 * patient_weight / (8780.0 + 244.0 * bmi)
-            elif patient_biological_sex.lower() in ["o", "d", "u"]:
-                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
-                norm_factor = (
-                    9270.0 * patient_weight / (6680.0 + 216.0 * bmi) + 9270.0 * patient_weight / (8780.0 + 244.0 * bmi)
-                ) / 2.0
-            else:
-                raise ValueError("unreachable code")
+        voxel_volume = image_pixel_size[0] * image_pixel_size[1] * image_slice_thickness
 
-            return norm_factor * 1000. / administered_dose
+        if to_milliliter:
+            # For PET images, physical dimensions are in millimeters, which means that each voxel has a volume of
+            # in mm^3. 1000 mm^3 is 1 milliliter.
+            voxel_volume /= 1000.0
 
-        # Ideal body weight (IBW)-corrected SUV ------------------------------------------------------------------------
-        if suv_type == "ideal_body_weight":
-            if patient_biological_sex.lower() in ["m"]:
-                norm_factor = 48.0 + 1.06 * (patient_height * 100.0 - 152.0)
-            elif patient_biological_sex.lower() in ["f", "w"]:
-                norm_factor = 45.5 + 0.91 * (patient_height * 100.0 - 152.0)
-            elif patient_biological_sex.lower() in ["o", "d", "u"]:
-                # Average for other, diverse or unknown -- not ideal, but better than throwing an error.
-                norm_factor = (
-                        48.0 + 1.06 * (patient_height * 100.0 - 152.0) + 45.5 + 0.91 * (patient_height * 100.0 - 152.0)
-                ) / 2.0
-
-            else:
-                raise ValueError("unreachable code")
-
-            return norm_factor * 1000.0 / administered_dose
+        return voxel_volume
 
 
 class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):

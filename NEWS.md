@@ -1,3 +1,14 @@
+# Version 2.6.0
+
+## Changes
+
+- Computation of standardised uptake values was reworked to conform to the IBSI's digital reference objects (v2.0.3).
+- Python version 3.10 is no longer supported due to lack of support by `numpy` version 2.4.0 and newer.
+
+## Fixes
+
+- Prevent a rare error when computing run length matrices.
+
 # Version 2.5.0
 
 ## Additions

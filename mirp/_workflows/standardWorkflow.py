@@ -73,6 +73,40 @@ class StandardWorkflow(BaseWorkflow):
         from mirp._image_processing.split_mask import split_masks
         from mirp._data_import.utilities import flatten_list
 
+        # Checks on attribute consistency. These checks should always pass -- if not it is a bug.
+        if self.settings.general is None:
+            raise TypeError(
+                "settings.general is not correctly set: None instead of GeneralSettingsClass"
+            )
+        if self.settings.post_process is None:
+            raise TypeError(
+                "settings.post_process is not correctly set: None instead of ImagePostProcessingSettingClass"
+            )
+        if self.settings.perturbation is None:
+            raise TypeError(
+                "settings.perturbation is not correctly set: None instead of ImagePerturbationSettingsClass"
+            )
+        if self.settings.img_interpolate is None:
+            raise TypeError(
+                "settings.img_interpolate is not correctly set: None instead of ImageInterpolationSettingsClass"
+            )
+        if self.settings.roi_interpolate is None:
+            raise TypeError(
+                "settings.roi_interpolate is not correctly set: None instead of MaskInterpolationSettingsClass"
+            )
+        if self.settings.roi_resegment is None:
+            raise TypeError(
+                "settings.roi_resegment is not correctly set: None instead of ResegmentationSettingsClass"
+            )
+        if self.settings.feature_extr is None:
+            raise TypeError(
+                "settings.feature_extr is not correctly set: None instead of FeatureExtractionSettingsClass"
+            )
+        if self.settings.img_transform is None:
+            raise TypeError(
+                "settings.img_transform is not correctly set: None instead of ImageTransformationSettingsClass"
+            )
+
         # Configure logger
         logging.basicConfig(
             format="%(levelname)s\t: %(processName)s \t %(asctime)s \t %(message)s",
@@ -85,8 +119,14 @@ class StandardWorkflow(BaseWorkflow):
         image, masks = read_image_and_masks(
             self.image_file,
             to_numpy=False,
-            pet_suv_conversion=self.settings.post_process.suv_conversion_type
+            pet_suv_conversion=self.settings.post_process.suv_conversion_type,
+            pet_autocorrect_administration_start=self.settings.post_process.pet_autocorrect_administration_start
         )
+
+        if not isinstance(image, GenericImage):
+            raise TypeError(
+                "image should be a GenericImage, or inheriting from GenericImage"
+            )
 
         if masks is None or len(masks) == 0:
             warnings.warn("No segmentation masks were read.")
@@ -257,6 +297,11 @@ class StandardWorkflow(BaseWorkflow):
                 yield transformed_image, masks
 
     def transform_images(self, image: GenericImage) -> Generator[TransformedImage, None, None]:
+        if self.settings.img_transform is None:
+            raise TypeError(
+                "settings.img_transform is not correctly set: None instead of ImageTransformationSettingsClass"
+            )
+
         # Check if image transformation is required
         if self.settings.img_transform.spatial_filters is None:
             return
@@ -375,6 +420,8 @@ class StandardWorkflow(BaseWorkflow):
         feature_list: list[pd.DataFrame] = []
         image_list = []
         mask_list = []
+        sample_name = None
+        image_modality = None
 
         for image, masks in self.standard_image_processing():
             if image is None:
@@ -383,6 +430,9 @@ class StandardWorkflow(BaseWorkflow):
             # Type hinting
             image: GenericImage | TransformedImage = image
             masks: list[None | BaseMask] = masks
+
+            sample_name = image.sample_name
+            image_modality = image.modality
 
             if self.write_features or self.export_features:
                 image_feature_list = []
@@ -402,6 +452,8 @@ class StandardWorkflow(BaseWorkflow):
                     feature_list += [pd.concat(image_feature_list, axis=0, ignore_index=True)]
 
             if self.write_images:
+                if self.write_dir is None:
+                    raise TypeError("self.write_dir cannot be None, but should be str or Path")
                 image.write(dir_path=self.write_dir, file_format=write_file_format)
                 if not masks_written:
                     for mask in masks:
@@ -442,8 +494,14 @@ class StandardWorkflow(BaseWorkflow):
                         suffixes=(None, None)
                     )
 
-        if self.write_features and isinstance(feature_set, pd.DataFrame):
-            file_name = "_".join([image.sample_name, image.modality, random_string(k=16)]) + ".csv"
+        if (
+                self.write_features and isinstance(feature_set, pd.DataFrame) and
+                isinstance(sample_name, str) and isinstance(image_modality, str)
+        ):
+            if self.write_dir is None:
+                raise TypeError("self.write_dir cannot be None, but should be str or Path")
+
+            file_name = "_".join([sample_name, image_modality, random_string(k=16)]) + ".csv"
             # Check if the directory exists, and create otherwise.
             if not os.path.exists(self.write_dir):
                 os.makedirs(self.write_dir)
@@ -461,6 +519,8 @@ class StandardWorkflow(BaseWorkflow):
             return feature_set
         elif self.export_images:
             return image_list, mask_list
+        else:
+            return None
 
     def _compute_radiomics_features(
             self,
@@ -477,6 +537,11 @@ class StandardWorkflow(BaseWorkflow):
         else:
             raise TypeError(
                 f"image is not a TransformedImage, GenericImage or a subclass thereof. Found: {type(image)}"
+            )
+
+        if feature_settings is None:
+            raise TypeError(
+                "feature_settings is not correctly set: None instead of FeatureExtractionSettingsClass"
             )
 
         # Skip if no feature families are specified.
@@ -590,6 +655,9 @@ class StandardWorkflow(BaseWorkflow):
                 continue
 
             if self.write_images:
+                if self.write_dir is None:
+                    raise TypeError("self.write_dir cannot be None, but should be str or Path")
+
                 image.write(dir_path=self.write_dir, file_format=write_file_format)
                 mask.write(dir_path=self.write_dir, file_format=write_file_format, write_all=False)
 
@@ -599,11 +667,13 @@ class StandardWorkflow(BaseWorkflow):
 
         if self.export_images:
             return image_list, mask_list
+        else:
+            return None
 
     def _deep_learning_conversion(
             self,
             output_slices: bool = False,
-            crop_size: None | list[float] | list[int] = None
+            crop_size: None | list[float] | list[int] | list[None] = None
     ) -> Generator[tuple[GenericImage, BaseMask], None, None]:
         from mirp._image_processing.cropping import crop
 
@@ -612,13 +682,13 @@ class StandardWorkflow(BaseWorkflow):
         pre_crop_size = []
 
         # Set crop_size.
-        if crop_size is None and output_slices:
-            crop_size = [None, None]
-            remove_empty_slices = False
-
-        elif crop_size is None and not output_slices:
-            crop_size = [None, None, None]
-            remove_empty_slices = False
+        if crop_size is None:
+            if output_slices:
+                crop_size = [None, None]
+                remove_empty_slices = False
+            else:
+                crop_size = [None, None, None]
+                remove_empty_slices = False
 
         elif len(crop_size) == 1 and output_slices:
             crop_size = [crop_size[0], crop_size[0]]

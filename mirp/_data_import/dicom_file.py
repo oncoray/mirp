@@ -1,14 +1,9 @@
-import sys
 import datetime
 import os.path
 import hashlib
 import numpy as np
 
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
-from typing import Any
+from typing import Any, Self
 
 from pydicom import dcmread
 from warnings import warn
@@ -670,67 +665,80 @@ class ImageDicomFile(ImageFile):
             (0x5200, 0x9230)   # per-frame functional groups sequence
         ]
 
-    def _get_acquisition_start_time(self) -> datetime.datetime:
+    def _get_acquisition_start_time(self, private_only=False) -> None | datetime.datetime:
         self.load_metadata()
 
-        # Start of image acquisition. Prefer Acquisition Datetime (0x0008, 0x002A).
+        # Try private GE Acquisition DateTime (0x0009, 0x100d).
+        acquisition_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0009, 0x100d),
+            tag_type="str"
+        )
+        if acquisition_ref_time is not None:
+            acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+            return acquisition_ref_time
+
+        # Try private Siemens Scan Start time (0x0071,0x1022).
+        acquisition_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0071, 0x1022),
+            tag_type="str"
+        )
+        if acquisition_ref_time is not None:
+            acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+            return acquisition_ref_time
+
+        if private_only:
+            # Return None if there are no private attributes related to the acquisition start time.
+            return None
+
+        # Standard DICOM attribute: Acquisition Datetime (0x0008, 0x002A).
         acquisition_ref_time = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x002A),
             tag_type="str"
         )
-        acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
-
-        # Fall back to Acquisition Date (0x0008, 0x002A) and Acquisition Time (0x0008, 0x0032).
-        if acquisition_ref_time is None:
-            acquisition_start_date = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0008, 0x0022),
-                tag_type="str"
-            )
-            acquisition_start_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0008, 0x0032),
-                tag_type="str"
-            )
-            acquisition_ref_time = convert_dicom_time(
-                date_str=acquisition_start_date,
-                time_str=acquisition_start_time
-            )
-
-        # Fall back to Private GE Acquisition DateTime (0x0009, 0x100d).
-        if acquisition_ref_time is None:
-            acquisition_ref_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0009, 0x100d),
-                tag_type="str"
-            )
+        if acquisition_ref_time is not None:
             acquisition_ref_time = convert_dicom_time(datetime_str=acquisition_ref_time)
+            return acquisition_ref_time
 
-        # Fall back to Series Date and Series Time (
-        if acquisition_ref_time is None:
-            acquisition_start_date = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0008, 0x0021),
-                tag_type="str"
-            )
-            acquisition_start_time = get_pydicom_meta_tag(
-                dcm_seq=self.image_metadata,
-                tag=(0x0008, 0x0031),
-                tag_type="str"
-            )
+        # Standard DICOM: Acquisition Date (0x0008, 0x002A) and Acquisition Time (0x0008, 0x0032).
+        acquisition_start_date = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0022),
+            tag_type="str"
+        )
+        acquisition_start_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0032),
+            tag_type="str"
+        )
+        if acquisition_start_date is not None and acquisition_start_date is not None:
             acquisition_ref_time = convert_dicom_time(
                 date_str=acquisition_start_date,
                 time_str=acquisition_start_time
             )
+            return acquisition_ref_time
 
-        # Final check.
-        if acquisition_ref_time is None:
-            raise ValueError(
-                f"Acquisition start time cannot be determined from DICOM metadata."
+        # Standard DICOM: Fall back to Series Date and Series Time
+        acquisition_start_date = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0021),
+            tag_type="str"
+        )
+        acquisition_start_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0008, 0x0031),
+            tag_type="str"
+        )
+        if acquisition_start_date is not None and acquisition_start_time is not None:
+            acquisition_ref_time = convert_dicom_time(
+                date_str=acquisition_start_date,
+                time_str=acquisition_start_time
             )
+            return acquisition_ref_time
 
-        return acquisition_ref_time
+        raise ValueError(f"Acquisition start time cannot be determined from DICOM metadata. [{self.describe_self()}]")
 
     def _get_export_attributes(self) -> dict[str, Any]:
         attributes = []
@@ -743,15 +751,7 @@ class ImageDicomFile(ImageFile):
         series_description = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0008, 0x103E), tag_type="str")
         if series_description is not None and series_description != "":
             attributes += [("series_description", series_description)]
-
-        # Try to find the acquisition time (which may be equal to series time).
-        try:
-            acquisition_time = self._get_acquisition_start_time()
-        except ValueError:
-            acquisition_time = None
-        if acquisition_time is not None:
-            attributes += [("acquisition_time", acquisition_time)]
-
+        
         if self.series_instance_uid is not None:
             attributes += [("series_instance_uid", self.series_instance_uid)]
         if self.frame_of_reference_uid is not None:

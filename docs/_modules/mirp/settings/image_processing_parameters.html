@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.5.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.6.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=3c4615cf"></script>
+      <script src="../../../_static/documentation_options.js?v=ae39cb24"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -92,17 +92,17 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mirp.settings.image_processing_parameters</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
-<span class="kn">from</span> <span class="nn">mirp.settings.utilities</span> <span class="kn">import</span> <span class="n">setting_def</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mirp.settings.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">setting_def</span>
 
 
 <div class="viewcode-block" id="ImagePostProcessingClass">
 <a class="viewcode-back" href="../../../configuration.html#mirp.settings.image_processing_parameters.ImagePostProcessingClass">[docs]</a>
 <span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">ImagePostProcessingClass</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">ImagePostProcessingClass</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters related to image processing. Note that parameters concerning image perturbation / augmentation and</span>
 <span class="sd">    resampling are set separately, see :class:`~mirp.settings.perturbation_parameters.ImagePerturbationSettingsClass` and</span>
@@ -177,7 +177,6 @@
 <span class="sd">          variations with body weight and a method for correction. Radiology. 1993 Dec;189(3):847-50).</span>
 <span class="sd">        * &quot;none&quot;: activity is not normalised.</span>
 
-
 <span class="sd">        .. note::</span>
 <span class="sd">            Conversion of activity to standardised uptake values can only be performed for PET data.</span>
 
@@ -185,6 +184,11 @@
 <span class="sd">            Conversion of activity to standardised uptake values requires metadata related to image acquisition and to</span>
 <span class="sd">            the patient. These metadata are only present in DICOM files. MIRP cannot convert activity to standardised</span>
 <span class="sd">            uptake values for images in different formats, and this parameter will have no effect.</span>
+
+<span class="sd">    pet_autocorrect_administration_start: bool, optional, default: True</span>
+<span class="sd">        By default, when the administration date cannot be determined from DICOM attributes directly,</span>
+<span class="sd">        administration time is corrected to be before acquisition time. If false, the acquisition date is used,</span>
+<span class="sd">        even if this would result in administration starting after acquisition started.</span>
 
 <span class="sd">    intensity_normalisation: {&quot;none&quot;, &quot;range&quot;, &quot;relative_range&quot;, &quot;quantile_range&quot;, &quot;standardisation&quot;, &quot;custom_scale&quot;, &quot;histogram_equalisation&quot;, &quot;adaptive_equalisation&quot;, &quot;match_uniform&quot;,&quot;match_sigmoid&quot;, &quot;match_reference&quot;, &quot;match_reference_normalised&quot;}, default: &quot;none&quot;</span>
 <span class="sd">        Specifies the algorithm used to normalise intensities in the image. Will use only intensities in voxels</span>
@@ -275,7 +279,7 @@
 <span class="sd">        Unused keyword arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">image_denoise_method</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
             <span class="n">image_denoiser_median_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
@@ -287,6 +291,7 @@
             <span class="n">bias_field_correction_n_max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">bias_field_convergence_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
             <span class="n">pet_suv_conversion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;body_weight&quot;</span><span class="p">,</span>
+            <span class="n">pet_autocorrect_administration_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
             <span class="n">intensity_normalisation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
             <span class="n">intensity_normalisation_range</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">intensity_normalisation_saturation</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -481,6 +486,12 @@
 
         <span class="c1"># Set suv_conversion_type parameter.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">suv_conversion_type</span> <span class="o">=</span> <span class="n">pet_suv_conversion</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pet_autocorrect_administration_start</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The pet_autocorrect_administration_start parameter is expected to be a boolean. Found: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">pet_autocorrect_administration_start</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pet_autocorrect_administration_start</span> <span class="o">=</span> <span class="n">pet_autocorrect_administration_start</span>
 
         <span class="c1"># Check that intensity_normalisation has the correct values.</span>
         <span class="k">if</span> <span class="n">intensity_normalisation</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_available_intensity_normalisation_methods</span><span class="p">():</span>
@@ -701,7 +712,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tissue_mask_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">tissue_mask_name</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_available_intensity_normalisation_methods</span><span class="p">():</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_available_intensity_normalisation_methods</span><span class="p">():</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="s2">&quot;none&quot;</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="s2">&quot;relative_range&quot;</span><span class="p">,</span> <span class="s2">&quot;quantile_range&quot;</span><span class="p">,</span> <span class="s2">&quot;standardisation&quot;</span><span class="p">,</span> <span class="s2">&quot;custom_scale&quot;</span><span class="p">,</span>
             <span class="s2">&quot;histogram_equalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;adaptive_equalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;match_uniform&quot;</span><span class="p">,</span><span class="s2">&quot;match_sigmoid&quot;</span><span class="p">,</span> <span class="s2">&quot;match_reference&quot;</span><span class="p">,</span>
@@ -709,7 +720,7 @@
         <span class="p">]</span></div>
 
 
-<span class="k">def</span> <span class="nf">get_post_processing_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_post_processing_settings</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]:</span>
 
     <span class="k">return</span> <span class="p">[</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;image_denoise_method&quot;</span><span class="p">,</span> <span class="n">typing</span><span class="o">=</span><span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;median&quot;</span><span class="p">),</span>
@@ -731,6 +742,7 @@
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">0.1</span>
         <span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;pet_suv_conversion&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;suv_conversion_type&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;pet_autocorrect_administration_start&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;relative_range&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_range&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">]),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation_saturation&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">0.00</span><span class="p">,</span> <span class="mf">10.00</span><span class="p">]),</span>

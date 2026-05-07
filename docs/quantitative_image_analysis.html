@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Process image and compute quantitative image features &mdash; mirp 2.5.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+  <title>Process image and compute quantitative image features &mdash; mirp 2.6.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=3c4615cf"></script>
+      <script src="_static/documentation_options.js?v=ae39cb24"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -143,7 +143,7 @@ images) and only processing images (without computing features):</p>
 <section id="minimal-example">
 <h3>Minimal example<a class="headerlink" href="#minimal-example" title="Link to this heading"></a></h3>
 <p>The following computes features from a single image and mask:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>
@@ -161,7 +161,7 @@ intensity-histogram features are involved.</p>
 <p>A more realistic example involves interpolation to ensure that voxel spacing is the same for all images in a dataset.
 For example, a positron emission tomography (PET) dataset may be resampled to 3 by 3 by 3 mm isotropic voxels. This
 is achieved by providing the <code class="docutils literal notranslate"><span class="pre">new_spacing</span></code> argument, i.e. <code class="docutils literal notranslate"><span class="pre">new_spacing=3.0</span></code> or <code class="docutils literal notranslate"><span class="pre">new_spacing=[3.0,</span> <span class="pre">3.0,</span> <span class="pre">3.0]</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to PET image&quot;</span><span class="p">,</span>
@@ -183,7 +183,7 @@ images, in-plane resolution may be 1 by 1 mm, but the distance between slices ca
 Resampling to isotropic 1 by 1 by 1 mm voxels causes considerable data to be inferred between slices,
 which may not be desirable. In that case, images may be better processed by slice-by-slice (<em>2D</em>).
 This is achieved by providing the <code class="docutils literal notranslate"><span class="pre">by_slice</span></code> argument, i.e. <code class="docutils literal notranslate"><span class="pre">by_slice=True</span></code>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to CT image&quot;</span><span class="p">,</span>
@@ -208,7 +208,7 @@ consistent across the dataset. MIRP sets the lower bound of the initial bin usin
 its absence, a default value (if any).</p>
 <p>Below we compute features from a computed tomography image using a <em>Fixed Bin Size</em> discretisation method.
 Because the resegmentation range is not set, the lower bound of the initial bin defaults to -1000 Hounsfield Units.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to CT image&quot;</span><span class="p">,</span>
@@ -227,7 +227,7 @@ Because the resegmentation range is not set, the lower bound of the initial bin 
 We can change this by providing the <code class="docutils literal notranslate"><span class="pre">resegmentation_intensity_range</span></code> argument. Here, we provide a window more fitting
 for soft tissues: <code class="docutils literal notranslate"><span class="pre">resegmentation_intensity_range=[-200.0,</span> <span class="pre">200.0]</span></code>. Thus the lower bound of the initial bin is set to
 -200 Hounsfield Units, and 16 bins total are formed.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to CT image&quot;</span><span class="p">,</span>
@@ -246,7 +246,7 @@ for soft tissues: <code class="docutils literal notranslate"><span class="pre">r
 <p>The above examples all compute features from the base image. Filters can be applied to images to enhance patterns such
 as edges. MIRP implements multiple filters <a class="reference internal" href="#depeursinge2020" id="id4"><span>[Depeursinge2020]</span></a>. In the example below, we compute features from a
 Laplacian-of-Gaussian filtered image:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>
@@ -266,7 +266,7 @@ Laplacian-of-Gaussian filtered image:</p>
 base image. You can change this by specifying <code class="docutils literal notranslate"><span class="pre">base_feature_families=&quot;none&quot;</span></code> (to prevent computing features from
 the base image) and specifying <code class="docutils literal notranslate"><span class="pre">response_map_feature_families</span></code>. In the example below, we compute both statistical
 features and intensity histogram features.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>
@@ -292,7 +292,7 @@ processed at the same time. There two relevant parameters: <code class="docutils
 determines the number of workers that will be spawned. <code class="docutils literal notranslate"><span class="pre">parallel_backend</span></code> determines the backend using for parallel
 processing, i.e. <code class="docutils literal notranslate"><span class="pre">&quot;ray&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;joblib&quot;</span></code>.</p>
 <p>In the example below, we extract features from images using 2 workers on a <code class="docutils literal notranslate"><span class="pre">joblib</span></code> backend.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mirp</span> <span class="kn">import</span> <span class="n">extract_features</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mirp</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_features</span>
 
 <span class="n">feature_data</span> <span class="o">=</span> <span class="n">extract_features</span><span class="p">(</span>
     <span class="n">image</span><span class="o">=</span><span class="s2">&quot;path to image&quot;</span><span class="p">,</span>

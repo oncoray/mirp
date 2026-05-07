@@ -37,7 +37,7 @@ MIRP currently supports the following Python versions and operating systems:
 
 | Python | Linux     | Win       | OSX       |
 |--------|-----------|-----------|-----------|
-| 3.10   | Supported | Supported | Supported |
+| 3.10   | < v2.6.0  | < v2.6.0  | < v2.6.0  |
 | 3.11   | Supported | Supported | Supported |
 | 3.12   | Supported | Supported | Supported |
 | 3.13   | Supported | Supported | Supported |

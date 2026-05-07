@@ -5,16 +5,11 @@ import itertools
 import os
 import os.path
 import re
-import sys
 import warnings
 
 import numpy as np
 
-from typing import Any
-if sys.version_info >= (3, 11):
-    from typing import Self
-else:
-    from typing_extensions import Self
+from typing import Any, Self
 
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
