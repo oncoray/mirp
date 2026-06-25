@@ -379,14 +379,21 @@ class ImageDicomFilePT(ImageDicomFile):
         ssf = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1000), tag_type="float")
 
         if acsf is None and ssf is None:
-            # Pathway 1: ACSF and SSF are both missing -> not a Philips scan.
+            # Pathway 1: ACSF and SSF are both missing -> not a Philips scan. This pathway is currently untested and
+            # will raise an error.
+
+            raise ValueError(
+                f"Cannot convert CPS units to GML. Philips activity concentration scale factor (7053, "
+                f"1009: {acsf}) or SUV scale factor (7053, 1000: {ssf}) attributes may have been set incorrectly."
+            )
 
             # Get frame duration in seconds.
-            frame_duration = self._get_frame_duration(to_seconds=True)
+            # frame_duration = self._get_frame_duration(to_seconds=True)
 
             # If we integrate counts per second over the frame duration, we get counts. Internally conversion goes
             # CNTS -> CPS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
-            return self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start) * frame_duration
+            # return self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start) *
+            # frame_duration
 
         elif acsf is not None and acsf > 0.0:
             # Pathway 2: Using activity concentration scale factor. ACSF converts CPS to BQML.
