@@ -125,7 +125,11 @@ def test_error_suv_dro():
     for dro in available_dro:
         custom_kwargs = dict([])
 
-        with pytest.raises(ValueError):
+        error_type = ValueError
+        if dro == "DRO_error_2_7":
+            error_type = NotImplementedError
+
+        with pytest.raises(error_type) as error_info:
             image, mask = extract_images(
                 image_export_format="native",
                 image=os.path.join(CURRENT_DIR, "data", "ibsi_suv", "DRO", dro, "PT"),
@@ -133,3 +137,7 @@ def test_error_suv_dro():
                 roi_name="DRO_mask",
                 **custom_kwargs
             )
+
+        print(f"{dro}: {str(error_info.value)}")
+        # Check for ValueError that does not actually produce a meaningful error.
+        assert "not enough values to unpack" not in str(error_info.value)
