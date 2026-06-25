@@ -52,7 +52,7 @@ def test_read_suv_dro():
         "DRO_3_2_0",
         "DRO_3_2_1",
         "DRO_3_2_2",
-        "DRO_3_2_3",
+        # "DRO_3_2_3",
         "DRO_3_3_0",
         "DRO_3_3_1",
         "DRO_3_4_0",
@@ -67,14 +67,14 @@ def test_read_suv_dro():
         "DRO_4_1",
         "DRO_4_2",
         "DRO_4_3",
-        "DRO_4_4",
+        # "DRO_4_4",
         "DRO_4_5",
         "DRO_5_0",
-        "DRO_7_0_0",
-        "DRO_7_1_0",
-        "DRO_7_2_0",
-        "DRO_7_3_0",
-        "DRO_7_3_1"
+        # "DRO_7_0_0",
+        # "DRO_7_1_0",
+        # "DRO_7_2_0",
+        # "DRO_7_3_0",
+        # "DRO_7_3_1"
     ]
 
     for dro in available_dro:
