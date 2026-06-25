@@ -569,9 +569,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         # Require patient biological sex.
         patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
-        if patient_biological_sex is None:
-            patient_biological_sex = "o"
-        if patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
+        if patient_biological_sex is None or patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
             raise ValueError(
                 f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex}. SUV normalisation "
                 f"({suv_type}) is not possible. [{self.describe_self()}]"
