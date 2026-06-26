@@ -462,7 +462,15 @@ class ImageDicomFilePT(ImageDicomFile):
                 # Prioritise private tages.
                 time_start = time_acq_private
 
-            elif manufacturer in ["siemens", "philips"] and time_series != time_acq:
+            elif manufacturer in ["ge"] and time_series != time_acq:
+                # Assume that something is wrong with the series time, and try to back-correct for GE-specific PET
+                # images.
+                time_frame_ref = self._get_frame_reference_time()
+                time_start = time_acq - time_frame_ref
+
+            elif time_series != time_acq:
+                # Assume that something is wrong with the series time, and try back-correct to the frame-reference time
+                # first. This pathway is generic, and applies to Philips and Siemens scans too.
                 frame_duration = self._get_frame_duration(to_seconds=True)
                 time_frame_ref = self._get_frame_reference_time()
 
@@ -471,10 +479,6 @@ class ImageDicomFilePT(ImageDicomFile):
                     (_lambda * frame_duration) / (1.0 - np.exp(-1.0 * _lambda * frame_duration))
                 )
                 time_start = time_acq + datetime.timedelta(seconds=time_avg) - time_frame_ref
-
-            elif manufacturer in ["ge"] and time_series != time_acq:
-                time_frame_ref = self._get_frame_reference_time()
-                time_start = time_acq - time_frame_ref
 
             else:
                 time_start = time_acq
