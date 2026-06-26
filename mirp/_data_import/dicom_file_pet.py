@@ -483,6 +483,73 @@ class ImageDicomFilePT(ImageDicomFile):
             else:
                 time_start = time_acq
 
+            # Check administration time for plausibility.
+            if time_adm > time_start:
+                # Administration AFTER start of acquisition (only plausible for dynamic scans -- time difference
+                # should be marginal).
+                if time_adm - time_start > datetime.timedelta(seconds=3600.0) and autocorrect_administration_start:
+                    if half_life > 41400.0:
+                        # Cannot plausibly autocorrect administration or start time.
+                        raise ValueError(
+                            f"Administration time {time_adm} was after acquisition start time {time_start}. "
+                            f"However, the corresponding date cannot be updated due to long-living radiotracer ("
+                            f"half-life {half_life} > 41400s). "
+                            f"If administration and acquisition times are correct, please use "
+                            f"pet_autocorrect_administration_start=False as input argument. "
+                            f"[{self.describe_self()}]"
+                        )
+
+                    original_time_adm = copy.deepcopy(time_adm)
+
+                    # Update the administration date to that of the start date, but check plausibility.
+                    time_adm = time_adm.replace(year=time_start.year, month=time_start.month, day=time_start.day)
+                    if time_start - time_adm < datetime.timedelta(seconds=-3600.0):
+                        # If acquisition now starts more than 3600 seconds prior to administration, assume an overnight
+                        # situation.
+                        time_adm -= datetime.timedelta(days=1)
+
+                    warnings.warn(
+                        f"Radiopharmaceutical administration start date and time ({original_time_adm}) was after "
+                        f"the acquisition start time ({time_start}). This was corrected to "
+                        f"{time_adm}. If the original administration start time and acquisition "
+                        f"start time were correct, please use pet_autocorrect_administration_start=False as input "
+                        f"argument. [{self.describe_self()}]",
+                        UserWarning
+                    )
+
+            else:
+                # Administration time BEFORE start of acquisition (test plausibility of uptake time).
+                if time_start - time_adm > datetime.timedelta(seconds=2.0 * half_life) and autocorrect_administration_start:
+                    # Not plausible: at the moment of acquisition, there is not much dose left.
+                    if half_life > 41400.0:
+                        # Cannot plausibly autocorrect administration or start time.
+                        raise ValueError(
+                            f"Administration time {time_adm} occurred long (> 2 half-lives) before acquisition start "
+                            f"time {time_start}. However, the corresponding date cannot be accurately updated due to "
+                            f"long-living radiotracer (half-life {half_life} > 41400s). "
+                            f"If administration and acquisition times are correct, please use "
+                            f"pet_autocorrect_administration_start=False as input argument. "
+                            f"[{self.describe_self()}]"
+                        )
+
+                    original_time_adm = copy.deepcopy(time_adm)
+
+                    # Update the administration date to that of the start date, but check plausibility.
+                    time_adm = time_adm.replace(year=time_start.year, month=time_start.month, day=time_start.day)
+                    if time_start - time_adm < datetime.timedelta(seconds=-3600.0):
+                        # If acquisition now starts more than 3600 seconds prior to administration, assume an overnight
+                        # situation.
+                        time_adm -= datetime.timedelta(days=1)
+
+                    warnings.warn(
+                        f"Administration time {original_time_adm} occurred long (> 2 half-lives) before acquisition "
+                        f"start time {time_start}. This was corrected to {time_adm}. "
+                        f"If the original administration start time and acquisition start time were correct, "
+                        f"please use pet_autocorrect_administration_start=False as input argument. "
+                        f"[{self.describe_self()}]",
+                        UserWarning
+                    )
+
             # Compute time between reference and administration.
             time_diff_ref_adm = time_start - time_adm
             decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
@@ -738,7 +805,8 @@ class ImageDicomFilePT(ImageDicomFile):
                 raise ValueError(
                     f"Radiopharmaceutical Start DateTime (0x0018, 0x1078) was missing. Radiopharmaceutical Start Time"
                     f"was found instead (0x0018, 0x1072). However, the corresponding date cannot be "
-                    f"plausibly determined due to long-living radiotracer (half-life {half_life} > 41400s)."
+                    f"plausibly determined due to long-living radiotracer (half-life {half_life} > 41400s). "
+                    f"{self.describe_self()}"
                 )
 
             # Infer start date.

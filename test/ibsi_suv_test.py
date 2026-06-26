@@ -67,7 +67,7 @@ def test_read_suv_dro():
         "DRO_4_1",
         "DRO_4_2",
         "DRO_4_3",
-        # "DRO_4_4",
+        "DRO_4_4",
         "DRO_4_5",
         "DRO_5_0",
         # "DRO_7_0_0",
