@@ -725,6 +725,18 @@ class ImageDicomFilePT(ImageDicomFile):
         )
 
         if admin_ref_time is not None:
+            # RPST+
+
+            # Check half-life to check plausibility.
+            half_life = self._get_half_life()
+
+            if half_life >= 41400.0:
+                raise ValueError(
+                    f"Radiopharmaceutical Start DateTime (0x0018, 0x1078) was missing. Radiopharmaceutical Start Time"
+                    f"was found instead (0x0018, 0x1072). However, the corresponding date cannot be "
+                    f"plausibly determined due to long-living radiotracer (half-life {half_life} > 41400s)."
+                )
+
             # Infer start date.
             acquisition_start_time = self._get_acquisition_start_time()
             admin_ref_time = datetime.datetime(
