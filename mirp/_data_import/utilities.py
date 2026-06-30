@@ -415,6 +415,10 @@ def convert_dicom_time(
     """
     Converts DICOM date, time or datetime string to a datetime.datetime object to facilitate use in Python.
 
+    .. note::
+        MIRP currently assumes that all times in a given object are in the same locale: (optional) timezone information
+        is discarded.
+
     Parameters
     ----------
     datetime_str: str, optional
@@ -431,22 +435,56 @@ def convert_dicom_time(
     datetime.datetime
     """
 
-    if datetime_str is None and (date_str is None or time_str is None):
-        # No reference time can be established
-        ref_time = None
+    ref_time = None
 
-    elif datetime_str is not None:
+    # Default values for components that are allowed to be null according to the DICOM standard. Any further components
+    # are then automatically null as well.
+    month = 1
+    day = 1
+    hour = 0
+    minute = 0
+    second = 0
+    microsecond = 0
+
+    if datetime_str is not None:
         # Single datetime string provided
+        # DICOM:                YYYYMMDDHHMMSS.FFFFFF&ZZXX
+        # year:         0:4     ^^^^
+        # month:        4:6         ^^
+        # day:          6:8           ^^
+        # DICOM:                YYYYMMDDHHMMSS.FFFFFF&ZZXX
+        # hour:         8:10            ^^
+        # minute:       10:12             ^^
+        # second:       12:14               ^^
+        # microsecond:  15:21                 .^^^^^^       Optional: always starts with ".", between 1 and 6 digits.
+        # DICOM:                YYYYMMDDHHMMSS.FFFFFF&ZZXX
+        # timezone:     21:26                        ^^^^^  Optional.
         year = int(datetime_str[0:4])
-        month = int(datetime_str[4:6])
-        day = int(datetime_str[6:8])
-        hour = int(datetime_str[8:10])
-        minute = int(datetime_str[10:12])
-        second = int(datetime_str[12:14])
-        if len(datetime_str) > 14:
-            microsecond = int(round(float(datetime_str[14:]) * 1000))
-        else:
-            microsecond = 0
+        if len(datetime_str) >= 6 and datetime_str[4].isdigit():
+            month = int(datetime_str[4:6])
+            if len(datetime_str) >= 8 and datetime_str[6].isdigit():
+                day = int(datetime_str[6:8])
+                if len(datetime_str) >= 10 and datetime_str[8].isdigit():
+                    hour = int(datetime_str[8:10])
+                    if len(datetime_str) >= 12 and datetime_str[10].isdigit():
+                        minute = int(datetime_str[10:12])
+                        if len(datetime_str) >= 14 and datetime_str[12].isdigit():
+                            second = int(datetime_str[12:14])
+                            if len(datetime_str) > 14:
+                                if datetime_str[14] == ".":
+                                    # Check that the "." is present. If not, this likely is a timezone indicator instead. According to the
+                                    # DICOM standard, fractional seconds are always preceded a ".". However, this part of the string
+                                    # can have between 1 and 6 digits.
+                                    microsec_str = ""
+                                    ii = 15
+                                    while ii < 21 and ii < len(datetime_str):
+                                        if datetime_str[ii].isdigit():
+                                            microsec_str += datetime_str[ii]
+                                            ii += 1
+                                        else:
+                                            break
+
+                                    microsecond = int(microsec_str) * 10 ** (6 - len(microsec_str))
 
         ref_time = datetime.datetime(
             year=year,
@@ -458,18 +496,43 @@ def convert_dicom_time(
             microsecond=microsecond
         )
 
-    else:
+    elif date_str is not None and time_str is not None:
         # Separate date and time strings provided
+        # DICOM:     YYYYMMDD
+        # year:  0:4 ^^^^
+        # month: 4:6     ^^
+        # day:   6:8       ^^
         year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
+        if len(date_str) >= 6 and date_str[4].isdigit():
+            month = int(date_str[4:6])
+            if len(date_str) >= 8 and date_str[6].isdigit():
+                day = int(date_str[6:8])
+
+        # DICOM:                HHMMSS.FFFFFF
+        # hour:         0:2     ^^
+        # minute:       2:4       ^^
+        # second:       4:6         ^^
+        # microsecond:  7:13          .^^^^^^  Optional: always starts with ".", between 1 and 6 digits.
         hour = int(time_str[0:2])
-        minute = int(time_str[2:4])
-        second = int(time_str[4:6])
-        if len(time_str) > 6:
-            microsecond = int(round(float(time_str[6:]) * 1000))
-        else:
-            microsecond = 0
+        if len(time_str) >= 4 and time_str[2].isdigit():
+            minute = int(time_str[2:4])
+            if len(time_str) >= 6 and time_str[4].isdigit():
+                second = int(time_str[4:6])
+                if len(time_str) > 6:
+                    if time_str[6] == ".":
+                        # Check that the "." is present. If not, this likely is a timezone indicator instead. According to the
+                        # DICOM standard, fractional seconds are always preceded a ".". However, this part of the string
+                        # can have between 1 and 6 digits.
+                        microsec_str = ""
+                        ii = 7
+                        while ii < 13 and ii < len(time_str):
+                            if time_str[ii].isdigit():
+                                microsec_str += time_str[ii]
+                                ii += 1
+                            else:
+                                break
+
+                        microsecond = int(microsec_str) * 10 ** (6 - len(microsec_str))
 
         ref_time = datetime.datetime(
             year=year,

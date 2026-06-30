@@ -7,6 +7,11 @@
 - Added generic-vendor pathway for computing SUV values.
 - Added plausibility checks to deal with (partial) anonymisation of reference times.
 
+## Fixes
+
+- Improved handling of DICOM Date, Time and DateTime values. Variable-length fractional time, null components and 
+  the presence of timezone information is now correctly handled.
+
 # Version 2.6.0
 
 ## Changes
