@@ -998,5 +998,70 @@ class ImageDicomFilePT(ImageDicomFile):
 
 
 class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
+    # MultiFrame PET are by definition Enhanced PET.
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def load_data(
+            self,
+            pet_suv_conversion: str = "body_weight",
+            pet_autocorrect_administration_start: bool = True,
+            **kwargs
+    ):
+        # Handle PT multi-frame
+        image_data = super().load_data(**kwargs)
+
+        if pet_suv_conversion != "none":
+            # First we need to go the GML as unit.
+            gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
+
+            # Then convert to the correct SUV type.
+            suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+
+            # Update image intensities.
+            image_data *= gml_factor * suv_factor
+
+        # Set image_data attribute.
+        self.image_data = image_data
+
+    def _to_gml_conversion_factor(self, autocorrect_administration_start=True) -> float:
+        """To compute SUV, PET units need to be converted to BQML."""
+        self.load_metadata()
+
+        pet_unit = self._get_pet_unit()
+        if pet_unit is None:
+            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+
+        if pet_unit in ["CNTS"]:
+            conversion_factor = self._pet_unit_cnts_to_gml(autocorrect_administration_start=autocorrect_administration_start)
+        elif pet_unit in ["CPS"]:
+            conversion_factor = self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start)
+        elif pet_unit in ["BQML"]:
+            conversion_factor = self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start)
+        elif pet_unit in ["CM2ML"]:
+            conversion_factor = self._pet_unit_cm2ml_to_gml()
+        elif pet_unit in ["GML"]:
+            conversion_factor = self._pet_unit_gml_to_gml()
+        else:
+            raise NotImplementedError(
+                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+            )
+
+        return conversion_factor
+
+    def _get_pet_unit(self):
+        # For enhanced PET, there is no PET units (0054,1001) attribute, and should either be extracted per-frame or
+        # from the shared group.
+
+        # Shared
+        real_world_value_mapping_sequence = self.image_metadata[(0x5200, 0x9229)][0]
+
+        pet_unit = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0040, 0x08EA),
+            tag_type="float",
+            macro_dcm_seq=(0x0040, 0x9096)
+        )
+
+        return pet_unit

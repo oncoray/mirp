@@ -32,6 +32,7 @@ def test_import_suv_dro():
 def test_read_suv_dro():
 
     available_dro = [
+        "DRO_7_0_0",
         "DRO_0_0",
         "DRO_1_0",
         "DRO_2_0",

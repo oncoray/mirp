@@ -547,12 +547,77 @@ def convert_dicom_time(
     return ref_time
 
 
+def get_pydicom_func_group_tag(
+        dcm_seq: pydicom.Dataset,
+        tag: tuple[int, int],
+        tag_type: None | str = None,
+        default: Any = None,
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
+        frame_id: None | int | list[int] = None,
+        test_tag: bool = False
+) -> Any:
+    # Number of available frames
+    n_frames = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=(0x0028, 0x0008), tag_type="int")
+
+    # Ensure that frame_id is a list.
+    if frame_id is None:
+        frame_id = list(range(n_frames))
+    elif isinstance(frame_id, int):
+        frame_id = [frame_id]
+
+    frame_sec_dcm_tag = (0x5200, 0x9229)
+    share_macro_dcm_tag = (0x5200, 0x9230)
+
+    frame_value = [get_pydicom_meta_tag(
+        dcm_seq=dcm_seq[frame_sec_dcm_tag][frame_id_ii],
+        tag=tag,
+        tag_type=tag_type,
+        macro_dcm_seq=macro_dcm_seq,
+        default=None,
+        test_tag=test_tag
+    ) for frame_id_ii in frame_id]
+
+    if test_tag and all(x == True for x in frame_value):
+        return True
+
+    if not all(x is None for x in frame_value):
+        return frame_value
+
+    # Attempt to get from shared group.
+    share_value = get_pydicom_meta_tag(
+        dcm_seq=dcm_seq[share_macro_dcm_tag][0],
+        tag=tag,
+        tag_type=tag_type,
+        macro_dcm_seq=macro_dcm_seq,
+        default=default,
+        test_tag=test_tag
+    )
+    
+
+    share
+
+        if n_frames is None:
+            rescale_intercept = 0.0
+        else:
+            rescale_intercept = [
+                get_pydicom_meta_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x0028, 0x1052),
+                    tag_type="float",
+                    macro_dcm_seq=(0x0028, 0x9145),
+                    frame_id=frame_id,
+                    default=0.0
+                )
+                for frame_id in np.arange(self.image_dimension[0])
+            ]
+
+
 def get_pydicom_meta_tag(
         dcm_seq: pydicom.Dataset,
         tag: tuple[int, int],
         tag_type: None | str = None,
         default: Any = None,
-        macro_dcm_seq: None | tuple[int, int] = None,
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]]= None,
         frame_id: None | int = None,
         test_tag: bool = False
 ) -> Any:
@@ -609,11 +674,25 @@ def get_pydicom_meta_tag(
         # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
         # tags.
         if frame_id is not None and macro_dcm_seq is not None:
-            try:
-                tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][macro_dcm_seq][0][tag].value
-                break
-            except KeyError:
-                pass
+            if isinstance(macro_dcm_seq, list):
+                sub_sequence = dcm_seq[(0x5200, 0x9230)][frame_id]
+                for sequence_tag in macro_dcm_seq:
+                    try:
+                        sub_sequence = sub_sequence[sequence_tag][0]
+                    except KeyError:
+                        break
+                try:
+                    tag_value = sub_sequence[tag].value
+                    break
+                except KeyError:
+                    pass
+
+            else:
+                try:
+                    tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][macro_dcm_seq][0][tag].value
+                    break
+                except KeyError:
+                    pass
         # If not found, test whether the tag is found in the general frame functional group instead of the macro
         # sequence.
         if frame_id is not None:
@@ -627,11 +706,24 @@ def get_pydicom_meta_tag(
         # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
         # tags.
         if macro_dcm_seq is not None:
-            try:
-                tag_value = dcm_seq[(0x5200, 0x9229)][0][macro_dcm_seq][0][tag].value
-                break
-            except KeyError:
-                pass
+            if isinstance(macro_dcm_seq, list):
+                sub_sequence = dcm_seq[(0x5200, 0x9229)][0]
+                for sequence_tag in macro_dcm_seq:
+                    try:
+                        sub_sequence = sub_sequence[sequence_tag][0]
+                    except KeyError:
+                        break
+                try:
+                    tag_value = sub_sequence[tag].value
+                    break
+                except KeyError:
+                    pass
+            else:
+                try:
+                    tag_value = dcm_seq[(0x5200, 0x9229)][0][macro_dcm_seq][0][tag].value
+                    break
+                except KeyError:
+                    pass
         # If not found, test whether the tag is found in the general frame functional group instead of the macro
         # sequence.
         try:
