@@ -158,66 +158,26 @@ class ImageDicomMultiFrame(ImageDicomFile):
         self.load_metadata(include_image=True)
         image_data = self.image_metadata.pixel_array.astype(np.float32)
 
-        # Determine number of frames
-        n_frames = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0008), tag_type="int")
-
-        # Determine rescale intercept.
-        rescale_intercept = get_pydicom_meta_tag(
+        # Determine rescale intercept
+        rescale_intercept = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0028, 0x1052),
             tag_type="float",
-            macro_dcm_seq=(0x0028, 0x9145)
+            macro_dcm_seq=(0x0028, 0x9145),
+            default=0.0
         )
-        if rescale_intercept is None:
-            if n_frames is None:
-                rescale_intercept = 0.0
-            else:
-                rescale_intercept = [
-                    get_pydicom_meta_tag(
-                        dcm_seq=self.image_metadata,
-                        tag=(0x0028, 0x1052),
-                        tag_type="float",
-                        macro_dcm_seq=(0x0028, 0x9145),
-                        frame_id=frame_id,
-                        default=0.0
-                    )
-                    for frame_id in np.arange(self.image_dimension[0])
-                ]
 
         # Determine rescale slope.
-        rescale_slope = get_pydicom_meta_tag(
+        rescale_slope = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0028, 0x1053),
             tag_type="float",
-            macro_dcm_seq=(0x0028, 0x9145)
+            macro_dcm_seq=(0x0028, 0x9145),
+            default=1.0
         )
-        if rescale_slope is None:
-            if n_frames is None:
-                rescale_slope = 1.0
-            else:
-                rescale_slope = [
-                    get_pydicom_meta_tag(
-                        dcm_seq=self.image_metadata,
-                        tag=(0x0028, 0x1052),
-                        tag_type="float",
-                        macro_dcm_seq=(0x0028, 0x9145),
-                        frame_id=frame_id,
-                        default=1.0
-                    )
-                    for frame_id in np.arange(self.image_dimension[0])
-                ]
 
         # Apply slope and intercept.
-        if isinstance(rescale_slope, list):
-            for ii, b in enumerate(rescale_slope):
-                image_data[ii, :, :] = b * image_data[ii, :, :]
-        else:
-            image_data *= rescale_slope
-
-        if isinstance(rescale_intercept, list):
-            for ii, a in enumerate(rescale_intercept):
-                image_data[ii, :, :] = image_data[ii, :, :] + a
-        else:
-            image_data += rescale_intercept
+        for ii in range(image_data.shape[0]):
+            image_data[ii, :, :] = rescale_slope[ii] * image_data[ii, :, :] + rescale_intercept[ii]
 
         self.image_data = image_data
