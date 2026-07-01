@@ -554,10 +554,16 @@ def get_pydicom_func_group_tag(
         default: Any = None,
         macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
         frame_id: None | int | list[int] = None,
-        test_tag: bool = False
+        test_tag: bool = False,
+        check_all_none: bool = True
 ) -> Any:
     # Number of available frames
     n_frames = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=(0x0028, 0x0008), tag_type="int")
+
+    if n_frames is None or n_frames == 0:
+        return None
+
+    only_frame_macro = frame_id is not None
 
     # Ensure that frame_id is a list.
     if frame_id is None:
@@ -565,11 +571,11 @@ def get_pydicom_func_group_tag(
     elif isinstance(frame_id, int):
         frame_id = [frame_id]
 
-    frame_sec_dcm_tag = (0x5200, 0x9229)
-    share_macro_dcm_tag = (0x5200, 0x9230)
+    share_macro_dcm_tag = (0x5200, 0x9229)
+    frame_macro_dcm_tag = (0x5200, 0x9230)
 
     frame_value = [get_pydicom_meta_tag(
-        dcm_seq=dcm_seq[frame_sec_dcm_tag][frame_id_ii],
+        dcm_seq=dcm_seq[frame_macro_dcm_tag][frame_id_ii],
         tag=tag,
         tag_type=tag_type,
         macro_dcm_seq=macro_dcm_seq,
@@ -583,6 +589,11 @@ def get_pydicom_func_group_tag(
     if not all(x is None for x in frame_value):
         return frame_value
 
+    if only_frame_macro:
+        if test_tag:
+            return False
+        return default
+
     # Attempt to get from shared group.
     share_value = get_pydicom_meta_tag(
         dcm_seq=dcm_seq[share_macro_dcm_tag][0],
@@ -592,24 +603,14 @@ def get_pydicom_func_group_tag(
         default=default,
         test_tag=test_tag
     )
-    
 
-    share
+    if test_tag:
+        return share_value  # True if tag is present, and False if not.
 
-        if n_frames is None:
-            rescale_intercept = 0.0
-        else:
-            rescale_intercept = [
-                get_pydicom_meta_tag(
-                    dcm_seq=self.image_metadata,
-                    tag=(0x0028, 0x1052),
-                    tag_type="float",
-                    macro_dcm_seq=(0x0028, 0x9145),
-                    frame_id=frame_id,
-                    default=0.0
-                )
-                for frame_id in np.arange(self.image_dimension[0])
-            ]
+    if share_value is None and check_all_none:
+        return None
+
+    return [share_value] * len(frame_id)
 
 
 def get_pydicom_meta_tag(
@@ -617,8 +618,7 @@ def get_pydicom_meta_tag(
         tag: tuple[int, int],
         tag_type: None | str = None,
         default: Any = None,
-        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]]= None,
-        frame_id: None | int = None,
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
         test_tag: bool = False
 ) -> Any:
     """
@@ -638,11 +638,9 @@ def get_pydicom_meta_tag(
     default: any, optional, default: None
         Default value to be used in absence of any value from the DICOM metadata.
 
-    macro_dcm_seq: tuple of hex
-        Hexadecimal value for the macro sequence within shared or per-frame functional groups.
-
-    frame_id: int
-        Index of the frame of interest for tags in per-frame functional groups.
+    macro_dcm_seq: tuple of hex or list of tuple of hex
+        Hexadecimal value for the macro sequence where the tag is nested. If the tag is nested, a list of
+        hexadecimal values can be provided. These can are then accessed in the provided order.
 
     test_tag: bool, optional, default: False
         Determine whether a tag exists.
@@ -660,74 +658,36 @@ def get_pydicom_meta_tag(
     while True:
         # Tags are searched in the following order:
         # 1. General header
-        # 2. Frame functional group (if frame id is provided).
-        # 3. Shared functional group
+        # 2. Within macros.
 
-        # Tag in general header
+        # Try to find the tag in the general header.
         try:
             tag_value = dcm_seq[tag].value
             break
         except KeyError:
             pass
 
-        # Tag in frame functional group [0x5200, 0x9230].
-        # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
-        # tags.
-        if frame_id is not None and macro_dcm_seq is not None:
-            if isinstance(macro_dcm_seq, list):
-                sub_sequence = dcm_seq[(0x5200, 0x9230)][frame_id]
-                for sequence_tag in macro_dcm_seq:
-                    try:
-                        sub_sequence = sub_sequence[sequence_tag][0]
-                    except KeyError:
-                        break
-                try:
-                    tag_value = sub_sequence[tag].value
-                    break
-                except KeyError:
-                    pass
+        # Break if there is no macro sequence to search was provided.
+        if macro_dcm_seq is None:
+            if test_tag:
+                return False
+            break
 
-            else:
-                try:
-                    tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][macro_dcm_seq][0][tag].value
-                    break
-                except KeyError:
-                    pass
-        # If not found, test whether the tag is found in the general frame functional group instead of the macro
-        # sequence.
-        if frame_id is not None:
+        # Package macro sequence hex tuple into list, if it is not a list already.
+        if not isinstance(macro_dcm_seq, list):
+            macro_dcm_seq = [macro_dcm_seq]
+
+        # Descend into the provided macro sequence.
+        dcm_sub_seq = dcm_seq
+        for macro_tag in macro_dcm_seq:
             try:
-                tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][tag].value
-                break
+                dcm_sub_seq = dcm_sub_seq[macro_tag][0]
             except KeyError:
-                pass
+                break
 
-        # Tag in shared functional group [0x5200, 0x9229].
-        # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
-        # tags.
-        if macro_dcm_seq is not None:
-            if isinstance(macro_dcm_seq, list):
-                sub_sequence = dcm_seq[(0x5200, 0x9229)][0]
-                for sequence_tag in macro_dcm_seq:
-                    try:
-                        sub_sequence = sub_sequence[sequence_tag][0]
-                    except KeyError:
-                        break
-                try:
-                    tag_value = sub_sequence[tag].value
-                    break
-                except KeyError:
-                    pass
-            else:
-                try:
-                    tag_value = dcm_seq[(0x5200, 0x9229)][0][macro_dcm_seq][0][tag].value
-                    break
-                except KeyError:
-                    pass
-        # If not found, test whether the tag is found in the general frame functional group instead of the macro
-        # sequence.
+        # Find the tag in the macro sequence.
         try:
-            tag_value = dcm_seq[(0x5200, 0x9229)][0][tag].value
+            tag_value = dcm_sub_seq[tag].value
             break
         except KeyError:
             pass
@@ -789,7 +749,7 @@ def get_pydicom_meta_tag(
 def has_pydicom_meta_tag(
         dcm_seq: FileDataset | Dataset,
         tag: tuple[int, int],
-        macro_dcm_seq: None | tuple[int, int] = None,
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
         frame_id: None | int = None
 ) -> bool:
 
@@ -797,7 +757,6 @@ def has_pydicom_meta_tag(
         dcm_seq=dcm_seq,
         tag=tag,
         macro_dcm_seq=macro_dcm_seq,
-        frame_id=frame_id,
         test_tag=True
     )
 
