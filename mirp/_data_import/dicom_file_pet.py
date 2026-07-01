@@ -7,7 +7,8 @@ from typing import Any
 
 from mirp._data_import.dicom_file import ImageDicomFile
 from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
-from mirp._data_import.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
+from mirp._data_import.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag, \
+    get_pydicom_func_group_tag
 
 
 class ImageDicomFilePT(ImageDicomFile):
@@ -1054,7 +1055,17 @@ class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
         # For enhanced PET, there is no PET units (0054,1001) attribute, and should either be extracted per-frame or
         # from the shared group.
 
-        # Shared
+        # Try Rescale Type (0028,1054) from the Pixel Value Transformation Sequence (0028,9145) first. The DICOM
+        # standard specifies it as "US", but this is sometimes ignored.
+        pet_unit = get_pydicom_func_group_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0028, 0x1054),
+            tag_type="str",
+            macro_dcm_seq=(0x0028,0x9145),
+            default="US"
+        )
+
+        # Try Measurement Units Code Sequence (0040,08EA) in Real World Value Mapping Sequence (0040,9096).
         real_world_value_mapping_sequence = self.image_metadata[(0x5200, 0x9229)][0]
 
         pet_unit = get_pydicom_meta_tag(
