@@ -2,7 +2,7 @@ import os.path
 import numpy as np
 
 from mirp._data_import.dicom_file import ImageDicomFile
-from mirp._data_import.utilities import get_pydicom_meta_tag
+from mirp._data_import.utilities import get_pydicom_meta_tag, get_pydicom_func_group_tag
 
 
 class ImageDicomMultiFrame(ImageDicomFile):
@@ -50,16 +50,12 @@ class ImageDicomMultiFrame(ImageDicomFile):
             # Load relevant metadata.
             self.load_metadata(limited=True)
 
-            if frame_id is None:
-                frame_id = 0
-
-            origin = get_pydicom_meta_tag(
+            origin = get_pydicom_func_group_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0032),
                 tag_type="mult_float",
                 macro_dcm_seq=(0x0020, 0x9113),
-                frame_id=frame_id
-            )[::-1]
+            )[0][::-1]
             self.image_origin = tuple(origin)
 
     def _complete_image_orientation(self, force=False, frame_id=None):
@@ -68,16 +64,12 @@ class ImageDicomMultiFrame(ImageDicomFile):
             # Load relevant metadata.
             self.load_metadata(limited=True)
 
-            if frame_id is None:
-                frame_id = 0
-
-            orientation: list[float] = get_pydicom_meta_tag(
+            orientation: list[float] = get_pydicom_func_group_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0020, 0x9116),
-                frame_id=frame_id
-            )
+                macro_dcm_seq=(0x0020, 0x9116)
+            )[0]
 
             # First compute z-orientation.
             # noinspection PyUnreachableCode
@@ -89,40 +81,50 @@ class ImageDicomMultiFrame(ImageDicomFile):
             # Load relevant metadata.
             self.load_metadata(limited=True)
 
-            if frame_id is None:
-                frame_id = 0
-
             # Get pixel-spacing.
-            spacing = get_pydicom_meta_tag(
+            spacing = get_pydicom_func_group_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0028, 0x0030),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
-            )
+                macro_dcm_seq=(0x0028, 0x9110)
+            )[0]
 
             # First try to get spacing between slices.
-            z_spacing = get_pydicom_meta_tag(
+            z_spacing = get_pydicom_func_group_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0018, 0x0088),
                 tag_type="float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
+                macro_dcm_seq=(0x0028, 0x9110)
             )
+            if z_spacing is not None:
+                z_spacing = z_spacing[0]
 
-            # If spacing between slices is not set, get slice thickness.
+            # Try to compute spacing between slices based on slice origin,
             if z_spacing is None:
-                z_spacing = get_pydicom_meta_tag(
+                frame_origins = get_pydicom_func_group_tag(
+                    dcm_seq=self.image_metadata,
+                    tag=(0x0020, 0x0032),
+                    tag_type="mult_float",
+                    macro_dcm_seq=(0x0020, 0x9113),
+                )
+                if len(frame_origins) > 1:
+                    z_spacing = np.sqrt(np.sum(np.power(np.array(frame_origins[0]) - np.array(frame_origins[1]), 2.0)))
+
+            # Try to use slice thickness.
+            if z_spacing is None:
+                z_spacing = get_pydicom_func_group_tag(
                     dcm_seq=self.image_metadata,
                     tag=(0x0018, 0x0050),
                     tag_type="float",
-                    macro_dcm_seq=(0x0028, 0x9110),
-                    frame_id=frame_id
+                    macro_dcm_seq=(0x0028, 0x9110)
                 )
+                if z_spacing is not None:
+                    z_spacing = z_spacing[0]
 
             # If slice thickness is not set, use a default value.
             if z_spacing is None:
                 z_spacing = 1.0
+
             spacing += [z_spacing]
 
             self.image_spacing = tuple(spacing[::-1])

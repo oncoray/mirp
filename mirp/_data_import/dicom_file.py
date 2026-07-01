@@ -1,4 +1,3 @@
-import datetime
 import os.path
 import hashlib
 import numpy as np
@@ -11,7 +10,8 @@ from copy import deepcopy
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
-    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time, has_pydicom_meta_tag
+    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time, has_pydicom_meta_tag, \
+    get_pydicom_func_group_tag
 
 
 class ImageDicomFile(ImageFile):
@@ -316,8 +316,7 @@ class ImageDicomFile(ImageFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0032),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0020, 0x9113),
-                frame_id=frame_id
+                macro_dcm_seq=(0x0020, 0x9113)
             )[::-1]
             self.image_origin = tuple(origin)
 
@@ -562,26 +561,23 @@ class ImageDicomFile(ImageFile):
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        frame_type = get_pydicom_meta_tag(
+        frame_type = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
+            macro_dcm_seq=(0x0018, 0x9226)
         )
-        alt_frame_type = get_pydicom_meta_tag(
+        alt_frame_type = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
-            macro_dcm_seq=(0x0040, 0x9092),
-            frame_id=0
+            macro_dcm_seq=(0x0040, 0x9092)
         )
-        acquisition_contrast = get_pydicom_meta_tag(
+        acquisition_contrast = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x9209),
             tag_type="str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
+            macro_dcm_seq=(0x0018, 0x9226)
         )
 
         if image_type is not None and any(x.lower() == "adc" for x in image_type):
@@ -604,26 +600,23 @@ class ImageDicomFile(ImageFile):
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        frame_type = get_pydicom_meta_tag(
+        frame_type = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
+            macro_dcm_seq=(0x0018, 0x9226)
         )
-        alt_frame_type = get_pydicom_meta_tag(
+        alt_frame_type = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
-            macro_dcm_seq=(0x0040, 0x9092),
-            frame_id=0
+            macro_dcm_seq=(0x0040, 0x9092)
         )
-        acquisition_contrast = get_pydicom_meta_tag(
+        acquisition_contrast = get_pydicom_func_group_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x9209),
             tag_type="str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
+            macro_dcm_seq=(0x0018, 0x9226)
         )
 
         if image_type is not None and any(x.lower() == "dce" for x in image_type):
