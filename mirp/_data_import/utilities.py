@@ -547,71 +547,6 @@ def convert_dicom_time(
     return ref_time
 
 
-def get_pydicom_func_group_tag(
-        dcm_seq: pydicom.Dataset,
-        tag: tuple[int, int],
-        tag_type: None | str = None,
-        default: Any = None,
-        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
-        frame_id: None | int | list[int] = None,
-        test_tag: bool = False,
-        check_all_none: bool = True
-) -> Any:
-    # Number of available frames
-    n_frames = get_pydicom_meta_tag(dcm_seq=dcm_seq, tag=(0x0028, 0x0008), tag_type="int")
-
-    if n_frames is None or n_frames == 0:
-        return None
-
-    only_frame_macro = frame_id is not None
-
-    # Ensure that frame_id is a list.
-    if frame_id is None:
-        frame_id = list(range(n_frames))
-    elif isinstance(frame_id, int):
-        frame_id = [frame_id]
-
-    share_macro_dcm_tag = (0x5200, 0x9229)
-    frame_macro_dcm_tag = (0x5200, 0x9230)
-
-    frame_value = [get_pydicom_meta_tag(
-        dcm_seq=dcm_seq[frame_macro_dcm_tag][frame_id_ii],
-        tag=tag,
-        tag_type=tag_type,
-        macro_dcm_seq=macro_dcm_seq,
-        default=None,
-        test_tag=test_tag
-    ) for frame_id_ii in frame_id]
-
-    if test_tag and all(x == True for x in frame_value):
-        return True
-
-    if not all(x is None for x in frame_value):
-        return frame_value
-
-    if only_frame_macro:
-        if test_tag:
-            return False
-        return default
-
-    # Attempt to get from shared group.
-    share_value = get_pydicom_meta_tag(
-        dcm_seq=dcm_seq[share_macro_dcm_tag][0],
-        tag=tag,
-        tag_type=tag_type,
-        macro_dcm_seq=macro_dcm_seq,
-        default=default,
-        test_tag=test_tag
-    )
-
-    if test_tag:
-        return share_value  # True if tag is present, and False if not.
-
-    if share_value is None and check_all_none:
-        return None
-
-    return [share_value] * len(frame_id)
-
 
 def get_pydicom_meta_tag(
         dcm_seq: pydicom.Dataset,
@@ -749,8 +684,7 @@ def get_pydicom_meta_tag(
 def has_pydicom_meta_tag(
         dcm_seq: FileDataset | Dataset,
         tag: tuple[int, int],
-        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
-        frame_id: None | int = None
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None
 ) -> bool:
 
     return get_pydicom_meta_tag(

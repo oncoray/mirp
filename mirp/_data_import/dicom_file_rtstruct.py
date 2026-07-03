@@ -28,13 +28,13 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def create(self):
         return self
 
-    def _complete_image_origin(self, force=False, frame_id=None):
+    def _complete_image_origin(self, force=False):
         return
 
-    def _complete_image_orientation(self, force=False, frame_id=None):
+    def _complete_image_orientation(self, force=False):
         return
 
-    def _complete_image_spacing(self, force=False, frame_id=None):
+    def _complete_image_spacing(self, force=False):
         return
 
     def _complete_image_dimensions(self, force=False):

@@ -72,19 +72,19 @@ class ImageNumpyFile(ImageFile):
 
         return True
 
-    def _complete_image_origin(self, force=False, frame_id=None):
+    def _complete_image_origin(self, force=False):
         if self.image_origin is None:
             self.load_metadata()
             n_dim = len(self.image_metadata.shape)
             self.image_origin = tuple([0.0] * n_dim)
 
-    def _complete_image_orientation(self, force=False, frame_id=None):
+    def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
             self.load_metadata()
             n_dim = len(self.image_metadata.shape)
             self.image_orientation = np.identity(n_dim, dtype=float)
 
-    def _complete_image_spacing(self, force=False, frame_id=None):
+    def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
             self.load_metadata()
             n_dim = len(self.image_metadata.shape)

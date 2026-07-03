@@ -1,6 +1,5 @@
 from typing import Any
 from mirp._data_import.dicom_file import ImageDicomFile
-from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 from mirp._data_import.utilities import get_pydicom_meta_tag
 
 
@@ -105,8 +104,3 @@ class ImageDicomFileCT(ImageDicomFile):
 
         metadata.update(dict(dcm_meta_data))
         return metadata
-
-
-class ImageDicomFileCTMultiFrame(ImageDicomMultiFrame, ImageDicomFileCT):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)

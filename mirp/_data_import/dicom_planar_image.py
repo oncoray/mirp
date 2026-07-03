@@ -16,15 +16,15 @@ class ImageDicomPlanarImage(ImageDicomFile):
         # Multi-frame images might be actually be stackable (concatenated), but ignore that for now.
         return False
 
-    def _complete_image_origin(self, force=False, frame_id=None):
+    def _complete_image_origin(self, force=False):
         if self.image_origin is None:
             self.image_origin = tuple([0.0, 0.0, 0.0])
 
-    def _complete_image_orientation(self, force=False, frame_id=None):
+    def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
             self.image_orientation = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
-    def _complete_image_spacing(self, force=False, frame_id=None):
+    def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
             # Load relevant metadata.
             self.load_metadata(limited=True)
