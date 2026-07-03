@@ -52,46 +52,9 @@ class ImageDicomMultiFrame(ImageDicomFile):
         return False
 
     def load_data(self, **kwargs):
-        # Only loads data. Convert pixel values using Real World Value Mapping Sequences in downstream methods.
-        if self.image_data is not None:
-            return
-
-        if self.file_path is not None and not os.path.exists(self.file_path):
-            raise FileNotFoundError(
-                f"The image file could not be found at the expected location: {self.file_path}. [{self.describe_self()}]"
-            )
-
-        if self.file_path is None:
-            raise ValueError(f"A path to a file was expected, but not present. [{self.describe_self()}]")
-
-        # Load metadata.
-        self.load_metadata(include_image=True)
-        image_data = self.image_metadata.pixel_array.astype(np.float32)
-
-        # Do not perform any transformations to pixel values here -- use data from Real World Value Mapping Sequences
-        # instead.
-        self.image_data = image_data
-
-        # # Determine rescale intercept
-        # rescale_intercept = self.get_pydicom_func_group_tag(
-        #     tag=(0x0028, 0x1052),
-        #     tag_type="float",
-        #     macro_dcm_seq=(0x0028, 0x9145),
-        #     default=0.0
-        # )
-        #
-        # # Determine rescale slope.
-        # rescale_slope = self.pydicom_func_group_tag(
-        #     dcm_seq=self.image_metadata,
-        #     tag=(0x0028, 0x1053),
-        #     tag_type="float",
-        #     macro_dcm_seq=(0x0028, 0x9145),
-        #     default=1.0
-        # )
-        #
-        # # Apply slope and intercept.
-        # for ii in range(image_data.shape[0]):
-        #     image_data[ii, :, :] = rescale_slope[ii] * image_data[ii, :, :] + rescale_intercept[ii]
+        if self.stacks is not None:
+            for stack in self.stacks:
+                stack.load_data(**kwargs)
 
     def _complete_image_origin(self, force=False):
         if self.stacks is not None:
@@ -197,7 +160,6 @@ class ImageDicomMultiFrame(ImageDicomFile):
 
         return None, None
 
-
     def get_pydicom_func_group_tag(
             self,
             tag: tuple[int, int],
@@ -208,19 +170,18 @@ class ImageDicomMultiFrame(ImageDicomFile):
             test_tag: bool = False,
             check_all_none: bool = True
     ) -> Any:
-        # Number of available frames
-        n_frames = self._get_n_frames()
-
-        if n_frames is None or n_frames == 0:
-            return None
-
-        only_frame_macro = frame_id is not None
 
         # Ensure that frame_id is a list.
-        if frame_id is None:
-            frame_id = list(range(n_frames))
-        elif isinstance(frame_id, int):
+        if isinstance(frame_id, int):
             frame_id = [frame_id]
+        elif frame_id is None:
+            n_frames = self._get_n_frames()
+            if n_frames is None or n_frames == 0:
+                if test_tag:
+                    return False
+                return None
+
+            frame_id = list(range(n_frames))
 
         share_macro_dcm_tag = (0x5200, 0x9229)
         frame_macro_dcm_tag = (0x5200, 0x9230)
@@ -239,11 +200,6 @@ class ImageDicomMultiFrame(ImageDicomFile):
 
         if not all(x is None for x in frame_value):
             return frame_value
-
-        if only_frame_macro:
-            if test_tag:
-                return False
-            return default
 
         # Attempt to get from shared group.
         share_value = get_pydicom_meta_tag(
@@ -274,7 +230,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         super().__init__(**kwargs)
         self.stack_id = stack_id
         self.frame_ids = frame_ids
-        self.frames = None
+        self.frames: list[ImageDicomMultiFrameIndividual] | None = None
 
     def create(self):
         # This method is called from ImageDicomMultiFrame.create amd dispatches to modality-specific multi-frame
@@ -331,6 +287,8 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             frame_id: int,
             in_stack_position: int
     ):
+        # Creates a frame for the current class. The _get_individual_frame_class function is defined in inheriting
+        # classes and returns the class definitions of the corresponding frames.
         frame_class = self._get_individual_frame_class()
         frame = frame_class(
             frame_id=frame_id,
@@ -344,13 +302,36 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
     def _get_individual_frame_class():
         raise NotImplementedError("_get_individual_frame_class method is missing an implementation in inheriting classes.")
 
+    def get_pydicom_func_group_tag(
+            self,
+            tag: tuple[int, int],
+            tag_type: None | str = None,
+            default: Any = None,
+            macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
+            frame_id: None | int | list[int] = None,
+            test_tag: bool = False,
+            check_all_none: bool = True
+    ):
+        # Ensure that only function groups related to the current object are accessed.
+        if self.frame_ids is None or len(self.frame_ids) == 0:
+            if test_tag:
+                return False
+            return None
 
+        return super().get_pydicom_func_group_tag(
+            tag=tag,
+            tag_type=tag_type,
+            default=default,
+            macro_dcm_seq=macro_dcm_seq,
+            frame_id=self.frame_ids,
+            test_tag=test_tag,
+            check_all_none=check_all_none
+        )
 
     def _complete_image_origin(self, force=False):
         if self.image_origin is None:
-
             # Load relevant metadata.
-            self.load_metadata(limited=True)
+            self.load_metadata()
 
             origin = self.get_pydicom_func_group_tag(
                 tag=(0x0020, 0x0032),
@@ -361,9 +342,8 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
     def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
-
             # Load relevant metadata.
-            self.load_metadata(limited=True)
+            self.load_metadata()
 
             orientation: list[float] = self.get_pydicom_func_group_tag(
                 tag=(0x0020, 0x0037),
@@ -379,7 +359,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
     def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
             # Load relevant metadata.
-            self.load_metadata(limited=False)
+            self.load_metadata()
 
             # Get pixel-spacing.
             spacing = self.get_pydicom_func_group_tag(
@@ -426,12 +406,12 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             self.image_spacing = tuple(spacing[::-1])
 
     def _complete_image_dimensions(self, force=False):
-        if self.image_dimension is None:
+        if self.image_dimension is None and self.frames is not None:
             # Load relevant metadata.
-            self.load_metadata(limited=True)
+            self.load_metadata()
 
             dimensions = tuple([
-                get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0008), tag_type="int"),
+                len(self.frames),
                 get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0010), tag_type="int"),
                 get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0011), tag_type="int")
             ])
@@ -444,9 +424,46 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         return len(self.frame_ids)
 
+    def load_data(self, **kwargs):
+        if self.frames is None:
+            return
+
+        image = np.zeros(self.image_dimension, dtype=np.float32)
+        for frame in self.frames:
+            frame.load_data()
+            image[frame.in_stack_position-1, :, :] = frame.image_data
+
+        self.image = image
+
 
 class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
-    def __init__(self, **kwargs):
+    def __init__(
+            self,
+            frame_id: int,
+            in_stack_position: int,
+            **kwargs
+    ):
         super().__init__(**kwargs)
-        self.frame_id = None
-        self.in_stack_position = None
+        self.frame_id = frame_id
+        self.in_stack_position = in_stack_position
+
+    def load_data(self, **kwargs):
+        # Only loads data. Convert pixel values using Real World Value Mapping Sequences in downstream methods.
+        if self.image_data is not None:
+            return
+
+        if self.file_path is not None and not os.path.exists(self.file_path):
+            raise FileNotFoundError(
+                f"The image file could not be found at the expected location: {self.file_path}. [{self.describe_self()}]"
+            )
+
+        if self.file_path is None:
+            raise ValueError(f"A path to a file was expected, but not present. [{self.describe_self()}]")
+
+        # Load metadata.
+        self.load_metadata(include_image=True)
+        image_data = self.image_metadata.pixel_array.astype(np.float32)[self.in_stack_position-1, :, :]
+
+        # Do not perform any transformations to pixel values here -- use data from Real World Value Mapping Sequences
+        # instead.
+        self.image_data = image_data
