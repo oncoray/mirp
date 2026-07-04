@@ -1,9 +1,9 @@
 import copy
 import warnings
-
-import numpy as np
 import pydicom
+import numpy as np
 
+from typing import Generator
 from mirp._data_import.mask_contour import ContourClass
 from mirp.data_import.import_image import ImageFile
 from mirp._data_import.dicom_file import MaskDicomFile
@@ -105,7 +105,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             self,
             image: None | ImageFile,
             **kwargs
-    ) -> list[BaseMask] | None:
+    ) -> Generator[None | BaseMask, None, None] | None:
 
         if image is None:
             raise TypeError(
@@ -119,8 +119,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         self.set_object_metadata()
         if not self.check_mask():
             return None
-
-        mask_list = []
 
         # Find which roi numbers (3006,0022) are associated with which roi names (3004,0024).
         roi_name_present = [
@@ -213,24 +211,17 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if isinstance(self.roi_name, dict):
                 current_roi_name = self.roi_name.get(current_roi_name)
 
-            mask_list += [
-                BaseMask(
-                    roi_name=current_roi_name,
-                    sample_name=self.sample_name,
-                    image_modality=self.modality,
-                    image_data=temp_mask_object.image_data,
-                    image_spacing=temp_mask_object.image_spacing,
-                    image_origin=temp_mask_object.image_origin,
-                    image_orientation=temp_mask_object.image_orientation,
-                    image_dimensions=temp_mask_object.image_dimension,
-                    metadata=self.object_metadata
-                )
-            ]
-
-        if len(mask_list) == 0:
-            return None
-
-        return mask_list
+            yield BaseMask(
+                roi_name=current_roi_name,
+                sample_name=self.sample_name,
+                image_modality=self.modality,
+                image_data=temp_mask_object.image_data,
+                image_spacing=temp_mask_object.image_spacing,
+                image_origin=temp_mask_object.image_origin,
+                image_orientation=temp_mask_object.image_orientation,
+                image_dimensions=temp_mask_object.image_dimension,
+                metadata=self.object_metadata
+            )
 
     def _convert_contour_using_image(
             self,

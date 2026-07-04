@@ -433,7 +433,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             frame.load_data()
             image[frame.in_stack_position-1, :, :] = frame.image_data
 
-        self.image = image
+        self.image_data = image
 
 
 class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
@@ -467,3 +467,34 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
         # Do not perform any transformations to pixel values here -- use data from Real World Value Mapping Sequences
         # instead.
         self.image_data = image_data
+
+    def get_pydicom_func_group_tag(
+            self,
+            tag: tuple[int, int],
+            tag_type: None | str = None,
+            default: Any = None,
+            macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
+            frame_id: None | int | list[int] = None,
+            test_tag: bool = False,
+            check_all_none: bool = True
+    ):
+        # Ensure that only function groups related to the current object are accessed.
+        if self.frame_id is None:
+            if test_tag:
+                return False
+            return None
+
+        value = super().get_pydicom_func_group_tag(
+            tag=tag,
+            tag_type=tag_type,
+            default=default,
+            macro_dcm_seq=macro_dcm_seq,
+            frame_id=self.frame_id,
+            test_tag=test_tag,
+            check_all_none=check_all_none
+        )
+
+        if isinstance(value, list) and len(value) == 1:
+            value = value[0]
+
+        return value

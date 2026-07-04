@@ -7,11 +7,11 @@ from typing import Any, Self
 from pydicom import dcmread
 from warnings import warn
 from copy import deepcopy
+from datetime import datetime
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
-    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time, has_pydicom_meta_tag, \
-    get_pydicom_func_group_tag
+    supported_mask_modalities, get_pydicom_meta_tag, convert_dicom_time, has_pydicom_meta_tag
 
 
 class ImageDicomFile(ImageFile):
@@ -332,9 +332,7 @@ class ImageDicomFile(ImageFile):
             orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
-                tag_type="mult_float",
-                macro_dcm_seq=(0x0020, 0x9116),
-                frame_id=frame_id
+                tag_type="mult_float"
             )
 
             # First compute z-orientation.
@@ -356,8 +354,6 @@ class ImageDicomFile(ImageFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0028, 0x0030),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
             )
 
             # First try to get spacing between slices.
@@ -365,8 +361,6 @@ class ImageDicomFile(ImageFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0018, 0x0088),
                 tag_type="float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
             )
 
             # If spacing between slices is not set, get slice thickness.
@@ -375,8 +369,6 @@ class ImageDicomFile(ImageFile):
                     dcm_seq=self.image_metadata,
                     tag=(0x0018, 0x0050),
                     tag_type="float",
-                    macro_dcm_seq=(0x0028, 0x9110),
-                    frame_id=frame_id
                 )
 
             # If slice thickness is not set, use a default value.

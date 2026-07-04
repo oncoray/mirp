@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 from pydicom import dcmread
+from typing import Generator
 
 from mirp._data_import.dicom_file import MaskDicomFile
 from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
@@ -65,14 +66,12 @@ class MaskDicomFileSEG(MaskDicomFile):
     def load_data(self, **kwargs):
         pass
 
-    def to_object(self, **kwargs) -> None | list[BaseMask]:
+    def to_object(self, **kwargs) -> Generator[None | BaseMask, None, None] | None:
 
         self.load_metadata()
         self.set_object_metadata()
         if not self.check_mask():
             return None
-
-        mask_list = []
 
         # Find which roi numbers (3006,0022) are associated with which roi names (3004,0024).
         roi_name_present = [
@@ -172,24 +171,17 @@ class MaskDicomFileSEG(MaskDicomFile):
             if isinstance(self.roi_name, dict):
                 current_roi_name = self.roi_name.get(current_roi_name)
 
-            mask_list += [
-                BaseMask(
-                    roi_name=current_roi_name,
-                    sample_name=self.sample_name,
-                    image_modality=self.modality,
-                    image_data=mask_data,
-                    image_spacing=mask_spacing,
-                    image_origin=mask_origin,
-                    image_orientation=mask_orientation,
-                    image_dimensions=mask_dimension,
-                    metadata=self.object_metadata
-                )
-            ]
-
-        if len(mask_list) == 0:
-            return None
-
-        return mask_list
+            yield BaseMask(
+                roi_name=current_roi_name,
+                sample_name=self.sample_name,
+                image_modality=self.modality,
+                image_data=mask_data,
+                image_spacing=mask_spacing,
+                image_origin=mask_origin,
+                image_orientation=mask_orientation,
+                image_dimensions=mask_dimension,
+                metadata=self.object_metadata
+            )
 
     def _generate_frame_index(self, roi_index: int):
         for ii in np.arange(

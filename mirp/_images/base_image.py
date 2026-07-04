@@ -2,7 +2,7 @@ import copy
 import warnings
 import numpy as np
 
-from typing import Self
+from typing import Self, Generator
 
 
 class BaseImage:
@@ -216,13 +216,13 @@ class BaseImage:
                 UserWarning
             )
 
-    def to_object(self, **kwargs):
+    def to_object(self, **kwargs) -> Generator[Self, None, None]:
         image = self.copy()
 
         # Drop associated masks.
         image.associated_masks = None
 
-        return image
+        yield image
 
     def promote(self, **kwargs):
         return self

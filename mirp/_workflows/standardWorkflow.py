@@ -5,11 +5,12 @@ import warnings
 
 from typing import Generator, Any
 
+import numpy as np
 import pandas as pd
 
 from mirp.settings.generic import SettingsClass
 from mirp._workflows.baseWorkflow import BaseWorkflow
-from mirp._data_import.read_data import read_image_and_masks
+from mirp._data_import.read_data import read_image_and_masks_generator
 from mirp._images.generic_image import GenericImage
 from mirp._images.transformed_image import TransformedImage
 from mirp._masks.base_mask import BaseMask
@@ -66,21 +67,10 @@ class StandardWorkflow(BaseWorkflow):
         return " ".join(message_str)
 
     def standard_image_processing(self) -> Generator[None | tuple[GenericImage, list[BaseMask]], None, None]:
-        from mirp._image_processing.cropping import crop
-        from mirp._image_processing.tissue_mask import create_tissue_mask
-        from mirp._image_processing.alter_mask import alter_mask
-        from mirp._image_processing.randomise_mask import randomise_mask
-        from mirp._image_processing.split_mask import split_masks
-        from mirp._data_import.utilities import flatten_list
-
         # Checks on attribute consistency. These checks should always pass -- if not it is a bug.
         if self.settings.general is None:
             raise TypeError(
                 "settings.general is not correctly set: None instead of GeneralSettingsClass"
-            )
-        if self.settings.post_process is None:
-            raise TypeError(
-                "settings.post_process is not correctly set: None instead of ImagePostProcessingSettingClass"
             )
         if self.settings.perturbation is None:
             raise TypeError(
@@ -106,6 +96,36 @@ class StandardWorkflow(BaseWorkflow):
             raise TypeError(
                 "settings.img_transform is not correctly set: None instead of ImageTransformationSettingsClass"
             )
+        if self.settings.post_process is None:
+            raise TypeError(
+                "settings.post_process is not correctly set: None instead of ImagePostProcessingSettingClass"
+            )
+
+        # Read image and masks.
+        for image, masks in read_image_and_masks_generator(
+                self.image_file,
+                to_numpy=False,
+                pet_suv_conversion=self.settings.post_process.suv_conversion_type,
+                pet_autocorrect_administration_start=self.settings.post_process.pet_autocorrect_administration_start
+        ):
+            image: GenericImage
+            masks: list[BaseMask]
+            yield from self._standard_image_processing(
+                image=image,
+                masks=masks
+            )
+
+    def _standard_image_processing(
+            self,
+            image: GenericImage,
+            masks: list[BaseMask]
+    ) -> Generator[None | tuple[GenericImage, list[BaseMask]], None, None]:
+        from mirp._image_processing.cropping import crop
+        from mirp._image_processing.tissue_mask import create_tissue_mask
+        from mirp._image_processing.alter_mask import alter_mask
+        from mirp._image_processing.randomise_mask import randomise_mask
+        from mirp._image_processing.split_mask import split_masks
+        from mirp._data_import.utilities import flatten_list
 
         # Configure logger
         logging.basicConfig(
@@ -114,14 +134,6 @@ class StandardWorkflow(BaseWorkflow):
 
         # Notify
         logging.info(self._message_start())
-
-        # Read image and masks.
-        image, masks = read_image_and_masks(
-            self.image_file,
-            to_numpy=False,
-            pet_suv_conversion=self.settings.post_process.suv_conversion_type,
-            pet_autocorrect_administration_start=self.settings.post_process.pet_autocorrect_administration_start
-        )
 
         if not isinstance(image, GenericImage):
             raise TypeError(
