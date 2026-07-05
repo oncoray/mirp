@@ -1,4 +1,6 @@
 import os.path
+from copy import deepcopy
+
 import numpy as np
 
 from typing import Any, Self
@@ -39,7 +41,6 @@ class ImageDicomMultiFrame(ImageDicomFile):
 
             # Update to create stacks of frames.
             frame_stack = frame_stack.create()
-
             frame_stacks += [frame_stack]
 
         if len(frame_stacks) > 0:
@@ -332,25 +333,26 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             )
 
         stack = file_class()
-        stack.update_from_template(stack)
+        stack.update_from_template(self)
 
-        if self.frame_ids is not None:
-            in_stack_position = self.get_pydicom_func_group_tag(
+        if stack.frame_ids is not None:
+            in_stack_position = stack.get_pydicom_func_group_tag(
                 tag=(0x0020, 0x9057),
                 macro_dcm_seq=(0x0020, 0x9111),
                 tag_type="int",
-                frame_id=self.frame_ids
+                frame_id=stack.frame_ids
             )
             frames = [None] * len(in_stack_position)
-            for ii, frame_id in enumerate(self.frame_ids):
-                individual_frame = self.create_individual_frame(
+            for ii, frame_id in enumerate(stack.frame_ids):
+                individual_frame = stack.create_individual_frame(
                     frame_id=frame_id,
                     in_stack_position=in_stack_position[ii]
                 )
-                frames[in_stack_position[ii]] = individual_frame
+                # Stack position is 1-indexed
+                frames[in_stack_position[ii] - 1] = individual_frame
 
-            self.frames = frames
-            self.frame_ids = [x.frame_id for x in self.frames]
+            stack.frames = frames
+            stack.frame_ids = [x.frame_id for x in stack.frames]
 
         return stack
 
@@ -373,6 +375,16 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
     @staticmethod
     def _get_individual_frame_class():
         raise NotImplementedError("_get_individual_frame_class method is missing an implementation in inheriting classes.")
+
+    def update_from_template(self, template: Self):
+        from copy import deepcopy
+
+        super().update_from_template(template)
+
+        if isinstance(template, ImageDicomMultiFrameStack):
+            self.stack_id = deepcopy(template.stack_id)
+            self.frame_ids = deepcopy(template.frame_ids)
+            self.frames = deepcopy(template.frames)
 
     def get_pydicom_func_group_tag(
             self,
