@@ -158,6 +158,21 @@ class ImageDicomFile(ImageFile):
         if modality is None:
             raise TypeError(f"Modality attribute could not be obtained from DICOM file. [{self.describe_self()}]")
 
+        # Pass to ImageDicomMultiFrame methods.
+        if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9299)) or \
+                has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9230)):
+            file_class = ImageDicomMultiFrame
+
+            # Instantiate subclass, and update using current object.
+            # Modality is updated here to reflect the choices made above.
+            image = file_class()
+            image.update_from_template(template=self)
+            image.modality = modality
+            image = image.create()
+
+            return image
+
+        # ADC and DCE are determined from legacy DICOM tags for any ImageDicomFIle (not multi-frame)
         if modality == "mr" and self._check_is_mr_adc():
             modality = "adc"
         if modality == "mr" and self._check_is_mr_dce():
@@ -185,19 +200,11 @@ class ImageDicomFile(ImageFile):
             # This will return a base class, which will fail to pass the modality check.
             return None
 
-        if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9299)) or \
-                has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9230)):
-            file_class = ImageDicomMultiFrame
-
         # Instantiate subclass, and update using current object.
         # Modality is updated here to reflect the choices made above.
         image = file_class()
         image.update_from_template(template=self)
         image.modality = modality
-
-        # Multi-frame images need additional work.
-        if isinstance(image, ImageDicomMultiFrame):
-            image = image.create()
 
         return image
 
@@ -546,78 +553,26 @@ class ImageDicomFile(ImageFile):
 
     def _check_is_mr_adc(self):
         # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
-        # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be
-        # DIFFUSION].
         image_type = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        frame_type = get_pydicom_func_group_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0018, 0x9226)
-        )
-        alt_frame_type = get_pydicom_func_group_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0040, 0x9092)
-        )
-        acquisition_contrast = get_pydicom_func_group_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9209),
-            tag_type="str",
-            macro_dcm_seq=(0x0018, 0x9226)
-        )
 
         if image_type is not None and any(x.lower() == "adc" for x in image_type):
-            return True
-        elif frame_type is not None and any(x.lower() == "adc" for x in frame_type):
-            return True
-        elif alt_frame_type is not None and any(x.lower() == "adc" for x in alt_frame_type):
-            return True
-        elif acquisition_contrast is not None and acquisition_contrast.lower() == "adc":
             return True
 
         return False
 
     def _check_is_mr_dce(self):
-        # Check for DCE images. DCE can sometimes by identified the DCE value in the Image Type (0008,0008) tag,
-        # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be
-        # DIFFUSION].
+        # Check for DCE images. DCE can sometimes by identified the DCE value in the Image Type (0008,0008) tag.
         image_type = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        frame_type = get_pydicom_func_group_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0018, 0x9226)
-        )
-        alt_frame_type = get_pydicom_func_group_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0040, 0x9092)
-        )
-        acquisition_contrast = get_pydicom_func_group_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9209),
-            tag_type="str",
-            macro_dcm_seq=(0x0018, 0x9226)
-        )
 
         if image_type is not None and any(x.lower() == "dce" for x in image_type):
-            return True
-        elif frame_type is not None and any(x.lower() == "dce" for x in frame_type):
-            return True
-        elif alt_frame_type is not None and any(x.lower() == "dce" for x in alt_frame_type):
-            return True
-        elif acquisition_contrast is not None and acquisition_contrast.lower() == "dce":
             return True
 
         return False
