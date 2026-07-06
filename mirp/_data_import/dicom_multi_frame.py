@@ -342,14 +342,23 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 tag_type="int",
                 frame_id=stack.frame_ids
             )
-            frames = [None] * len(in_stack_position)
+            frames = [None] * len(max(in_stack_position))
             for ii, frame_id in enumerate(stack.frame_ids):
                 individual_frame = stack.create_individual_frame(
                     frame_id=frame_id,
                     in_stack_position=in_stack_position[ii]
                 )
-                # Stack position is 1-indexed
+                # Stack position is 1-indexed. Ensure that the frames are positioned in order, so that stack
+                # information such as image_spacing can be computed.
                 frames[in_stack_position[ii] - 1] = individual_frame
+
+            # Check that all frames are positioned as expected.
+            if any(x is None for x in frames):
+                raise ValueError(
+                    f"Not all positions in the DICOM MultiFrame stack were filled. "
+                    f"Some frames may be mapped to the same stack position (0020, 9057), or not all frames are "
+                    f"present. {self.describe_self()}"
+                )
 
             stack.frames = frames
             stack.frame_ids = [x.frame_id for x in stack.frames]
