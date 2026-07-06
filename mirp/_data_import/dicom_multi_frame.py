@@ -1,9 +1,9 @@
 import os.path
-from copy import deepcopy
 
 import numpy as np
 
-from typing import Any, Self
+from typing import Any, Self, Generator
+from mirp._images.generic_image import GenericImage
 from mirp._data_import.dicom_file import ImageDicomFile
 from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
 
@@ -56,6 +56,27 @@ class ImageDicomMultiFrame(ImageDicomFile):
         if self.stacks is not None:
             for stack in self.stacks:
                 stack.load_data(**kwargs)
+
+    def to_object(self, **kwargs) -> Generator[GenericImage, None, None]:
+        if self.stacks is None:
+            raise ValueError(f"Stacks of a multiframe DICOM object cannot be empty. {self.describe_self()}")
+
+        for stack in self.stacks:
+            stack.load_data(**kwargs)
+            stack.complete()
+            stack.update_image_data()
+            stack.set_object_metadata()
+
+            yield GenericImage(
+                sample_name=stack.sample_name,
+                image_modality=stack.modality,
+                image_data=stack.image_data,
+                image_spacing=stack.image_spacing,
+                image_origin=stack.image_origin,
+                image_orientation=stack.image_orientation,
+                image_dimensions=stack.image_dimension,
+                metadata=stack.object_metadata
+            )
 
     def _complete_image_origin(self, force=False):
         if self.stacks is not None:
@@ -342,7 +363,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 tag_type="int",
                 frame_id=stack.frame_ids
             )
-            frames = [None] * len(max(in_stack_position))
+            frames = [None] * max(in_stack_position)
             for ii, frame_id in enumerate(stack.frame_ids):
                 individual_frame = stack.create_individual_frame(
                     frame_id=frame_id,
@@ -523,7 +544,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         image = np.zeros(self.image_dimension, dtype=np.float32)
         for frame in self.frames:
-            frame.load_data()
+            frame.load_data(**kwargs)
             image[frame.in_stack_position-1, :, :] = frame.image_data
 
         self.image_data = image
@@ -555,6 +576,7 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
 
         # Load metadata.
         self.load_metadata(include_image=True)
+
         image_data = self.image_metadata.pixel_array.astype(np.float32)[self.in_stack_position-1, :, :]
 
         # Do not perform any transformations to pixel values here -- use data from Real World Value Mapping Sequences
