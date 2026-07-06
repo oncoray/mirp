@@ -55,20 +55,20 @@ def read_image_and_masks_generator(
         **kwargs
 ) -> Generator[tuple[np.ndarray | GenericImage, list[np.ndarray] | list[BaseMask]], None, None]:
 
-    mask_list = []
-    if image.associated_masks is not None:
-        mask_list = image.associated_masks
-
-    # Read masks from file.
-    if mask_list is not None:
-        mask_list = [list(mask.to_object(image=image, **kwargs)) for mask in mask_list]
-        mask_list = flatten_list(mask_list)
-
-    # Remove None entries.
-    mask_list = [mask for mask in mask_list if mask is not None]
-
     for image_out in image.to_object(**kwargs):
         image_out.promote()
+
+        mask_list = []
+        if image_out.associated_masks is not None:
+            mask_list = image_out.associated_masks
+
+        # Read masks from file.
+        if mask_list is not None:
+            mask_list = [list(mask.to_object(image=image_out, **kwargs)) for mask in mask_list]
+            mask_list = flatten_list(mask_list)
+
+        # Remove None entries.
+        mask_list = [mask for mask in mask_list if mask is not None]
 
         if to_numpy:
             image_out = image_out.get_voxel_grid()
