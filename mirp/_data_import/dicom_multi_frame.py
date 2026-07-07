@@ -1,4 +1,7 @@
 import os.path
+from keyword import kwlist
+
+import pydicom
 
 import numpy as np
 
@@ -62,21 +65,22 @@ class ImageDicomMultiFrame(ImageDicomFile):
             raise ValueError(f"Stacks of a multiframe DICOM object cannot be empty. {self.describe_self()}")
 
         for stack in self.stacks:
-            stack.load_data(**kwargs)
-            stack.complete()
-            stack.update_image_data()
-            stack.set_object_metadata()
+            for substack in stack.create_real_world_unit_stacks(**kwargs):
+                substack.load_data(**kwargs)
+                substack.complete()
+                substack.update_image_data()
+                substack.set_object_metadata()
 
-            yield GenericImage(
-                sample_name=stack.sample_name,
-                image_modality=stack.modality,
-                image_data=stack.image_data,
-                image_spacing=stack.image_spacing,
-                image_origin=stack.image_origin,
-                image_orientation=stack.image_orientation,
-                image_dimensions=stack.image_dimension,
-                metadata=stack.object_metadata
-            )
+                yield GenericImage(
+                    sample_name=substack.sample_name,
+                    image_modality=substack.modality,
+                    image_data=substack.image_data,
+                    image_spacing=substack.image_spacing,
+                    image_origin=substack.image_origin,
+                    image_orientation=substack.image_orientation,
+                    image_dimensions=substack.image_dimension,
+                    metadata=substack.object_metadata
+                )
 
     def _complete_image_origin(self, force=False):
         if self.stacks is not None:
@@ -101,86 +105,6 @@ class ImageDicomMultiFrame(ImageDicomFile):
     def _get_n_frames(self):
         self.load_metadata()
         return get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0008), tag_type="int", default=0)
-
-    def _get_real_world_units(self):
-        # Metadata is required to assess units (0008,0100) and coding scheme designator (0008,0102) from
-        # the Measurement Units Code Sequence (0040,08EA) in a Real World Value Mapping Sequence (0040,9096).
-        # Multiple Real World Value Mapping Sequences may be present for each Frame or Image.
-        self.load_metadata()
-
-        # Number of available frames
-        n_frames = self._get_n_frames()
-        if n_frames is None or n_frames == 0:
-            return None
-
-        # Read from per-frame functional groups.
-        coding_values = [None] * n_frames
-        coding_schemes = [None] * n_frames
-        for ii, frame_functional_group in enumerate(self.image_metadata[(0x5200, 0x9230)]):
-            if has_pydicom_meta_tag(dcm_seq=frame_functional_group, tag=(0x0040, 0x9096)):
-                in_frame_coding_values = []
-                in_frame_coding_schemes = []
-                for real_world_value_mapping_sequence in frame_functional_group[(0x0040, 0x9096)]:
-                    measurement_units_coding_value = get_pydicom_meta_tag(
-                        dcm_seq=real_world_value_mapping_sequence,
-                        macro_dcm_seq=(0x040, 0x08EA),
-                        tag=(0x0008, 0x1000),
-                        tag_type="str"
-                    )
-                    measurement_units_coding_scheme = get_pydicom_meta_tag(
-                        dcm_seq=real_world_value_mapping_sequence,
-                        macro_dcm_seq=(0x040, 0x08EA),
-                        tag=(0x0008, 0x1002),
-                        tag_type="str"
-                    )
-                    # Skip if the coding scheme is not DCM (DICOM) or UCUM (Unified Code for Units of Measure).
-                    if measurement_units_coding_scheme is None or measurement_units_coding_scheme not in ["DCM", "UCUM"]:
-                        continue
-
-                    in_frame_coding_values += [measurement_units_coding_value]
-                    in_frame_coding_schemes += [measurement_units_coding_scheme]
-
-                if len(in_frame_coding_values) > 0:
-                    coding_values[ii] = in_frame_coding_values
-                    coding_schemes[ii] = in_frame_coding_schemes
-
-        if all(x is not None for x in coding_values):
-            return coding_values, coding_schemes
-
-        # Read from shared per-frame functional groups.
-        shared_coding_values = []
-        shared_coding_schemes = []
-        if has_pydicom_meta_tag(dcm_seq=self.image_metadata[(0x5200, 0x9229)][0], tag=(0x0040, 0x9096)):
-            for real_world_value_mapping_sequence in self.image_metadata[(0x5200, 0x9229)][0][(0x0040, 0x9096)]:
-                measurement_units_coding_value = get_pydicom_meta_tag(
-                    dcm_seq=real_world_value_mapping_sequence,
-                    macro_dcm_seq=(0x040, 0x08EA),
-                    tag=(0x0008, 0x1000),
-                    tag_type="str"
-                )
-                measurement_units_coding_scheme = get_pydicom_meta_tag(
-                    dcm_seq=real_world_value_mapping_sequence,
-                    macro_dcm_seq=(0x040, 0x08EA),
-                    tag=(0x0008, 0x1002),
-                    tag_type="str"
-                )
-                # Skip if the coding scheme is not DCM (DICOM) or UCUM (Unified Code for Units of Measure).
-                if measurement_units_coding_scheme is None or measurement_units_coding_scheme not in ["DCM", "UCUM"]:
-                    continue
-
-                shared_coding_values += [measurement_units_coding_value]
-                shared_coding_schemes += [measurement_units_coding_scheme]
-
-        if len(shared_coding_values) > 0:
-            for ii in range(len(coding_values)):
-                if coding_values[ii] is None:
-                    coding_values[ii] = shared_coding_values
-                    coding_schemes[ii] = shared_coding_schemes
-
-        if all(x is not None for x in coding_values):
-            return coding_values, coding_schemes
-
-        return None, None
 
     def get_pydicom_func_group_tag(
             self,
@@ -325,6 +249,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         self.stack_id = stack_id
         self.frame_ids = frame_ids
         self.frames: list[ImageDicomMultiFrameIndividual] | None = None
+        self.real_world_unit: str | None = None
 
     def create(self):
         # This method is called from ImageDicomMultiFrame.create amd dispatches to modality-specific multi-frame
@@ -385,6 +310,27 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             stack.frame_ids = [x.frame_id for x in stack.frames]
 
         return stack
+
+    def create_real_world_unit_stacks(self, **kwargs) -> Generator[Self, None, None] | None:
+        if self.frames is None:
+            return None
+
+        # Find real world value units. Can be none (in which case rescale intercept and offset are used as a fallback
+        # option).
+        rw_units, rw_schemes = self._get_real_world_units(**kwargs)
+        if rw_units is None:
+            rw_units = [None]
+
+        for rw_unit in rw_units:
+            # Check that every frame in the stack has the rw_unit.
+            rw_unit_present_in_all_frames = all(frame.has_real_world_unit(rw_unit) for frame in self.frames)
+            if not rw_unit_present_in_all_frames:
+                continue
+
+            substack = self.copy()
+            substack.real_world_unit = rw_unit
+
+            yield substack
 
     def create_individual_frame(
             self,
@@ -549,6 +495,14 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         self.image_data = image
 
+    def _get_real_world_units(self, **kwargs):
+        # Metadata is required to assess units (0008,0100) and coding scheme designator (0008,0102) from
+        # the Measurement Units Code Sequence (0040,08EA) in a Real World Value Mapping Sequence (0040,9096).
+        # Multiple Real World Value Mapping Sequences may be present for each Frame or Image.
+        self.load_metadata()
+
+        _get_real_world_unit
+
 
 class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
     def __init__(
@@ -613,3 +567,58 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
             value = value[0]
 
         return value
+
+    def _get_real_world_unit(self, **kwargs) -> None | list[str]:
+        # Metadata is required to assess units (0008,0100) and coding scheme designator (0008,0102) from
+        # the Measurement Units Code Sequence (0040,08EA) in a Real World Value Mapping Sequence (0040,9096).
+        # Multiple Real World Value Mapping Sequences may be present for each Frame or Image.
+        self.load_metadata()
+
+        real_world_value_mapping_sequences = self._get_real_world_mapping_sequence()
+        if real_world_value_mapping_sequences is None:
+            return None
+
+        coding_values = []
+        for real_world_value_mapping_sequence in real_world_value_mapping_sequences:
+            measurement_units_coding_value = get_pydicom_meta_tag(
+                dcm_seq=real_world_value_mapping_sequence,
+                macro_dcm_seq=(0x040, 0x08EA),
+                tag=(0x0008, 0x1000),
+                tag_type="str"
+            )
+            measurement_units_coding_scheme = get_pydicom_meta_tag(
+                dcm_seq=real_world_value_mapping_sequence,
+                macro_dcm_seq=(0x040, 0x08EA),
+                tag=(0x0008, 0x1002),
+                tag_type="str"
+            )
+            # Skip if the coding scheme is not DCM (DICOM) or UCUM (Unified Code for Units of Measure).
+            if measurement_units_coding_scheme is None or \
+                    measurement_units_coding_scheme not in ["DCM", "UCUM"]:
+                continue
+
+            coding_values += [measurement_units_coding_value]
+
+        if len(coding_values) == 0:
+            return None
+        return coding_values
+
+    def _has_real_world_unit(self, x: str | None) -> bool:
+        if x is None:
+            return True
+
+        available_real_world_units = self._get_real_world_unit()
+        if available_real_world_units is None:
+            return False
+
+        return x in available_real_world_units
+
+    def _get_real_world_mapping_sequence(self) -> pydicom.DataElement | None:
+        rw_sequences = self.get_pydicom_func_group_tag(
+            tag=(0x0040, 0x9096),
+            tag_type="pydicom"
+        )
+
+        if rw_sequences is None:
+            return None
+        return rw_sequences

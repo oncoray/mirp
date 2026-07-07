@@ -652,6 +652,10 @@ def get_pydicom_meta_tag(
         if tag_type == "str":
             tag_value = str(tag_value)
 
+        # Multiple strings
+        elif tag_type == "mult_str":
+            tag_value = list(tag_value)
+
         # Float
         elif tag_type == "float":
             tag_value = float(tag_value)
@@ -672,8 +676,9 @@ def get_pydicom_meta_tag(
         elif tag_type == "bool":
             tag_value = bool(tag_value)
 
-        elif tag_type == "mult_str":
-            tag_value = list(tag_value)
+        # Sequences or pydicom-native objects.
+        elif tag_type == "pydicom":
+            pass
 
         else:
             raise ValueError(f"The tag type was not recognised: {tag_type}")
