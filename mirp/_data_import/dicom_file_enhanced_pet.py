@@ -20,27 +20,27 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
         self.pet_unit: None | str = None
         self.suv_unit: None | str = None
 
-    def load_data(
-            self,
-            pet_suv_conversion: str = "body_weight",
-            pet_autocorrect_administration_start: bool = True,
-            **kwargs
-    ):
-        # Load data.
-        super().load_data(**kwargs)
-        
-        if pet_suv_conversion != "none":
-            # First we need to go the GML as unit.
-            gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
-
-            # Then convert to the correct SUV type.
-            suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
-
-            # Update image intensities.
-            image_data *= gml_factor * suv_factor
-
-        # Set image_data attribute.
-        self.image_data = image_data
+    # def load_data(
+    #         self,
+    #         pet_suv_conversion: str = "body_weight",
+    #         pet_autocorrect_administration_start: bool = True,
+    #         **kwargs
+    # ):
+    #     # Load data.
+    #     super().load_data(**kwargs)
+    #
+    #     if pet_suv_conversion != "none":
+    #         # First we need to go the GML as unit.
+    #         gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
+    #
+    #         # Then convert to the correct SUV type.
+    #         suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+    #
+    #         # Update image intensities.
+    #         image_data *= gml_factor * suv_factor
+    #
+    #     # Set image_data attribute.
+    #     self.image_data = image_data
 
     def _get_pet_unit(self):
         # For enhanced PET, there is no PET units (0054,1001) attribute, and should either be extracted per-frame or

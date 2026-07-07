@@ -8,7 +8,7 @@ import numpy as np
 from typing import Any, Self, Generator
 from mirp._images.generic_image import GenericImage
 from mirp._data_import.dicom_file import ImageDicomFile
-from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
+from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag, flatten_list
 
 
 class ImageDicomMultiFrame(ImageDicomFile):
@@ -339,18 +339,18 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         # Find real world value units. Can be none (in which case rescale intercept and offset are used as a fallback
         # option).
-        rw_units, rw_schemes = self._get_real_world_units(**kwargs)
-        if rw_units is None:
-            rw_units = [None]
+        real_world_units = self._get_real_world_units(**kwargs)
+        if real_world_units is None:
+            real_world_units = [None]
 
-        for rw_unit in rw_units:
+        for real_world_unit in real_world_units:
             # Check that every frame in the stack has the rw_unit.
-            rw_unit_present_in_all_frames = all(frame.has_real_world_unit(rw_unit) for frame in self.frames)
+            rw_unit_present_in_all_frames = all(frame._has_real_world_unit(real_world_unit) for frame in self.frames)
             if not rw_unit_present_in_all_frames:
                 continue
 
             substack = self.copy()
-            substack.real_world_unit = rw_unit
+            substack.real_world_unit = real_world_unit
 
             yield substack
 
@@ -523,7 +523,15 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         # Multiple Real World Value Mapping Sequences may be present for each Frame or Image.
         self.load_metadata()
 
-        _get_real_world_unit
+        if self.frames is None:
+            return None
+
+        real_world_units = [frame._get_real_world_unit(**kwargs) for frame in self.frames]
+        if any(real_world_unit is None for real_world_unit in real_world_units):
+            return None
+
+        real_world_units = flatten_list(real_world_units)
+        return list(set(real_world_units))
 
 
 class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
