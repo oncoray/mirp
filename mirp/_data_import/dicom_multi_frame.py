@@ -605,13 +605,13 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
             measurement_units_coding_value = get_pydicom_meta_tag(
                 dcm_seq=real_world_value_mapping_sequence,
                 macro_dcm_seq=(0x040, 0x08EA),
-                tag=(0x0008, 0x1000),
+                tag=(0x0008, 0x0100),
                 tag_type="str"
             )
             measurement_units_coding_scheme = get_pydicom_meta_tag(
                 dcm_seq=real_world_value_mapping_sequence,
                 macro_dcm_seq=(0x040, 0x08EA),
-                tag=(0x0008, 0x1002),
+                tag=(0x0008, 0x0102),
                 tag_type="str"
             )
             # Skip if the coding scheme is not DCM (DICOM) or UCUM (Unified Code for Units of Measure).
