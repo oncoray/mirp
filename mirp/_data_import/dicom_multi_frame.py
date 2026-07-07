@@ -106,7 +106,7 @@ class ImageDicomMultiFrame(ImageDicomFile):
         self.load_metadata()
         return get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0028, 0x0008), tag_type="int", default=0)
 
-    def get_pydicom_func_group_tag(
+    def _get_pydicom_func_group_tag(
             self,
             tag: tuple[int, int],
             tag_type: None | str = None,
@@ -120,14 +120,6 @@ class ImageDicomMultiFrame(ImageDicomFile):
         # Ensure that frame_id is a list.
         if isinstance(frame_id, int):
             frame_id = [frame_id]
-        elif frame_id is None:
-            n_frames = self._get_n_frames()
-            if n_frames is None or n_frames == 0:
-                if test_tag:
-                    return False
-                return None
-
-            frame_id = list(range(n_frames))
 
         share_macro_dcm_tag = (0x5200, 0x9229)
         frame_macro_dcm_tag = (0x5200, 0x9230)
@@ -164,6 +156,36 @@ class ImageDicomMultiFrame(ImageDicomFile):
             return None
 
         return [share_value] * len(frame_id)
+
+    def get_pydicom_func_group_tag(
+            self,
+            tag: tuple[int, int],
+            tag_type: None | str = None,
+            default: Any = None,
+            macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
+            frame_id: None | int | list[int] = None,
+            test_tag: bool = False,
+            check_all_none: bool = True
+    ) -> Any:
+
+        if frame_id is None:
+            n_frames = self._get_n_frames()
+            if n_frames is None or n_frames == 0:
+                if test_tag:
+                    return False
+                return None
+
+            frame_id = list(range(n_frames))
+
+        return self._get_pydicom_func_group_tag(
+            tag = tag,
+            tag_type=tag_type,
+            default=default,
+            macro_dcm_seq=macro_dcm_seq,
+            frame_id=frame_id,
+            test_tag=test_tag,
+            check_all_none=check_all_none
+        )
 
     def _check_is_mr_adc(self):
         # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
@@ -378,7 +400,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 return False
             return None
 
-        return super().get_pydicom_func_group_tag(
+        return self._get_pydicom_func_group_tag(
             tag=tag,
             tag_type=tag_type,
             default=default,
@@ -553,7 +575,7 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
                 return False
             return None
 
-        value = super().get_pydicom_func_group_tag(
+        value = self._get_pydicom_func_group_tag(
             tag=tag,
             tag_type=tag_type,
             default=default,

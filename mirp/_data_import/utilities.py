@@ -597,7 +597,10 @@ def get_pydicom_meta_tag(
 
         # Try to find the tag in the general header.
         try:
-            tag_value = dcm_seq[tag].value
+            if tag_type == "pydicom":
+                tag_value = dcm_seq[tag]
+            else:
+                tag_value = dcm_seq[tag].value
             break
         except KeyError:
             pass
