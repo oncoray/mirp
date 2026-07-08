@@ -129,6 +129,9 @@ class GenericImage(BaseImage):
 
         return image
 
+    def complete(self):
+        return
+
     def get_slices(
             self,
             slice_number: None | int | list[int] = None
