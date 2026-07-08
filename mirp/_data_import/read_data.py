@@ -56,11 +56,11 @@ def read_image_and_masks_generator(
 ) -> Generator[tuple[np.ndarray | GenericImage, list[np.ndarray] | list[BaseMask]], None, None]:
 
     for image_out in image.to_object(**kwargs):
-        image_out.promote()
+        image_out = image_out.promote()
 
         mask_list = []
-        if image_out.associated_masks is not None:
-            mask_list = image_out.associated_masks
+        if image.associated_masks is not None:
+            mask_list = image.associated_masks
 
         # Read masks from file.
         if mask_list is not None:
