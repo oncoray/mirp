@@ -7,8 +7,10 @@ from os.path import split
 
 import numpy as np
 import pydicom
-from pydicom import FileDataset, Dataset, datadict
+from pydicom import FileDataset, Dataset, datadict, DataElement
 from pydicom.tag import Tag
+
+
 def lookup_modality(modality: None | str) -> list[str]:
     modalities = []
     try:
@@ -547,9 +549,8 @@ def convert_dicom_time(
     return ref_time
 
 
-
 def get_pydicom_meta_tag(
-        dcm_seq: pydicom.Dataset,
+        dcm_seq: pydicom.Dataset | pydicom.DataElement,
         tag: tuple[int, int],
         tag_type: None | str = None,
         default: Any = None,
@@ -690,7 +691,7 @@ def get_pydicom_meta_tag(
 
 
 def has_pydicom_meta_tag(
-        dcm_seq: FileDataset | Dataset,
+        dcm_seq: FileDataset | Dataset | DataElement,
         tag: tuple[int, int],
         macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None
 ) -> bool:
