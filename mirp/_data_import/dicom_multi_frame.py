@@ -350,7 +350,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 continue
 
             substack = self.copy()
-            substack.real_world_unit = real_world_unit
+            substack._set_real_world_unit(real_world_unit)
 
             yield substack
 
@@ -533,6 +533,13 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         real_world_units = flatten_list(real_world_units)
         return list(set(real_world_units))
 
+    def _set_real_world_unit(self, x):
+        self.real_world_unit = x
+
+        if self.frames is not None:
+            for frame in self.frames:
+                frame._set_real_world_unit(x)
+
 
 class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
     def __init__(
@@ -544,6 +551,8 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
         super().__init__(**kwargs)
         self.frame_id = frame_id
         self.in_stack_position = in_stack_position
+        self.real_world_unit: None | str = None
+        self.real_world_value_mapping_sequence: None | pydicom.DataElement = None
 
     def load_data(self, **kwargs):
         # Only loads data. Convert pixel values using Real World Value Mapping Sequences in downstream methods.
@@ -561,10 +570,52 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
         # Load metadata.
         self.load_metadata(include_image=True)
 
+        # Get image data for the current frame.
         image_data = self.image_metadata.pixel_array.astype(np.float32)[self.in_stack_position-1, :, :]
 
-        # Do not perform any transformations to pixel values here -- use data from Real World Value Mapping Sequences
-        # instead.
+        # Convert to units.
+        if self.real_world_value_mapping_sequence is None:
+            # Fallback to rescale and intercept.
+            rescale_intercept = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0028, 0x1052),
+                tag_type="float",
+                default=0.0
+            )
+            rescale_slope = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0028, 0x1053),
+                tag_type="float",
+                default=1.0
+            )
+            image_data = image_data * rescale_slope + rescale_intercept
+
+        else:
+            # Use real world value mapping sequence. Two options: lookup table or intercept and slope.
+            if has_pydicom_meta_tag(dcm_seq=self.real_world_value_mapping_sequence, tag=(0x0040, 0x9224)):
+                real_world_value_intercept = get_pydicom_meta_tag(
+                    dcm_seq=self.real_world_value_mapping_sequence,
+                    tag=(0x0040, 0x9224),
+                    tag_type="float",
+                    default=0.0
+                )
+                real_world_value_scale = get_pydicom_meta_tag(
+                    dcm_seq=self.real_world_value_mapping_sequence,
+                    tag=(0x0040, 0x9225),
+                    tag_type="float",
+                    default=1.0
+                )
+                image_data = image_data * real_world_value_scale + real_world_value_intercept
+
+            elif has_pydicom_meta_tag(dcm_seq=self.real_world_value_mapping_sequence, tag=(0x0040, 0x9212)):
+                raise NotImplementedError(
+                    f"Lookup tables have not been implemented in MIRP for multiframe DICOM. Please contact the "
+                    f"developers at github.com/oncoray/mirp/issues."
+                )
+            else:
+                raise ValueError(f"Real World Value Intercept (0040,9224) and Real World Value Lookup Table (0040,"
+                                 f"9212) attributes were both missing. {self.describe_self()}")
+
         self.image_data = image_data
 
     def get_pydicom_func_group_tag(
@@ -652,3 +703,34 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
         if rw_sequences is None:
             return None
         return rw_sequences
+
+    def _set_real_world_unit(self, x):
+        # Sets real_world_unit and real_world_value_mapping_sequence attributes based on x.
+        if x is None:
+            return
+
+        self.real_world_unit = x
+        real_world_value_mapping_sequences = self._get_real_world_mapping_sequence()
+        if real_world_value_mapping_sequences is None:
+            return
+
+        for real_world_value_mapping_sequence in real_world_value_mapping_sequences:
+            measurement_units_coding_value = get_pydicom_meta_tag(
+                dcm_seq=real_world_value_mapping_sequence,
+                macro_dcm_seq=(0x040, 0x08EA),
+                tag=(0x0008, 0x0100),
+                tag_type="str"
+            )
+            measurement_units_coding_scheme = get_pydicom_meta_tag(
+                dcm_seq=real_world_value_mapping_sequence,
+                macro_dcm_seq=(0x040, 0x08EA),
+                tag=(0x0008, 0x0102),
+                tag_type="str"
+            )
+            # Skip if the coding scheme is not DCM (DICOM) or UCUM (Unified Code for Units of Measure).
+            if measurement_units_coding_scheme is None or \
+                    measurement_units_coding_scheme not in ["DCM", "UCUM"]:
+                continue
+
+            if measurement_units_coding_value == x:
+                self.real_world_value_mapping_sequence = real_world_value_mapping_sequence
