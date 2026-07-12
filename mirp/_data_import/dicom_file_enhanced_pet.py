@@ -1,3 +1,5 @@
+import copy
+
 from mirp._data_import.dicom_file_pet import ImageDicomFilePT
 from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrameStack, ImageDicomMultiFrameIndividual
 from mirp._data_import.utilities import get_pydicom_meta_tag
@@ -20,27 +22,116 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
         self.pet_unit: None | str = None
         self.suv_unit: None | str = None
 
-    # def load_data(
-    #         self,
-    #         pet_suv_conversion: str = "body_weight",
-    #         pet_autocorrect_administration_start: bool = True,
-    #         **kwargs
-    # ):
-    #     # Load data.
-    #     super().load_data(**kwargs)
-    #
-    #     if pet_suv_conversion != "none":
-    #         # First we need to go the GML as unit.
-    #         gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
-    #
-    #         # Then convert to the correct SUV type.
-    #         suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
-    #
-    #         # Update image intensities.
-    #         image_data *= gml_factor * suv_factor
-    #
-    #     # Set image_data attribute.
-    #     self.image_data = image_data
+    def load_data(
+            self,
+            pet_suv_conversion: str = "body_weight",
+            pet_autocorrect_administration_start: bool = True,
+            **kwargs
+    ):
+        # Load data.
+        super().load_data(**kwargs)
+
+        # Set pet and suv unit.
+        self._set_pet_suv_unit()
+
+        if pet_suv_conversion != "none":
+            # First we need to go the GML as unit.
+            gml_factor = self._to_gml_conversion_factor(autocorrect_administration_start=pet_autocorrect_administration_start)
+
+            # Then convert to the correct SUV type.
+            suv_factor = self._to_suv_conversion_factor(new_suv_type=pet_suv_conversion)
+
+            # Update image intensities.
+            self.image_data *= gml_factor * suv_factor
+
+    def _set_pet_suv_unit(self):
+        if self.real_world_unit is None:
+            # Try Rescale Type Attribute (0028,1054). Should be US for PET, but some vendors set the PET or SUV unit
+            # here.
+            value_unit = self._get_pydicom_func_group_tag(
+                tag=(0x0028, 0x1054),
+                macro_dcm_seq=(0x0028, 0x9145),
+                tag_type="str"
+            )
+        else:
+            value_unit = copy.deepcopy(self.real_world_unit)
+
+        if value_unit is None or value_unit == "US":
+            return
+
+        # Strip external and internal whitespace and convert to lower case to avoid any case-sensitivity.
+        value_unit = "".join(value_unit.split()).lower()
+
+        "{counts}"
+        "cnts"
+
+        "{counts}/s"
+        "cps"
+
+        "{propcounts}"
+        "propcnts"
+
+        "{propcounts}/s"
+        "propcps"
+
+        "cm2"
+        "cm2"
+
+        "%"
+        "pcnt"
+
+        "bq/ml"
+        "bqml"
+
+        "mg/min/ml"
+        "mgminml"
+
+        "umol/min/ml"
+        "umolminml"
+
+        "ml/min/g"
+        "mlming"
+
+        "ml/g"
+        "mlg"
+
+        "/cm"
+        "1cm"
+
+        "umol/ml"
+        "umolml"
+
+        "g/ml{suvbw}"
+        "bw"
+        "gml"
+
+        "g/ml{suvlbm}"
+        "lbm"
+
+        "g/ml{suvlbm(james128)}"
+        "lbmjames128"
+
+        "g/ml{suvlbm(janma)}"
+        "lbmjanma"
+
+        "cm2/ml{suvbsa}"
+        "bsa"
+        "cm2ml"
+        "cm2/ml"
+
+        "g/ml{suvibw}"
+        "ibw"
+
+        "none"
+        "mlminml"
+        "mlml"
+        "stddev"
+        
+
+        if value_unit in ["BQML", ]
+
+
+
 
     def _get_pet_unit(self):
         # For enhanced PET, there is no PET units (0054,1001) attribute, and should either be extracted per-frame or
