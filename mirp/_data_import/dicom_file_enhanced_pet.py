@@ -131,19 +131,31 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
         """To compute SUV, PET units need to be converted to BQML."""
         self.load_metadata()
 
-        pet_unit = self._get_pet_unit()
-        if pet_unit is None:
+        if self.pet_unit is None:
             raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
-        if pet_unit in ["BQML"]:
+        if self.pet_unit == "bq/ml":
             conversion_factor = self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start)
-        elif pet_unit in ["CM2ML"]:
+        elif self.pet_unit in ["cm2/ml"]:
             conversion_factor = self._pet_unit_cm2ml_to_gml()
-        elif pet_unit in ["GML"]:
+        elif self.pet_unit in ["gml"]:
             conversion_factor = self._pet_unit_gml_to_gml()
         else:
             raise NotImplementedError(
-                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+                f"Conversion factor for converting {self.pet_unit} to Bq/ml is not implemented or not possible. "
+                f"[{self.describe_self()}]"
             )
 
         return conversion_factor
+
+    def _pet_unit_bqml_to_gml(self, autocorrect_administration_start=True) -> float
+        ...
+
+    def _pet_unit_cm2ml_to_gml(self) -> float:
+        return 1.0
+
+    def _pet_unit_gml_to_gml(self) -> float:
+        return 1.0
+
+    def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
+        ...
