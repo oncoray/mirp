@@ -148,8 +148,33 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
 
         return conversion_factor
 
-    def _pet_unit_bqml_to_gml(self, autocorrect_administration_start=True) -> float
-        ...
+    def _pet_unit_bqml_to_gml(self, autocorrect_administration_start=True) -> float:
+        # Get stuff that we need anyway.
+        administered_dose = self._get_administered_dose()
+        weight = self._get_patient_weight()
+        time_adm = self._get_administration_time()
+        half_life = self._get_half_life()
+
+        if self._get_is_decay_corrected():
+            # Values are at least partially decay corrected.
+            time_start = self._get_decay_correction_time()
+
+        else:
+            # Equivalent to NONE.
+            time_start = self._get_frame_reference_time()
+
+        # Perform plausibility checks on administration time.
+        time_adm = self._correct_administration_time(
+            time_adm=time_adm,
+            time_start=time_start,
+            autocorrect_administration_start=autocorrect_administration_start
+        )
+
+        time_diff_ref_adm = time_start - time_adm
+        decay_factor = np.exp(-half_life * time_diff_ref_adm.total_seconds())
+
+        # Note 1000.0 is used because of units should be g / ml (not kg / ml)
+        return 1000.0 * weight / (administered_dose * decay_factor)
 
     def _pet_unit_cm2ml_to_gml(self) -> float:
         return 1.0
