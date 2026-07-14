@@ -183,4 +183,117 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
         return 1.0
 
     def _to_suv_conversion_factor(self, new_suv_type: str) -> float:
-        ...
+        current_suv_type = "none"
+        if self.suv_unit is not None:
+            current_suv_type = self.suv_unit
+
+        if current_suv_type == new_suv_type:
+            return 1.0
+
+        # Compute conversion factor to unnormalised values.
+        revert_suv_factor = 1.0
+        if current_suv_type != "none":
+            revert_suv_factor = 1.0 / self._compute_suv_factor(suv_type=current_suv_type)
+
+        # Compute required factor to normalised values.
+        suv_factor = 1.0
+        if new_suv_type != "none":
+            suv_factor = self._compute_suv_factor(suv_type=new_suv_type)
+
+        return revert_suv_factor * suv_factor
+
+    def _get_is_decay_corrected(self):
+        self.load_metadata()
+
+        # Read Decay Corrected (0018,9758)
+        decay_corrected = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9758),
+            tag_type="str",
+            default="NO"
+        )
+        return decay_corrected == "YES"
+
+    def _get_administration_time(self, **kwargs) -> datetime.datetime:
+        self.load_metadata()
+
+        # Use Radiopharmaceutical Start DateTime (0x0018, 0x1078)
+        admin_ref_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            macro_dcm_seq=(0x0054, 0x0016),
+            tag=(0x0018, 0x1078),
+            tag_type="str"
+        )
+        if admin_ref_time is not None:
+            admin_ref_time = convert_dicom_time(datetime_str=admin_ref_time)
+        else:
+            raise ValueError(
+                f"Radiopharmaceutical start datetime (0018, 1078) cannot be determined from DICOM metadata. "
+                f"{self.describe_self()}"
+            )
+
+        return admin_ref_time
+
+    def _get_decay_correction_time(self) -> datetime.datetime:
+        self.load_metadata()
+
+        decay_correction_time = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0018, 0x9701),
+            tag_type="str"
+        )
+
+        if decay_correction_time is not None:
+            decay_correction_time = convert_dicom_time(datetime_str=decay_correction_time)
+        else:
+            raise ValueError(
+                f"Decay correction datetime (0018,9701) cannot be determined from DICOM metadata. "
+                f"[{self.describe_self()}]"
+            )
+
+        return decay_correction_time
+
+    def _get_frame_reference_time(self) -> datetime.datetime:
+        frame_reference_time = self.get_pydicom_func_group_tag(
+            tag=(0x0018, 0x9151),
+            macro_dcm_seq=(0x0020, 0x9111),
+            tag_type="str"
+        )
+        if frame_reference_time is not None:
+            return convert_dicom_time(datetime_str=frame_reference_time)
+
+        # Reconstruct frame reference time from frame acquisition datetime and frame acquisition duration.
+        frame_acquisition_time = self.get_pydicom_func_group_tag(
+            tag=(0x0018, 0x9074),
+            macro_dcm_seq=(0x0020, 0x9111),
+            tag_type="str"
+        )
+        if frame_acquisition_time is None:
+            raise ValueError(
+                f"Frame acquisition datetime (0018,9074) cannot be determined from DICOM metadata. {self.describe_self()}"
+            )
+        frame_acquisition_time = convert_dicom_time(frame_acquisition_time)
+
+        frame_acquisition_duration_time = self.get_pydicom_func_group_tag(
+            tag=(0x0018, 0x9220),
+            macro_dcm_seq=(0x0020, 0x9111),
+            tag_type="float"
+        )
+        if frame_acquisition_duration_time is None:
+            raise ValueError(
+                f"Frame acquisition duration time (0018,9220) cannot be determined from DICOM metadata."
+                f" {self.describe_self()}"
+            )
+        elif frame_acquisition_duration_time < 0.0:
+            raise ValueError(
+                f"Frame acquisition duration time (0018,9074) was not positive: {frame_acquisition_duration_time}."
+                f" {self.describe_self()}"
+            )
+        frame_acquisition_duration_time /= 1000.0
+
+        _lambda = self._get_half_life()
+        time_avg = (1.0 / _lambda) * np.log(
+            (_lambda * frame_acquisition_duration_time) / (1.0 - np.exp(-1.0 * _lambda * frame_acquisition_duration_time))
+        )
+
+        return frame_acquisition_time + datetime.timedelta(seconds=time_avg)
