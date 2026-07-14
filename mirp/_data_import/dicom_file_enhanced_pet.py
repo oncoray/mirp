@@ -47,6 +47,11 @@ class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFileP
             for substack in substacks
         ]
 
+        # Work in order of preference:
+        # 1. No conversion required.
+        # 2. Any substack that already has the required SUV unit.
+        # 3. Any substack that has a different SUV unit.
+        # 4. Any substack that has bq/ml as PET unit. This can be converted to SUV.
         if pet_suv_conversion == "none":
             available_substacks = substacks
         elif any(available_substacks_already_converted):
