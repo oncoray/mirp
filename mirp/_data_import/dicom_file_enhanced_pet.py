@@ -17,6 +17,65 @@ class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFileP
         super().__init__(**kwargs)
         self.pet_unit: None | str = None
         self.suv_unit: None | str = None
+
+    def create_real_world_unit_stacks(
+            self,
+            pet_suv_conversion: str = "body_weight",
+            **kwargs
+    ) -> Generator[Self, None, None] | None:
+        if self.frames is None:
+            return None
+
+        # We need to filter the substacks, so generate these first.
+        substacks = [super().create_real_world_unit_stacks()]
+        for substack in substacks:
+            substack._set_pet_suv_unit()
+
+        # Determine if:
+        # a) later conversion to SUV is required (requires g/ml or Bq/ml as fallback)
+        # b) the required SUV type is already present.
+        available_substacks_already_converted = [
+            substack.suv_unit is not None and substack.suv_unit == pet_suv_conversion
+            for substack in substacks
+        ]
+        available_substacks_can_be_converted_suv = [
+            substack.suv_unit is not None
+            for substack in substacks
+        ]
+        available_substacks_can_be_converted_bqml = [
+            substack.pet_unit is not None and substack.pet_unit == "bq/ml"
+            for substack in substacks
+        ]
+
+        if pet_suv_conversion == "none":
+            available_substacks = substacks
+        elif any(available_substacks_already_converted):
+            available_substacks = [
+                substack
+                for ii, substack in enumerate(substacks)
+                if available_substacks_already_converted[ii]
+            ]
+        elif any(available_substacks_can_be_converted_suv):
+            available_substacks = [
+                substack
+                for ii, substack in enumerate(substacks)
+                if available_substacks_can_be_converted_suv[ii]
+            ]
+            available_substacks = [available_substacks[0]]
+        elif any(available_substacks_can_be_converted_bqml):
+            available_substacks = [
+                substack
+                for ii, substack in enumerate(substacks)
+                if available_substacks_can_be_converted_bqml[ii]
+            ]
+            available_substacks = [available_substacks[0]]
+        else:
+            warnings.warn("None of the frames have intensity units that can be converted to an SUV value.")
+            return None
+
+        for substack in available_substacks:
+            yield substack
+
     def _set_pet_suv_unit(self):
         if self.frames is not None:
             for frame in self.frames:
