@@ -27,7 +27,7 @@ class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFileP
             return None
 
         # We need to filter the substacks, so generate these first.
-        substacks = [super().create_real_world_unit_stacks()]
+        substacks = list(super().create_real_world_unit_stacks())
         for substack in substacks:
             substack._set_pet_suv_unit()
 
@@ -250,6 +250,10 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
         _lambda = np.log(2.0) / half_life
         time_diff_ref_adm = time_start - time_adm
         decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
+
+        # Update pet and SUV unit.
+        self.pet_unit = "g/ml"
+        self.suv_unit = "body_weight"
 
         # Note 1000.0 is used because of units should be g / ml (not kg / ml)
         return 1000.0 * weight / (administered_dose * decay_factor)
