@@ -350,7 +350,7 @@ class ImageDicomFilePT(ImageDicomFile):
             conversion_factor = self._pet_unit_gml_to_gml()
         else:
             raise NotImplementedError(
-                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+                f"Conversion factor for converting {pet_unit} to g/ml is not implemented. [{self.describe_self()}]"
             )
 
         return conversion_factor
