@@ -247,8 +247,9 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
             autocorrect_administration_start=autocorrect_administration_start
         )
 
+        _lambda = np.log(2.0) / half_life
         time_diff_ref_adm = time_start - time_adm
-        decay_factor = np.exp(-half_life * time_diff_ref_adm.total_seconds())
+        decay_factor = np.exp(-_lambda * time_diff_ref_adm.total_seconds())
 
         # Note 1000.0 is used because of units should be g / ml (not kg / ml)
         return 1000.0 * weight / (administered_dose * decay_factor)
