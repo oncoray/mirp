@@ -32,7 +32,8 @@ def test_import_suv_dro():
 def test_read_suv_dro():
 
     available_dro = [
-        "DRO_7_0_0",
+        "DRO_7_1_0",
+        "DRO_7_3_1",
         "DRO_0_0",
         "DRO_1_0",
         "DRO_2_0",
@@ -71,11 +72,10 @@ def test_read_suv_dro():
         "DRO_4_4",
         "DRO_4_5",
         "DRO_5_0",
-        # "DRO_7_0_0",
-        # "DRO_7_1_0",
-        # "DRO_7_2_0",
-        # "DRO_7_3_0",
-        # "DRO_7_3_1"
+        "DRO_7_0_0",
+        "DRO_7_2_0",
+        "DRO_7_3_0",
+        "DRO_7_3_1"
     ]
 
     for dro in available_dro:
