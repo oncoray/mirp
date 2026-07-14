@@ -215,7 +215,7 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
             conversion_factor = self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start)
         elif self.pet_unit in ["cm2/ml"]:
             conversion_factor = self._pet_unit_cm2ml_to_gml()
-        elif self.pet_unit in ["gml"]:
+        elif self.pet_unit in ["g/ml"]:
             conversion_factor = self._pet_unit_gml_to_gml()
         else:
             raise NotImplementedError(
