@@ -132,7 +132,7 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
         self.load_metadata()
 
         if self.pet_unit is None:
-            raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
+            raise ValueError(f"PET unit could not be determined from DICOM metadata. [{self.describe_self()}]")
 
         if self.pet_unit == "bq/ml":
             conversion_factor = self._pet_unit_bqml_to_gml(autocorrect_administration_start=autocorrect_administration_start)
@@ -142,7 +142,7 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
             conversion_factor = self._pet_unit_gml_to_gml()
         else:
             raise NotImplementedError(
-                f"Conversion factor for converting {self.pet_unit} to Bq/ml is not implemented or not possible. "
+                f"Conversion factor for converting {self.pet_unit} to g/ml is not implemented or not possible. "
                 f"[{self.describe_self()}]"
             )
 
