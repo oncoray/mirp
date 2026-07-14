@@ -1,9 +1,13 @@
 import copy
 import warnings
+import datetime
 
+import numpy as np
+
+from typing import Generator, Self
 from mirp._data_import.dicom_file_pet import ImageDicomFilePT
 from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrameStack, ImageDicomMultiFrameIndividual
-from mirp._data_import.utilities import get_pydicom_meta_tag
+from mirp._data_import.utilities import get_pydicom_meta_tag, convert_dicom_time
 
 
 class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFilePT):
@@ -11,6 +15,15 @@ class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFileP
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        self.pet_unit: None | str = None
+        self.suv_unit: None | str = None
+    def _set_pet_suv_unit(self):
+        if self.frames is not None:
+            for frame in self.frames:
+                frame._set_pet_suv_unit()
+
+            self.suv_unit = self.frames[0].suv_unit
+            self.pet_unit = self.frames[0].pet_unit
 
     @staticmethod
     def _get_individual_frame_class():
