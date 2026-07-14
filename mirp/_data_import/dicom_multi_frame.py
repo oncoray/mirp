@@ -1,6 +1,4 @@
 import os.path
-from keyword import kwlist
-
 import pydicom
 
 import numpy as np
