@@ -606,7 +606,7 @@ class ImageDicomFile(ImageFile):
             (0x5200, 0x9230)   # per-frame functional groups sequence
         ]
 
-    def _get_acquisition_start_time(self, private_only=False) -> None | datetime.datetime:
+    def _get_acquisition_start_time(self, private_only=False) -> None | datetime:
         self.load_metadata()
 
         # Try private GE Acquisition DateTime (0x0009, 0x100d).
