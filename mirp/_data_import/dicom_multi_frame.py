@@ -31,18 +31,32 @@ class ImageDicomMultiFrame(ImageDicomFile):
         # Create a copy
         image = self.copy()
 
-        frame_stacks = []
-        for stack_identifier in set(stack_identifiers):
-            frame_ids = [ii for ii in range(len(stack_identifiers)) if stack_identifiers[ii] == stack_identifier]
+        if stack_identifiers is not None:
+            # Frames belong to one or more stacks, identified using stack_identifiers.
+            frame_stacks = []
+            for stack_identifier in set(stack_identifiers):
+                frame_ids = [ii for ii in range(len(stack_identifiers)) if stack_identifiers[ii] == stack_identifier]
+                frame_stack = ImageDicomMultiFrameStack(
+                    stack_id=stack_identifier,
+                    frame_ids=frame_ids
+                )
+                frame_stack.update_from_template(template=image)
+
+                # Update to create stacks of frames.
+                frame_stack = frame_stack.create()
+                frame_stacks += [frame_stack]
+
+        else:
+            # All frames belong to the same stack.
+            frame_ids = list(range(1, self._get_n_frames() + 1))
             frame_stack = ImageDicomMultiFrameStack(
-                stack_id=stack_identifier,
+                stack_id=None,
                 frame_ids=frame_ids
             )
             frame_stack.update_from_template(template=image)
 
             # Update to create stacks of frames.
-            frame_stack = frame_stack.create()
-            frame_stacks += [frame_stack]
+            frame_stacks = [frame_stack.create()]
 
         if len(frame_stacks) > 0:
             image.stacks = frame_stacks
