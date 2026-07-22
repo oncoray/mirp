@@ -210,7 +210,7 @@ class ImageDicomMultiFrame(ImageDicomFile):
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        
+
         frame_type = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
@@ -282,6 +282,13 @@ class ImageDicomMultiFrame(ImageDicomFile):
             return True
 
         return False
+
+    def _check_modality(self, raise_error: bool) -> bool:
+        if self.stacks is None:
+            return True
+
+        modality_correct = [stack._check_modality(raise_error=raise_error) for stack in self.stacks]
+        return all(modality_correct)
 
 
 class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
