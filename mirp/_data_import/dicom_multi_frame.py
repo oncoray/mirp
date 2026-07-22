@@ -313,12 +313,21 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADCMultiFrameStack
         from mirp._data_import.dicom_file_mr_dce import ImageDicomFileMRDCEMultiFrameStack
 
+        stack_modality = self.modality
         if self.modality == "ct":
             file_class = ImageDicomFileCTMultiFrameStack
         elif self.modality == "pt":
             file_class = ImageDicomFilePTMultiFrameStack
         elif self.modality == "mr":
-            file_class = ImageDicomFileMRMultiFrameStack
+            # ADC and DCE are determined from DICOM tags.
+            if self._check_is_mr_adc():
+                file_class = ImageDicomFileMRADCMultiFrameStack
+                stack_modality = "adc"
+            elif self._check_is_mr_dce():
+                file_class = ImageDicomFileMRDCEMultiFrameStack
+                stack_modality = "dce"
+            else:
+                file_class = ImageDicomFileMRMultiFrameStack
         elif self.modality == "adc":
             file_class = ImageDicomFileMRADCMultiFrameStack
         elif self.modality == "dce":
@@ -333,6 +342,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         stack = file_class()
         stack.update_from_template(self)
+        stack.modality = stack_modality
 
         if stack.frame_ids is not None:
             in_stack_position = stack.get_pydicom_func_group_tag(
