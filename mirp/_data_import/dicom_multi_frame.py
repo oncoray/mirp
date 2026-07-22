@@ -210,16 +210,21 @@ class ImageDicomMultiFrame(ImageDicomFile):
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
+        
         frame_type = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
             macro_dcm_seq=(0x0018, 0x9226)
         )
+
         alt_frame_type = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
             macro_dcm_seq=(0x0040, 0x9092)
         )
+        if isinstance(alt_frame_type, list):
+            alt_frame_type = flatten_list(alt_frame_type)
+
         acquisition_contrast = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9209),
             tag_type="str",
@@ -246,16 +251,21 @@ class ImageDicomMultiFrame(ImageDicomFile):
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
+
         frame_type = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
             macro_dcm_seq=(0x0018, 0x9226)
         )
+
         alt_frame_type = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9007),
             tag_type="mult_str",
             macro_dcm_seq=(0x0040, 0x9092)
         )
+        if isinstance(alt_frame_type, list):
+            alt_frame_type = flatten_list(alt_frame_type)
+
         acquisition_contrast = self.get_pydicom_func_group_tag(
             tag=(0x0008, 0x9209),
             tag_type="str",
