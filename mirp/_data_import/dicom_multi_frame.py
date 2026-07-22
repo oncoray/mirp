@@ -31,9 +31,10 @@ class ImageDicomMultiFrame(ImageDicomFile):
         # Create a copy
         image = self.copy()
 
+        frame_stacks = []
         if stack_identifiers is not None:
             # Frames belong to one or more stacks, identified using stack_identifiers.
-            frame_stacks = []
+
             for stack_identifier in set(stack_identifiers):
                 frame_ids = [ii for ii in range(len(stack_identifiers)) if stack_identifiers[ii] == stack_identifier]
                 frame_stack = ImageDicomMultiFrameStack(
@@ -48,7 +49,7 @@ class ImageDicomMultiFrame(ImageDicomFile):
 
         else:
             # All frames belong to the same stack.
-            frame_ids = list(range(1, self._get_n_frames() + 1))
+            frame_ids = list(range(self._get_n_frames()))
             frame_stack = ImageDicomMultiFrameStack(
                 stack_id=None,
                 frame_ids=frame_ids
@@ -56,7 +57,8 @@ class ImageDicomMultiFrame(ImageDicomFile):
             frame_stack.update_from_template(template=image)
 
             # Update to create stacks of frames.
-            frame_stacks = [frame_stack.create()]
+            frame_stack = frame_stack.create()
+            frame_stacks += [frame_stack]
 
         if len(frame_stacks) > 0:
             image.stacks = frame_stacks
@@ -322,6 +324,18 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 tag_type="int",
                 frame_id=stack.frame_ids
             )
+            if in_stack_position is None:
+                # Fall-back option using Dimension Index Values
+                in_stack_position = stack.get_pydicom_func_group_tag(
+                    tag=(0x0020, 0x9157),
+                    macro_dcm_seq=(0x0020, 0x9111),
+                    tag_type="int",
+                    frame_id=stack.frame_ids
+                )
+            if in_stack_position is None:
+                # Fall-back option to position as initially ordered.
+                in_stack_position = list(range(1, len(stack.frame_ids) + 1))
+
             frames = [None] * max(in_stack_position)
             for ii, frame_id in enumerate(stack.frame_ids):
                 individual_frame = stack.create_individual_frame(
