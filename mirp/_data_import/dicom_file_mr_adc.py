@@ -20,13 +20,13 @@ class ImageDicomFileMRADC(ImageDicomFileMR):
         if adc_conversion != "none":
             # For legacy (not MultiFrame) DICOM Assume that the current unit is micrometers^2 per second:
             if adc_conversion == "mm2/s":
-                self.image_data *= 1.0E6
+                self.image_data /= 1.0E6
             elif adc_conversion == "um2/s":
                 pass
             elif adc_conversion == "m2/s":
-                self.image_data *= 1.0E12
+                self.image_data /= 1.0E12
             elif adc_conversion == "cm2/s":
-                self.image_data *= 1.0E8
+                self.image_data /= 1.0E8
             else:
                 raise ValueError(f"MIRP did not recognise the provided ADC unit: {adc_conversion}. {self.describe_self()}")
 
