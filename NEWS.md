@@ -1,4 +1,8 @@
-# Version 2.6.1
+# Version 2.7.0
+
+## Additions
+
+- Formalised support for MultiFrame DICOM, with enhanced PET and enhanced MR DICOM tested.
 
 ## Changes
 

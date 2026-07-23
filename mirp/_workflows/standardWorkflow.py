@@ -105,6 +105,7 @@ class StandardWorkflow(BaseWorkflow):
         for image, masks in read_image_and_masks_generator(
                 self.image_file,
                 to_numpy=False,
+                adc_conversion=self.settings.post_process.adc_conversion,
                 pet_suv_conversion=self.settings.post_process.suv_conversion_type,
                 pet_autocorrect_administration_start=self.settings.post_process.pet_autocorrect_administration_start
         ):
