@@ -64,6 +64,23 @@ class ImagePostProcessingClass:
     bias_field_convergence_threshold: float, optional, default: 0.001
         Convergence threshold for N4 bias field correction algorithm.
 
+    adc_conversion: {"mm2/s", "um2/s", "m2/s", "cm2/s", "none"}, default: "mm2/s"
+        Intensity values in apparent diffusion coefficient (ADC) maps represent the measured diffusion in a voxel. This
+        is expressed using various values. MIRP can convert these values to have the same unit, and supports the
+        following:
+
+        * "mm2/s": millimeters^2 per second (default)
+        * "um2/s": micrometers^2 per second
+        * "m2/s": meters^2 per second
+        * "cm2/s": centimeters^2 per second
+        * "none": units are kept as-is.
+
+        For ADC maps stored in DICOM MultiFrame objects, the unit of the stored intensities is derived from the
+        Code Value (0008,0100) in the Measurement Units Code Sequence (0040,08EA) of the Real World Value Mapping
+        Sequence (0040,9096).
+
+        For legacy format ADC maps, ADC is assumed to be stored as micrometers^2 per second.
+
     pet_suv_conversion: {"body_weight", "body_surface_area", "lean_body_mass", "lean_body_mass_bmi", "ideal_body_weight". "none"}, default: "body_weight"
         Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
         comparable between patients, these are converted to standardised uptake values. The following are possible:
@@ -194,6 +211,7 @@ class ImagePostProcessingClass:
             bias_field_correction_n_fitting_levels: int = 3,
             bias_field_correction_n_max_iterations: int | list[int] | None = None,
             bias_field_convergence_threshold: float = 0.001,
+            adc_conversion: str = "mm2/s",
             pet_suv_conversion: str = "body_weight",
             pet_autocorrect_administration_start: bool = True,
             intensity_normalisation: str = "none",
@@ -377,6 +395,16 @@ class ImagePostProcessingClass:
 
         # Set convergence_threshold attribute.
         self.convergence_threshold: None | float = bias_field_convergence_threshold
+
+        # Check that adc_conversion has the correct values.
+        if adc_conversion not in ["mm2/s", "um2/s", "m2/s", "cm2/s", "none"]:
+            raise ValueError(
+                f"The adc_conversion parameter should be one of 'mm2/s', 'um2/s', 'm2/s', "
+                f"'cm2/s' or 'none'. Found: {adc_conversion}"
+            )
+
+        # Set adc_conversion
+        self.adc_conversion = adc_conversion
 
         # Check that pet_suv_conversion has the correct values.
         if pet_suv_conversion not in [
@@ -644,6 +672,7 @@ def get_post_processing_settings() -> list[dict[str, Any]]:
             "bias_field_convergence_threshold", "float", xml_key="convergence_threshold",
             class_key="convergence_threshold", test=0.1
         ),
+        setting_def("adc_conversion", "str", test="none"),
         setting_def("pet_suv_conversion", "str", class_key="suv_conversion_type", test="none"),
         setting_def("pet_autocorrect_administration_start", "bool", test=False),
         setting_def("intensity_normalisation", "str", test="relative_range"),
