@@ -79,7 +79,15 @@ class ImagePostProcessingClass:
         Code Value (0008,0100) in the Measurement Units Code Sequence (0040,08EA) of the Real World Value Mapping
         Sequence (0040,9096).
 
-        For legacy format ADC maps, ADC is assumed to be stored as micrometers^2 per second.
+        For legacy DICOM format ADC maps, ADC is assumed to be stored as micrometers^2 per second.
+
+        .. warning::
+            Conversion of the units of ADC maps requires metadata only present in DICOM. MIRP cannot
+            convert ADC values from images in different formats, and this parameter will have no effect.
+
+        .. warning::
+            Conversion of legacy DICOM format ADC maps is done based on the convention that ADC values are stored there
+            as micrometers^2 per second. Legacy DICOM lacks metadata required to determine this directly.
 
     pet_suv_conversion: {"body_weight", "body_surface_area", "lean_body_mass", "lean_body_mass_bmi", "ideal_body_weight". "none"}, default: "body_weight"
         Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
