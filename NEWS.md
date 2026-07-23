@@ -3,6 +3,8 @@
 ## Additions
 
 - Formalised support for MultiFrame DICOM, with enhanced PET and enhanced MR DICOM tested.
+- An `adc_conversion` configuration parameter was added to facilitate unit conversion for apparent diffusion 
+  coefficient maps.
 
 ## Changes
 
