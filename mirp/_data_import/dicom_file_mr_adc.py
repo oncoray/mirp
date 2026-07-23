@@ -10,6 +10,26 @@ class ImageDicomFileMRADC(ImageDicomFileMR):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+    def load_data(
+            self,
+            adc_conversion: str = "mm2/s",
+            **kwargs
+    ):
+        self.image_data = self.load_data_generic()
+
+        if adc_conversion != "none":
+            # For legacy (not MultiFrame) DICOM Assume that the current unit is micrometers^2 per second:
+            if adc_conversion == "mm2/s":
+                self.image_data *= 1.0E6
+            elif adc_conversion == "um2/s":
+                pass
+            elif adc_conversion == "m2/s":
+                self.image_data *= 1.0E12
+            elif adc_conversion == "cm2/s":
+                self.image_data *= 1.0E8
+            else:
+                raise ValueError(f"MIRP did not recognise the provided ADC unit: {adc_conversion}. {self.describe_self()}")
+
     def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
             metadata = super().export_metadata()
