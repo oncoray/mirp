@@ -76,6 +76,9 @@
             <n_max_iterations></n_max_iterations>
             <!-- Convergence threshold for N4 bias field correction. Default: 0.001 -->
             <convergence_threshold></convergence_threshold>
+            <!-- Unit to which ADC values should be converted. The following are possible: mm2/s (default),
+            um2/s, cm2/s, m2/s, none. -->
+            <adc_conversion></adc_conversion>
             <!-- Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more
             comparable between patients, these are converted to standardised uptake values. The following are possible:
             body_weight, body_surface_area, lean_body_mass, lean_body_mass_bmi, ideal_body_weight, none -->
