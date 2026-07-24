@@ -129,6 +129,15 @@ class ImageDicomFile(ImageFile):
                         return False
 
                 return True
+            else:
+                if raise_error:
+                    raise ValueError(
+                        f"The current DICOM file lacks any sample name to match against. "
+                        f"Expected identifiers: {', '.join(allowed_sample_name)}. "
+                        f"[{self.describe_self()}]"
+                    )
+                else:
+                    return False
         else:
             return True
 
