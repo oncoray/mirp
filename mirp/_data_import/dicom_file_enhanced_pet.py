@@ -85,7 +85,11 @@ class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFileP
         if self.frames is not None:
             for frame in self.frames:
                 frame._set_pet_suv_unit()
+        
+        self._update_attributes_from_frames()
 
+    def _update_attributes_from_frames(self):
+        if self.frames is not None:
             self.suv_unit = self.frames[0].suv_unit
             self.pet_unit = self.frames[0].pet_unit
 
