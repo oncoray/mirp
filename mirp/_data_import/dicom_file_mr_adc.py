@@ -64,7 +64,17 @@ class ImageDicomFileMRADCMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFi
             for frame in self.frames:
                 frame._set_adc_unit()
 
+        self._update_attributes_from_frames()
+
+    def _update_attributes_from_frames(self):
+        if self.frames is not None:
             self.adc_unit = self.frames[0].adc_unit
+
+    def _update_real_world_unit(self):
+        if self.adc_unit is None:
+            pass
+        else:
+            self._set_real_world_unit(x=self.adc_unit)
 
     @staticmethod
     def _get_individual_frame_class():
