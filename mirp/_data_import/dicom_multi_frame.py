@@ -568,6 +568,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             frame.load_data(**kwargs)
             image[frame.in_stack_position-1, :, :] = frame.image_data
 
+        self._update_attributes_from_frames()
         self.image_data = image
 
     def _get_real_world_units(self, **kwargs):
@@ -585,6 +586,14 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         real_world_units = flatten_list(real_world_units)
         return list(set(real_world_units))
+
+    def _update_attributes_from_frames(self):
+        """
+        Updates attributes of the stack based on attributes of the frames. This method should be introduced in
+        subclasses where the attributes of the frames can change, e.g. due to conversion of units. This method
+        is called at the stack level by `load_data` .
+        """
+        pass
 
     def _set_real_world_unit(self, x):
         self.real_world_unit = x
