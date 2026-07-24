@@ -160,7 +160,7 @@ class ImageFile(BaseImage):
 
         # Match on file name similarity. The image is matched against the most similar mask.
         if "file_name_similarity" in association_strategy and self.file_name is not None:
-            ...
+            raise NotImplementedError("Matching images using file name similarity is currently not supported.")
 
         return
 
