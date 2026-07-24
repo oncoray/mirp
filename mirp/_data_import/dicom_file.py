@@ -425,7 +425,7 @@ class ImageDicomFile(ImageFile):
             mask_list,
             association_strategy=None):
         if mask_list is None or len(mask_list) == 0 or association_strategy is None:
-            return None
+            return
 
         # Match on frame of reference UID:
         if "frame_of_reference" in association_strategy and self.frame_of_reference_uid is not None:
@@ -438,7 +438,7 @@ class ImageDicomFile(ImageFile):
                 self.associated_masks = matching_mask_list
                 return
 
-        return super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
+        super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
 
     def load_metadata(self, limited=False, include_image=False):
         if include_image:
