@@ -844,6 +844,11 @@ class ImageFile(BaseImage):
             real_world_unit=self.real_world_unit
         )
 
+    def _set_real_world_unit(self, x):
+        # Sets real_world_unit.
+        if x is not None:
+            self.real_world_unit = x
+
     def _update_real_world_unit(self):
         # This method is a placeholder for subclasses. It enables updating the real_world_unit attribute which
         # is later passed to image objects.
