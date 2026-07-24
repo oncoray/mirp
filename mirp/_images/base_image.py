@@ -190,9 +190,9 @@ class BaseImage:
         problem_list = []
         # Mismatch in grid dimension
         if not np.array_equal(self.get_image_dimension(), mask.get_image_dimension()):
-                problem_list += [
-                    f"different dimensions: \n\t\timage: {self.get_image_dimension()}\n\t\tmask: {mask.get_image_dimension()}"
-                ]
+            problem_list += [
+                f"different dimensions: \n\t\timage: {self.get_image_dimension()}\n\t\tmask: {mask.get_image_dimension()}"
+            ]
 
         # Mismatch in origin
         if not np.allclose(self.get_image_origin(), mask.get_image_origin()):
