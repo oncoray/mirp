@@ -562,7 +562,7 @@ def get_pydicom_meta_tag(
 
     Parameters
     ----------
-    dcm_seq: pydicom.Dataset
+    dcm_seq: pydicom.Dataset, pydicom.DataElement
         DICOM sequence from which the parameter should be read.
 
     tag: tuple of hex
