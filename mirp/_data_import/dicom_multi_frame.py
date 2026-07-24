@@ -93,7 +93,8 @@ class ImageDicomMultiFrame(ImageDicomFile):
                     image_origin=substack.image_origin,
                     image_orientation=substack.image_orientation,
                     image_dimensions=substack.image_dimension,
-                    metadata=substack.object_metadata
+                    metadata=substack.object_metadata,
+                    real_world_unit=substack.real_world_unit
                 )
 
     def _complete_image_origin(self, force=False):
