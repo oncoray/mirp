@@ -327,6 +327,14 @@ class ImageDicomFilePT(ImageDicomFile):
             # Update image intensities.
             image_data *= gml_factor * suv_factor
 
+            # Update real_world_unit
+            if pet_suv_conversion == "body_surface_area":
+                self.real_world_unit = "cm2/ml[body_surface_area]"
+            else:
+                self.real_world_unit = "g/ml[" + pet_suv_conversion + "]"
+        else:
+            self.real_world_unit = self._get_pet_unit()
+
         # Set image_data attribute.
         self.image_data = image_data
 
