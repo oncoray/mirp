@@ -30,6 +30,8 @@ class ImageDicomFileMRADC(ImageDicomFileMR):
             else:
                 raise ValueError(f"MIRP did not recognise the provided ADC unit: {adc_conversion}. {self.describe_self()}")
 
+            self.real_world_unit = adc_conversion
+
     def export_metadata(self, self_only=False, **kwargs) -> None | dict[str, Any]:
         if not self_only:
             metadata = super().export_metadata()
