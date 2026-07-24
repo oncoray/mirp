@@ -334,7 +334,7 @@ class ImageDicomFilePT(ImageDicomFile):
         """To compute SUV, PET units need to be converted to BQML."""
         self.load_metadata()
 
-        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        pet_unit = self._get_pet_unit()
         if pet_unit is None:
             raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
@@ -972,6 +972,10 @@ class ImageDicomFilePT(ImageDicomFile):
             patient_weight /= 1000.0
 
         return patient_weight
+
+    def _get_pet_unit(self) -> str:
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        return pet_unit
 
     def _get_series_time(self) -> datetime.datetime:
         # Standard DICOM: Fall back to Series Date and Series Time
