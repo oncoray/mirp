@@ -676,6 +676,9 @@ class ImageFile(BaseImage):
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
 
+        # Update real-world unit.
+        self._update_real_world_unit()
+
         # Remove metadata. This allows file connections to be garbage collected.
         if remove_metadata:
             self.remove_metadata()
@@ -837,8 +840,14 @@ class ImageFile(BaseImage):
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
             image_dimensions=self.image_dimension,
-            metadata=self.object_metadata
+            metadata=self.object_metadata,
+            real_world_unit=self.real_world_unit
         )
+
+    def _update_real_world_unit(self):
+        # This method is a placeholder for subclasses. It enables updating the real_world_unit attribute which
+        # is later passed to image objects.
+        pass
 
     def set_object_metadata(self):
         """

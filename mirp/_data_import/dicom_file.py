@@ -236,6 +236,7 @@ class ImageDicomFile(ImageFile):
         self.image_orientation = deepcopy(template.image_orientation)
         self.image_spacing = deepcopy(template.image_spacing)
         self.image_dimension = deepcopy(template.image_dimension)
+        self.real_world_unit = deepcopy(template.real_world_unit)
         self.frame_of_reference_uid = deepcopy(template.frame_of_reference_uid)
         self.image_metadata = template.image_metadata
         self.is_limited_metadata = deepcopy(template.is_limited_metadata)

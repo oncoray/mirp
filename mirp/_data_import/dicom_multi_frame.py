@@ -302,7 +302,6 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         self.stack_id = stack_id
         self.frame_ids = frame_ids
         self.frames: list[ImageDicomMultiFrameIndividual] | None = None
-        self.real_world_unit: str | None = None
 
     def create(self):
         # This method is called from ImageDicomMultiFrame.create amd dispatches to modality-specific multi-frame
