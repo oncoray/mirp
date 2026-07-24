@@ -625,6 +625,7 @@ class StandardWorkflow(BaseWorkflow):
             "image_series_description": _from_dict(image_metadata, "series_description"),
             "image_series_instance_uid": _from_dict(image_metadata, "series_instance_uid"),
             "image_modality": _from_dict(image_metadata, "modality", "generic"),
+            "image_measurement_unit": _from_dict(image_metadata, "measurement_unit"),
             "image_pet_suv_type": _from_dict(image_metadata, "suv_type"),
             "image_mask_label": _from_dict(mask_metadata, "roi_name"),
             "image_mask_file_name": _from_dict(mask_metadata, "file_name"),
