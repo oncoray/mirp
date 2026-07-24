@@ -89,6 +89,16 @@ class ImageDicomFilePTMultiFrameStack(ImageDicomMultiFrameStack, ImageDicomFileP
             self.suv_unit = self.frames[0].suv_unit
             self.pet_unit = self.frames[0].pet_unit
 
+    def _update_real_world_unit(self):
+        if self.pet_unit is None:
+            pass
+        elif self.suv_unit is None:
+            self._set_real_world_unit(x=self.pet_unit)
+        else:
+            x = self.pet_unit
+            x += "[" + self.suv_unit + "]"
+            self._set_real_world_unit(x=x)
+
     @staticmethod
     def _get_individual_frame_class():
         return ImageDicomFilePTMultiFrameIndividual
@@ -122,6 +132,13 @@ class ImageDicomFilePTMultiFrameIndividual(ImageDicomMultiFrameIndividual, Image
 
             # Update image intensities.
             self.image_data *= gml_factor * suv_factor
+
+            # Update units
+            self.suv_unit = pet_suv_conversion
+            if pet_suv_conversion == "body_surface_area":
+                self.pet_unit = "cm2/ml"
+            else:
+                self.pet_unit = "g/ml"
 
     def _set_pet_suv_unit(self):
         if self.real_world_unit is None:
