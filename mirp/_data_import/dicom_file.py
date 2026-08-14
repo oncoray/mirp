@@ -240,6 +240,7 @@ class ImageDicomFile(ImageFile):
         self.frame_of_reference_uid = deepcopy(template.frame_of_reference_uid)
         self.image_metadata = template.image_metadata
         self.is_limited_metadata = deepcopy(template.is_limited_metadata)
+        self.has_pixel_data = deepcopy(template.has_pixel_data)
         self.series_instance_uid = deepcopy(template.series_instance_uid)
         self.sop_instance_uid = deepcopy(template.sop_instance_uid)
         self.associated_masks = template.associated_masks
@@ -450,9 +451,8 @@ class ImageDicomFile(ImageFile):
             return
 
         # A full image metadata set exists.
-        if self.image_metadata is not None and not self.is_limited_metadata:
-            if not include_image or (include_image and self.image_data is not None):
-                return
+        if self.image_metadata is not None and self.has_pixel_data and include_image:
+            return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
@@ -475,6 +475,7 @@ class ImageDicomFile(ImageFile):
 
         self.image_metadata = dcm
         self.is_limited_metadata = limited
+        self.has_pixel_data = include_image
 
     def load_data(self, **kwargs):
         raise NotImplementedError(
@@ -785,6 +786,7 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         # Set metadata of mask.
         mask.image_metadata = self.image_metadata
         mask.is_limited_metadata = self.is_limited_metadata
+        mask.has_pixel_data = self.has_pixel_data
 
         return mask
 

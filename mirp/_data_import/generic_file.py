@@ -68,6 +68,7 @@ class ImageFile(BaseImage):
         # Add metadata
         self.image_metadata = None
         self.is_limited_metadata = False
+        self.has_pixel_data = False
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
