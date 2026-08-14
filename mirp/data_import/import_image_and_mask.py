@@ -326,9 +326,12 @@ def set_association_strategy(
     if len(image_dir_path) == 0 or len(mask_dir_path) <= 1:
         possible_strategies.remove("file_distance")
 
+    # matching on file_name_similarity is currently not implemented
+    possible_strategies.remove("file_name_similarity")
+
     # Check if file_name_similarity is possible. If file names are absent, this is not possible.
-    if all(image.get_file_name() is None for image in image_list) or all(mask.get_file_name() is None for mask in mask_list):
-        possible_strategies.remove("file_name_similarity")
+    # if all(image.get_file_name() is None for image in image_list) or all(mask.get_file_name() is None for mask in mask_list):
+    #     possible_strategies.remove("file_name_similarity")
 
     # Check if position can be used.
     if all(image.get_image_origin() is None for image in image_list) or all(mask.get_image_origin() is None for mask in mask_list):
