@@ -8,6 +8,7 @@ from os.path import split
 import numpy as np
 import pydicom
 from pydicom import FileDataset, Dataset, datadict, DataElement
+from pydicom.multival import MultiValue
 from pydicom.tag import Tag
 
 
@@ -666,15 +667,21 @@ def get_pydicom_meta_tag(
 
         # Multiple floats
         elif tag_type == "mult_float":
-            tag_value = [float(str_num) for str_num in tag_value]
+            if isinstance(tag_value, MultiValue) or isinstance(tag_value, list):
+                tag_value = [float(str_num) for str_num in tag_value]
+            else:
+                tag_value = [float(tag_value)]
 
         # Integer
         elif tag_type == "int":
             tag_value = int(tag_value)
 
-        # Multiple floats
+        # Multiple integers
         elif tag_type == "mult_int":
-            tag_value = [int(str_num) for str_num in tag_value]
+            if isinstance(tag_value, MultiValue) or isinstance(tag_value, list):
+                tag_value = [int(str_num) for str_num in tag_value]
+            else:
+                tag_value = [int(tag_value)]
 
         # Boolean
         elif tag_type == "bool":
