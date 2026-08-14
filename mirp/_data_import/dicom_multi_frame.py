@@ -69,7 +69,18 @@ class ImageDicomMultiFrame(ImageDicomFile):
         # Multi-frame images might be actually be stackable (concatenated), but ignore that for now.
         return False
 
+    def load_metadata(self, limited=False, include_image=False):
+        super().load_metadata(limited=limited, include_image=include_image)
+        if self.stacks is not None:
+            for stack in self.stacks:
+                stack.image_metadata = self.image_metadata
+                stack.is_limited_metadata = self.is_limited_metadata
+                stack.has_pixel_data = self.has_pixel_data
+
     def load_data(self, **kwargs):
+        # Load metadata.
+        self.load_metadata(include_image=True)
+
         if self.stacks is not None:
             for stack in self.stacks:
                 stack.load_data(**kwargs)
@@ -312,6 +323,7 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
         from mirp._data_import.dicom_file_enhanced_mr import ImageDicomFileMRMultiFrameStack
         from mirp._data_import.dicom_file_mr_adc import ImageDicomFileMRADCMultiFrameStack
         from mirp._data_import.dicom_file_mr_dce import ImageDicomFileMRDCEMultiFrameStack
+        from mirp._data_import.dicom_file_seg import MaskDicomFileSEGMultiFrameStack
 
         stack_modality = self.modality
         if self.modality == "ct":
@@ -332,6 +344,8 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
             file_class = ImageDicomFileMRADCMultiFrameStack
         elif self.modality == "dce":
             file_class = ImageDicomFileMRDCEMultiFrameStack
+        elif self.modality == "seg":
+            file_class = MaskDicomFileSEGMultiFrameStack
 
         else:
             # Multi-frame is not implemented for the following modalities:
@@ -569,10 +583,19 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
 
         return len(self.frame_ids)
 
+    def load_metadata(self, limited=False, include_image=False):
+        super().load_metadata(limited=limited, include_image=include_image)
+        if self.frames is not None:
+            for frame in self.frames:
+                frame.image_metadata = self.image_metadata
+                frame.is_limited_metadata = self.is_limited_metadata
+                frame.has_pixel_data = self.has_pixel_data
+
     def load_data(self, **kwargs):
         if self.frames is None:
             return
 
+        self.load_metadata(include_image=True)
         image = np.zeros(self.image_dimension, dtype=np.float32)
         for frame in self.frames:
             frame.load_data(**kwargs)
