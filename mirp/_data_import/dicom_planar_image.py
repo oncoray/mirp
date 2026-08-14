@@ -34,8 +34,7 @@ class ImageDicomPlanarImage(ImageDicomFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0028, 0x0030),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
+                macro_dcm_seq=(0x0028, 0x9110)
             )
             # Fall-back option if no spacing is provided.
             if spacing is None:
