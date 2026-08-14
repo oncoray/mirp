@@ -356,9 +356,19 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 in_stack_position = stack.get_pydicom_func_group_tag(
                     tag=(0x0020, 0x9157),
                     macro_dcm_seq=(0x0020, 0x9111),
-                    tag_type="int",
+                    tag_type="mult_int",
                     frame_id=stack.frame_ids
                 )
+
+                # Identify the index that changes most.
+                if isinstance(in_stack_position, list):
+                    n_elements = len(in_stack_position[0])
+                    index_count = [0] * n_elements
+                    for ii in range(n_elements):
+                        indices = [x[ii] for x in in_stack_position]
+                        index_count[ii] = len(set(indices))
+                    in_stack_position = [x[np.argmax(index_count)] for x in in_stack_position]
+
             if in_stack_position is None:
                 # Fall-back option to position as initially ordered.
                 in_stack_position = list(range(1, len(stack.frame_ids) + 1))
