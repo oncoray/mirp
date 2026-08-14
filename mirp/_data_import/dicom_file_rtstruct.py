@@ -488,9 +488,32 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             # Determine sample spacing. Note that because of unitary sample spacing during conversion from world space
             # to voxel space, the image spacing corresponds directly to world coordinates, e.g. a 1.0 voxel step in any
             # direction is a translation of 1.0 in world space in physical units.
-            mask_z_spacing = np.min(np.diff(np.unique(np.vstack(contours)[:, 0])))
+
+            # Use image spacing for x and y, because we will interpolate to this spacing anyway.
             mask_y_spacing = image.image_spacing[1]
             mask_x_spacing = image.image_spacing[2]
+
+            # For the slice direction, this is bit more complicated, because the RTSTRUCT may have its own slice
+            # spacing that is different from the associated image. Use the image spacing by default (only used if
+            # all contours are contained in a single slice).
+            mask_z_spacing = image.image_spacing[0]
+
+            # Find unique spacing, allowing for rounding errors. Only differences > 0.0 are of interest.
+            temporary_z_spacing = np.unique(np.around(np.diff(np.unique(np.vstack(contours)[:, 0])), 3))
+            temporary_z_spacing = temporary_z_spacing[temporary_z_spacing > 0.0]
+            if len(temporary_z_spacing) > 0:
+                # Try to estimate the mask spacing based on the height from the origin of the most distal contour. This
+                # should give a good estimate of the actual slice spacing.
+                temporary_z_origin = np.min(np.unique(np.vstack(contours)[:, 0]))
+                temporary_z_height = np.max(np.unique(np.vstack(contours)[:, 0])) - temporary_z_origin
+                temporary_z_dimension = np.rint(temporary_z_height / np.min(temporary_z_spacing)) + 1.0
+                mask_z_spacing = temporary_z_height / (temporary_z_dimension - 1.0)
+
+                # Use image spacing if the obtained spacing is very similar.
+                if np.around(mask_z_spacing - image.image_spacing[0], 3) == 0.0:
+                    mask_z_spacing = image.image_spacing[0]
+
+            # Set spacing.
             mask_spacing = tuple([mask_z_spacing, mask_y_spacing, mask_x_spacing])
 
             # Determine origin. This is the translation with regard to the current origin in voxel space. This value is
