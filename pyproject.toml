@@ -7,7 +7,7 @@ name = "mirp"
 version = "2.7.0"
 description = "A package for standardised processing of medical imaging and computation of quantitative features."
 authors = [
-    {name = "Alex Zwanenburg", email = "alexander.zwanenburg@nct-dresden.de"}
+    {name = "Alex Zwanenburg", email = "alex.zwanenburg@outlook.com"}
 ]
 license = "EUPL-1.2"
 license-files = ["LICENSE.txt"]
