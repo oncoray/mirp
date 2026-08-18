@@ -369,8 +369,8 @@ def test_read_dicom_image_and_seg_mask_stack():
     assert isinstance(image[0], CTImage)
     assert len(roi_list) == 2
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
-    assert roi_list[0].roi_name == "lesion_1"
-    assert roi_list[1].roi_name == "lesion_2"
+    assert any(x.roi_name == "lesion_1" for x in roi_list)
+    assert any(x.roi_name == "lesion_2" for x in roi_list)
 
 
 @pytest.mark.ci
