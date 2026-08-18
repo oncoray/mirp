@@ -83,6 +83,13 @@ class ImageDicomMultiFrame(ImageDicomFile):
                         frame.is_limited_metadata = self.is_limited_metadata
                         frame.has_pixel_data = self.has_pixel_data
 
+    def remove_metadata(self, force=False):
+        self.image_metadata = None
+
+        if self.stacks is not None:
+            for stack in self.stacks:
+                stack.remove_metadata(force=force)
+
     def load_data(self, **kwargs):
         # Load metadata.
         self.load_metadata(include_image=True)
@@ -599,6 +606,13 @@ class ImageDicomMultiFrameStack(ImageDicomMultiFrame):
                 frame.is_limited_metadata = self.is_limited_metadata
                 frame.has_pixel_data = self.has_pixel_data
 
+    def remove_metadata(self, force=False):
+        self.image_metadata = None
+
+        if self.frames is not None:
+            for frame in self.frames:
+                frame.remove_metadata(force=force)
+
     def load_data(self, **kwargs):
         if self.frames is None:
             return
@@ -721,6 +735,9 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
                                  f"9212) attributes were both missing. {self.describe_self()}")
 
         self.image_data = image_data
+
+    def remove_metadata(self, force=False):
+        self.image_metadata = None
 
     def get_pydicom_func_group_tag(
             self,
