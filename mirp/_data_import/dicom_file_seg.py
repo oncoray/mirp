@@ -141,13 +141,28 @@ class MaskDicomFileSEGMultiFrameStack(ImageDicomMultiFrameStack, MaskDicomFile):
             return
 
         self.load_metadata(include_image=True)
-        image = np.zeros(self.image_dimension, dtype=bool)
+        image = np.zeros(self.image_dimension, dtype=np.float32)
         for frame in self.frames:
             frame.load_data(**kwargs)
             image[frame.in_stack_position - 1, :, :] = frame.image_data
 
         self._update_attributes_from_frames()
-        self.image_data = image
+
+        # Use Segmentation Type (0062,0001)
+        segmentation_type = get_pydicom_meta_tag(
+            dcm_seq=self.image_metadata,
+            tag=(0x0062, 0x0001),
+            tag_type="str",
+            default="BINARY"
+        )
+
+        if not segmentation_type == "BINARY":
+            raise NotImplementedError(
+                f"Only BINARY segmentation type is currently supported. Found: {segmentation_type}."
+            )
+
+        # Convert to boolean
+        self.image_data = image.astype(bool)
 
     def set_roi_name(self):
         segment_sequence = self.image_metadata[(0x0062, 0x0002)]
@@ -178,27 +193,3 @@ class MaskDicomFileSEGMultiFrameStack(ImageDicomMultiFrameStack, MaskDicomFile):
 class MaskDicomFileSEGMultiFrameIndividual(ImageDicomMultiFrameIndividual, MaskDicomFileSEGMultiFrameStack):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    def load_data(
-            self,
-            **kwargs
-    ):
-        # Load data.
-        super().load_data(**kwargs)
-
-        # Use Segmentation Type (0062,0001)
-        segmentation_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0062, 0x0001),
-            tag_type="str",
-            default="BINARY"
-        )
-
-        if not segmentation_type == "BINARY":
-            raise NotImplementedError(
-                f"Only BINARY segmentation type is currently supported. Found: {segmentation_type}."
-            )
-
-        # Convert to boolean
-        if self.image_data is np.ndarray:
-            self.image_data = self.image_data.astype(bool)
