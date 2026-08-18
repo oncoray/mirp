@@ -446,18 +446,26 @@ class ImageDicomFile(ImageFile):
         if include_image:
             limited = False
 
-        # Limited metadata exists and limited metadata is sufficient.
-        if self.image_metadata is not None and self.is_limited_metadata and limited:
+        # Any metadata exists and limited metadata is sufficient.
+        if self.image_metadata is not None and limited:
             return
 
-        # A full image metadata set exists.
-        if self.image_metadata is not None and self.has_pixel_data and include_image:
+        # Full metadata exists, and pixel data is not required.
+        if self.image_metadata is not None and not self.is_limited_metadata and not include_image:
+            return
+
+        # Full metadata exists including pixel data.
+        if self.image_metadata is not None and include_image and self.has_pixel_data:
             return
 
         if self.file_path is None or not os.path.exists(self.file_path):
             raise FileNotFoundError(
                 f"The image file could not be found at the expected location: {self.file_path}. "
                 f"[{self.describe_self()}]")
+
+        from mirp._data_import.dicom_file_ct import ImageDicomFileCT
+        if include_image and not isinstance(self, ImageDicomFileCT):
+            pass
 
         if limited:
             dcm = dcmread(
