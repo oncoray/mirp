@@ -172,10 +172,32 @@ class MaskDicomFileSEGMultiFrameStack(ImageDicomMultiFrameStack, MaskDicomFile):
             default="BINARY"
         )
 
-        if not segmentation_type == "BINARY":
+        if segmentation_type not in ["BINARY", "FRACTIONAL"]:
             raise NotImplementedError(
-                f"Only BINARY segmentation type is currently supported. Found: {segmentation_type}."
+                f"Only BINARY or FRACTIONAL segmentation types are supported. Found: {segmentation_type}. {self.describe_self()}"
             )
+
+        # Attempt to convert to 0s and 1s.
+        if segmentation_type == "FRACTIONAL":
+            max_fractional_value = get_pydicom_meta_tag(
+                dcm_seq=self.image_metadata,
+                tag=(0x0062, 0x000E),
+                tag_type="float",
+                default=None
+            )
+            if max_fractional_value is None:
+                raise ValueError(
+                    f"FRACTIONAL segmentation type requires maximum fractional value (0062,000E). This attribute "
+                    f"was not found. {self.describe_self()}"
+                )
+
+            # Map to [0, 1]
+            image /= max_fractional_value
+            unique_image_values = np.unique(image)
+            if len(set(unique_image_values) - {0.0, 1.0}) > 0:
+                raise NotImplementedError(
+                    f"Partial segmentation masks are currently not supported by MIRP. {self.describe_self()}"
+                )
 
         # Convert to boolean
         self.image_data = image.astype(bool)
