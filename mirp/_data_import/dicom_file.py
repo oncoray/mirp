@@ -776,7 +776,7 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
             dir_path=self.dir_path,
             sample_name=self.sample_name,
             file_name=self.file_name,
-            image_modality=self.modality,
+            image_modality=modality,
             image_name=self.image_name,
             image_file_type=self.file_type,
             image_data=self.image_data,
@@ -791,6 +791,8 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         mask.image_metadata = self.image_metadata
         mask.is_limited_metadata = self.is_limited_metadata
         mask.has_pixel_data = self.has_pixel_data
+
+        mask = mask.create()
 
         return mask
 
