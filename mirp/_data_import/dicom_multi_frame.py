@@ -674,7 +674,8 @@ class ImageDicomMultiFrameIndividual(ImageDicomMultiFrame):
         self.load_metadata(include_image=True)
 
         # Get image data for the current frame.
-        image_data = self.image_metadata.pixel_array.astype(np.float32)[self.in_stack_position-1, :, :]
+        image_data = self.image_metadata.pixel_array[self.in_stack_position-1, :, :]
+        image_data = image_data.astype(np.float32)
 
         # Convert to units.
         if self.real_world_value_mapping_sequence is None:
