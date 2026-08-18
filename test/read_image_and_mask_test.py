@@ -416,7 +416,7 @@ def test_read_dicom_image_and_mask_modality_specific():
         image=os.path.join(CURRENT_DIR, "data", "adc_images_pm_dicom4qi", "data_1", "image.dcm")
     )
 
-    image, roi_list = read_image_and_masks(image_list[0])
+    image, roi_list = read_image_and_masks(image=image_list[0])
     assert isinstance(image[0], MRADCImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
