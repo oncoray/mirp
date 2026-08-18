@@ -77,6 +77,12 @@ class ImageDicomMultiFrame(ImageDicomFile):
                 stack.is_limited_metadata = self.is_limited_metadata
                 stack.has_pixel_data = self.has_pixel_data
 
+                if stack.frames is not None:
+                    for frame in stack.frames:
+                        frame.image_metadata = self.image_metadata
+                        frame.is_limited_metadata = self.is_limited_metadata
+                        frame.has_pixel_data = self.has_pixel_data
+
     def load_data(self, **kwargs):
         # Load metadata.
         self.load_metadata(include_image=True)
