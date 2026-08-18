@@ -36,7 +36,7 @@ def read_image_and_masks(
 
     # Read masks from file.
     if mask_list is not None:
-        mask_list = [list(mask.to_object(image=image, **kwargs)) for mask in mask_list]
+        mask_list = [list(mask.to_object(image=image_out[0], **kwargs)) for mask in mask_list]
         mask_list = flatten_list(mask_list)
 
     # Remove None entries.
