@@ -1,13 +1,10 @@
 import warnings
 
 import numpy as np
-from pydicom import dcmread
 from typing import Generator, Self
 
-from skimage import segmentation
-
 from mirp._data_import.dicom_file import MaskDicomFile
-from mirp._data_import.utilities import get_pydicom_meta_tag, has_pydicom_meta_tag
+from mirp._data_import.utilities import get_pydicom_meta_tag
 from mirp._data_import.dicom_multi_frame import (ImageDicomMultiFrame, ImageDicomMultiFrameStack,
                                                  ImageDicomMultiFrameIndividual)
 from mirp._masks.base_mask import BaseMask
@@ -67,6 +64,7 @@ class MaskDicomFileSEG(ImageDicomMultiFrame, MaskDicomFile):
 
         # Identify user-provided roi names.
         provided_roi_names = None
+        use_roi_labels = True
         if isinstance(self.roi_name, str):
             provided_roi_names = [self.roi_name]
         elif isinstance(self.roi_name, list):
@@ -76,8 +74,16 @@ class MaskDicomFileSEG(ImageDicomMultiFrame, MaskDicomFile):
 
         if provided_roi_names is None:
             available_stacks = self.stacks
+
+            # We store both labels and description from the segment sequence: to set a single roi name, determine if
+            # labels or descriptions should be used.
+            roi_labels = [x.roi_name[0] for x in self.stacks]
+            roi_descriptions = [x.roi_name[1] for x in self.stacks]
+            if len(set(roi_labels)) < len(set(roi_descriptions)):
+                use_roi_labels = False
+
         else:
-            available_stacks = [x for x in self.stacks if x.roi_name in provided_roi_names]
+            available_stacks = [x for x in self.stacks if any(name in provided_roi_names for name in x.roi_name)]
             if len(available_stacks) == 0:
                 warnings.warn(
                     f"The current SEG file did not contain any of the required ROIs. "
@@ -91,9 +97,20 @@ class MaskDicomFileSEG(ImageDicomMultiFrame, MaskDicomFile):
             stack.update_image_data()
             stack.set_object_metadata()
 
+            if provided_roi_names is not None:
+                roi_name = [name for name in provided_roi_names if name in stack.roi_name][0]
+            elif use_roi_labels:
+                roi_name = stack.roi_name[0]
+            else:
+                roi_name = stack.roi_name[1]
+
+            # Look-up in dictionary.
+            if isinstance(self.roi_name, dict):
+                roi_name = self.roi_name.get(roi_name)
+
             yield BaseMask(
                 sample_name=stack.sample_name,
-                roi_name=stack.roi_name,
+                roi_name=roi_name,
                 image_modality=stack.modality,
                 image_data=stack.image_data,
                 image_spacing=stack.image_spacing,
@@ -102,6 +119,7 @@ class MaskDicomFileSEG(ImageDicomMultiFrame, MaskDicomFile):
                 image_dimensions=stack.image_dimension,
                 metadata=stack.object_metadata
             )
+        return None
 
     def export_roi_labels(self):
 
@@ -112,8 +130,6 @@ class MaskDicomFileSEG(ImageDicomMultiFrame, MaskDicomFile):
             get_pydicom_meta_tag(dcm_seq=current_segment_sequence, tag=(0x0062, 0x0005), tag_type="str", default=None)
             for current_segment_sequence in self.image_metadata[(0x0062, 0x0002)]
         ]
-
-        n_labels = max([1, len(labels)])
 
         if len(labels) == 0:
             labels = [None]
@@ -177,17 +193,23 @@ class MaskDicomFileSEGMultiFrameStack(ImageDicomMultiFrameStack, MaskDicomFile):
         ]
 
         # Find the roi name for the segment sequence element that corresponds to this stack.
-        roi_name = [
-            get_pydicom_meta_tag(
-                dcm_seq=x,
-                tag=(0x0062, 0x0006),
-                tag_type="str"
-            )
-            for ii, x in enumerate(segment_sequence)
-            if segment_number[ii] == self.stack_id
-        ]
+        roi_name = None
+        for ii, x in enumerate(segment_sequence):
+            if segment_number[ii] == self.stack_id:
+                roi_label = get_pydicom_meta_tag(
+                    dcm_seq=x,
+                    tag=(0x0062, 0x0005),
+                    tag_type="str"
+                )
+                roi_description = get_pydicom_meta_tag(
+                    dcm_seq=x,
+                    tag=(0x0062, 0x0006),
+                    tag_type="str"
+                )
 
-        self.roi_name = roi_name[0]
+                roi_name = [roi_label, roi_description]
+
+        self.roi_name = roi_name
 
 
 class MaskDicomFileSEGMultiFrameIndividual(ImageDicomMultiFrameIndividual, MaskDicomFileSEGMultiFrameStack):
