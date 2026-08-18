@@ -463,10 +463,6 @@ class ImageDicomFile(ImageFile):
                 f"The image file could not be found at the expected location: {self.file_path}. "
                 f"[{self.describe_self()}]")
 
-        from mirp._data_import.dicom_file_ct import ImageDicomFileCT
-        if include_image and not isinstance(self, ImageDicomFileCT):
-            pass
-
         if limited:
             dcm = dcmread(
                 self.file_path,
