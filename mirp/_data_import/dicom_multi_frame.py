@@ -95,6 +95,8 @@ class ImageDicomMultiFrame(ImageDicomFile):
         if self.stacks is None:
             raise ValueError(f"Stacks of a multiframe DICOM object cannot be empty. {self.describe_self()}")
 
+        self.load_metadata(limited=False, include_image=True)
+
         for stack in self.stacks:
             for substack in stack.create_real_world_unit_stacks(**kwargs):
                 substack.load_data(**kwargs)
