@@ -17,14 +17,14 @@ def test_single_image_import(tmp_path):
         os.path.join(CURRENT_DIR, "data", "sts_images_raw", "STS_001", "MR_T1_nifti", "image.nii.gz")
     )
 
-    image_1 = read_image(image=image_list[0])
+    image_1 = read_image(image=image_list[0])[0]
     image_1.write(dir_path=tmp_path, file_name="test_image", file_format="nifti")
 
     test_image_path = os.path.join(tmp_path, "test_image.nii.gz")
     assert os.path.exists(test_image_path)
 
     image_list = import_image(test_image_path)
-    image_2 = read_image(image=image_list[0])
+    image_2 = read_image(image=image_list[0])[0]
 
     assert np.allclose(image_1.image_orientation, image_2.image_orientation)
 

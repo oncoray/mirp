@@ -3,7 +3,7 @@ import warnings
 import numpy as np
 import pandas as pd
 import copy
-from typing import Any, Self
+from typing import Any, Self, Generator
 from pathlib import Path
 
 from mirp._images.generic_image import GenericImage
@@ -65,8 +65,8 @@ class BaseMask:
         if self.roi_morphology is not None:
             self.roi_morphology.remove_metadata(force=force)
 
-    def to_object(self, **kwargs):
-        return self.copy()
+    def to_object(self, **kwargs) -> Generator[Self, None, None]:
+        yield self.copy()
 
     def promote(self, **kwargs):
         return self

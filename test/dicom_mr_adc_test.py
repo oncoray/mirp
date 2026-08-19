@@ -14,6 +14,7 @@ def test_basic_adc_mr_feature_extraction():
         export_features=True,
         write_images=False,
         export_images=True,
+        adc_conversion="um2/s",
         image_export_format="native",
         image=os.path.join(CURRENT_DIR, "data", "adc_images_pm_dicom4qi", "data_1", "image.dcm"),
         base_feature_families="statistics"
@@ -33,6 +34,7 @@ def test_basic_adc_mr_feature_extraction():
         export_features=True,
         write_images=False,
         export_images=True,
+        adc_conversion="um2/s",
         image_export_format="native",
         image=os.path.join(CURRENT_DIR, "data", "adc_images_mr", "SCAN_001", "adc_image"),
         base_feature_families="statistics"

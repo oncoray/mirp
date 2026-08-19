@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.data_import.import_image_and_mask &mdash; mirp 2.6.0 documentation</title>
+  <title>mirp.data_import.import_image_and_mask &mdash; mirp 2.7.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ae39cb24"></script>
+      <script src="../../../_static/documentation_options.js?v=dfec817d"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -423,9 +423,12 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">image_dir_path</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">mask_dir_path</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">possible_strategies</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;file_distance&quot;</span><span class="p">)</span>
 
+    <span class="c1"># matching on file_name_similarity is currently not implemented</span>
+    <span class="n">possible_strategies</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;file_name_similarity&quot;</span><span class="p">)</span>
+
     <span class="c1"># Check if file_name_similarity is possible. If file names are absent, this is not possible.</span>
-    <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">get_file_name</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">get_file_name</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">mask_list</span><span class="p">):</span>
-        <span class="n">possible_strategies</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;file_name_similarity&quot;</span><span class="p">)</span>
+    <span class="c1"># if all(image.get_file_name() is None for image in image_list) or all(mask.get_file_name() is None for mask in mask_list):</span>
+    <span class="c1">#     possible_strategies.remove(&quot;file_name_similarity&quot;)</span>
 
     <span class="c1"># Check if position can be used.</span>
     <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">get_image_origin</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">image</span> <span class="ow">in</span> <span class="n">image_list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">get_image_origin</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">mask</span> <span class="ow">in</span> <span class="n">mask_list</span><span class="p">):</span>

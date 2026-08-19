@@ -1,9 +1,9 @@
 import copy
 import warnings
-
-import numpy as np
 import pydicom
+import numpy as np
 
+from typing import Generator
 from mirp._data_import.mask_contour import ContourClass
 from mirp.data_import.import_image import ImageFile
 from mirp._data_import.dicom_file import MaskDicomFile
@@ -28,13 +28,13 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
     def create(self):
         return self
 
-    def _complete_image_origin(self, force=False, frame_id=None):
+    def _complete_image_origin(self, force=False):
         return
 
-    def _complete_image_orientation(self, force=False, frame_id=None):
+    def _complete_image_orientation(self, force=False):
         return
 
-    def _complete_image_spacing(self, force=False, frame_id=None):
+    def _complete_image_spacing(self, force=False):
         return
 
     def _complete_image_dimensions(self, force=False):
@@ -105,7 +105,7 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             self,
             image: None | ImageFile,
             **kwargs
-    ) -> list[BaseMask] | None:
+    ) -> Generator[None | BaseMask, None, None] | None:
 
         if image is None:
             raise TypeError(
@@ -119,8 +119,6 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
         self.set_object_metadata()
         if not self.check_mask():
             return None
-
-        mask_list = []
 
         # Find which roi numbers (3006,0022) are associated with which roi names (3004,0024).
         roi_name_present = [
@@ -213,24 +211,17 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             if isinstance(self.roi_name, dict):
                 current_roi_name = self.roi_name.get(current_roi_name)
 
-            mask_list += [
-                BaseMask(
-                    roi_name=current_roi_name,
-                    sample_name=self.sample_name,
-                    image_modality=self.modality,
-                    image_data=temp_mask_object.image_data,
-                    image_spacing=temp_mask_object.image_spacing,
-                    image_origin=temp_mask_object.image_origin,
-                    image_orientation=temp_mask_object.image_orientation,
-                    image_dimensions=temp_mask_object.image_dimension,
-                    metadata=self.object_metadata
-                )
-            ]
-
-        if len(mask_list) == 0:
-            return None
-
-        return mask_list
+            yield BaseMask(
+                roi_name=current_roi_name,
+                sample_name=self.sample_name,
+                image_modality=self.modality,
+                image_data=temp_mask_object.image_data,
+                image_spacing=temp_mask_object.image_spacing,
+                image_origin=temp_mask_object.image_origin,
+                image_orientation=temp_mask_object.image_orientation,
+                image_dimensions=temp_mask_object.image_dimension,
+                metadata=self.object_metadata
+            )
 
     def _convert_contour_using_image(
             self,
@@ -497,9 +488,32 @@ class MaskDicomFileRTSTRUCT(MaskDicomFile):
             # Determine sample spacing. Note that because of unitary sample spacing during conversion from world space
             # to voxel space, the image spacing corresponds directly to world coordinates, e.g. a 1.0 voxel step in any
             # direction is a translation of 1.0 in world space in physical units.
-            mask_z_spacing = np.min(np.diff(np.unique(np.vstack(contours)[:, 0])))
+
+            # Use image spacing for x and y, because we will interpolate to this spacing anyway.
             mask_y_spacing = image.image_spacing[1]
             mask_x_spacing = image.image_spacing[2]
+
+            # For the slice direction, this is bit more complicated, because the RTSTRUCT may have its own slice
+            # spacing that is different from the associated image. Use the image spacing by default (only used if
+            # all contours are contained in a single slice).
+            mask_z_spacing = image.image_spacing[0]
+
+            # Find unique spacing, allowing for rounding errors. Only differences > 0.0 are of interest.
+            temporary_z_spacing = np.unique(np.around(np.diff(np.unique(np.vstack(contours)[:, 0])), 3))
+            temporary_z_spacing = temporary_z_spacing[temporary_z_spacing > 0.0]
+            if len(temporary_z_spacing) > 0:
+                # Try to estimate the mask spacing based on the height from the origin of the most distal contour. This
+                # should give a good estimate of the actual slice spacing.
+                temporary_z_origin = np.min(np.unique(np.vstack(contours)[:, 0]))
+                temporary_z_height = np.max(np.unique(np.vstack(contours)[:, 0])) - temporary_z_origin
+                temporary_z_dimension = np.rint(temporary_z_height / np.min(temporary_z_spacing)) + 1.0
+                mask_z_spacing = temporary_z_height / (temporary_z_dimension - 1.0)
+
+                # Use image spacing if the obtained spacing is very similar.
+                if np.around(mask_z_spacing - image.image_spacing[0], 3) == 0.0:
+                    mask_z_spacing = image.image_spacing[0]
+
+            # Set spacing.
             mask_spacing = tuple([mask_z_spacing, mask_y_spacing, mask_x_spacing])
 
             # Determine origin. This is the translation with regard to the current origin in voxel space. This value is

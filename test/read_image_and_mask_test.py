@@ -24,7 +24,7 @@ def test_read_itk_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -36,7 +36,7 @@ def test_read_itk_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -48,7 +48,7 @@ def test_read_itk_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 0
 
     # Multiple roi names of which one is present.
@@ -59,7 +59,7 @@ def test_read_itk_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -71,7 +71,7 @@ def test_read_itk_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0], to_numpy=False)
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "gtv"
@@ -86,7 +86,7 @@ def test_read_numpy_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -98,7 +98,7 @@ def test_read_numpy_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -110,7 +110,7 @@ def test_read_numpy_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 0
 
     # Multiple roi names of which one is present.
@@ -121,7 +121,7 @@ def test_read_numpy_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -133,7 +133,7 @@ def test_read_numpy_image_and_mask():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "gtv"
@@ -149,7 +149,7 @@ def test_read_numpy_image_and_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -161,7 +161,7 @@ def test_read_numpy_image_and_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -173,7 +173,7 @@ def test_read_numpy_image_and_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 0
 
     # Multiple roi names of which one is present.
@@ -184,7 +184,7 @@ def test_read_numpy_image_and_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -196,7 +196,7 @@ def test_read_numpy_image_and_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "gtv"
@@ -220,7 +220,7 @@ def test_read_numpy_image_and_mask_online():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -237,7 +237,7 @@ def test_read_numpy_image_and_mask_online():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
 
@@ -251,7 +251,7 @@ def test_read_dicom_image_and_rtstruct_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_CT"
@@ -264,7 +264,7 @@ def test_read_dicom_image_and_rtstruct_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_CT"
@@ -277,7 +277,7 @@ def test_read_dicom_image_and_rtstruct_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 0
 
     # Multiple roi names of which one is present.
@@ -288,7 +288,7 @@ def test_read_dicom_image_and_rtstruct_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_CT"
@@ -301,7 +301,7 @@ def test_read_dicom_image_and_rtstruct_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, GenericImage)
+    assert isinstance(image[0], GenericImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "gtv"
@@ -316,7 +316,7 @@ def test_read_dicom_image_and_seg_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 6
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert any(roi.roi_name == "Liver" for roi in roi_list)
@@ -329,7 +329,7 @@ def test_read_dicom_image_and_seg_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "Liver"
@@ -342,7 +342,7 @@ def test_read_dicom_image_and_seg_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 0
 
     # Multiple roi names of which one is present.
@@ -353,7 +353,7 @@ def test_read_dicom_image_and_seg_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "Liver"
@@ -366,11 +366,11 @@ def test_read_dicom_image_and_seg_mask_stack():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 2
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
-    assert roi_list[0].roi_name == "lesion_1"
-    assert roi_list[1].roi_name == "lesion_2"
+    assert any(x.roi_name == "lesion_1" for x in roi_list)
+    assert any(x.roi_name == "lesion_2" for x in roi_list)
 
 
 @pytest.mark.ci
@@ -382,7 +382,7 @@ def test_read_dicom_image_and_mask_modality_specific():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_CT"
@@ -394,7 +394,7 @@ def test_read_dicom_image_and_mask_modality_specific():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, PETImage)
+    assert isinstance(image[0], PETImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_PET"
@@ -406,7 +406,7 @@ def test_read_dicom_image_and_mask_modality_specific():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, MRImage)
+    assert isinstance(image[0], MRImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_MR_T1"
@@ -416,8 +416,8 @@ def test_read_dicom_image_and_mask_modality_specific():
         image=os.path.join(CURRENT_DIR, "data", "adc_images_pm_dicom4qi", "data_1", "image.dcm")
     )
 
-    image, roi_list = read_image_and_masks(image_list[0])
-    assert isinstance(image, MRADCImage)
+    image, roi_list = read_image_and_masks(image=image_list[0])
+    assert isinstance(image[0], MRADCImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "full_image_mask"
@@ -433,7 +433,7 @@ def test_read_generic_image_and_mask_modality_specific():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "region_1"
@@ -446,7 +446,7 @@ def test_read_generic_image_and_mask_modality_specific():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, PETImage)
+    assert isinstance(image[0], PETImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "region_1"
@@ -459,7 +459,7 @@ def test_read_generic_image_and_mask_modality_specific():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, MRImage)
+    assert isinstance(image[0], MRImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "region_1"
@@ -489,7 +489,7 @@ def test_read_dicom_image_and_mask_data_xml(tmp_path):
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, PETImage)
+    assert isinstance(image[0], PETImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "GTV_Mass_PET"
@@ -507,7 +507,7 @@ def test_non_dicom_mask_naming():
     )
 
     image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 1
     assert all(isinstance(roi, BaseMask) for roi in roi_list)
     assert roi_list[0].roi_name == "region_1"
@@ -525,5 +525,5 @@ def test_non_dicom_mask_naming():
 
     with pytest.warns(UserWarning, match="No regions of interest were formed."):
         image, roi_list = read_image_and_masks(image=image_list[0])
-    assert isinstance(image, CTImage)
+    assert isinstance(image[0], CTImage)
     assert len(roi_list) == 0

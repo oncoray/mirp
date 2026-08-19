@@ -6,7 +6,6 @@ import datetime
 from typing import Any
 
 from mirp._data_import.dicom_file import ImageDicomFile
-from mirp._data_import.dicom_multi_frame import ImageDicomMultiFrame
 from mirp._data_import.utilities import parse_image_correction, convert_dicom_time, get_pydicom_meta_tag
 
 
@@ -328,6 +327,14 @@ class ImageDicomFilePT(ImageDicomFile):
             # Update image intensities.
             image_data *= gml_factor * suv_factor
 
+            # Update real_world_unit
+            if pet_suv_conversion == "body_surface_area":
+                self.real_world_unit = "cm2/ml[body_surface_area]"
+            else:
+                self.real_world_unit = "g/ml[" + pet_suv_conversion + "]"
+        else:
+            self.real_world_unit = self._get_pet_unit()
+
         # Set image_data attribute.
         self.image_data = image_data
 
@@ -335,7 +342,7 @@ class ImageDicomFilePT(ImageDicomFile):
         """To compute SUV, PET units need to be converted to BQML."""
         self.load_metadata()
 
-        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        pet_unit = self._get_pet_unit()
         if pet_unit is None:
             raise ValueError(f"PET Units (0x0054, 0x1001) was missing. [{self.describe_self()}]")
 
@@ -351,7 +358,7 @@ class ImageDicomFilePT(ImageDicomFile):
             conversion_factor = self._pet_unit_gml_to_gml()
         else:
             raise NotImplementedError(
-                f"Conversion factor for converting {pet_unit} to BQML is not implemented. [{self.describe_self()}]"
+                f"Conversion factor for converting {pet_unit} to g/ml is not implemented. [{self.describe_self()}]"
             )
 
         return conversion_factor
@@ -379,14 +386,21 @@ class ImageDicomFilePT(ImageDicomFile):
         ssf = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x7053, 0x1000), tag_type="float")
 
         if acsf is None and ssf is None:
-            # Pathway 1: ACSF and SSF are both missing -> not a Philips scan.
+            # Pathway 1: ACSF and SSF are both missing -> not a Philips scan. This pathway is currently untested and
+            # will raise an error.
+
+            raise ValueError(
+                f"Cannot convert CPS units to GML. Philips activity concentration scale factor (7053, "
+                f"1009: {acsf}) or SUV scale factor (7053, 1000: {ssf}) attributes may have been set incorrectly."
+            )
 
             # Get frame duration in seconds.
-            frame_duration = self._get_frame_duration(to_seconds=True)
+            # frame_duration = self._get_frame_duration(to_seconds=True)
 
             # If we integrate counts per second over the frame duration, we get counts. Internally conversion goes
             # CNTS -> CPS -> BQML. Thus, CPS units need to be multiplied by the frame duration to arrive at CNTS.
-            return self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start) * frame_duration
+            # return self._pet_unit_cps_to_gml(autocorrect_administration_start=autocorrect_administration_start) *
+            # frame_duration
 
         elif acsf is not None and acsf > 0.0:
             # Pathway 2: Using activity concentration scale factor. ACSF converts CPS to BQML.
@@ -455,7 +469,15 @@ class ImageDicomFilePT(ImageDicomFile):
                 # Prioritise private tages.
                 time_start = time_acq_private
 
-            elif manufacturer in ["siemens", "philips"] and time_series != time_acq:
+            elif manufacturer in ["ge"] and time_series != time_acq:
+                # Assume that something is wrong with the series time, and try to back-correct for GE-specific PET
+                # images.
+                time_frame_ref = self._get_frame_reference_time()
+                time_start = time_acq - time_frame_ref
+
+            elif time_series != time_acq:
+                # Assume that something is wrong with the series time, and try back-correct to the frame-reference time
+                # first. This pathway is generic, and applies to Philips and Siemens scans too.
                 frame_duration = self._get_frame_duration(to_seconds=True)
                 time_frame_ref = self._get_frame_reference_time()
 
@@ -465,12 +487,15 @@ class ImageDicomFilePT(ImageDicomFile):
                 )
                 time_start = time_acq + datetime.timedelta(seconds=time_avg) - time_frame_ref
 
-            elif manufacturer in ["ge"] and time_series != time_acq:
-                time_frame_ref = self._get_frame_reference_time()
-                time_start = time_acq - time_frame_ref
-
             else:
                 time_start = time_acq
+
+            # Correct administration time.
+            time_adm = self._correct_administration_time(
+                time_adm=time_adm,
+                time_start=time_start,
+                autocorrect_administration_start=autocorrect_administration_start
+            )
 
             # Compute time between reference and administration.
             time_diff_ref_adm = time_start - time_adm
@@ -569,9 +594,7 @@ class ImageDicomFilePT(ImageDicomFile):
 
         # Require patient biological sex.
         patient_biological_sex = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0010, 0x0040), tag_type="str")
-        if patient_biological_sex is None:
-            patient_biological_sex = "o"
-        if patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
+        if patient_biological_sex is None or patient_biological_sex.lower() not in ["m", "f", "w", "o", "d", "u"]:
             raise ValueError(
                 f"Patient Sex (0x0010, 0x0040) was not recognised ({patient_biological_sex}. SUV normalisation "
                 f"({suv_type}) is not possible. [{self.describe_self()}]"
@@ -720,6 +743,19 @@ class ImageDicomFilePT(ImageDicomFile):
         )
 
         if admin_ref_time is not None:
+            # RPST+
+
+            # Check half-life to check plausibility.
+            half_life = self._get_half_life()
+
+            if half_life >= 41400.0:
+                raise ValueError(
+                    f"Radiopharmaceutical Start DateTime (0x0018, 0x1078) was missing. Radiopharmaceutical Start Time"
+                    f"was found instead (0x0018, 0x1072). However, the corresponding date cannot be "
+                    f"plausibly determined due to long-living radiotracer (half-life {half_life} > 41400s). "
+                    f"{self.describe_self()}"
+                )
+
             # Infer start date.
             acquisition_start_time = self._get_acquisition_start_time()
             admin_ref_time = datetime.datetime(
@@ -753,6 +789,83 @@ class ImageDicomFilePT(ImageDicomFile):
         raise ValueError(
            f"Radiopharmaceutical start time cannot be determined from DICOM metadata. [{self.describe_self()}]"
         )
+
+    def _correct_administration_time(
+            self,
+            time_adm: datetime.datetime,
+            time_start: datetime.datetime,
+            autocorrect_administration_start=True
+    ) -> datetime.datetime:
+        half_life = self._get_half_life()
+
+        # Check administration time for plausibility.
+        if time_adm > time_start:
+            # Administration AFTER start of acquisition (only plausible for dynamic scans -- time difference
+            # should be marginal).
+            if time_adm - time_start > datetime.timedelta(seconds=3600.0) and autocorrect_administration_start:
+                if half_life > 41400.0:
+                    # Cannot plausibly autocorrect administration or start time.
+                    raise ValueError(
+                        f"Administration time {time_adm} was after acquisition start time {time_start}. "
+                        f"However, the corresponding date cannot be updated due to long-living radiotracer ("
+                        f"half-life {half_life} > 41400s). "
+                        f"If administration and acquisition times are correct, please use "
+                        f"pet_autocorrect_administration_start=False as input argument. "
+                        f"[{self.describe_self()}]"
+                    )
+
+                original_time_adm = copy.deepcopy(time_adm)
+
+                # Update the administration date to that of the start date, but check plausibility.
+                time_adm = time_adm.replace(year=time_start.year, month=time_start.month, day=time_start.day)
+                if time_start - time_adm < datetime.timedelta(seconds=-3600.0):
+                    # If acquisition now starts more than 3600 seconds prior to administration, assume an overnight
+                    # situation.
+                    time_adm -= datetime.timedelta(days=1)
+
+                warnings.warn(
+                    f"Radiopharmaceutical administration start date and time ({original_time_adm}) was after "
+                    f"the acquisition start time ({time_start}). This was corrected to "
+                    f"{time_adm}. If the original administration start time and acquisition "
+                    f"start time were correct, please use pet_autocorrect_administration_start=False as input "
+                    f"argument. [{self.describe_self()}]",
+                    UserWarning
+                )
+
+        else:
+            # Administration time BEFORE start of acquisition (test plausibility of uptake time).
+            if time_start - time_adm > datetime.timedelta(seconds=2.0 * half_life) and autocorrect_administration_start:
+                # Not plausible: at the moment of acquisition, there is not much dose left.
+                if half_life > 41400.0:
+                    # Cannot plausibly autocorrect administration or start time.
+                    raise ValueError(
+                        f"Administration time {time_adm} occurred long (> 2 half-lives) before acquisition start "
+                        f"time {time_start}. However, the corresponding date cannot be accurately updated due to "
+                        f"long-living radiotracer (half-life {half_life} > 41400s). "
+                        f"If administration and acquisition times are correct, please use "
+                        f"pet_autocorrect_administration_start=False as input argument. "
+                        f"[{self.describe_self()}]"
+                    )
+
+                original_time_adm = copy.deepcopy(time_adm)
+
+                # Update the administration date to that of the start date, but check plausibility.
+                time_adm = time_adm.replace(year=time_start.year, month=time_start.month, day=time_start.day)
+                if time_start - time_adm < datetime.timedelta(seconds=-3600.0):
+                    # If acquisition now starts more than 3600 seconds prior to administration, assume an overnight
+                    # situation.
+                    time_adm -= datetime.timedelta(days=1)
+
+                warnings.warn(
+                    f"Administration time {original_time_adm} occurred long (> 2 half-lives) before acquisition "
+                    f"start time {time_start}. This was corrected to {time_adm}. "
+                    f"If the original administration start time and acquisition start time were correct, "
+                    f"please use pet_autocorrect_administration_start=False as input argument. "
+                    f"[{self.describe_self()}]",
+                    UserWarning
+                )
+
+        return time_adm
 
     def _get_decay_correction(self) -> "str":
         # Type of decay correction that is used
@@ -868,6 +981,10 @@ class ImageDicomFilePT(ImageDicomFile):
 
         return patient_weight
 
+    def _get_pet_unit(self) -> str:
+        pet_unit = get_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x0054, 0x1001), tag_type="str")
+        return pet_unit
+
     def _get_series_time(self) -> datetime.datetime:
         # Standard DICOM: Fall back to Series Date and Series Time
         series_start_date = get_pydicom_meta_tag(
@@ -906,8 +1023,3 @@ class ImageDicomFilePT(ImageDicomFile):
             voxel_volume /= 1000.0
 
         return voxel_volume
-
-
-class ImageDicomFilePTMultiFrame(ImageDicomMultiFrame, ImageDicomFilePT):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)

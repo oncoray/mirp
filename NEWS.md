@@ -1,3 +1,23 @@
+# Version 2.7.0
+
+## Additions
+
+- Formalised support for MultiFrame DICOM, with enhanced PET and enhanced MR DICOM tested.
+- An `adc_conversion` configuration parameter was added to facilitate unit conversion for apparent diffusion 
+  coefficient maps.
+
+## Changes
+
+- Added plausibility on half-life when trying to align radiopharmaceutical start time with the reference time for 
+  computing SUV.
+- Added generic-vendor pathway for computing SUV values.
+- Added plausibility checks to deal with (partial) anonymisation of reference times.
+
+## Fixes
+
+- Improved handling of DICOM Date, Time and DateTime values. Variable-length fractional time, null components and 
+  the presence of timezone information is now correctly handled.
+
 # Version 2.6.0
 
 ## Changes

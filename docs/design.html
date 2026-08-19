@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>General design &mdash; mirp 2.6.0 documentation</title>
+  <title>General design &mdash; mirp 2.7.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=ae39cb24"></script>
+      <script src="_static/documentation_options.js?v=dfec817d"></script>
       <script src="_static/doctools.js?v=fd6eb6e6"></script>
       <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -191,8 +191,9 @@ filters should there be a need.</p>
 <h2>Internal image representation<a class="headerlink" href="#internal-image-representation" title="Link to this heading"></a></h2>
 <p>All internal image representations derive from <cite>_images.generic_image.GenericImage</cite>, which implements general methods.
 These objects are created by the <cite>read_image</cite> and <cite>read_image_and_masks</cite> functions, that process <cite>ImageFile</cite> objects by
-first converting them to the internal format using <cite>ImageFile.to_object</cite> (or override methods of subclasses),
-and then promoting them to the correct image modality-specific subclass using the <cite>GenericImage.promote</cite> method.</p>
+first converting them to the internal format using the <cite>ImageFile.to_object</cite> generator method(or override methods of
+subclasses), and then promoting them to the correct image modality-specific subclass using the <cite>GenericImage.promote</cite>
+method.</p>
 <p>These modality-specific subclasses allow for implementing modality-specific processing steps and parameters. For example,
 bias-field correction is only implemented for <cite>MRImage</cite> objects. As another example, subclasses such as <cite>CTImage</cite>
 override the <cite>get_default_lowest_intensity</cite> method to provide modality-specific default values.</p>

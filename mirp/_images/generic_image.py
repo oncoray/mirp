@@ -77,6 +77,7 @@ class GenericImage(BaseImage):
         self.image_dimension = copy.deepcopy(template.image_dimension)
         self.sample_name = copy.deepcopy(template.sample_name)
         self.object_metadata = copy.deepcopy(template.object_metadata)
+        self.real_world_unit = copy.deepcopy(template.real_world_unit)
 
         # Attributes from GenericImage
         self.separate_slices = template.separate_slices
@@ -128,6 +129,9 @@ class GenericImage(BaseImage):
         image.update_from_template(template=self)
 
         return image
+
+    def complete(self):
+        return
 
     def get_slices(
             self,
@@ -1597,6 +1601,10 @@ class GenericImage(BaseImage):
         # Modality
         if self.modality is not None:
             attributes += [("modality", self.modality)]
+
+        # Real world unit
+        if self.real_world_unit is not None:
+            attributes += [("measured_unit", self.real_world_unit)]
 
         # Rotation
         if self.rotation_angle is None:

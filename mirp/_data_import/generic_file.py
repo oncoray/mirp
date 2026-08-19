@@ -9,7 +9,7 @@ import warnings
 
 import numpy as np
 
-from typing import Any, Self
+from typing import Any, Self, Generator
 
 from mirp._images.base_image import BaseImage
 from mirp._images.generic_image import GenericImage
@@ -68,6 +68,7 @@ class ImageFile(BaseImage):
         # Add metadata
         self.image_metadata = None
         self.is_limited_metadata = False
+        self.has_pixel_data = False
 
         # Attempt to set the file name, if this is not externally provided.
         if isinstance(file_path, str) and file_name is None:
@@ -160,7 +161,7 @@ class ImageFile(BaseImage):
 
         # Match on file name similarity. The image is matched against the most similar mask.
         if "file_name_similarity" in association_strategy and self.file_name is not None:
-            ...
+            raise NotImplementedError("Matching images using file name similarity is currently not supported.")
 
         return
 
@@ -676,6 +677,9 @@ class ImageFile(BaseImage):
         # Check if the complete data passes verification.
         self.check(raise_error=True, remove_metadata=False)
 
+        # Update real-world unit.
+        self._update_real_world_unit()
+
         # Remove metadata. This allows file connections to be garbage collected.
         if remove_metadata:
             self.remove_metadata()
@@ -699,19 +703,19 @@ class ImageFile(BaseImage):
             else:
                 self.sample_name = None
 
-    def _complete_image_origin(self, force=False, frame_id: None | int = None):
+    def _complete_image_origin(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_origin. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_orientation(self, force=False, frame_id: None | int = None):
+    def _complete_image_orientation(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_orientation. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_spacing(self, force=False, frame_id: None | int = None):
+    def _complete_image_spacing(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_sample_spacing. Please specify "
             f"implementation for subclasses."
@@ -821,7 +825,7 @@ class ImageFile(BaseImage):
 
             self.image_spacing = tuple(image_spacing)
 
-    def to_object(self, **kwargs) -> GenericImage:
+    def to_object(self, **kwargs) -> Generator[GenericImage, None, None]:
 
         self.load_data(**kwargs)
         self.complete()
@@ -829,7 +833,7 @@ class ImageFile(BaseImage):
         self.update_image_data()
         self.set_object_metadata()
 
-        return GenericImage(
+        yield GenericImage(
             sample_name=self.sample_name,
             image_modality=self.modality,
             image_data=self.image_data,
@@ -837,8 +841,19 @@ class ImageFile(BaseImage):
             image_origin=self.image_origin,
             image_orientation=self.image_orientation,
             image_dimensions=self.image_dimension,
-            metadata=self.object_metadata
+            metadata=self.object_metadata,
+            real_world_unit=self.real_world_unit
         )
+
+    def _set_real_world_unit(self, x):
+        # Sets real_world_unit.
+        if x is not None:
+            self.real_world_unit = x
+
+    def _update_real_world_unit(self):
+        # This method is a placeholder for subclasses. It enables updating the real_world_unit attribute which
+        # is later passed to image objects.
+        pass
 
     def set_object_metadata(self):
         """
@@ -970,19 +985,19 @@ class MaskFile(ImageFile):
         if self.modality is None:
             self.modality = "generic_mask"
 
-    def _complete_image_origin(self, force=False, frame_id=None):
+    def _complete_image_origin(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_origin. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_orientation(self, force=False, frame_id=None):
+    def _complete_image_orientation(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_orientation. Please specify "
             f"implementation for subclasses."
         )
 
-    def _complete_image_spacing(self, force=False, frame_id=None):
+    def _complete_image_spacing(self, force=False):
         raise NotImplementedError(
             f"DEV: There is (intentionally) no generic implementation of _complete_image_spacing. Please specify "
             f"implementation for subclasses."
@@ -1125,7 +1140,7 @@ class MaskFile(ImageFile):
 
         return True
 
-    def to_object(self, **kwargs) -> None | list[BaseMask]:
+    def to_object(self, **kwargs) -> Generator[None | BaseMask, None, None] | None:
 
         self.load_data()
         self.complete()
@@ -1134,7 +1149,6 @@ class MaskFile(ImageFile):
         self.set_object_metadata()
         self.check_mask(raise_error=True)
 
-        mask_list = []
         if np.issubdtype(self.image_data.dtype, bool):
             if not np.any(self.image_data):
                 return None
@@ -1166,19 +1180,17 @@ class MaskFile(ImageFile):
             else:
                 roi_name = "region_1"
 
-            mask_list += [
-                BaseMask(
-                    roi_name=roi_name,
-                    sample_name=self.sample_name,
-                    image_modality=self.modality,
-                    image_data=self.image_data,
-                    image_spacing=self.image_spacing,
-                    image_origin=self.image_origin,
-                    image_orientation=self.image_orientation,
-                    image_dimensions=self.image_dimension,
-                    metadata=self.object_metadata
-                )
-            ]
+            yield BaseMask(
+                roi_name=roi_name,
+                sample_name=self.sample_name,
+                image_modality=self.modality,
+                image_data=self.image_data,
+                image_spacing=self.image_spacing,
+                image_origin=self.image_origin,
+                image_orientation=self.image_orientation,
+                image_dimensions=self.image_dimension,
+                metadata=self.object_metadata
+            )
 
         else:
 
@@ -1228,21 +1240,17 @@ class MaskFile(ImageFile):
                 else:
                     roi_name = "region_" + str(current_label)
 
-                mask_list += [
-                    BaseMask(
-                        roi_name=roi_name,
-                        sample_name=self.sample_name,
-                        image_modality=self.modality,
-                        image_data=self.image_data == current_label,
-                        image_spacing=self.image_spacing,
-                        image_origin=self.image_origin,
-                        image_orientation=self.image_orientation,
-                        image_dimensions=self.image_dimension,
-                        metadata=self.object_metadata
-                    )
-                ]
-
-        return mask_list
+                yield BaseMask(
+                    roi_name=roi_name,
+                    sample_name=self.sample_name,
+                    image_modality=self.modality,
+                    image_data=self.image_data == current_label,
+                    image_spacing=self.image_spacing,
+                    image_origin=self.image_origin,
+                    image_orientation=self.image_orientation,
+                    image_dimensions=self.image_dimension,
+                    metadata=self.object_metadata
+                )
 
     def export_metadata(self) -> dict[str, Any]:
         return super().export_metadata()
@@ -1280,7 +1288,7 @@ class MaskFullImage(MaskFile):
             self,
             image: None | ImageFile,
             **kwargs
-    ) -> None | list[BaseMask]:
+    ) -> Generator[None | BaseMask, None, None] | None:
         if image is None:
             raise TypeError(
                 f"Creation of a full image mask requires that the corresponding image is set. "
@@ -1291,7 +1299,7 @@ class MaskFullImage(MaskFile):
 
         self._complete_modality()
 
-        return [BaseMask(
+        yield BaseMask(
             roi_name=self.roi_name,
             sample_name=image.sample_name,
             image_modality=self.modality,
@@ -1301,4 +1309,4 @@ class MaskFullImage(MaskFile):
             image_orientation=image.image_orientation,
             image_dimensions=image.image_dimension,
             metadata=self.object_metadata
-        )]
+        )

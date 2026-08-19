@@ -12,7 +12,7 @@ def test_dicom_segmentation_mask():
     image, seg_mask = extract_images(
         image=os.path.join(CURRENT_DIR, "data", "ct_images_seg_nsclc", "LUNG1-001", "image"),
         mask=os.path.join(CURRENT_DIR, "data", "ct_images_seg_nsclc", "LUNG1-001", "mask_seg"),
-        roi_name="Neoplasm, Primary",
+        roi_name="GTV-1",
         image_export_format="native"
     )[0]
     image: CTImage = image[0]

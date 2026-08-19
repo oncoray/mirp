@@ -29,6 +29,7 @@ def test_orientation():
     )
 
     image = read_image(image=image_list[0])
+    image = image[0]
 
     # Assert minimum and maximum values in the voxel grid.
     assert np.min(image.get_voxel_grid()) == 0.0

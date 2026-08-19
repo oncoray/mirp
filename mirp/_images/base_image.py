@@ -2,7 +2,7 @@ import copy
 import warnings
 import numpy as np
 
-from typing import Self
+from typing import Self, Generator
 
 
 class BaseImage:
@@ -15,6 +15,7 @@ class BaseImage:
             image_orientation: None | np.ndarray = None,
             image_spacing: None | tuple[float, ...] = None,
             image_dimensions: None | tuple[int, ...] = None,
+            real_world_unit: None | str = None,
             separate_slices: None | bool = None,
             metadata: None | dict[str, str] = None,
             **kwargs
@@ -57,6 +58,9 @@ class BaseImage:
 
         # Determines whether slices in the stack should be treated separately.
         self.separate_slices = separate_slices
+
+        # Set the real world unit.
+        self.real_world_unit = real_world_unit
 
     def copy(self, drop_image=False) -> Self:
         image = copy.deepcopy(self)
@@ -186,9 +190,9 @@ class BaseImage:
         problem_list = []
         # Mismatch in grid dimension
         if not np.array_equal(self.get_image_dimension(), mask.get_image_dimension()):
-                problem_list += [
-                    f"different dimensions: \n\t\timage: {self.get_image_dimension()}\n\t\tmask: {mask.get_image_dimension()}"
-                ]
+            problem_list += [
+                f"different dimensions: \n\t\timage: {self.get_image_dimension()}\n\t\tmask: {mask.get_image_dimension()}"
+            ]
 
         # Mismatch in origin
         if not np.allclose(self.get_image_origin(), mask.get_image_origin()):
@@ -216,13 +220,13 @@ class BaseImage:
                 UserWarning
             )
 
-    def to_object(self, **kwargs):
+    def to_object(self, **kwargs) -> Generator[Self, None, None]:
         image = self.copy()
 
         # Drop associated masks.
         image.associated_masks = None
 
-        return image
+        yield image
 
     def promote(self, **kwargs):
         return self

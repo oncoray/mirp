@@ -56,7 +56,8 @@ MIRP currently supports the following image and mask types:
 | numpy       | any       | any                                             |
 | MIRP-native | any       | any                                             | 
 
-NIfTI, NRRD, and numpy files support any kind of (single-channel) image. MIRP cannot process RGB or 4D images. 
+NIfTI, NRRD, and numpy files support any kind of (single-channel) image. MIRP cannot process RGB or 4D images.
+MIRP provisionally supports Multiframe DICOM, with Enhanced PET and Enhanced MR tested more extensively.
 MIRP-native images and masks can be produced by functions such as `extract_images`, and then used as input. 
 
 ## Installing MIRP

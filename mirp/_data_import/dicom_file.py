@@ -1,4 +1,3 @@
-import datetime
 import os.path
 import hashlib
 import numpy as np
@@ -8,6 +7,7 @@ from typing import Any, Self
 from pydicom import dcmread
 from warnings import warn
 from copy import deepcopy
+from datetime import datetime
 
 from mirp._data_import.generic_file import ImageFile, MaskFile
 from mirp._data_import.utilities import supported_image_modalities, stacking_dicom_image_modalities, \
@@ -129,6 +129,15 @@ class ImageDicomFile(ImageFile):
                         return False
 
                 return True
+            else:
+                if raise_error:
+                    raise ValueError(
+                        f"The current DICOM file lacks any sample name to match against. "
+                        f"Expected identifiers: {', '.join(allowed_sample_name)}. "
+                        f"[{self.describe_self()}]"
+                    )
+                else:
+                    return False
         else:
             return True
 
@@ -158,6 +167,21 @@ class ImageDicomFile(ImageFile):
         if modality is None:
             raise TypeError(f"Modality attribute could not be obtained from DICOM file. [{self.describe_self()}]")
 
+        # Pass to ImageDicomMultiFrame methods.
+        if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9299)) or \
+                has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9230)):
+            file_class = ImageDicomMultiFrame
+
+            # Instantiate subclass, and update using current object.
+            # Modality is updated here to reflect the choices made above.
+            image = file_class()
+            image.update_from_template(template=self)
+            image.modality = modality
+            image = image.create()
+
+            return image
+
+        # ADC and DCE are determined from legacy DICOM tags for any ImageDicomFIle (not multi-frame)
         if modality == "mr" and self._check_is_mr_adc():
             modality = "adc"
         if modality == "mr" and self._check_is_mr_dce():
@@ -185,19 +209,11 @@ class ImageDicomFile(ImageFile):
             # This will return a base class, which will fail to pass the modality check.
             return None
 
-        if has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9299)) or \
-                has_pydicom_meta_tag(dcm_seq=self.image_metadata, tag=(0x5200, 0x9230)):
-            file_class = ImageDicomMultiFrame
-
         # Instantiate subclass, and update using current object.
         # Modality is updated here to reflect the choices made above.
         image = file_class()
         image.update_from_template(template=self)
         image.modality = modality
-
-        # Multi-frame images need additional work.
-        if isinstance(image, ImageDicomMultiFrame):
-            image = image.create()
 
         return image
 
@@ -220,9 +236,11 @@ class ImageDicomFile(ImageFile):
         self.image_orientation = deepcopy(template.image_orientation)
         self.image_spacing = deepcopy(template.image_spacing)
         self.image_dimension = deepcopy(template.image_dimension)
+        self.real_world_unit = deepcopy(template.real_world_unit)
         self.frame_of_reference_uid = deepcopy(template.frame_of_reference_uid)
         self.image_metadata = template.image_metadata
         self.is_limited_metadata = deepcopy(template.is_limited_metadata)
+        self.has_pixel_data = deepcopy(template.has_pixel_data)
         self.series_instance_uid = deepcopy(template.series_instance_uid)
         self.sop_instance_uid = deepcopy(template.sop_instance_uid)
         self.associated_masks = template.associated_masks
@@ -303,7 +321,7 @@ class ImageDicomFile(ImageFile):
                 else:
                     self.sample_name = None
 
-    def _complete_image_origin(self, force=False, frame_id=None):
+    def _complete_image_origin(self, force=False):
         if self.image_origin is None:
             # Origin needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
@@ -316,12 +334,11 @@ class ImageDicomFile(ImageFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0032),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0020, 0x9113),
-                frame_id=frame_id
+                macro_dcm_seq=(0x0020, 0x9113)
             )[::-1]
             self.image_origin = tuple(origin)
 
-    def _complete_image_orientation(self, force=False, frame_id=None):
+    def _complete_image_orientation(self, force=False):
         if self.image_orientation is None:
             # Orientation needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
@@ -333,9 +350,7 @@ class ImageDicomFile(ImageFile):
             orientation: list[float] = get_pydicom_meta_tag(
                 dcm_seq=self.image_metadata,
                 tag=(0x0020, 0x0037),
-                tag_type="mult_float",
-                macro_dcm_seq=(0x0020, 0x9116),
-                frame_id=frame_id
+                tag_type="mult_float"
             )
 
             # First compute z-orientation.
@@ -343,7 +358,7 @@ class ImageDicomFile(ImageFile):
             orientation += list(np.cross(orientation[0:3], orientation[3:6]))
             self.image_orientation = np.reshape(orientation[::-1], [3, 3], order="F")
 
-    def _complete_image_spacing(self, force=False, frame_id=None):
+    def _complete_image_spacing(self, force=False):
         if self.image_spacing is None:
             # Image spacing needs to be determined at the stack-level for slice-based dicom, not for each slice.
             if self.modality in stacking_dicom_image_modalities() and not force:
@@ -357,8 +372,6 @@ class ImageDicomFile(ImageFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0028, 0x0030),
                 tag_type="mult_float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
             )
 
             # First try to get spacing between slices.
@@ -366,8 +379,6 @@ class ImageDicomFile(ImageFile):
                 dcm_seq=self.image_metadata,
                 tag=(0x0018, 0x0088),
                 tag_type="float",
-                macro_dcm_seq=(0x0028, 0x9110),
-                frame_id=frame_id
             )
 
             # If spacing between slices is not set, get slice thickness.
@@ -376,8 +387,6 @@ class ImageDicomFile(ImageFile):
                     dcm_seq=self.image_metadata,
                     tag=(0x0018, 0x0050),
                     tag_type="float",
-                    macro_dcm_seq=(0x0028, 0x9110),
-                    frame_id=frame_id
                 )
 
             # If slice thickness is not set, use a default value.
@@ -418,7 +427,7 @@ class ImageDicomFile(ImageFile):
             mask_list,
             association_strategy=None):
         if mask_list is None or len(mask_list) == 0 or association_strategy is None:
-            return None
+            return
 
         # Match on frame of reference UID:
         if "frame_of_reference" in association_strategy and self.frame_of_reference_uid is not None:
@@ -431,18 +440,22 @@ class ImageDicomFile(ImageFile):
                 self.associated_masks = matching_mask_list
                 return
 
-        return super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
+        super().associate_with_mask(mask_list=mask_list, association_strategy=association_strategy)
 
     def load_metadata(self, limited=False, include_image=False):
         if include_image:
             limited = False
 
-        # Limited metadata exists and limited metadata is sufficient.
-        if self.image_metadata is not None and self.is_limited_metadata and limited:
+        # Any metadata exists and limited metadata is sufficient.
+        if self.image_metadata is not None and limited:
             return
 
-        # A full image metadata set exists.
-        if self.image_metadata is not None and not self.is_limited_metadata:
+        # Full metadata exists, and pixel data is not required.
+        if self.image_metadata is not None and not self.is_limited_metadata and not include_image:
+            return
+
+        # Full metadata exists including pixel data.
+        if self.image_metadata is not None and include_image and self.has_pixel_data:
             return
 
         if self.file_path is None or not os.path.exists(self.file_path):
@@ -466,6 +479,7 @@ class ImageDicomFile(ImageFile):
 
         self.image_metadata = dcm
         self.is_limited_metadata = limited
+        self.has_pixel_data = include_image
 
     def load_data(self, **kwargs):
         raise NotImplementedError(
@@ -555,84 +569,26 @@ class ImageDicomFile(ImageFile):
 
     def _check_is_mr_adc(self):
         # Check for ADC images. ADC can sometimes by identified the ADC value in the Image Type (0008,0008) tag,
-        # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be
-        # DIFFUSION].
         image_type = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        frame_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
-        )
-        alt_frame_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0040, 0x9092),
-            frame_id=0
-        )
-        acquisition_contrast = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9209),
-            tag_type="str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
-        )
 
         if image_type is not None and any(x.lower() == "adc" for x in image_type):
-            return True
-        elif frame_type is not None and any(x.lower() == "adc" for x in frame_type):
-            return True
-        elif alt_frame_type is not None and any(x.lower() == "adc" for x in alt_frame_type):
-            return True
-        elif acquisition_contrast is not None and acquisition_contrast.lower() == "adc":
             return True
 
         return False
 
     def _check_is_mr_dce(self):
-        # Check for DCE images. DCE can sometimes by identified the DCE value in the Image Type (0008,0008) tag,
-        # the frame type tag (0008, 9007) or acquisition contrast (0008, 9209) [though this typically should be
-        # DIFFUSION].
+        # Check for DCE images. DCE can sometimes by identified the DCE value in the Image Type (0008,0008) tag.
         image_type = get_pydicom_meta_tag(
             dcm_seq=self.image_metadata,
             tag=(0x0008, 0x0008),
             tag_type="mult_str"
         )
-        frame_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
-        )
-        alt_frame_type = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9007),
-            tag_type="mult_str",
-            macro_dcm_seq=(0x0040, 0x9092),
-            frame_id=0
-        )
-        acquisition_contrast = get_pydicom_meta_tag(
-            dcm_seq=self.image_metadata,
-            tag=(0x0008, 0x9209),
-            tag_type="str",
-            macro_dcm_seq=(0x0018, 0x9226),
-            frame_id=0
-        )
 
         if image_type is not None and any(x.lower() == "dce" for x in image_type):
-            return True
-        elif frame_type is not None and any(x.lower() == "dce" for x in frame_type):
-            return True
-        elif alt_frame_type is not None and any(x.lower() == "dce" for x in alt_frame_type):
-            return True
-        elif acquisition_contrast is not None and acquisition_contrast.lower() == "dce":
             return True
 
         return False
@@ -665,7 +621,7 @@ class ImageDicomFile(ImageFile):
             (0x5200, 0x9230)   # per-frame functional groups sequence
         ]
 
-    def _get_acquisition_start_time(self, private_only=False) -> None | datetime.datetime:
+    def _get_acquisition_start_time(self, private_only=False) -> None | datetime:
         self.load_metadata()
 
         # Try private GE Acquisition DateTime (0x0009, 0x100d).
@@ -820,7 +776,7 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
             dir_path=self.dir_path,
             sample_name=self.sample_name,
             file_name=self.file_name,
-            image_modality=self.modality,
+            image_modality=modality,
             image_name=self.image_name,
             image_file_type=self.file_type,
             image_data=self.image_data,
@@ -834,6 +790,9 @@ class MaskDicomFile(ImageDicomFile, MaskFile):
         # Set metadata of mask.
         mask.image_metadata = self.image_metadata
         mask.is_limited_metadata = self.is_limited_metadata
+        mask.has_pixel_data = self.has_pixel_data
+
+        mask = mask.create()
 
         return mask
 

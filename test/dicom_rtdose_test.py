@@ -27,8 +27,8 @@ def test_basic_rtdose_feature_extraction():
     mask = data[0][2][0]
 
     assert len(feature_data) == 1
-    assert np.around(feature_data["stat_max"].values[0], 0) == 74.0
-    assert np.around(feature_data["stat_min"].values[0], 0) == 7.0
+    assert np.around(feature_data["stat_max"].values[0], 1) == 74.2
+    assert np.around(feature_data["stat_min"].values[0], 1) == 9.1
 
     assert isinstance(image, RTDoseImage)
     assert isinstance(mask, BaseMask)

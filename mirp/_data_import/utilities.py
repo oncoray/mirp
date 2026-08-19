@@ -7,8 +7,11 @@ from os.path import split
 
 import numpy as np
 import pydicom
-from pydicom import FileDataset, Dataset, datadict
+from pydicom import FileDataset, Dataset, datadict, DataElement
+from pydicom.multival import MultiValue
 from pydicom.tag import Tag
+
+
 def lookup_modality(modality: None | str) -> list[str]:
     modalities = []
     try:
@@ -415,6 +418,10 @@ def convert_dicom_time(
     """
     Converts DICOM date, time or datetime string to a datetime.datetime object to facilitate use in Python.
 
+    .. note::
+        MIRP currently assumes that all times in a given object are in the same locale: (optional) timezone information
+        is discarded.
+
     Parameters
     ----------
     datetime_str: str, optional
@@ -431,22 +438,56 @@ def convert_dicom_time(
     datetime.datetime
     """
 
-    if datetime_str is None and (date_str is None or time_str is None):
-        # No reference time can be established
-        ref_time = None
+    ref_time = None
 
-    elif datetime_str is not None:
+    # Default values for components that are allowed to be null according to the DICOM standard. Any further components
+    # are then automatically null as well.
+    month = 1
+    day = 1
+    hour = 0
+    minute = 0
+    second = 0
+    microsecond = 0
+
+    if datetime_str is not None:
         # Single datetime string provided
+        # DICOM:                YYYYMMDDHHMMSS.FFFFFF&ZZXX
+        # year:         0:4     ^^^^
+        # month:        4:6         ^^
+        # day:          6:8           ^^
+        # DICOM:                YYYYMMDDHHMMSS.FFFFFF&ZZXX
+        # hour:         8:10            ^^
+        # minute:       10:12             ^^
+        # second:       12:14               ^^
+        # microsecond:  15:21                 .^^^^^^       Optional: always starts with ".", between 1 and 6 digits.
+        # DICOM:                YYYYMMDDHHMMSS.FFFFFF&ZZXX
+        # timezone:     21:26                        ^^^^^  Optional.
         year = int(datetime_str[0:4])
-        month = int(datetime_str[4:6])
-        day = int(datetime_str[6:8])
-        hour = int(datetime_str[8:10])
-        minute = int(datetime_str[10:12])
-        second = int(datetime_str[12:14])
-        if len(datetime_str) > 14:
-            microsecond = int(round(float(datetime_str[14:]) * 1000))
-        else:
-            microsecond = 0
+        if len(datetime_str) >= 6 and datetime_str[4].isdigit():
+            month = int(datetime_str[4:6])
+            if len(datetime_str) >= 8 and datetime_str[6].isdigit():
+                day = int(datetime_str[6:8])
+                if len(datetime_str) >= 10 and datetime_str[8].isdigit():
+                    hour = int(datetime_str[8:10])
+                    if len(datetime_str) >= 12 and datetime_str[10].isdigit():
+                        minute = int(datetime_str[10:12])
+                        if len(datetime_str) >= 14 and datetime_str[12].isdigit():
+                            second = int(datetime_str[12:14])
+                            if len(datetime_str) > 14:
+                                if datetime_str[14] == ".":
+                                    # Check that the "." is present. If not, this likely is a timezone indicator instead. According to the
+                                    # DICOM standard, fractional seconds are always preceded a ".". However, this part of the string
+                                    # can have between 1 and 6 digits.
+                                    microsec_str = ""
+                                    ii = 15
+                                    while ii < 21 and ii < len(datetime_str):
+                                        if datetime_str[ii].isdigit():
+                                            microsec_str += datetime_str[ii]
+                                            ii += 1
+                                        else:
+                                            break
+
+                                    microsecond = int(microsec_str) * 10 ** (6 - len(microsec_str))
 
         ref_time = datetime.datetime(
             year=year,
@@ -458,18 +499,43 @@ def convert_dicom_time(
             microsecond=microsecond
         )
 
-    else:
+    elif date_str is not None and time_str is not None:
         # Separate date and time strings provided
+        # DICOM:     YYYYMMDD
+        # year:  0:4 ^^^^
+        # month: 4:6     ^^
+        # day:   6:8       ^^
         year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
+        if len(date_str) >= 6 and date_str[4].isdigit():
+            month = int(date_str[4:6])
+            if len(date_str) >= 8 and date_str[6].isdigit():
+                day = int(date_str[6:8])
+
+        # DICOM:                HHMMSS.FFFFFF
+        # hour:         0:2     ^^
+        # minute:       2:4       ^^
+        # second:       4:6         ^^
+        # microsecond:  7:13          .^^^^^^  Optional: always starts with ".", between 1 and 6 digits.
         hour = int(time_str[0:2])
-        minute = int(time_str[2:4])
-        second = int(time_str[4:6])
-        if len(time_str) > 6:
-            microsecond = int(round(float(time_str[6:]) * 1000))
-        else:
-            microsecond = 0
+        if len(time_str) >= 4 and time_str[2].isdigit():
+            minute = int(time_str[2:4])
+            if len(time_str) >= 6 and time_str[4].isdigit():
+                second = int(time_str[4:6])
+                if len(time_str) > 6:
+                    if time_str[6] == ".":
+                        # Check that the "." is present. If not, this likely is a timezone indicator instead. According to the
+                        # DICOM standard, fractional seconds are always preceded a ".". However, this part of the string
+                        # can have between 1 and 6 digits.
+                        microsec_str = ""
+                        ii = 7
+                        while ii < 13 and ii < len(time_str):
+                            if time_str[ii].isdigit():
+                                microsec_str += time_str[ii]
+                                ii += 1
+                            else:
+                                break
+
+                        microsecond = int(microsec_str) * 10 ** (6 - len(microsec_str))
 
         ref_time = datetime.datetime(
             year=year,
@@ -485,12 +551,11 @@ def convert_dicom_time(
 
 
 def get_pydicom_meta_tag(
-        dcm_seq: pydicom.Dataset,
+        dcm_seq: pydicom.Dataset | pydicom.DataElement,
         tag: tuple[int, int],
         tag_type: None | str = None,
         default: Any = None,
-        macro_dcm_seq: None | tuple[int, int] = None,
-        frame_id: None | int = None,
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None,
         test_tag: bool = False
 ) -> Any:
     """
@@ -498,7 +563,7 @@ def get_pydicom_meta_tag(
 
     Parameters
     ----------
-    dcm_seq: pydicom.Dataset
+    dcm_seq: pydicom.Dataset, pydicom.DataElement
         DICOM sequence from which the parameter should be read.
 
     tag: tuple of hex
@@ -510,11 +575,9 @@ def get_pydicom_meta_tag(
     default: any, optional, default: None
         Default value to be used in absence of any value from the DICOM metadata.
 
-    macro_dcm_seq: tuple of hex
-        Hexadecimal value for the macro sequence within shared or per-frame functional groups.
-
-    frame_id: int
-        Index of the frame of interest for tags in per-frame functional groups.
+    macro_dcm_seq: tuple of hex or list of tuple of hex
+        Hexadecimal value for the macro sequence where the tag is nested. If the tag is nested, a list of
+        hexadecimal values can be provided. These can are then accessed in the provided order.
 
     test_tag: bool, optional, default: False
         Determine whether a tag exists.
@@ -532,47 +595,39 @@ def get_pydicom_meta_tag(
     while True:
         # Tags are searched in the following order:
         # 1. General header
-        # 2. Frame functional group (if frame id is provided).
-        # 3. Shared functional group
+        # 2. Within macros.
 
-        # Tag in general header
+        # Try to find the tag in the general header.
         try:
-            tag_value = dcm_seq[tag].value
+            if tag_type == "pydicom":
+                tag_value = dcm_seq[tag]
+            else:
+                tag_value = dcm_seq[tag].value
             break
         except KeyError:
             pass
 
-        # Tag in frame functional group [0x5200, 0x9230].
-        # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
-        # tags.
-        if frame_id is not None and macro_dcm_seq is not None:
-            try:
-                tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][macro_dcm_seq][0][tag].value
-                break
-            except KeyError:
-                pass
-        # If not found, test whether the tag is found in the general frame functional group instead of the macro
-        # sequence.
-        if frame_id is not None:
-            try:
-                tag_value = dcm_seq[(0x5200, 0x9230)][frame_id][tag].value
-                break
-            except KeyError:
-                pass
+        # Break if there is no macro sequence to search was provided.
+        if macro_dcm_seq is None:
+            if test_tag:
+                return False
+            break
 
-        # Tag in shared functional group [0x5200, 0x9229].
-        # First test in the macro sequence, if provided. By definition, these sequences only contain a single set of
-        # tags.
-        if macro_dcm_seq is not None:
+        # Package macro sequence hex tuple into list, if it is not a list already.
+        if not isinstance(macro_dcm_seq, list):
+            macro_dcm_seq = [macro_dcm_seq]
+
+        # Descend into the provided macro sequence.
+        dcm_sub_seq = dcm_seq
+        for macro_tag in macro_dcm_seq:
             try:
-                tag_value = dcm_seq[(0x5200, 0x9229)][0][macro_dcm_seq][0][tag].value
-                break
+                dcm_sub_seq = dcm_sub_seq[macro_tag][0]
             except KeyError:
-                pass
-        # If not found, test whether the tag is found in the general frame functional group instead of the macro
-        # sequence.
+                break
+
+        # Find the tag in the macro sequence.
         try:
-            tag_value = dcm_seq[(0x5200, 0x9229)][0][tag].value
+            tag_value = dcm_sub_seq[tag].value
             break
         except KeyError:
             pass
@@ -602,28 +657,39 @@ def get_pydicom_meta_tag(
         if tag_type == "str":
             tag_value = str(tag_value)
 
+        # Multiple strings
+        elif tag_type == "mult_str":
+            tag_value = list(tag_value)
+
         # Float
         elif tag_type == "float":
             tag_value = float(tag_value)
 
         # Multiple floats
         elif tag_type == "mult_float":
-            tag_value = [float(str_num) for str_num in tag_value]
+            if isinstance(tag_value, MultiValue) or isinstance(tag_value, list):
+                tag_value = [float(str_num) for str_num in tag_value]
+            else:
+                tag_value = [float(tag_value)]
 
         # Integer
         elif tag_type == "int":
             tag_value = int(tag_value)
 
-        # Multiple floats
+        # Multiple integers
         elif tag_type == "mult_int":
-            tag_value = [int(str_num) for str_num in tag_value]
+            if isinstance(tag_value, MultiValue) or isinstance(tag_value, list):
+                tag_value = [int(str_num) for str_num in tag_value]
+            else:
+                tag_value = [int(tag_value)]
 
         # Boolean
         elif tag_type == "bool":
             tag_value = bool(tag_value)
 
-        elif tag_type == "mult_str":
-            tag_value = list(tag_value)
+        # Sequences or pydicom-native objects.
+        elif tag_type == "pydicom":
+            pass
 
         else:
             raise ValueError(f"The tag type was not recognised: {tag_type}")
@@ -632,17 +698,15 @@ def get_pydicom_meta_tag(
 
 
 def has_pydicom_meta_tag(
-        dcm_seq: FileDataset | Dataset,
+        dcm_seq: FileDataset | Dataset | DataElement,
         tag: tuple[int, int],
-        macro_dcm_seq: None | tuple[int, int] = None,
-        frame_id: None | int = None
+        macro_dcm_seq: None | tuple[int, int] | list[tuple[int, int]] = None
 ) -> bool:
 
     return get_pydicom_meta_tag(
         dcm_seq=dcm_seq,
         tag=tag,
         macro_dcm_seq=macro_dcm_seq,
-        frame_id=frame_id,
         test_tag=True
     )
 
