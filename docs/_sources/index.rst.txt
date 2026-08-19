@@ -82,6 +82,7 @@ Supported image and mask modalities
      - any
 
 NIfTI, NRRD, and numpy files support any kind of (single-channel) image. MIRP cannot process RGB or 4D images.
+MIRP provisionally supports Multiframe DICOM, with Enhanced PET and Enhanced MR tested more extensively.
 
 Supported Python versions and operating systems
 -----------------------------------------------

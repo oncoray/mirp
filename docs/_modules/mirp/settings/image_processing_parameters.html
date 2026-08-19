@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.6.0 documentation</title>
+  <title>mirp.settings.image_processing_parameters &mdash; mirp 2.7.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=ae39cb24"></script>
+      <script src="../../../_static/documentation_options.js?v=dfec817d"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -160,6 +160,31 @@
 <span class="sd">    bias_field_convergence_threshold: float, optional, default: 0.001</span>
 <span class="sd">        Convergence threshold for N4 bias field correction algorithm.</span>
 
+<span class="sd">    adc_conversion: {&quot;mm2/s&quot;, &quot;um2/s&quot;, &quot;m2/s&quot;, &quot;cm2/s&quot;, &quot;none&quot;}, default: &quot;mm2/s&quot;</span>
+<span class="sd">        Intensity values in apparent diffusion coefficient (ADC) maps represent the measured diffusion in a voxel. This</span>
+<span class="sd">        is expressed using various values. MIRP can convert these values to have the same unit, and supports the</span>
+<span class="sd">        following:</span>
+
+<span class="sd">        * &quot;mm2/s&quot;: millimeters^2 per second (default)</span>
+<span class="sd">        * &quot;um2/s&quot;: micrometers^2 per second</span>
+<span class="sd">        * &quot;m2/s&quot;: meters^2 per second</span>
+<span class="sd">        * &quot;cm2/s&quot;: centimeters^2 per second</span>
+<span class="sd">        * &quot;none&quot;: units are kept as-is.</span>
+
+<span class="sd">        For ADC maps stored in DICOM MultiFrame objects, the unit of the stored intensities is derived from the</span>
+<span class="sd">        Code Value (0008,0100) in the Measurement Units Code Sequence (0040,08EA) of the Real World Value Mapping</span>
+<span class="sd">        Sequence (0040,9096).</span>
+
+<span class="sd">        For legacy DICOM format ADC maps, ADC is assumed to be stored as micrometers^2 per second.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Conversion of the units of ADC maps requires metadata only present in DICOM. MIRP cannot</span>
+<span class="sd">            convert ADC values from images in different formats, and this parameter will have no effect.</span>
+
+<span class="sd">        .. warning::</span>
+<span class="sd">            Conversion of legacy DICOM format ADC maps is done based on the convention that ADC values are stored there</span>
+<span class="sd">            as micrometers^2 per second. Legacy DICOM lacks metadata required to determine this directly.</span>
+
 <span class="sd">    pet_suv_conversion: {&quot;body_weight&quot;, &quot;body_surface_area&quot;, &quot;lean_body_mass&quot;, &quot;lean_body_mass_bmi&quot;, &quot;ideal_body_weight&quot;. &quot;none&quot;}, default: &quot;body_weight&quot;</span>
 <span class="sd">        Intensities in PET imaging are often stored as detected radiotracer activity. To make detected activity more</span>
 <span class="sd">        comparable between patients, these are converted to standardised uptake values. The following are possible:</span>
@@ -290,6 +315,7 @@
             <span class="n">bias_field_correction_n_fitting_levels</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
             <span class="n">bias_field_correction_n_max_iterations</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
             <span class="n">bias_field_convergence_threshold</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">,</span>
+            <span class="n">adc_conversion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mm2/s&quot;</span><span class="p">,</span>
             <span class="n">pet_suv_conversion</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;body_weight&quot;</span><span class="p">,</span>
             <span class="n">pet_autocorrect_administration_start</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
             <span class="n">intensity_normalisation</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
@@ -473,6 +499,16 @@
 
         <span class="c1"># Set convergence_threshold attribute.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">convergence_threshold</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">bias_field_convergence_threshold</span>
+
+        <span class="c1"># Check that adc_conversion has the correct values.</span>
+        <span class="k">if</span> <span class="n">adc_conversion</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;mm2/s&quot;</span><span class="p">,</span> <span class="s2">&quot;um2/s&quot;</span><span class="p">,</span> <span class="s2">&quot;m2/s&quot;</span><span class="p">,</span> <span class="s2">&quot;cm2/s&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;The adc_conversion parameter should be one of &#39;mm2/s&#39;, &#39;um2/s&#39;, &#39;m2/s&#39;, &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;cm2/s&#39; or &#39;none&#39;. Found: </span><span class="si">{</span><span class="n">adc_conversion</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Set adc_conversion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">adc_conversion</span> <span class="o">=</span> <span class="n">adc_conversion</span>
 
         <span class="c1"># Check that pet_suv_conversion has the correct values.</span>
         <span class="k">if</span> <span class="n">pet_suv_conversion</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
@@ -741,6 +777,7 @@
             <span class="s2">&quot;bias_field_convergence_threshold&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span>
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;convergence_threshold&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mf">0.1</span>
         <span class="p">),</span>
+        <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;adc_conversion&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;pet_suv_conversion&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;suv_conversion_type&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;none&quot;</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;pet_autocorrect_administration_start&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span><span class="s2">&quot;intensity_normalisation&quot;</span><span class="p">,</span> <span class="s2">&quot;str&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="s2">&quot;relative_range&quot;</span><span class="p">),</span>
