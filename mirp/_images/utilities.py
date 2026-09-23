@@ -15,6 +15,7 @@ class InteractivePlot:  # pragma: no cover
             self,
             image: GenericImage,
             mask: MaskImage | BaseMask | None = None,
+            intensity_range: list[float | int ] | None = None,
             slice_id: int | None = None
     ):
 
@@ -60,10 +61,24 @@ class InteractivePlot:  # pragma: no cover
 
         # Set plotting options
         colour_map = image.get_colour_map()
-        min_intensity = image.get_default_lowest_intensity() if image.get_default_lowest_intensity() is not None else (
-            np.min(self.image_data))
-        max_intensity = image.get_default_upper_intensity() if image.get_default_upper_intensity() is not None else (
-            np.max(self.image_data))
+
+        # User-provided values.
+        min_intensity = max_intensity = None
+        if intensity_range is not None:
+            min_intensity = intensity_range[0]
+            max_intensity = intensity_range[1]
+
+        # Default values.
+        if min_intensity is None:
+            min_intensity = image.get_default_lowest_intensity()
+        if max_intensity is None:
+            max_intensity = image.get_default_upper_intensity()
+
+        # Image-based values
+        if min_intensity is None:
+            min_intensity = np.min(self.image_data)
+        if max_intensity is None:
+            max_intensity = np.max(self.image_data)
 
         # Create plot.
         self.image_layer = self.axes.imshow(
@@ -75,7 +90,7 @@ class InteractivePlot:  # pragma: no cover
 
         # Create mask.
         if show_mask:
-            from importlib_metadata import version
+            from importlib.metadata import version
             from packaging.version import Version
 
             # Define color map. The custom color map goes from transparent black to semi-transparent green and is

@@ -1,3 +1,11 @@
+# Version 2.7.1
+
+## Additions
+
+- The `show` method for image objects in their native format now has an `intensity_range` argument, which can be 
+  used to set the range of intensities shown in the interactive viewer. Such objects are returned by setting 
+  `image_export_format="native"` for `mirp.extract_images`, `mirp.extract_images_and_features` and similar functions.
+
 # Version 2.7.0
 
 ## Additions
