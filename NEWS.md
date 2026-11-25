@@ -9,6 +9,16 @@
 - The `roi_create_rim` replaces `roi_boundary_size` and allows for extending the mask (for positive values) to form the
   rim, or forming the rim internally from the boundary of a mask (for negative values).
 
+## Changes
+
+- `roi_boundary_size` has now been deprecated in favour of `roi_create_rim`.
+
+## Fixes
+
+- `roi_split_max_erosion` is now correctly passed to function that generates rim masks. Previously 
+  the similar `perturbation_roi_adapt_max_erosion` parameter was incorrectly passed, and `roi_split_max_erosion` did
+  not have any effect.
+
 # Version 2.7.0
 
 ## Additions
