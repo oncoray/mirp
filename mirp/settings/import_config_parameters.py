@@ -55,6 +55,19 @@ def create_settings_object(
             settings=get_mask_interpolation_settings()
         )
 
+        if (xml_tree.find("vol_adapt") is not None and
+            xml_tree.find("vol_adapt").find("roi_boundary_size") is not None
+        ) or (
+            xml_tree.find("image_perturbation") is not None and
+            xml_tree.find("image_perturbation").find("roi_boundary_size") is not None
+        ):
+            warnings.warn(
+                "The roi_boundary_size tag has been deprecated. Use the roi_create_rim tag instead. This takes "
+                "one or more numeric values. Positive values extend the region of interest outwards, whereas negative "
+                "values creates rims by eroding the region of interest inwards.",
+                DeprecationWarning
+            )
+
         # Perturbation settings
         update_settings_from_branch(
             kwargs=kwargs,

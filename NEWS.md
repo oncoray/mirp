@@ -6,6 +6,9 @@
   used to set the range of intensities shown in the interactive viewer. Such objects are returned by setting 
   `image_export_format="native"` for `mirp.extract_images`, `mirp.extract_images_and_features` and similar functions.
 
+- The `roi_create_rim` replaces `roi_boundary_size` and allows for extending the mask (for positive values) to form the
+  rim, or forming the rim internally from the boundary of a mask (for negative values).
+
 # Version 2.7.0
 
 ## Additions

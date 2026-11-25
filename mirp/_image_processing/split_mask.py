@@ -31,25 +31,48 @@ def split_masks(
             if boundary_size == 0.0:
                 continue
 
-            bulk_mask = mask.copy()
-            bulk_mask.roi_name += "_bulk_" + str(boundary_size)
+            elif boundary_size > 0.0:
+                boundary_mask = mask.copy()
+                boundary_mask.roi_name += "_boundary_" + str(boundary_size) + "_ext"
 
-            boundary_mask = mask.copy()
-            boundary_mask.roi_name += "_boundary_" + str(boundary_size)
+                temp_mask = mask.copy()
+                temp_mask.dilate(distance=boundary_size)
 
-            bulk_mask.erode(
-                distance=boundary_size,
-                max_eroded_volume_fraction=max_erosion
-            )
+                boundary_mask.roi.set_voxel_grid(voxel_grid=np.logical_xor(
+                    temp_mask.roi.get_voxel_grid(),
+                    mask.roi.get_voxel_grid()
+                ))
 
-            boundary_mask.roi.set_voxel_grid(voxel_grid=np.logical_xor(
-                mask.roi.get_voxel_grid(),
-                bulk_mask.roi.get_voxel_grid()
-            ))
+                if boundary_mask.roi.is_empty_mask():
+                    continue
 
-            if bulk_mask.roi.is_empty_mask() or boundary_mask.roi.is_empty_mask():
-                continue
+                new_masks += [boundary_mask]
 
-            new_masks += [bulk_mask, boundary_mask]
+            elif boundary_size < 0.0:
+                boundary_size = - boundary_size
+
+                bulk_mask = mask.copy()
+                bulk_mask.roi_name += "_bulk_" + str(boundary_size)
+
+                boundary_mask = mask.copy()
+                boundary_mask.roi_name += "_boundary_" + str(boundary_size)
+
+                bulk_mask.erode(
+                    distance=boundary_size,
+                    max_eroded_volume_fraction=max_erosion
+                )
+
+                boundary_mask.roi.set_voxel_grid(voxel_grid=np.logical_xor(
+                    mask.roi.get_voxel_grid(),
+                    bulk_mask.roi.get_voxel_grid()
+                ))
+
+                if bulk_mask.roi.is_empty_mask() or boundary_mask.roi.is_empty_mask():
+                    continue
+
+                new_masks += [bulk_mask, boundary_mask]
+
+            else:
+                raise ValueError("boundary_size must be finite")
 
     return new_masks

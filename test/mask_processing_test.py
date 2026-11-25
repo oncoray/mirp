@@ -121,13 +121,14 @@ def test_boundary_split():
     ii, jj = disk(center=(64, 64), radius=32)
     mask[0, ii, jj] = True
 
+    # Rim is part of the original mask.
     data = extract_images(
         image=image,
         mask=mask,
         write_images=False,
         export_images=True,
         by_slice=True,
-        roi_split_boundary_size=8.0
+        roi_create_rim=-8.0
     )
 
     masks = data[0][1]
@@ -137,3 +138,22 @@ def test_boundary_split():
     assert np.sum(masks[0]["mask"]) == np.sum(masks[1]["mask"]) + np.sum(masks[2]["mask"])
     # Assert that for the current settings, the bulk [1] is larger than the rim [2]
     assert np.sum(masks[1]["mask"]) > np.sum(masks[2]["mask"])
+
+    # Rim is not part of the original mask.
+    data = extract_images(
+        image=image,
+        mask=mask,
+        write_images=False,
+        export_images=True,
+        by_slice=True,
+        roi_create_rim=8.0
+    )
+
+    masks = data[0][1]
+
+    assert len(masks) == 2
+    # Assert that the rim [1] has no overlap with the original mask [0].
+    assert np.sum(np.logical_and(masks[0]["mask"], (masks[1]["mask"]))) == 0
+    # Assert that for the current settings, the area of the mask is between pi*(39.5^2 - 32.5^2) and
+    # pi*(40.5^2 - 31.5^2)
+    assert (39.5 ** 2.0 - 32.5 ** 2.0) < np.sum(masks[1]["mask"]) / np.pi < (40.5 ** 2.0 - 31.5 ** 2.0)
