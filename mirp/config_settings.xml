@@ -145,9 +145,11 @@
             <roi_adapt_max_erosion></roi_adapt_max_erosion>
             <!-- Supervoxel-based contour randomisation repetitions for image perturbation. Default: 0 -->
             <roi_random_rep></roi_random_rep>
-            <!-- Width of the rim used for splitting the mask into bulk and rim masks, in physical dimensions. Multiple values
-            can be provided to generate rims of different widths. -->
-            <roi_boundary_size></roi_boundary_size>
+            <!-- Width of the rim used for splitting the mask into bulk and rim masks or for extending the rim outwards,
+            in physical units. Multiple values can be provided to generate rims of different widths. Negative values
+            will grow the rim inward and create an additional bulk region of interest, whereas positive values will
+            extend the original mask outward to form  a rim. -->
+            <roi_create_rim></roi_create_rim>
             <!-- Determines the minimum volume of the bulk mask when splitting the original mask into bulk and rim sections.
             Fraction of the original volume, e.g. 0.6 means that the bulk contains at least 60% of the original mask.
              -->

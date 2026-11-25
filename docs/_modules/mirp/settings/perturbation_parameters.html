@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mirp.settings.perturbation_parameters &mdash; mirp 2.7.0 documentation</title>
+  <title>mirp.settings.perturbation_parameters &mdash; mirp 2.7.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../../_static/documentation_options.js?v=dfec817d"></script>
+      <script src="../../../_static/documentation_options.js?v=7b940564"></script>
       <script src="../../../_static/doctools.js?v=fd6eb6e6"></script>
       <script src="../../../_static/sphinx_highlight.js?v=6ffebe34"></script>
       <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
@@ -156,9 +156,11 @@
 <span class="sd">    perturbation_randomise_roi_repetitions: int, optional, default: 0.0</span>
 <span class="sd">        Number of repetitions where the mask is randomised using supervoxel-based randomisation.</span>
 
-<span class="sd">    roi_split_boundary_size: float or list of float, optional, default: 0.0</span>
-<span class="sd">        Width of the rim used for splitting the mask into bulk and rim masks, in physical dimensions. Multiple values</span>
-<span class="sd">        can be provided to generate rims of different widths.</span>
+<span class="sd">    roi_create_rim: float or list of float, optional, default: 0.0</span>
+<span class="sd">        Width of the rim used for splitting the mask into bulk and rim masks or for extending the rim outwards,</span>
+<span class="sd">        in physical units. Multiple values can be provided to generate rims of different widths. Negative values</span>
+<span class="sd">        will grow the rim inward and create an additional bulk region of interest, whereas positive values will</span>
+<span class="sd">        extend the original mask outward to form  a rim.</span>
 
 <span class="sd">    roi_split_max_erosion: float, optional, default: 0.6</span>
 <span class="sd">        Determines the minimum volume of the bulk mask when splitting the original mask into bulk and rim sections.</span>
@@ -180,7 +182,7 @@
             <span class="n">perturbation_roi_adapt_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="n">perturbation_roi_adapt_max_erosion</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">,</span>
             <span class="n">perturbation_randomise_roi_repetitions</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
-            <span class="n">roi_split_boundary_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
+            <span class="n">roi_create_rim</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span>
             <span class="n">roi_split_max_erosion</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.6</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span>
     <span class="p">):</span>
@@ -290,20 +292,16 @@
         <span class="c1"># Division of roi into bulk and boundary</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">max_bulk_volume_erosion</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">roi_split_max_erosion</span>
 
-        <span class="c1"># Convert roi_split_boundary_size to list, if necessary.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">roi_split_boundary_size</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">roi_split_boundary_size</span> <span class="o">=</span> <span class="p">[</span><span class="n">roi_split_boundary_size</span><span class="p">]</span>
+        <span class="c1"># Convert roi_create_rim to list, if necessary.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">roi_create_rim</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">and</span> <span class="n">roi_create_rim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">roi_create_rim</span> <span class="o">=</span> <span class="p">[</span><span class="n">roi_create_rim</span><span class="p">]</span>
 
         <span class="c1"># Check that the translation fractions are floating points.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">roi_split_boundary_size</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not all values for roi_split_boundary_size are floating point values.&quot;</span><span class="p">)</span>
-
-        <span class="c1"># Check that the translation fractions lie between 0.0 and 1.0.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">ii</span> <span class="o">&gt;=</span> <span class="mf">0.0</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">roi_split_boundary_size</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Not all values for roi_split_boundary_size are positive.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">roi_create_rim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">roi_create_rim</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Not all values for roi_create_rim are floating point values.&quot;</span><span class="p">)</span>
 
         <span class="c1"># Set roi_boundary_size.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">roi_boundary_size</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">roi_split_boundary_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">roi_boundary_size</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">roi_create_rim</span>
 
         <span class="c1"># Initially local variables</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">translate_x</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span>
@@ -348,7 +346,7 @@
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;roi_random_rep&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="mi">100</span>
         <span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span>
-            <span class="s2">&quot;roi_split_boundary_size&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;roi_boundary_size&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;roi_create_rim&quot;</span><span class="p">,</span> <span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="n">to_list</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">xml_key</span><span class="o">=</span><span class="s2">&quot;roi_create_rim&quot;</span><span class="p">,</span>
             <span class="n">class_key</span><span class="o">=</span><span class="s2">&quot;roi_boundary_size&quot;</span><span class="p">,</span> <span class="n">test</span><span class="o">=</span><span class="p">[</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]</span>
         <span class="p">),</span>
         <span class="n">setting_def</span><span class="p">(</span>

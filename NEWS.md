@@ -1,3 +1,24 @@
+# Version 2.7.1
+
+## Additions
+
+- The `show` method for image objects in their native format now has an `intensity_range` argument, which can be 
+  used to set the range of intensities shown in the interactive viewer. Such objects are returned by setting 
+  `image_export_format="native"` for `mirp.extract_images`, `mirp.extract_images_and_features` and similar functions.
+
+- The `roi_create_rim` replaces `roi_boundary_size` and allows for extending the mask (for positive values) to form the
+  rim, or forming the rim internally from the boundary of a mask (for negative values).
+
+## Changes
+
+- `roi_boundary_size` has now been deprecated in favour of `roi_create_rim`.
+
+## Fixes
+
+- `roi_split_max_erosion` is now correctly passed to function that generates rim masks. Previously 
+  the similar `perturbation_roi_adapt_max_erosion` parameter was incorrectly passed, and `roi_split_max_erosion` did
+  not have any effect.
+
 # Version 2.7.0
 
 ## Additions

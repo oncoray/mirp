@@ -60,9 +60,11 @@ class ImagePerturbationSettingsClass:
     perturbation_randomise_roi_repetitions: int, optional, default: 0.0
         Number of repetitions where the mask is randomised using supervoxel-based randomisation.
 
-    roi_split_boundary_size: float or list of float, optional, default: 0.0
-        Width of the rim used for splitting the mask into bulk and rim masks, in physical dimensions. Multiple values
-        can be provided to generate rims of different widths.
+    roi_create_rim: float or list of float, optional, default: 0.0
+        Width of the rim used for splitting the mask into bulk and rim masks or for extending the rim outwards,
+        in physical units. Multiple values can be provided to generate rims of different widths. Negative values
+        will grow the rim inward and create an additional bulk region of interest, whereas positive values will
+        extend the original mask outward to form  a rim.
 
     roi_split_max_erosion: float, optional, default: 0.6
         Determines the minimum volume of the bulk mask when splitting the original mask into bulk and rim sections.
@@ -84,7 +86,7 @@ class ImagePerturbationSettingsClass:
             perturbation_roi_adapt_size: None | float | list[float] = 0.0,
             perturbation_roi_adapt_max_erosion: float = 0.8,
             perturbation_randomise_roi_repetitions: int = 0,
-            roi_split_boundary_size: None | float | list[float] = 0.0,
+            roi_create_rim: None | float | list[float] = 0.0,
             roi_split_max_erosion: float = 0.6,
             **kwargs
     ):
@@ -194,20 +196,16 @@ class ImagePerturbationSettingsClass:
         # Division of roi into bulk and boundary
         self.max_bulk_volume_erosion: float = roi_split_max_erosion
 
-        # Convert roi_split_boundary_size to list, if necessary.
-        if not isinstance(roi_split_boundary_size, list):
-            roi_split_boundary_size = [roi_split_boundary_size]
+        # Convert roi_create_rim to list, if necessary.
+        if not isinstance(roi_create_rim, list) and roi_create_rim is not None:
+            roi_create_rim = [roi_create_rim]
 
         # Check that the translation fractions are floating points.
-        if not all(isinstance(ii, float) for ii in roi_split_boundary_size):
-            raise TypeError(f"Not all values for roi_split_boundary_size are floating point values.")
-
-        # Check that the translation fractions lie between 0.0 and 1.0.
-        if not all(ii >= 0.0 for ii in roi_split_boundary_size):
-            raise ValueError("Not all values for roi_split_boundary_size are positive.")
+        if roi_create_rim is not None and not all(isinstance(ii, float) for ii in roi_create_rim):
+            raise TypeError(f"Not all values for roi_create_rim are floating point values.")
 
         # Set roi_boundary_size.
-        self.roi_boundary_size: list[float] = roi_split_boundary_size
+        self.roi_boundary_size: None | list[float] = roi_create_rim
 
         # Initially local variables
         self.translate_x: None | float = None
@@ -251,7 +249,7 @@ def get_perturbation_settings() -> list[dict[str, Any]]:
             class_key="roi_random_rep", test=100
         ),
         setting_def(
-            "roi_split_boundary_size", "float", to_list=True, xml_key="roi_boundary_size",
+            "roi_create_rim", "float", to_list=True, xml_key="roi_create_rim",
             class_key="roi_boundary_size", test=[2.0, 5.0]
         ),
         setting_def(

@@ -185,7 +185,7 @@ class GenericImage(BaseImage):
     def update_separate_slices(self, x: bool):
         self.separate_slices = x
 
-    def show(self, mask=None, slice_id=None):  # pragma: no cover
+    def show(self, mask=None, slice_id=None, intensity_range=None):  # pragma: no cover
         import matplotlib.pyplot as plt
         from mirp._images.utilities import InteractivePlot
 
@@ -206,7 +206,8 @@ class GenericImage(BaseImage):
         tracker = InteractivePlot(
             image=self,
             mask=mask,
-            slice_id=slice_id
+            slice_id=slice_id,
+            intensity_range=intensity_range
         )
 
         plt.show()
